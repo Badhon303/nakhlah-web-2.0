@@ -9,42 +9,42 @@ export default function FollowersPage({ onBack }) {
       username: "@georgette", 
       avatar: "GS", 
       following: false,
-      color: "from-violet to-accent"
+      color: "from-accent to-accent"
     },
     { 
       name: "Maraldo Wriganton", 
       username: "@maraldo", 
       avatar: "MW", 
       following: true,
-      color: "from-primary to-palm-green"
+      color: "from-accent to-accent"
     },
     { 
       name: "Freida Varnes", 
       username: "@freida", 
       avatar: "FV", 
       following: false,
-      color: "from-palm-green to-accent"
+      color: "from-accent to-accent"
     },
     { 
       name: "Edgar Torrey", 
       username: "@edgar", 
       avatar: "ET", 
       following: true,
-      color: "from-accent to-violet"
+      color: "from-accent to-accent"
     },
     { 
       name: "Annabel Rohan", 
       username: "@annabel", 
       avatar: "AR", 
       following: true,
-      color: "from-primary to-accent"
+      color: "from-accent to-accent"
     },
     { 
       name: "Merrill Kervin", 
       username: "@merrill", 
       avatar: "MK", 
       following: false,
-      color: "from-violet to-primary"
+      color: "from-accent to-accent"
     },
   ];
 

@@ -52,7 +52,10 @@ export default function ProfileAndSettings() {
       case "find-friends":
         return <FindFriendsPage onBack={() => setActiveView("settings")} />;
       case "help-center":
-        return <HelpCenterPage onBack={() => setActiveView("settings")} onNavigateContact={() => setActiveView("contact-us")} />;
+        return <HelpCenterPage 
+          onBack={() => setActiveView("settings")} 
+          onNavigateContact={() => setActiveView("contact-us")} 
+        />;
       case "contact-us":
         return <ContactUsPage onBack={() => setActiveView("help-center")} />;
       case "general":

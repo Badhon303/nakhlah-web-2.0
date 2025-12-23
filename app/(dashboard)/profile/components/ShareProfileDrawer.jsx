@@ -33,35 +33,32 @@ export default function ShareProfileDrawer({ open, onClose }) {
             className="fixed inset-0 bg-black/50 z-40"
           />
 
-          {/* Mobile: Bottom drawer, Desktop: Right sidebar */}
+          {/* Drawer - Bottom on mobile, Right on desktop */}
           <motion.div
-            initial={{ 
+            initial={{
               y: "100%",
-              x: "0%" 
+              x: 0,
             }}
-            animate={{ 
+            animate={{
               y: 0,
-              x: 0 
+              x: 0,
             }}
-            exit={{ 
+            exit={{
               y: "100%",
-              x: "0%" 
+              x: 0,
             }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 lg:left-auto lg:right-0 lg:top-0 lg:bottom-0 
-                      lg:translate-x-full
-                      bg-card rounded-t-3xl lg:rounded-t-none lg:rounded-l-3xl 
-                      shadow-2xl z-50 max-h-[85vh] lg:max-h-none lg:h-screen
-                      lg:w-[400px] overflow-hidden"
+            className="fixed bottom-0 left-0 right-0 bg-card rounded-t-3xl shadow-2xl z-50 max-h-[85vh] overflow-hidden
+                       lg:hidden"
           >
             {/* Mobile Handle */}
-            <div className="lg:hidden flex justify-center pt-3 pb-2">
+            <div className="flex justify-center pt-3 pb-2">
               <div className="w-12 h-1.5 bg-muted rounded-full" />
             </div>
 
-            <div className="p-6 pb-8 lg:p-8 lg:pb-10 lg:h-full lg:overflow-y-auto">
+            <div className="p-6 pb-8">
               {/* Header */}
-              <div className="flex items-center justify-between mb-6 lg:mb-8">
+              <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-foreground">Share Profile</h2>
                 <button
                   onClick={onClose}
@@ -72,9 +69,9 @@ export default function ShareProfileDrawer({ open, onClose }) {
               </div>
 
               {/* Share Options */}
-              <div className="mb-6 lg:mb-8">
-                <h3 className="text-sm font-semibold text-muted-foreground mb-3 lg:mb-4">Share via</h3>
-                <div className="grid grid-cols-4 lg:grid-cols-2 gap-4 lg:gap-6">
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-muted-foreground mb-3">Share via</h3>
+                <div className="grid grid-cols-4 gap-4">
                   {shareOptions.map((option, index) => {
                     const IconComponent = option.icon;
                     return (
@@ -83,10 +80,10 @@ export default function ShareProfileDrawer({ open, onClose }) {
                         onClick={option.action}
                         className="flex flex-col items-center gap-2 group"
                       >
-                        <div className={`w-14 h-14 lg:w-16 lg:h-16 rounded-2xl ${option.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                          <IconComponent className="w-6 h-6 lg:w-7 lg:h-7 text-white" />
+                        <div className={`w-14 h-14 rounded-2xl ${option.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                          <IconComponent className="w-6 h-6 text-white" />
                         </div>
-                        <span className="text-xs lg:text-sm font-medium">{option.label}</span>
+                        <span className="text-xs font-medium">{option.label}</span>
                       </button>
                     );
                   })}
@@ -94,15 +91,95 @@ export default function ShareProfileDrawer({ open, onClose }) {
               </div>
 
               {/* Copy Link */}
-              <div className="space-y-3 lg:space-y-4">
+              <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-muted-foreground">Profile Link</h3>
-                <div className="flex flex-col lg:flex-row gap-2 lg:gap-3">
+                <div className="flex gap-2">
                   <div className="flex-1 px-4 py-3 bg-muted/30 rounded-xl border border-border text-sm text-muted-foreground truncate">
                     https://app.com/profile/andrew.ainsley
                   </div>
                   <Button
                     onClick={handleCopyLink}
-                    className={`px-4 lg:px-6 whitespace-nowrap ${
+                    className={`px-4 ${
+                      copied
+                        ? "bg-palm-green hover:bg-palm-green/90"
+                        : "bg-gradient-accent hover:bg-gradient-accent/90"
+                    } text-white transition-all`}
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-4 h-4 mr-2" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Desktop Right Sidebar */}
+          <motion.div
+            initial={{
+              x: "100%",
+            }}
+            animate={{
+              x: 0,
+            }}
+            exit={{
+              x: "100%",
+            }}
+            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            className="hidden lg:block fixed right-0 top-0 bottom-0 bg-card shadow-2xl z-50 w-[400px] overflow-y-auto"
+          >
+            <div className="p-8 h-full">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-bold text-foreground">Share Profile</h2>
+                <button
+                  onClick={onClose}
+                  className="w-10 h-10 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Share Options */}
+              <div className="mb-8">
+                <h3 className="text-sm font-semibold text-muted-foreground mb-4">Share via</h3>
+                <div className="grid grid-cols-2 gap-6">
+                  {shareOptions.map((option, index) => {
+                    const IconComponent = option.icon;
+                    return (
+                      <button
+                        key={index}
+                        onClick={option.action}
+                        className="flex flex-col items-center gap-2 group"
+                      >
+                        <div className={`w-16 h-16 rounded-2xl ${option.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                          <IconComponent className="w-7 h-7 text-white" />
+                        </div>
+                        <span className="text-sm font-medium">{option.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Copy Link */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-muted-foreground">Profile Link</h3>
+                <div className="flex flex-col gap-3">
+                  <div className="px-4 py-3 bg-muted/30 rounded-xl border border-border text-sm text-muted-foreground break-all">
+                    https://app.com/profile/andrew.ainsley
+                  </div>
+                  <Button
+                    onClick={handleCopyLink}
+                    className={`w-full ${
                       copied
                         ? "bg-palm-green hover:bg-palm-green/90"
                         : "bg-gradient-accent hover:bg-gradient-accent/90"

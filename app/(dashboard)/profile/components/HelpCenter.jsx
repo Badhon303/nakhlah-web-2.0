@@ -4,7 +4,6 @@ import { ChevronLeft, ChevronDown, Search } from "lucide-react";
 import { useState } from "react";
 
 export default function HelpCenterPage({ onBack, onNavigateContact }) {
-  const [activeTab, setActiveTab] = useState("faq");
   const [expandedFaq, setExpandedFaq] = useState(null);
 
   const categories = [
@@ -58,25 +57,16 @@ export default function HelpCenterPage({ onBack, onNavigateContact }) {
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs - Removed the onClick for Contact us to prevent navigation */}
         <div className="flex gap-4 mb-6">
-          <button
-            onClick={() => setActiveTab("faq")}
-            className={`px-4 py-2 rounded-lg font-medium transition-all ${
-              activeTab === "faq"
-                ? "bg-accent text-accent-foreground"
-                : "bg-muted/30 text-muted-foreground hover:bg-muted/50"
-            }`}
+          <div
+            className="px-4 py-2 rounded-lg font-medium bg-accent text-accent-foreground"
           >
             FAQ
-          </button>
+          </div>
           <button
             onClick={() => onNavigateContact && onNavigateContact()}
-            className={`px-4 py-2 rounded-lg font-medium transition-all ${
-              activeTab === "contact"
-                ? "bg-accent text-accent-foreground"
-                : "bg-muted/30 text-muted-foreground hover:bg-muted/50"
-            }`}
+            className="px-4 py-2 rounded-lg font-medium bg-muted/30 text-muted-foreground hover:bg-muted/50 transition-all"
           >
             Contact us
           </button>

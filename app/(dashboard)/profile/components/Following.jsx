@@ -8,31 +8,31 @@ export default function FollowingPage({ onBack }) {
       name: "Alfonso Schuessler", 
       username: "@alfonso", 
       avatar: "AS", 
-      color: "from-primary to-accent"
+      color: "from-accent to-accent"
     },
     { 
       name: "Jamee Eusebio", 
       username: "@jamee", 
       avatar: "JE", 
-      color: "from-violet to-palm-green"
+      color: "from-accent to-accent"
     },
     { 
       name: "Rosalie Ehrman", 
       username: "@rosalie", 
       avatar: "RE", 
-      color: "from-palm-green to-primary"
+      color: "from-accent to-accent"
     },
     { 
       name: "Sarah Mitchell", 
       username: "@sarah", 
       avatar: "SM", 
-      color: "from-accent to-violet"
+      color: "from-accent to-accent"
     },
     { 
       name: "John Davis", 
       username: "@john", 
       avatar: "JD", 
-      color: "from-primary to-palm-green"
+      color: "from-accent to-accent"
     },
   ];
 
