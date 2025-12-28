@@ -81,7 +81,7 @@ export default function ContactUsPage({ onBack }) {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.05 * index, duration: 0.3 }}
-                className="flex items-center gap-4 p-5 bg-muted/20 rounded-xl border border-border/30 hover:bg-muted/40 hover:border-accent/50 transition-all group"
+                className="flex items-center gap-4 p-5 bg-muted/20 rounded-xl border border-border/30 hover:bg-muted/50 hover:border-accent/50 transition-all group"
               >
                 <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${method.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
                   <IconComponent className="w-7 h-7 text-white" />

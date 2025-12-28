@@ -12,7 +12,7 @@ export default function SecuritySettingsPage({ onBack }) {
   });
 
   const toggleSecurity = (key) => {
-    setSecurity(prev => ({ ...prev, [key]: !prev[key] }));
+    setSecurity((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   return (
@@ -42,11 +42,11 @@ export default function SecuritySettingsPage({ onBack }) {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.05, duration: 0.3 }}
-            className="flex items-center justify-between p-4 hover:bg-muted/30 transition-all rounded-lg"
+            className="flex items-center justify-between p-4 hover:bg-muted/50 transition-all rounded-lg"
           >
             <span className="text-foreground font-medium">Remember me</span>
             <button
-              onClick={() => toggleSecurity('rememberMe')}
+              onClick={() => toggleSecurity("rememberMe")}
               className={`relative w-12 h-7 rounded-full transition-colors ${
                 security.rememberMe ? "bg-accent" : "bg-muted"
               }`}
@@ -63,11 +63,11 @@ export default function SecuritySettingsPage({ onBack }) {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1, duration: 0.3 }}
-            className="flex items-center justify-between p-4 hover:bg-muted/30 transition-all rounded-lg"
+            className="flex items-center justify-between p-4 hover:bg-muted/50 transition-all rounded-lg"
           >
             <span className="text-foreground font-medium">Biometric ID</span>
             <button
-              onClick={() => toggleSecurity('biometricId')}
+              onClick={() => toggleSecurity("biometricId")}
               className={`relative w-12 h-7 rounded-full transition-colors ${
                 security.biometricId ? "bg-accent" : "bg-muted"
               }`}
@@ -84,11 +84,11 @@ export default function SecuritySettingsPage({ onBack }) {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.15, duration: 0.3 }}
-            className="flex items-center justify-between p-4 hover:bg-muted/30 transition-all rounded-lg"
+            className="flex items-center justify-between p-4 hover:bg-muted/50 transition-all rounded-lg"
           >
             <span className="text-foreground font-medium">Face ID</span>
             <button
-              onClick={() => toggleSecurity('faceId')}
+              onClick={() => toggleSecurity("faceId")}
               className={`relative w-12 h-7 rounded-full transition-colors ${
                 security.faceId ? "bg-accent" : "bg-muted"
               }`}
@@ -105,9 +105,11 @@ export default function SecuritySettingsPage({ onBack }) {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2, duration: 0.3 }}
-            className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-all rounded-lg group"
+            className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-all rounded-lg group"
           >
-            <span className="text-foreground font-medium">Two-Factor Authentication</span>
+            <span className="text-foreground font-medium">
+              Two-Factor Authentication
+            </span>
             <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
           </motion.button>
         </div>

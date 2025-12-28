@@ -59,7 +59,7 @@ export default function AboutNakhlahPage({ onBack }) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.05 * index, duration: 0.3 }}
               onClick={item.action}
-              className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-all rounded-lg group"
+              className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-all rounded-lg group"
             >
               <span className="font-medium text-foreground">{item.label}</span>
               <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />

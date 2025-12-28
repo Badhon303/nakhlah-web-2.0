@@ -106,7 +106,7 @@ export default function HelpCenterPage({ onBack, onNavigateContact }) {
             >
               <button
                 onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
-                className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-all"
+                className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-all"
               >
                 <span className="text-left font-medium text-foreground">{faq.question}</span>
                 <ChevronDown

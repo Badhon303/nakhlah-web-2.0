@@ -38,7 +38,7 @@ export default function GeneralSettingsPage({ onBack }) {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.05 * index, duration: 0.3 }}
-              className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-all rounded-lg group"
+              className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-all rounded-lg group"
             >
               <div className="text-left">
                 <div className="font-medium text-foreground">{setting.label}</div>

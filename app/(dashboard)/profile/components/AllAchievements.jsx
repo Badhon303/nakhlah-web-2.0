@@ -1,5 +1,7 @@
+import { Medal } from "@/components/icons/Medal";
+import { MilitaryMedal } from "@/components/icons/MilitaryMedal";
 import { motion } from "framer-motion";
-import { ChevronLeft, CheckCircle, Lock, Award } from "lucide-react";
+import { ChevronLeft, CheckCircle, Lock } from "lucide-react";
 
 export default function AllAchievementsPage({ onBack }) {
   const achievements = [
@@ -87,7 +89,7 @@ export default function AllAchievementsPage({ onBack }) {
           <div>
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
               All Achievements
-              <Award className="w-6 h-6 text-accent" />
+              <Medal />
             </h1>
             <p className="text-sm text-muted-foreground">
               3 unlocked • {achievements.length - 3} in progress

@@ -21,60 +21,66 @@ export default function SettingsPage({ onBack, onNavigate }) {
   const { theme, setTheme, resolvedTheme } = useTheme();
 
   const settingsItems = [
-    { 
-      label: "Personal Info", 
-      icon: User, 
-      color: "bg-orange-100 text-orange-500 dark:bg-orange-900/30 dark:text-orange-400", 
-      action: "edit-profile" 
+    {
+      label: "Personal Info",
+      icon: User,
+      color:
+        "bg-orange-100 text-orange-500 dark:bg-orange-900/30 dark:text-orange-400",
+      action: "edit-profile",
     },
-    { 
-      label: "Notification", 
-      icon: Bell, 
-      color: "bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-400", 
-      action: "notification" 
+    {
+      label: "Notification",
+      icon: Bell,
+      color: "bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-400",
+      action: "notification",
     },
-    { 
-      label: "General", 
-      icon: Grid3x3, 
-      color: "bg-violet-100 text-violet-500 dark:bg-violet-900/30 dark:text-violet-400", 
-      action: "general" 
+    {
+      label: "General",
+      icon: Grid3x3,
+      color:
+        "bg-violet-100 text-violet-500 dark:bg-violet-900/30 dark:text-violet-400",
+      action: "general",
     },
-    { 
-      label: "Accessibility", 
-      icon: Eye, 
-      color: "bg-amber-100 text-amber-500 dark:bg-amber-900/30 dark:text-amber-400", 
-      action: "accessibility" 
+    {
+      label: "Accessibility",
+      icon: Eye,
+      color:
+        "bg-amber-100 text-amber-500 dark:bg-amber-900/30 dark:text-amber-400",
+      action: "accessibility",
     },
-    { 
-      label: "Security", 
-      icon: Shield, 
-      color: "bg-emerald-100 text-emerald-500 dark:bg-emerald-900/30 dark:text-emerald-400", 
-      action: "security" 
+    {
+      label: "Security",
+      icon: Shield,
+      color:
+        "bg-emerald-100 text-emerald-500 dark:bg-emerald-900/30 dark:text-emerald-400",
+      action: "security",
     },
-    { 
-      label: "Find Friends", 
-      icon: Users, 
-      color: "bg-orange-100 text-orange-500 dark:bg-orange-900/30 dark:text-orange-400", 
-      action: "find-friends" 
+    {
+      label: "Find Friends",
+      icon: Users,
+      color:
+        "bg-orange-100 text-orange-500 dark:bg-orange-900/30 dark:text-orange-400",
+      action: "find-friends",
     },
-    { 
-      label: "Dark Mode", 
-      icon: Moon, 
-      color: "bg-blue-100 text-blue-500 dark:bg-blue-900/30 dark:text-blue-400", 
+    {
+      label: "Dark Mode",
+      icon: Moon,
+      color: "bg-blue-100 text-blue-500 dark:bg-blue-900/30 dark:text-blue-400",
       toggle: true,
-      iconDark: Sun 
+      iconDark: Sun,
     },
-    { 
-      label: "Help Center", 
-      icon: HelpCircle, 
-      color: "bg-teal-100 text-teal-500 dark:bg-teal-900/30 dark:text-teal-400", 
-      action: "help-center" 
+    {
+      label: "Help Center",
+      icon: HelpCircle,
+      color: "bg-teal-100 text-teal-500 dark:bg-teal-900/30 dark:text-teal-400",
+      action: "help-center",
     },
-    { 
-      label: "About Nakhlah", 
-      icon: Info, 
-      color: "bg-purple-100 text-purple-500 dark:bg-purple-900/30 dark:text-purple-400", 
-      action: "about-nakhlah" 
+    {
+      label: "About Nakhlah",
+      icon: Info,
+      color:
+        "bg-purple-100 text-purple-500 dark:bg-purple-900/30 dark:text-purple-400",
+      action: "about-nakhlah",
     },
   ];
 
@@ -85,9 +91,9 @@ export default function SettingsPage({ onBack, onNavigate }) {
   const isDark = resolvedTheme === "dark";
 
   return (
-    <div className="max-w-2xl mx-auto overflow-x-hidden">
+    <div className="max-w-2xl mx-auto overflow-hidden">
       {/* Header */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -119,14 +125,14 @@ export default function SettingsPage({ onBack, onNavigate }) {
           {settingsItems.map((item, index) => {
             const IconComponent = item.icon;
             const IconDarkComponent = item.iconDark || item.icon;
-            
+
             return (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.05 * index, duration: 0.3 }}
-                className="w-full flex items-center justify-between p-4 hover:bg-muted/50 dark:hover:bg-muted/30 transition-all group rounded-xl cursor-pointer"
+                className="w-full flex items-center justify-between p-4 hover:bg-muted/50 dark:hover:bg-muted/50 transition-all group rounded-xl cursor-pointer"
                 onClick={() => {
                   if (!item.toggle && item.action) {
                     onNavigate(item.action);
@@ -135,19 +141,23 @@ export default function SettingsPage({ onBack, onNavigate }) {
               >
                 {/* Left side */}
                 <div className="flex items-center gap-4 flex-1">
-                  <div className={`w-10 h-10 rounded-full ${item.color} flex items-center justify-center transition-colors`}>
+                  <div
+                    className={`w-10 h-10 rounded-full ${item.color} flex items-center justify-center transition-colors`}
+                  >
                     {isDark && item.iconDark ? (
                       <IconDarkComponent className="w-5 h-5" />
                     ) : (
                       <IconComponent className="w-5 h-5" />
                     )}
                   </div>
-                  <span className="font-medium text-foreground">{item.label}</span>
+                  <span className="font-medium text-foreground">
+                    {item.label}
+                  </span>
                 </div>
-                
+
                 {/* Right side - toggle or chevron */}
                 {item.toggle ? (
-                  <div 
+                  <div
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent the parent onClick from firing
                       toggleDarkMode();
@@ -181,7 +191,9 @@ export default function SettingsPage({ onBack, onNavigate }) {
             <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center transition-colors">
               <LogOut className="w-5 h-5 text-red-500 dark:text-red-400" />
             </div>
-            <span className="font-medium text-red-500 dark:text-red-400">Logout</span>
+            <span className="font-medium text-red-500 dark:text-red-400">
+              Logout
+            </span>
           </button>
         </motion.div>
       </motion.div>

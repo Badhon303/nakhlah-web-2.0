@@ -66,7 +66,7 @@ export default function FollowingPage({ onBack }) {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 * index, duration: 0.3 }}
-              className="flex items-center justify-between p-4 bg-muted/20 rounded-xl border border-border/30 hover:bg-muted/40 transition-all"
+              className="flex items-center justify-between p-4 bg-muted/20 rounded-xl border border-border/30 hover:bg-muted/50 transition-all"
             >
               <div className="flex items-center gap-3">
                 <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${person.color} flex items-center justify-center text-white font-bold text-sm`}>

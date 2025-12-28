@@ -34,7 +34,12 @@ export default function ProfileAndSettings() {
       case "profile":
         return <ProfilePage onNavigate={handleNavigate} />;
       case "settings":
-        return <SettingsPage onBack={() => setActiveView("profile")} onNavigate={handleNavigate} />;
+        return (
+          <SettingsPage
+            onBack={() => setActiveView("profile")}
+            onNavigate={handleNavigate}
+          />
+        );
       case "edit-profile":
         return <EditProfilePage onBack={() => setActiveView("profile")} />;
       case "followers":
@@ -44,18 +49,26 @@ export default function ProfileAndSettings() {
       case "all-achievements":
         return <AllAchievementsPage onBack={() => setActiveView("profile")} />;
       case "notification":
-        return <NotificationSettingsPage onBack={() => setActiveView("settings")} />;
+        return (
+          <NotificationSettingsPage onBack={() => setActiveView("settings")} />
+        );
       case "accessibility":
-        return <AccessibilitySettingsPage onBack={() => setActiveView("settings")} />;
+        return (
+          <AccessibilitySettingsPage onBack={() => setActiveView("settings")} />
+        );
       case "security":
-        return <SecuritySettingsPage onBack={() => setActiveView("settings")} />;
+        return (
+          <SecuritySettingsPage onBack={() => setActiveView("settings")} />
+        );
       case "find-friends":
         return <FindFriendsPage onBack={() => setActiveView("settings")} />;
       case "help-center":
-        return <HelpCenterPage 
-          onBack={() => setActiveView("settings")} 
-          onNavigateContact={() => setActiveView("contact-us")} 
-        />;
+        return (
+          <HelpCenterPage
+            onBack={() => setActiveView("settings")}
+            onNavigateContact={() => setActiveView("contact-us")}
+          />
+        );
       case "contact-us":
         return <ContactUsPage onBack={() => setActiveView("help-center")} />;
       case "general":
@@ -68,7 +81,7 @@ export default function ProfileAndSettings() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-background overflow-x-hidden">
+    <div className="min-h-[calc(100vh-64px)] bg-background overflow-hidden">
       <AnimatePresence mode="wait">
         <motion.div
           key={activeView}

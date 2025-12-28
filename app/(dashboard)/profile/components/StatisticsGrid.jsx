@@ -16,42 +16,42 @@ export default function StatisticsGrid() {
       value: "127", 
       label: "Challenges", 
       color: "text-primary", 
-      bg: "bg-primary/10" 
+      bg: "bg-muted/30" 
     },
     { 
       icon: Calendar, 
       value: "448", 
       label: "Lesson Passed", 
       color: "text-primary", 
-      bg: "bg-primary/10" 
+      bg: "bg-muted/30" 
     },
     { 
       icon: GemStone, 
       value: "957", 
       label: "Total Diamonds", 
       color: "text-primary", 
-      bg: "bg-primary/10" 
+      bg: "bg-muted/30" 
     },
     { 
       icon: HighVoltage, 
       value: "15,274", 
       label: "Total XP Gained", 
       color: "text-primary", 
-      bg: "bg-primary/10" 
+      bg: "bg-muted/30" 
     },
     { 
       icon: Bullseye, 
       value: "289", 
       label: "Correct Practice", 
       color: "text-primary", 
-      bg: "bg-primary/10" 
+      bg: "bg-muted/30" 
     },
     { 
       icon: Medal, 
       value: "16", 
       label: "Top 3 Position", 
       color: "text-primary", 
-      bg: "bg-primary/10" 
+      bg: "bg-muted/30" 
     },
   ];
 

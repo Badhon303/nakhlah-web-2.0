@@ -59,7 +59,7 @@ export default function AccessibilitySettingsPage({ onBack }) {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.05 * index, duration: 0.3 }}
-              className="flex items-center justify-between p-4 hover:bg-muted/30 transition-all rounded-lg"
+              className="flex items-center justify-between p-4 hover:bg-muted/50 transition-all rounded-lg"
             >
               <span className="text-foreground font-medium">{item.label}</span>
               <button

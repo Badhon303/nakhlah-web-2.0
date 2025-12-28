@@ -1,18 +1,46 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Share2, MessageCircle, Mail, Copy, Check } from "lucide-react";
+import { X, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import {
+  FaWhatsapp,
+  FaTwitter,
+  FaFacebook,
+  FaEnvelope,
+} from "react-icons/fa";
+
 
 export default function ShareProfileDrawer({ open, onClose }) {
   const [copied, setCopied] = useState(false);
 
-  const shareOptions = [
-    { icon: MessageCircle, label: "WhatsApp", color: "bg-green-500", action: () => {} },
-    { icon: Mail, label: "Email", color: "bg-blue-500", action: () => {} },
-    { icon: Share2, label: "Twitter", color: "bg-sky-500", action: () => {} },
-    { icon: Share2, label: "Facebook", color: "bg-blue-600", action: () => {} },
-  ];
+const shareOptions = [
+  {
+    icon: FaWhatsapp,
+    label: "WhatsApp",
+    color: "bg-green-500",
+    action: () => {},
+  },
+  {
+    icon: FaEnvelope,
+    label: "Email",
+    color: "bg-blue-500",
+    action: () => {},
+  },
+  {
+    icon: FaTwitter,
+    label: "Twitter",
+    color: "bg-sky-500",
+    action: () => {},
+  },
+  {
+    icon: FaFacebook,
+    label: "Facebook",
+    color: "bg-blue-600",
+    action: () => {},
+  },
+];
+
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText("https://app.com/profile/andrew.ainsley");
@@ -33,7 +61,7 @@ export default function ShareProfileDrawer({ open, onClose }) {
             className="fixed inset-0 bg-black/50 z-40"
           />
 
-          {/* Drawer - Bottom on mobile, Right on desktop */}
+          {/* Drawer */}
           <motion.div
             initial={{
               y: "100%",
@@ -99,11 +127,8 @@ export default function ShareProfileDrawer({ open, onClose }) {
                   </div>
                   <Button
                     onClick={handleCopyLink}
-                    className={`px-4 ${
-                      copied
-                        ? "bg-palm-green hover:bg-palm-green/90"
-                        : "bg-gradient-accent hover:bg-gradient-accent/90"
-                    } text-white transition-all`}
+                    className="px-4 bg-gradient-accent hover:bg-gradient-accent/90 text-white transition-all"
+
                   >
                     {copied ? (
                       <>
@@ -179,11 +204,8 @@ export default function ShareProfileDrawer({ open, onClose }) {
                   </div>
                   <Button
                     onClick={handleCopyLink}
-                    className={`w-full ${
-                      copied
-                        ? "bg-palm-green hover:bg-palm-green/90"
-                        : "bg-gradient-accent hover:bg-gradient-accent/90"
-                    } text-white transition-all`}
+                    className="px-4 bg-gradient-accent hover:bg-gradient-accent/90 text-white transition-all"
+
                   >
                     {copied ? (
                       <>

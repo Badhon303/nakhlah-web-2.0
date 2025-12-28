@@ -68,7 +68,7 @@ export default function Stats() {
   }, []);
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-background">
+    <div className="min-h-[calc(100vh-64px)] bg-background max-w-7xl mx-auto">
       <div className="container px-4 py-8 mx-auto">
         {/* Header */}
         <motion.div
