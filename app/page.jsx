@@ -1,12 +1,6 @@
-import { redirect } from "next/navigation";
-import HomeContent from "@/app/(dashboard)/components/HomeContents";
-import ClientWrapper from "./ClientWrapper";
+'use client'
+import DashboardPage from "./(dashboard)/page";
 
-export default function HomePage() {
-
-  return (
-    <ClientWrapper>
-      <HomeContent />
-    </ClientWrapper>
-  );
+export default function Home() {
+  return <DashboardPage />;
 }

@@ -81,13 +81,10 @@
     --radius: 0.75rem;
 
     /* Custom pathway colors */
-    --node-gold: 43 96% 56%;
-    --node-gold-border: 43 90% 45%;
-    --node-gold-shadow: 43 90% 40%;
-    --node-completed: 142 71% 45%;
-    --node-completed-border: 142 71% 35%;
-    --node-locked: 250 10% 75%;
-    --node-locked-border: 250 10% 65%;
+    --node-yellow: 51 100% 50%;
+    --node-yellow-border: 51 100% 40%;
+    --node-locked: 220 13% 69%;
+    --node-locked-border: 220 13% 60%;
     
     --mascot-primary: 262 83% 58%;
     --mascot-secondary: 262 70% 70%;
@@ -110,7 +107,7 @@
     --accent-foreground: 0 0% 100%;
     --accent-glow: 263 80% 75%;
     
-    --background: 240 15% 8%;
+    --background: 240 10% 4%;
     --foreground: 40 20% 95%;
     
     --card: 240 12% 12%;
@@ -119,8 +116,8 @@
     --popover: 240 12% 12%;
     --popover-foreground: 40 20% 95%;
     
-    --muted: 240 10% 18%;
-    --muted-foreground: 40 15% 65%;
+    --muted: 220 13% 69%;
+    --muted-foreground: 220 13% 69%;
     
     --border: 240 10% 20%;
     --input: 240 10% 20%;
@@ -138,24 +135,15 @@
     --sidebar-border: 240 10% 20%;
     --sidebar-ring: 263 75% 65%;
     
-    /* Dark mode custom colors */
-    --sand-light: 42 30% 25%;
-    --sand-medium: 42 40% 55%;
-    --sand-dark: 35 35% 45%;
-    --palm-green: 144 30% 45%;
-    --palm-green-light: 144 35% 60%;
-    --violet: 263 75% 65%;
-    --violet-dark: 263 70% 55%;
-    --violet-light: 263 80% 75%;
-    
-    --gradient-primary: linear-gradient(135deg, hsl(42 40% 55%), hsl(42 45% 65%));
-    --gradient-accent: linear-gradient(135deg, hsl(263 75% 65%), hsl(263 80% 75%));
-    --gradient-green: linear-gradient(135deg, hsl(144 30% 45%), hsl(144 35% 60%));
-    
     --shadow-sm: 0 2px 8px hsl(0 0% 0% / 0.3);
     --shadow-md: 0 4px 16px hsl(0 0% 0% / 0.4);
     --shadow-lg: 0 8px 32px hsl(0 0% 0% / 0.5);
     --shadow-accent: 0 4px 20px hsl(263 75% 65% / 0.4);
+
+    --node-yellow: 45 98% 53%;
+    --node-yellow-border: 45 98% 43%;
+    --node-locked: 220 13% 25%;
+    --node-locked-border: 220 13% 15%;
   }
 }
 
@@ -230,13 +218,7 @@
 
   .pathway-node-shadow {
     box-shadow: 
-      0 6px 0 hsl(var(--node-gold-shadow)),
-      0 8px 15px rgba(0,0,0,0.15);
-  }
-  
-  .pathway-node-shadow-completed {
-    box-shadow: 
-      0 6px 0 hsl(var(--node-completed-border)),
+      0 6px 0 hsl(var(--node-yellow-border)),
       0 8px 15px rgba(0,0,0,0.15);
   }
   
