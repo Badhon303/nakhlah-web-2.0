@@ -1,13 +1,16 @@
+
 import { Medal, Trophy, Crown, Star } from "lucide-react";
-import { Mascot } from "@/components/nakhlah/Mascot";
 import { ZigzagPath } from "./components/ZigzagPath";
 import { UserStats } from "./components/UserStats";
 import { DailyQuests } from "./components/DailyQuests";
 import { ProfileSection } from "./components/ProfileSection";
 
-// Level 1: 7 lessons + 1 trophy
-// Level 2: 7 lessons + 1 trophy  
-// Level 3: 7 lessons + 1 crown
+const levels = [
+  { id: 1, name: "The Basics", description: "Start your journey with fundamental concepts." },
+  { id: 2, name: "Building Blocks", description: "Expand your vocabulary and grammar." },
+  { id: 3, name: "First Conversations", description: "Learn to form simple sentences and questions." },
+];
+
 const lessons = [
   // Level 1
   { id: 1, type: "lesson", title: "Lesson 1", isCompleted: true, isCurrent: false, icon: <Star />, level: 1 },
@@ -38,36 +41,32 @@ const lessons = [
 ];
 
 const mascots = [
-  {
-    mood: "happy",
-    position: 2,
-    message: "You're doing great!",
-  },
-  {
-    mood: "excited",
-    position: 5,
-    message: "Keep up the good work!",
-  },
-  {
-    mood: "celebrating",
-    position: 9,
-    message: "You're a star!",
-  },
+  { mood: "happy", position: 2, message: "You're doing great!" },
+  { mood: "excited", position: 5, message: "Keep up the good work!" },
+  { mood: "celebrating", position: 9, message: "You're a star!" },
 ];
 
-export default function DuolingoHomePage() {
+export default function LearnPage() {
+  // Main header is 64px, plus py-8 (32px) from main content padding
+  const stickyTopOffset = 'top-[96px]'; 
+
   return (
     <div className="bg-background text-foreground">
       <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <ZigzagPath lessons={lessons} mascots={mascots} />
+        <div className="flex flex-col lg:flex-row gap-12">
+
+          {/* Left side: Scrollable pathway */}
+          <div className="lg:w-2/3 lg:h-[calc(100vh-96px)] lg:overflow-y-auto no-scrollbar">
+            <ZigzagPath lessons={lessons} levels={levels} mascots={mascots} />
           </div>
-          <div className="space-y-8">
+
+          {/* Right side: Sticky Sidebar */}
+          <div className={`lg:w-1/3 space-y-8 lg:sticky ${stickyTopOffset} h-fit`}>
             <UserStats />
             <DailyQuests />
             <ProfileSection />
           </div>
+
         </div>
       </main>
     </div>

@@ -22,6 +22,15 @@ export function ProfileSection() {
           <span className="text-2xl">🏅</span>
         </div>
       </div>
+      {/* Footer Links */}
+      <div className="mt-6 pt-6 border-t border-border flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+        <a href="#" className="hover:text-foreground">About</a>
+        <a href="#" className="hover:text-foreground">Blog</a>
+        <a href="#" className="hover:text-foreground">Store</a>
+        <a href="#" className="hover:text-foreground">Careers</a>
+        <a href="#" className="hover:text-foreground">Terms</a>
+        <a href="#" className="hover:text-foreground">Privacy</a>
+      </div>
     </div>
   );
 }
