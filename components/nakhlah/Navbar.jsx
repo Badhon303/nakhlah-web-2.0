@@ -81,12 +81,6 @@ export function Navbar() {
               >
                 <item.icon className="h-6 w-6" />
                 <span className="text-xs font-medium">{item.label}</span>
-                {isActive && (
-                  <motion.div
-                    layoutId="mobile-nav-indicator"
-                    className="absolute -top-1 left-1/2 h-1 w-8 -translate-x-1/2 rounded-full bg-accent"
-                  />
-                )}
               </Link>
             );
           })}

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Star, Lock } from "lucide-react";
+import { Lock } from "@/components/icons/Lock";
+import { Star } from "@/components/icons/Star";
 
 export function Circle({ isCompleted, isCurrent, isLocked, icon, type, size = 'md' }) {
   const getCircleStyles = () => {
@@ -29,11 +30,11 @@ export function Circle({ isCompleted, isCurrent, isLocked, icon, type, size = 'm
 
   const getIcon = () => {
     if (isLocked) {
-      return <Lock className={`text-white ${iconSizeClass}`} />;
+      return <Lock size='lg' variant="silver" />;
     }
     if (isCompleted) {
       if (type !== 'trophy' && type !== 'checkpoint' && type !== 'crown') {
-        return <Star className={`text-white ${iconSizeClass}`} fill="white" />;
+        return <Star size="lg"/>;
       }
     }
     if (icon) {
@@ -49,8 +50,8 @@ export function Circle({ isCompleted, isCurrent, isLocked, icon, type, size = 'm
       className={`rounded-full flex items-center justify-center border-4 ${getCircleStyles()} cursor-pointer hover:scale-105 transition-transform ${sizeClass} ${
         isSpecialType && !isLocked ? 'scale-110' : ''
       }`}>
-      <div className="text-white">
-        {getIcon()}
+      <div className="">
+        <Star size='lg' />
       </div>
     </div>
   );
