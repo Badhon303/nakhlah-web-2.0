@@ -132,21 +132,36 @@ export function ZigzagPath({ lessons, levels, mascots }) {
                       }}
                     >
                       {isLastLesson ? (
-                        <div className={`flex items-center justify-center w-20 h-20 rounded-full border-4 shadow-lg cursor-pointer hover:scale-105 transition-transform scale-110 ${
+                        <div className={`flex items-center justify-center rounded-full cursor-pointer hover:scale-125 transition-transform scale-110 ${
                           lesson.isLocked || (!lesson.isCompleted && !lesson.isCurrent)
-                            ? 'bg-[hsl(var(--node-locked))] border-[hsl(var(--node-locked-border))] pathway-node-shadow-locked'
+                            ? ''
                             : lesson.isCurrent
-                            ? 'bg-accent border-accent pathway-node-shadow-locked'
-                            : 'bg-[hsl(var(--node-yellow))] border-[hsl(var(--node-yellow-border))] pathway-node-shadow'
+                            ? ''
+                            : ''
                         }`}>
 <Trophy
-  size="lg"
+  size="xxl"
   variant={
     lesson.isLocked || (!lesson.isCompleted && !lesson.isCurrent)
       ? "silver"
       : "gold"
   }
 />
+
+<span
+    className={`
+      absolute 
+      text-lg font-extrabold
+      ${
+        lesson.isLocked
+          ? "text-muted-foreground"
+          : "text-muted-foreground"
+      }
+    `}
+    style={{ top: "15%" }}
+  >
+    {lesson.level}
+  </span>
 
                         </div>
                       ) : (
