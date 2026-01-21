@@ -29,7 +29,12 @@ export default function FiveDaysStraight() {
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 15 }}
+            transition={{
+              delay: 0.2,
+              type: "spring",
+              stiffness: 200,
+              damping: 15,
+            }}
             className="mb-6"
           >
             <div className="relative inline-block">
@@ -44,10 +49,7 @@ export default function FiveDaysStraight() {
                 }}
                 className="absolute inset-0 blur-3xl rounded-full"
               />
-              <Flame 
-                size="xxxl" 
-                className="relative mx-auto text-orange-500" 
-              />
+              <Flame size="xxxl" className="relative mx-auto text-orange-500" />
             </div>
           </motion.div>
 
@@ -114,7 +116,8 @@ export default function FiveDaysStraight() {
             >
               <div className="rounded-2xl p-4">
                 <p className="text-base text-muted-foreground">
-                  Increases if you practice everyday and will return to zero if you skip a day!
+                  Increases if you practice everyday and will return to zero if
+                  you skip a day!
                 </p>
               </div>
             </motion.div>
@@ -153,7 +156,7 @@ export default function FiveDaysStraight() {
           </motion.div>
         </motion.div>
       </div>
-      
+
       {/* Mobile bottom action */}
       <div className="w-full max-w-lg mx-auto sm:hidden bg-background border-t border-border p-4">
         <Button

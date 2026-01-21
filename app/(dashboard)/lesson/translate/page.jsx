@@ -41,16 +41,17 @@ export default function TranslateLesson() {
 
   const handleCheckAnswer = () => {
     if (selectedWords.length === 0) return;
-    
-    const isAnswerCorrect = JSON.stringify(selectedWords) === JSON.stringify(correctAnswer);
-    
+
+    const isAnswerCorrect =
+      JSON.stringify(selectedWords) === JSON.stringify(correctAnswer);
+
     if (isAnswerCorrect) {
       toast({
         title: "Correct! 🎉",
         description: "Great job! Your translation is correct.",
         variant: "success",
       });
-      
+
       setTimeout(() => {
         router.push("/lesson/mcq");
       }, 1500);
@@ -60,7 +61,7 @@ export default function TranslateLesson() {
         description: "Correct answer: Saya berjalan dan dia berenang.",
         variant: "error",
       });
-      
+
       // Reset after toast disappears
       setTimeout(() => {
         setSelectedWords([]);
@@ -153,7 +154,7 @@ export default function TranslateLesson() {
 
       {/* Bottom Action */}
       <div className="border-t border-border bg-background">
-        <div className="container max-w-4xl container mx-auto px-4 py-6">
+        <div className="container max-w-4xl mx-auto px-4 py-6">
           <Button
             onClick={handleCheckAnswer}
             disabled={selectedWords.length === 0}

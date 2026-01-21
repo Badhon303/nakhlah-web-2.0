@@ -189,7 +189,7 @@ export default function PairMatchLesson() {
 
       {/* Bottom Action */}
       <div className="border-t border-border bg-background">
-        <div className="container max-w-4xl container mx-auto px-4 py-6">
+        <div className="container max-w-4xl mx-auto px-4 py-6">
           <Button
             onClick={handleCheckAnswer}
             className="w-full md:w-auto md:min-w-[200px] md:ml-auto md:flex h-14 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"

@@ -24,14 +24,14 @@ export default function TrueFalseLesson() {
   const handleCheckAnswer = () => {
     if (selectedOption !== null) {
       const correct = selectedOption === DUMMY_CORRECT_ANSWER;
-      
+
       if (correct) {
         toast({
           title: "Correct! 🎉",
           description: "Great job! Your answer is correct.",
           variant: "success",
         });
-        
+
         setTimeout(() => {
           router.push("/lesson/completed");
         }, 1500);
@@ -82,7 +82,7 @@ export default function TrueFalseLesson() {
               <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6 text-center sm:text-start">
                 True or False?
               </h2>
-              
+
               {/* Audio Statement */}
               <div className="flex items-center gap-4 bg-card p-6 rounded-2xl border border-border mb-6">
                 <button className="flex-shrink-0 w-12 h-12 rounded-full bg-accent flex items-center justify-center text-accent-foreground hover:opacity-90">
@@ -161,7 +161,7 @@ export default function TrueFalseLesson() {
 
       {/* Bottom Action */}
       <div className="border-t border-border bg-background">
-        <div className="container max-w-4xl container mx-auto px-4 py-6">
+        <div className="container max-w-4xl mx-auto px-4 py-6">
           <Button
             onClick={handleCheckAnswer}
             disabled={selectedOption === null}

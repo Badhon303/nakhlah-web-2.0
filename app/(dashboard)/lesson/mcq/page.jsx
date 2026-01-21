@@ -26,14 +26,14 @@ export default function MCQLesson() {
 
   const handleCheckAnswer = () => {
     const isCorrect = selectedOption?.correct || false;
-    
+
     if (isCorrect) {
       toast({
         title: "Correct! 🎉",
         description: "Great job! Your answer is correct.",
         variant: "success",
       });
-      
+
       setTimeout(() => {
         router.push("/lesson/pair-match");
       }, 1500);
@@ -118,7 +118,7 @@ export default function MCQLesson() {
 
       {/* Bottom Action */}
       <div className="border-t border-border bg-background">
-        <div className="container max-w-4xl container mx-auto px-4 py-6">
+        <div className="container max-w-4xl mx-auto px-4 py-6">
           <Button
             onClick={handleCheckAnswer}
             disabled={!selectedOption}

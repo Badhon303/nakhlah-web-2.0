@@ -52,7 +52,8 @@ export default function LeavingDialog() {
             transition={{ delay: 0.3 }}
             className="text-muted-foreground mb-8"
           >
-            Are you sure you want to leave the lesson? Your progress won&apos;t be saved.
+            Are you sure you want to leave the lesson? Your progress won&apos;t
+            be saved.
           </motion.p>
 
           {/* Buttons */}

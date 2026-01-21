@@ -15,12 +15,11 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
 const steps = [
-  { id: 1, label: "Language" },
-  { id: 2, label: "Level" },
-  { id: 3, label: "Goal" },
-  { id: 4, label: "Quiz" },
-  { id: 5, label: "Account" },
-  { id: 6, label: "Ready!" },
+  { id: 1, label: "Level" },
+  { id: 2, label: "Goal" },
+  { id: 3, label: "Quiz" },
+  { id: 4, label: "Account" },
+  { id: 5, label: "Ready!" },
 ];
 
 export default function Onboarding() {
@@ -40,14 +39,12 @@ export default function Onboarding() {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return selectedLanguage !== "";
-      case 2:
         return proficiencyLevel !== "";
-      case 3:
+      case 2:
         return dailyGoal !== "";
-      case 4:
+      case 3:
         return true;
-      case 5:
+      case 4:
         return (
           name.trim().length >= 2 &&
           email.trim().includes("@") &&
@@ -68,7 +65,7 @@ export default function Onboarding() {
 
   const handleQuizComplete = (score) => {
     setQuizScore(score);
-    setCurrentStep(5);
+    setCurrentStep(4);
   };
 
   const handleComplete = () => {
@@ -92,23 +89,16 @@ export default function Onboarding() {
     switch (currentStep) {
       case 1:
         return (
-          <LanguageStep
-            selectedLanguage={selectedLanguage}
-            onSelect={setSelectedLanguage}
-          />
-        );
-      case 2:
-        return (
           <ProficiencyStep
             selectedLevel={proficiencyLevel}
             onSelect={setProficiencyLevel}
           />
         );
-      case 3:
+      case 2:
         return <GoalStep selectedGoal={dailyGoal} onSelect={setDailyGoal} />;
-      case 4:
+      case 3:
         return <QuizStep onComplete={handleQuizComplete} />;
-      case 5:
+      case 4:
         return (
           <AccountStep
             name={name}
@@ -122,7 +112,7 @@ export default function Onboarding() {
             }}
           />
         );
-      case 6:
+      case 5:
         return (
           <CompletionStep
             language={selectedLanguage}
@@ -139,7 +129,7 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border pt-[env(safe-area-inset-top)]">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="text-3xl">🌴</div>
@@ -157,7 +147,7 @@ export default function Onboarding() {
       </div>
 
       {/* Main */}
-      <main className="flex-1 container mx-auto px-4 py-8 flex items-start justify-center">
+      <main className="flex-1 container mx-auto px-4 py-6 flex items-start justify-center">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
@@ -173,7 +163,7 @@ export default function Onboarding() {
       </main>
 
       {/* Footer Nav */}
-      <footer className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border">
+      <footer className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border pb-[env(safe-area-inset-bottom)]">
         <div className="container px-1 py-4 flex items-center justify-between max-w-xl mx-auto">
           <Button
             variant="ghost"

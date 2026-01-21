@@ -29,7 +29,7 @@ export function ZigzagPath({ lessons, levels, mascots }) {
     const leftPercent = parseInt(lessonPos.left);
     return leftPercent > 50
       ? { left: "20%", transform: "translateX(-50%)" }
-      : { left: "80%", transform: "translateX(-50%)" };
+      : { left: "80%", transform: "translateX(-50%) translateY(-20%)" };
   };
 
   const getLevelColor = (level) => {
@@ -80,7 +80,7 @@ export function ZigzagPath({ lessons, levels, mascots }) {
   return (
     <div className="relative lg:max-w-lg mx-auto">
       {/* Sticky level header */}
-      <div className="sticky top-[calc(env(safe-area-inset-top)+72px)] lg:top-0 z-50 bg-background/80 backdrop-blur-sm py-2 lg:py-4">
+      <div className="sticky top-[calc(env(safe-area-inset-top)+72px)] lg:top-0 z-50 bg-background/80 backdrop-blur-sm py-2 lg:py-0">
         <div
           className={`flex items-center justify-between px-4 py-3 rounded-lg shadow-lg transition-all duration-500 ease-in-out bg-gradient-to-r ${getLevelColor(
             currentLevel?.id || 1,
