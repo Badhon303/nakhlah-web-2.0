@@ -187,7 +187,10 @@ export default function SettingsPage({ onBack, onNavigate }) {
           transition={{ delay: 0.5, duration: 0.5 }}
           className="mt-6"
         >
-          <button className="w-full flex items-center justify-center gap-3 p-4 hover:bg-destructive/10 dark:hover:bg-destructive/20 transition-all rounded-xl group">
+          <button
+            onClick={() => (window.location.href = "/auth/login")}
+            className="w-full flex items-center justify-center gap-3 p-4 hover:bg-destructive/10 dark:hover:bg-destructive/20 transition-all rounded-xl group"
+          >
             <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center transition-colors">
               <LogOut className="w-5 h-5 text-red-500 dark:text-red-400" />
             </div>

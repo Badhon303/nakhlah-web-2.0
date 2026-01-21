@@ -68,7 +68,7 @@ export default function StatisticsGrid() {
           <BarChart size="sm" className="text-foreground" />
         </h3>
       </div>
-      <div className="lg:px-6 lg:pb-6">
+      <div className="">
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
           {userStats.map((stat, index) => {
             const IconComponent = stat.icon;
