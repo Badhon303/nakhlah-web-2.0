@@ -45,7 +45,7 @@ export function ProficiencyStep({ selectedLevel, onSelect }) {
         <Mascot mood="excited" size="md" className="w-20 h-20" />
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">
-            How much do you know?
+            How much do you know Arabic?
           </h1>
           <p className="text-muted-foreground text-lg">
             We&apos;ll personalize your learning path

@@ -265,16 +265,22 @@ export default function LearnPage() {
     <div className="bg-background text-foreground">
       {/* Mobile sticky header */}
       <div
-        className="lg:hidden sticky z-20 bg-primary shadow-md"
+        className="lg:hidden fixed w-full z-[110] bg-primary shadow-md"
         style={{ top: "env(safe-area-inset-top, 0px)" }}
       >
         <UserStats />
       </div>
 
-      <main className="container mx-auto lg:px-4 lg:py-6 max-w-7xl">
+      <main
+        className="container mx-auto lg:px-4 lg:py-6 max-w-7xl"
+        style={{ top: "env(safe-area-inset-top, 0px)" }}
+      >
         <div className="flex flex-col lg:flex-row gap-12">
           {/* Left side: Scrollable pathway */}
-          <div className="lg:w-2/3 lg:h-[calc(100vh_-_64px)] lg:overflow-y-auto no-scrollbar">
+          <div
+            className="lg:w-2/3 lg:h-[calc(100vh_-_64px)] lg:overflow-y-auto no-scrollbar"
+            style={{ top: "env(safe-area-inset-top, 0px)" }}
+          >
             <ZigzagPath lessons={lessons} levels={levels} mascots={mascots} />
           </div>
 
