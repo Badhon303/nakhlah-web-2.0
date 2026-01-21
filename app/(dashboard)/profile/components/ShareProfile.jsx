@@ -3,13 +3,13 @@ import { Button } from "@/components/ui/button";
 
 export default function ShareProfile({ onShare }) {
   return (
-    <div className="rounded-2xl bg-card shadow-lg border border-border overflow-hidden">
-      <div className="p-6">
+    <div className="rounded-2xl bg-card shadow-lg border border-border overflow-hidden p-6">
+      <div className="">
         <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
           Share Profile
         </h3>
       </div>
-      <div className="px-6 pb-6">
+      <div className="">
         <p className="text-sm text-muted-foreground mb-4">
           Share your learning progress with friends and followers to inspire others!
         </p>

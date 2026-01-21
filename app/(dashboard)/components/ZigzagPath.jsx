@@ -80,10 +80,10 @@ export function ZigzagPath({ lessons, levels, mascots }) {
   return (
     <div className="relative lg:max-w-lg mx-auto">
       {/* Sticky level header */}
-      <div className="sticky top-[72px] lg:top-0 z-10 bg-background/80 backdrop-blur-sm py-2 lg:py-4">
+      <div className="sticky top-[72px] lg:top-0 z-50 bg-background/80 backdrop-blur-sm py-2 lg:py-4">
         <div
           className={`flex items-center justify-between px-4 py-3 rounded-lg shadow-lg transition-all duration-500 ease-in-out bg-gradient-to-r ${getLevelColor(
-            currentLevel?.id || 1
+            currentLevel?.id || 1,
           )} text-white`}
         >
           <div>
@@ -114,7 +114,7 @@ export function ZigzagPath({ lessons, levels, mascots }) {
               <div className="relative bg-background px-4">
                 <span
                   className={`text-lg font-bold bg-gradient-to-r ${getLevelColor(
-                    level.id
+                    level.id,
                   )} bg-clip-text text-transparent`}
                 >
                   {level.name}
@@ -153,8 +153,8 @@ export function ZigzagPath({ lessons, levels, mascots }) {
                             (!lesson.isCompleted && !lesson.isCurrent)
                               ? ""
                               : lesson.isCurrent
-                              ? ""
-                              : ""
+                                ? ""
+                                : ""
                           }`}
                         >
                           <Trophy
@@ -194,7 +194,7 @@ export function ZigzagPath({ lessons, levels, mascots }) {
                     {lesson.isCurrent && (
                       <div
                         aria-hidden
-                        className="absolute z-20"
+                        className="absolute z-10"
                         style={{
                           left: bubbleLeft,
                           top: "-35%",
@@ -223,7 +223,7 @@ export function ZigzagPath({ lessons, levels, mascots }) {
                               transform: "translateX(-50%) rotate(45deg)",
                               borderRightWidth: 4,
                               borderBottomWidth: 4,
-                              zIndex: 10,
+                              // zIndex: 10,
                             }}
                           />
 
@@ -234,7 +234,7 @@ export function ZigzagPath({ lessons, levels, mascots }) {
                               width: 20,
                               height: 8,
                               bottom: -2,
-                              zIndex: 11,
+                              // zIndex: 11,
                             }}
                           />
                         </div>
@@ -262,7 +262,7 @@ export function ZigzagPath({ lessons, levels, mascots }) {
                               className=""
                             />
                           </div>
-                        )
+                        ),
                     )}
                   </div>
                 );

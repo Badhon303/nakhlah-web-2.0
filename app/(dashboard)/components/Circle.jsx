@@ -9,6 +9,7 @@ export function Circle({
   icon,
   type,
   size = "md",
+  lessonId,
 }) {
   const getCircleStyles = () => {
     if (isLocked) {
@@ -61,10 +62,23 @@ export function Circle({
   const isSpecialType =
     type === "trophy" || type === "crown" || type === "checkpoint";
 
+  const handleClick = () => {
+    if (isCompleted && !isLocked) {
+      window.location.href = "/lesson/loading";
+    }
+  };
+
   return (
     <div
-      className={`rounded-full flex items-center justify-center border-4 ${getCircleStyles()} cursor-pointer hover:scale-105 transition-transform ${sizeClass} ${
-        isSpecialType && !isLocked ? "scale-110" : ""
+      onClick={handleClick}
+      className={`rounded-full flex items-center justify-center border-4 ${getCircleStyles()} transition-transform ${sizeClass} ${
+        isSpecialType && !isLocked ? "" : ""
+      } ${
+        isCompleted && !isLocked
+          ? "cursor-pointer hover:scale-110"
+          : isLocked
+            ? "cursor-not-allowed"
+            : "cursor-pointer hover:scale-105"
       }`}
     >
       <div className="flex items-center justify-center">{getIcon()}</div>

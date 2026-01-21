@@ -25,7 +25,7 @@ export default function XPChart() {
           <div className="text-xl lg:text-2xl font-bold text-accent">872 XP</div>
         </div>
       </div>
-      <div className="lg:px-6 lg:pb-6">
+      <div className="">
         <div className="h-48 lg:h-64 flex items-end justify-between gap-2 lg:gap-4">
           {apData.map((data, index) => (
             <div key={index} className="flex-1 flex flex-col items-center gap-1 lg:gap-2">
