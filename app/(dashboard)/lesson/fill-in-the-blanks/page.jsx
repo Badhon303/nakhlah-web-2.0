@@ -1,49 +1,50 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Volume2, X } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { GemStone } from "@/components/icons/Gem";
-import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react"
+import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Volume2, X } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { GemStone } from "@/components/icons/Gem"
+import { useToast } from "@/components/ui/use-toast"
 
 // Dummy data
-const DUMMY_SENTENCE = "The ___ is the largest planet in our solar system.";
-const DUMMY_CORRECT_ANSWER = "Jupiter";
+const DUMMY_SENTENCE = "The ___ is the largest planet in our solar system."
+const DUMMY_CORRECT_ANSWER = "Jupiter"
 
 export default function FillInBlankLesson() {
-  const [answer, setAnswer] = useState("");
-  const router = useRouter();
-  const { toast } = useToast();
+  const [answer, setAnswer] = useState("")
+  const router = useRouter()
+  const { toast } = useToast()
 
   const handleCheckAnswer = () => {
     if (answer.trim()) {
-      const correct = answer.trim().toLowerCase() === DUMMY_CORRECT_ANSWER.toLowerCase();
-      
+      const correct =
+        answer.trim().toLowerCase() === DUMMY_CORRECT_ANSWER.toLowerCase()
+
       if (correct) {
         toast({
           title: "Correct! 🎉",
           description: "Great job! Your answer is correct.",
           variant: "success",
-        });
-        
+        })
+
         setTimeout(() => {
-          router.push("/lesson/true-false");
-        }, 1500);
+          router.push("/lesson/true-false")
+        }, 1500)
       } else {
         toast({
           title: "Wrong answer",
           description: `The correct answer is "${DUMMY_CORRECT_ANSWER}"`,
           variant: "error",
-        });
-        setAnswer("");
+        })
+        setAnswer("")
       }
     }
-  };
+  }
 
-  const parts = DUMMY_SENTENCE.split("___");
+  const parts = DUMMY_SENTENCE.split("___")
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -81,7 +82,7 @@ export default function FillInBlankLesson() {
               <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6 text-center sm:text-start">
                 Fill in the blank
               </h2>
-              
+
               {/* Audio Sentence */}
               <div className="flex items-center gap-4 bg-card p-6 rounded-2xl border border-border mb-6">
                 <button className="flex-shrink-0 w-12 h-12 rounded-full bg-accent flex items-center justify-center text-accent-foreground hover:opacity-90">
@@ -114,7 +115,7 @@ export default function FillInBlankLesson() {
 
       {/* Bottom Action */}
       <div className="border-t border-border bg-background">
-        <div className="container max-w-4xl container mx-auto px-4 py-6">
+        <div className="container max-w-4xl mx-auto px-4 py-6">
           <Button
             onClick={handleCheckAnswer}
             disabled={!answer.trim()}
@@ -125,5 +126,5 @@ export default function FillInBlankLesson() {
         </div>
       </div>
     </div>
-  );
+  )
 }
