@@ -80,7 +80,7 @@ export function ZigzagPath({ lessons, levels, mascots }) {
   return (
     <div className="relative lg:max-w-lg mx-auto">
       {/* Sticky level header */}
-      <div className="sticky top-[72px] lg:top-0 z-50 bg-background/80 backdrop-blur-sm py-2 lg:py-4">
+      <div className="sticky top-[calc(env(safe-area-inset-top)+72px)] lg:top-0 z-50 bg-background/80 backdrop-blur-sm py-2 lg:py-4">
         <div
           className={`flex items-center justify-between px-4 py-3 rounded-lg shadow-lg transition-all duration-500 ease-in-out bg-gradient-to-r ${getLevelColor(
             currentLevel?.id || 1,
@@ -223,7 +223,6 @@ export function ZigzagPath({ lessons, levels, mascots }) {
                               transform: "translateX(-50%) rotate(45deg)",
                               borderRightWidth: 4,
                               borderBottomWidth: 4,
-                              // zIndex: 10,
                             }}
                           />
 
@@ -234,7 +233,6 @@ export function ZigzagPath({ lessons, levels, mascots }) {
                               width: 20,
                               height: 8,
                               bottom: -2,
-                              // zIndex: 11,
                             }}
                           />
                         </div>

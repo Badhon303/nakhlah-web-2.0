@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const navLinks = [
   { href: "/about", label: "About" },
@@ -18,9 +19,10 @@ const navLinks = [
 
 export function ProfileSection() {
   const isSignedIn = true;
+  const router = useRouter();
 
   const handleLogout = () => {
-    window.location.href = "/auth/login";
+    router.push("/auth/login");
   };
 
   return (

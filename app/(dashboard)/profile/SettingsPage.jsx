@@ -16,9 +16,11 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation";
 
 export default function SettingsPage({ onBack, onNavigate }) {
   const { theme, setTheme, resolvedTheme } = useTheme();
+  const router = useRouter();
 
   const settingsItems = [
     {
@@ -86,6 +88,10 @@ export default function SettingsPage({ onBack, onNavigate }) {
 
   const toggleDarkMode = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  };
+
+  const handleLogout = () => {
+    router.push("/auth/login");
   };
 
   const isDark = resolvedTheme === "dark";
@@ -188,7 +194,7 @@ export default function SettingsPage({ onBack, onNavigate }) {
           className="mt-6"
         >
           <button
-            onClick={() => (window.location.href = "/auth/login")}
+            onClick={handleLogout}
             className="w-full flex items-center justify-center gap-3 p-4 hover:bg-destructive/10 dark:hover:bg-destructive/20 transition-all rounded-xl group"
           >
             <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center transition-colors">

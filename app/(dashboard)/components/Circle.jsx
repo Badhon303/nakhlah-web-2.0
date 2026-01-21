@@ -1,6 +1,7 @@
 import React from "react";
 import { Lock } from "@/components/icons/Lock";
 import { Star } from "@/components/icons/Star";
+import { useRouter } from "next/navigation";
 
 export function Circle({
   isCompleted,
@@ -11,6 +12,8 @@ export function Circle({
   size = "md",
   lessonId,
 }) {
+  const router = useRouter();
+
   const getCircleStyles = () => {
     if (isLocked) {
       return "bg-[hsl(var(--node-locked))] border-[hsl(var(--node-locked-border))] pathway-node-shadow-locked";
@@ -64,7 +67,7 @@ export function Circle({
 
   const handleClick = () => {
     if (isCompleted && !isLocked) {
-      window.location.href = "/lesson/loading";
+      router.push("/lesson/loading");
     }
   };
 

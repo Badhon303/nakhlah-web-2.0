@@ -264,7 +264,10 @@ export default function LearnPage() {
   return (
     <div className="bg-background text-foreground">
       {/* Mobile sticky header */}
-      <div className="lg:hidden sticky top-0 z-20 bg-primary shadow-md">
+      <div
+        className="lg:hidden sticky z-20 bg-primary shadow-md"
+        style={{ top: "env(safe-area-inset-top, 0px)" }}
+      >
         <UserStats />
       </div>
 
