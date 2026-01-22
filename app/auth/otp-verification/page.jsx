@@ -21,11 +21,11 @@ export default function OTPVerificationPage() {
     const checkMobile = () => {
       setShowMobileDialer(window.innerWidth < 768);
     };
-    
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   useEffect(() => {
@@ -79,7 +79,7 @@ export default function OTPVerificationPage() {
 
   const handleNumberClick = (num) => {
     // Find first empty slot
-    const emptyIndex = otp.findIndex(digit => digit === "");
+    const emptyIndex = otp.findIndex((digit) => digit === "");
     if (emptyIndex !== -1) {
       handleChange(emptyIndex, num.toString());
     }
@@ -87,10 +87,11 @@ export default function OTPVerificationPage() {
 
   const handleDelete = () => {
     // Find last filled slot
-    const lastFilledIndex = otp.map((digit, i) => digit ? i : -1)
-      .filter(i => i !== -1)
+    const lastFilledIndex = otp
+      .map((digit, i) => (digit ? i : -1))
+      .filter((i) => i !== -1)
       .pop();
-    
+
     if (lastFilledIndex !== undefined) {
       const newOtp = [...otp];
       newOtp[lastFilledIndex] = "";
@@ -208,7 +209,7 @@ export default function OTPVerificationPage() {
                       {num}
                     </button>
                   ))}
-                  
+
                   {/* Decimal point (disabled) */}
                   <button
                     disabled
@@ -216,7 +217,7 @@ export default function OTPVerificationPage() {
                   >
                     •
                   </button>
-                  
+
                   {/* Zero button */}
                   <button
                     onClick={() => handleNumberClick(0)}
@@ -224,7 +225,7 @@ export default function OTPVerificationPage() {
                   >
                     0
                   </button>
-                  
+
                   {/* Delete button */}
                   <button
                     onClick={handleDelete}
@@ -236,16 +237,15 @@ export default function OTPVerificationPage() {
               )}
             </div>
           </div>
-                        {/* Confirm Button */}
-                                  <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-background border-t border-border p-4">
-
-              <Button
-                onClick={handleConfirm}
-                className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
-              >
-                Confirm
-              </Button>
-              </div>
+          {/* Confirm Button */}
+          <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-background border-t border-border p-4">
+            <Button
+              onClick={handleConfirm}
+              className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
+            >
+              Confirm
+            </Button>
+          </div>
         </motion.div>
       </div>
     </div>

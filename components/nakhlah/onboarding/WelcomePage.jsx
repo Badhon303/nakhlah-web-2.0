@@ -3,7 +3,7 @@
 
 // export default function WelcomePage({ onStart }: { onStart: () => void }) {
 //   return (
-//     <div className="min-h-screen flex flex-col items-center justify-between py-10 px-6 max-w-md mx-auto">
+//     <div className="min-h-[calc(100vh_-_64px)] flex flex-col items-center justify-between py-10 px-6 max-w-md mx-auto">
 //       {/* Mascot */}
 //       <div className="flex flex-col items-center">
 //         <div className="relative">
@@ -20,7 +20,7 @@
 //           />
 //         </div>
 
-//         <h1 className="text-3xl font-bold text-violet-600 mt-4">Elingo</h1>
+//         <h1 className="text-3xl font-bold text-violet-600 mt-4">Nakhlah</h1>
 //         <p className="text-center text-gray-600 mt-2 text-sm">
 //           Learn languages whenever and wherever you want.
 //           It’s free and forever.

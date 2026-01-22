@@ -7,6 +7,7 @@ import { Volume2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { GemStone } from "@/components/icons/Gem";
 import { useToast } from "@/components/ui/use-toast";
+import LeavingDialog from "../leaving/page";
 
 const words = [
   "dia",
@@ -25,6 +26,8 @@ const correctAnswer = ["Saya", "berjalan", "dan", "dia", "berenang"];
 export default function TranslateLesson() {
   const [selectedWords, setSelectedWords] = useState([]);
   const [availableWords, setAvailableWords] = useState(words);
+  const [showExitDialog, setShowExitDialog] = useState(false);
+
   const router = useRouter();
   const { toast } = useToast();
 
@@ -71,13 +74,13 @@ export default function TranslateLesson() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-[calc(100vh_-_64px)] lg:min-h-screen bg-background flex flex-col relative">
       {/* Header */}
       <div className="border-b border-border">
         <div className="container max-w-4xl mx-auto px-4 py-8">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => router.push("/")}
+              onClick={() => setShowExitDialog(true)}
               className="text-muted-foreground hover:text-foreground"
             >
               <X className="w-6 h-6" />
@@ -92,6 +95,13 @@ export default function TranslateLesson() {
           </div>
         </div>
       </div>
+
+      {/*  Dialog */}
+      {showExitDialog && (
+        <div className="fixed inset-0 z-50">
+          <LeavingDialog onCancel={() => setShowExitDialog(false)} />
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4">

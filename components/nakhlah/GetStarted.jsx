@@ -48,7 +48,7 @@ export default function GetStartedPage() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.5 }}
         >
-          <h1 className="text-6xl font-black text-accent mb-4">Elingo</h1>
+          <h1 className="text-6xl font-black text-accent mb-4">Nakhlah</h1>
           <p className="text-xl text-muted-foreground max-w-md mx-auto leading-relaxed">
             Learn languages whenever and wherever you want. It&apos;s free and
             forever.

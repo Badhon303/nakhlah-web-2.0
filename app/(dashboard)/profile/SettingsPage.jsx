@@ -97,7 +97,7 @@ export default function SettingsPage({ onBack, onNavigate }) {
   const isDark = resolvedTheme === "dark";
 
   return (
-    <div className="max-w-2xl mx-auto overflow-hidden">
+    <div className="container mx-auto px-4 py-6 max-w-3xl">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

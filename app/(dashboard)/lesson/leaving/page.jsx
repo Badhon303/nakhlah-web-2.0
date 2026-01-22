@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Mascot } from "@/components/nakhlah/Mascot";
 import { useRouter } from "next/navigation";
 
-export default function LeavingDialog() {
+export default function LeavingDialog({ onCancel }) {
   const router = useRouter();
 
   const handleKeepLearning = () => {
@@ -17,7 +17,8 @@ export default function LeavingDialog() {
   };
 
   return (
-    <div className="min-h-screen bg-background backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="absolute inset-0 z-40 bg-background/20 backdrop-blur-sm flex items-center justify-center p-4">
+      {" "}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -64,7 +65,7 @@ export default function LeavingDialog() {
             className="space-y-3"
           >
             <Button
-              onClick={handleKeepLearning}
+              onClick={onCancel}
               className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
             >
               Keep Learning

@@ -32,7 +32,7 @@ export default function Login() {
           className="hidden lg:flex flex-col items-center justify-center"
         >
           <Mascot mood="happy" size="xxxl" className="mb-6" />
-          <h2 className="text-4xl font-black text-accent mb-2">Elingo</h2>
+          <h2 className="text-4xl font-black text-accent mb-2">Nakhlah</h2>
           <p className="text-xl text-muted-foreground text-center max-w-md">
             Learn languages whenever and wherever you want
           </p>

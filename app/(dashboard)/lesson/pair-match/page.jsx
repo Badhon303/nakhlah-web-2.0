@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { GemStone } from "@/components/icons/Gem";
 import { useToast } from "@/components/ui/use-toast";
+import LeavingDialog from "../leaving/page";
 
 const leftWords = [
   { id: 1, text: "Anggem", matched: false },
@@ -40,6 +41,8 @@ export default function PairMatchLesson() {
   const [rightState, setRightState] = useState(rightWords);
   const [selectedLeft, setSelectedLeft] = useState(null);
   const [selectedRight, setSelectedRight] = useState(null);
+  const [showExitDialog, setShowExitDialog] = useState(false);
+
   const router = useRouter();
   const { toast } = useToast();
 
@@ -62,10 +65,12 @@ export default function PairMatchLesson() {
   const checkMatch = (left, right) => {
     if (correctPairs[left.text] === right.text) {
       setLeftState(
-        leftState.map((p) => (p.id === left.id ? { ...p, matched: true } : p))
+        leftState.map((p) => (p.id === left.id ? { ...p, matched: true } : p)),
       );
       setRightState(
-        rightState.map((p) => (p.id === right.id ? { ...p, matched: true } : p))
+        rightState.map((p) =>
+          p.id === right.id ? { ...p, matched: true } : p,
+        ),
       );
     }
     setTimeout(() => {
@@ -77,14 +82,14 @@ export default function PairMatchLesson() {
   const handleCheckAnswer = () => {
     const allMatched =
       leftState.every((p) => p.matched) && rightState.every((p) => p.matched);
-    
+
     if (allMatched) {
       toast({
         title: "All pairs matched! 🎉",
         description: "Great job! All pairs are correctly matched.",
         variant: "success",
       });
-      
+
       setTimeout(() => {
         router.push("/lesson/fill-in-the-blanks");
       }, 1500);
@@ -100,13 +105,13 @@ export default function PairMatchLesson() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-[calc(100vh_-_64px)] lg:min-h-screen bg-background flex flex-col">
       {/* Header */}
       <div className="border-b border-border">
         <div className="container max-w-4xl mx-auto px-4 py-8">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => router.push("/")}
+              onClick={() => setShowExitDialog(true)}
               className="text-muted-foreground hover:text-foreground"
             >
               <X className="w-6 h-6" />
@@ -121,6 +126,13 @@ export default function PairMatchLesson() {
           </div>
         </div>
       </div>
+
+      {/*  Dialog */}
+      {showExitDialog && (
+        <div className="fixed inset-0 z-50">
+          <LeavingDialog onCancel={() => setShowExitDialog(false)} />
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4">
@@ -151,8 +163,8 @@ export default function PairMatchLesson() {
                       item.matched
                         ? "border-green-500 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 opacity-50"
                         : selectedLeft?.id === item.id
-                        ? "border-accent bg-accent/10 text-foreground"
-                        : "border-border bg-card text-foreground hover:border-accent"
+                          ? "border-accent bg-accent/10 text-foreground"
+                          : "border-border bg-card text-foreground hover:border-accent"
                     }`}
                   >
                     {item.text}
@@ -174,8 +186,8 @@ export default function PairMatchLesson() {
                       item.matched
                         ? "border-green-500 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 opacity-50"
                         : selectedRight?.id === item.id
-                        ? "border-accent bg-accent/10 text-foreground"
-                        : "border-border bg-card text-foreground hover:border-accent"
+                          ? "border-accent bg-accent/10 text-foreground"
+                          : "border-border bg-card text-foreground hover:border-accent"
                     }`}
                   >
                     {item.text}

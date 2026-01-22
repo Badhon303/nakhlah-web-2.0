@@ -15,24 +15,29 @@ export default function HelpCenterPage({ onBack, onNavigateContact }) {
 
   const faqs = [
     {
-      question: "What is Elingo?",
-      answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+      question: "What is Nakhlah?",
+      answer:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     },
     {
       question: "How do I start a lesson?",
-      answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+      answer:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     },
     {
       question: "How do I buy diamonds?",
-      answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+      answer:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     },
     {
       question: "How do I take on the challenge?",
-      answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+      answer:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     },
     {
-      question: "How to close an Elingo account?",
-      answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+      question: "How to close an Nakhlah account?",
+      answer:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     },
   ];
 
@@ -59,9 +64,7 @@ export default function HelpCenterPage({ onBack, onNavigateContact }) {
 
         {/* Tabs - Removed the onClick for Contact us to prevent navigation */}
         <div className="flex gap-4 mb-6">
-          <div
-            className="px-4 py-2 rounded-lg font-medium bg-accent text-accent-foreground"
-          >
+          <div className="px-4 py-2 rounded-lg font-medium bg-accent text-accent-foreground">
             FAQ
           </div>
           <button
@@ -105,10 +108,14 @@ export default function HelpCenterPage({ onBack, onNavigateContact }) {
               className="border border-border rounded-xl overflow-hidden"
             >
               <button
-                onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
+                onClick={() =>
+                  setExpandedFaq(expandedFaq === index ? null : index)
+                }
                 className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-all"
               >
-                <span className="text-left font-medium text-foreground">{faq.question}</span>
+                <span className="text-left font-medium text-foreground">
+                  {faq.question}
+                </span>
                 <ChevronDown
                   className={`w-5 h-5 text-muted-foreground transition-transform ${
                     expandedFaq === index ? "rotate-180" : ""

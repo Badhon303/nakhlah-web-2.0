@@ -88,7 +88,6 @@ export default function ProfileAndSettings() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="container px-4 py-8 mx-auto"
         >
           {renderView()}
         </motion.div>

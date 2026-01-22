@@ -198,10 +198,10 @@ export default function Stats() {
                       intensity > 0.7
                         ? "bg-accent"
                         : intensity > 0.4
-                        ? "bg-accent/60"
-                        : intensity > 0.2
-                        ? "bg-accent/30"
-                        : "bg-muted"
+                          ? "bg-accent/60"
+                          : intensity > 0.2
+                            ? "bg-accent/30"
+                            : "bg-muted"
                     }`}
                   />
                 ))}

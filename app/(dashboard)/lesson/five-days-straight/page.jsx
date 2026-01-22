@@ -17,7 +17,7 @@ export default function FiveDaysStraight() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+    <div className="min-h-[calc(100vh_-_64px)] lg:min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-lg mx-auto text-center flex-1 flex flex-col justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}

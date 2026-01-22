@@ -66,7 +66,7 @@ export default function HeaderSection({ stats, onNavigateSettings, onNavigateEdi
           </div>
 
           {/* Stats */}
-          <div className="flex justify-center gap-6 lg:gap-12 w-full lg:w-auto">
+          {/* <div className="flex justify-center gap-6 lg:gap-12 w-full lg:w-auto">
             {stats.map((stat, index) => (
               <button
                 key={index}
@@ -81,7 +81,7 @@ export default function HeaderSection({ stats, onNavigateSettings, onNavigateEdi
                 </div>
               </button>
             ))}
-          </div>
+          </div> */}
         </div>
 
         {/* Mobile Action Buttons */}

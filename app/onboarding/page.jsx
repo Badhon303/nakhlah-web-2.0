@@ -80,7 +80,7 @@ export default function Onboarding() {
         age,
         email,
         completed: true,
-      })
+      }),
     );
     router.push("/challenge");
   };
