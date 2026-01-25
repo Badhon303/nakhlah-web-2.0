@@ -1,7 +1,17 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Lock } from "@/components/icons/Lock";
 import { Star } from "@/components/icons/Star";
 import { useRouter } from "next/navigation";
+import { LessonSelectionPopup } from "./LessonSelectionPopup";
+
+// Shared state to ensure only one popup is open at a time
+let activePopupId = null;
+const popupListeners = new Set();
+
+function setActivePopup(id) {
+  activePopupId = id;
+  popupListeners.forEach((listener) => listener(id));
+}
 
 export function Circle({
   isCompleted,
@@ -13,6 +23,17 @@ export function Circle({
   lessonId,
 }) {
   const router = useRouter();
+  const [showPopup, setShowPopup] = useState(false);
+
+  useEffect(() => {
+    const listener = (activeId) => {
+      if (activeId !== lessonId) {
+        setShowPopup(false);
+      }
+    };
+    popupListeners.add(listener);
+    return () => popupListeners.delete(listener);
+  }, [lessonId]);
 
   const getCircleStyles = () => {
     if (isLocked) {
@@ -66,25 +87,45 @@ export function Circle({
     type === "trophy" || type === "crown" || type === "checkpoint";
 
   const handleClick = () => {
-    if (isCompleted && !isLocked) {
-      router.push("/lesson/loading");
+    if ((isCompleted || isCurrent) && !isLocked) {
+      setActivePopup(lessonId);
+      setShowPopup(true);
     }
   };
 
+  const handleClosePopup = () => {
+    setShowPopup(false);
+    setActivePopup(null);
+  };
+
   return (
-    <div
-      onClick={handleClick}
-      className={`rounded-full flex items-center justify-center border-4 ${getCircleStyles()} transition-transform ${sizeClass} ${
-        isSpecialType && !isLocked ? "" : ""
-      } ${
-        isCompleted && !isLocked
-          ? "cursor-pointer hover:scale-110"
-          : isLocked
-            ? "cursor-not-allowed"
-            : "cursor-pointer hover:scale-105"
-      }`}
-    >
-      <div className="flex items-center justify-center">{getIcon()}</div>
-    </div>
+    <>
+      <div
+        onClick={handleClick}
+        className={`rounded-full flex items-center justify-center border-4 ${getCircleStyles()} transition-transform ${sizeClass} ${
+          isSpecialType && !isLocked ? "" : ""
+        } ${
+          (isCompleted || isCurrent) && !isLocked
+            ? "cursor-pointer hover:scale-110"
+            : isLocked
+              ? "cursor-not-allowed"
+              : "cursor-pointer hover:scale-105"
+        }`}
+      >
+        <div className="flex items-center justify-center">{getIcon()}</div>
+      </div>
+
+      {/* Lesson Selection Popup */}
+{showPopup && (
+  <LessonSelectionPopup
+  nodeId={lessonId}
+  isCompleted={isCompleted}
+  isCurrent={isCurrent}
+  isLocked={isLocked}  // Add this
+  onClose={handleClosePopup}
+  open={showPopup}
+/>
+)}
+    </>
   );
 }

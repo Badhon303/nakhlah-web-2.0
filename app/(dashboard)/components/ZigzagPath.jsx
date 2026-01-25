@@ -130,11 +130,6 @@ export function ZigzagPath({ lessons, levels, mascots }) {
                 const isLastLesson =
                   index === (groupedLessons[level.id] || []).length - 1;
 
-                const leftPercent = parseInt(position.left);
-
-                const bubbleOffsetPercent = leftPercent > 50 ? 1 : 18;
-                const bubbleLeft = `${leftPercent + bubbleOffsetPercent}%`;
-
                 return (
                   <div key={lesson.id} className="relative h-28 w-full">
                     {/* Lesson circle */}
@@ -186,24 +181,24 @@ export function ZigzagPath({ lessons, levels, mascots }) {
                           icon={lesson.icon}
                           type={lesson.type}
                           size="lg"
+                          lessonId={lesson.id}
                         />
                       )}
                     </div>
 
-                    {/* "Speech / quotation" */}
+                    {/* "Speech / quotation" bubble - positioned directly above the node */}
                     {lesson.isCurrent && (
                       <div
                         aria-hidden
                         className="absolute z-10"
                         style={{
-                          left: bubbleLeft,
-                          top: "-35%",
+                          left: position.left,
+                          top: "-40%",
                           transform: "translateX(-50%)",
-                          width: 110,
                         }}
                       >
                         <div
-                          className="relative mx-auto bg-white text-sm font-semibold px-3 py-2 rounded-md shadow-md border-accent"
+                          className="relative mx-auto bg-white text-sm font-semibold px-3 py-2 rounded-md shadow-md border-accent w-[110px]"
                           style={{
                             borderWidth: 4,
                           }}
@@ -213,7 +208,7 @@ export function ZigzagPath({ lessons, levels, mascots }) {
                             START!
                           </div>
 
-                          {/* 1.  Positioned on top to cover the bubble border */}
+                          {/* Arrow pointing down */}
                           <div
                             className="absolute left-1/2 bg-white border-accent"
                             style={{
@@ -226,7 +221,7 @@ export function ZigzagPath({ lessons, levels, mascots }) {
                             }}
                           />
 
-                          {/* 2. The Mask */}
+                          {/* Mask to hide the top part of the arrow */}
                           <div
                             className="absolute left-1/2 -translate-x-1/2 bg-white"
                             style={{

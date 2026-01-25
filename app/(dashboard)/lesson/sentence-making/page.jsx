@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState } from "react";
@@ -10,21 +11,11 @@ import { useToast } from "@/components/ui/use-toast";
 import LeavingDialog from "../leaving/page";
 import { LessonResultHandler } from "../../components/ResultHandler";
 
-const words = [
-  "dia",
-  "berenang",
-  "sampai",
-  "berolahraga",
-  "dan",
-  "Saya",
-  "itu",
-  "berjalan",
-  "jumpa",
-];
+const words = ["أنا", "أمشي", "و", "هي", "تسبح", "يأكل", "نحن", "يقرأ", "هم"];
 
-const correctAnswer = ["Saya", "berjalan", "dan", "dia", "berenang"];
+const correctAnswer = ["أنا", "أمشي", "و", "هي", "تسبح"];
 
-export default function TranslateLesson() {
+export default function SentenceMakingLesson() {
   const [selectedWords, setSelectedWords] = useState([]);
   const [availableWords, setAvailableWords] = useState(words);
   const [showExitDialog, setShowExitDialog] = useState(false);
@@ -34,13 +25,13 @@ export default function TranslateLesson() {
   const { toast } = useToast();
 
   const handleWordClick = (word) => {
-    if (result !== null) return; // Prevent changes after answer submitted
+    if (result !== null) return;
     setSelectedWords([...selectedWords, word]);
     setAvailableWords(availableWords.filter((w) => w !== word));
   };
 
   const handleRemoveWord = (index) => {
-    if (result !== null) return; // Prevent changes after answer submitted
+    if (result !== null) return;
     const word = selectedWords[index];
     setAvailableWords([...availableWords, word]);
     setSelectedWords(selectedWords.filter((_, i) => i !== index));
@@ -53,7 +44,14 @@ export default function TranslateLesson() {
     setResult(isAnswerCorrect);
   };
 
-  const onNext = () => router.push("/lesson/mcq");
+  const onNext = () => {
+    // Move to next lesson in sequence
+    const currentIndex = parseInt(
+      sessionStorage.getItem("currentLessonIndex") || "0",
+    );
+    sessionStorage.setItem("currentLessonIndex", (currentIndex + 1).toString());
+    router.push("/lesson/word-making");
+  };
 
   return (
     <div className="min-h-[calc(100vh_-_64px)] lg:min-h-screen bg-background flex flex-col relative">
@@ -68,7 +66,7 @@ export default function TranslateLesson() {
               <X className="w-6 h-6" />
             </button>
             <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-accent w-1/5" />
+              <div className="h-full bg-accent w-1/6" />
             </div>
             <div className="flex items-center gap-2">
               <GemStone size="sm" />
@@ -91,20 +89,29 @@ export default function TranslateLesson() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-8"
+            className="space-y-6"
           >
             {/* Question */}
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6 text-center sm:text-start">
-                Translate this sentence
+                Make this sentence in Arabic
               </h2>
               <div className="flex items-center gap-4 bg-card p-6 rounded-2xl border border-border">
                 <button className="flex-shrink-0 w-12 h-12 rounded-full bg-accent flex items-center justify-center text-accent-foreground hover:opacity-90">
                   <Volume2 className="w-6 h-6" />
                 </button>
                 <p className="text-xl font-semibold text-foreground">
-                  I walk and she swims.
+                  I walk and she swims
                 </p>
+              </div>
+
+              {/* Image for context */}
+              <div className="mt-4 flex justify-center">
+                <img
+                  src="/assalamu_alaykum.webp"
+                  alt="Arabic lesson illustration"
+                  className="w-32 h-32 object-contain"
+                />
               </div>
             </div>
 
@@ -149,7 +156,7 @@ export default function TranslateLesson() {
       {/* Bottom Action */}
       <LessonResultHandler
         isCorrect={result}
-        correctAnswer="Saya berjalan dan dia berenang"
+        correctAnswer={correctAnswer.join(" ")}
         onCheck={handleCheckAnswer}
         onContinue={onNext}
         onSkip={onNext}
