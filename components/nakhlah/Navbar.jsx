@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, BookOpen, Trophy, User, BarChart3 } from "lucide-react";
+import { Home, BookOpen, Trophy, User, Crown } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { StreakCounter } from "./StreakCounter";
 import { motion } from "framer-motion";
@@ -12,7 +12,7 @@ const navItems = [
   { path: "/", label: "Home", icon: Home },
   { path: "/challenge", label: "Challenges", icon: BookOpen },
   { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
-  { path: "/stats", label: "Stats", icon: BarChart3 },
+  { path: "/premium", label: "Store", icon: Crown },
   { path: "/profile", label: "Profile", icon: User },
 ];
 
@@ -41,7 +41,7 @@ export function Navbar() {
                     "relative flex items-center gap-3 rounded-lg px-4 py-3 text-base font-semibold transition-colors",
                     isActive
                       ? "text-accent"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
                   )}
                 >
                   <item.icon className="h-6 w-6" />
@@ -50,7 +50,11 @@ export function Navbar() {
                     <motion.div
                       layoutId="navbar-indicator"
                       className="absolute inset-0 rounded-lg bg-accent/10 -z-10"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      transition={{
+                        type: "spring",
+                        bounce: 0.2,
+                        duration: 0.6,
+                      }}
                     />
                   )}
                 </Link>
@@ -76,7 +80,7 @@ export function Navbar() {
                 href={item.path}
                 className={cn(
                   "relative flex flex-col items-center gap-1 rounded-xl px-4 py-2 transition-colors",
-                  isActive ? "text-accent" : "text-muted-foreground"
+                  isActive ? "text-accent" : "text-muted-foreground",
                 )}
               >
                 <item.icon className="h-6 w-6" />
