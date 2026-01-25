@@ -5,6 +5,16 @@ import { motion } from "framer-motion";
 import { Mascot } from "@/components/nakhlah/Mascot";
 import { useRouter } from "next/navigation";
 
+// Define the lesson sequence - all lessons will go through these types
+const lessonSequence = [
+  "/lesson/sentence-making",
+  "/lesson/word-making",
+  "/lesson/mcq",
+  "/lesson/pair-match",
+  "/lesson/fill-in-the-blanks",
+  "/lesson/true-false",
+];
+
 export default function LessonLoading() {
   const [progress, setProgress] = useState(0);
   const router = useRouter();
@@ -14,9 +24,16 @@ export default function LessonLoading() {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
-          // Navigate to first lesson question after loading
+          // Navigate to first lesson in the sequence
           setTimeout(() => {
-            router.push("/lesson/translate");
+            // Get current lesson index, default to 0 (first lesson)
+            const currentIndex = parseInt(
+              sessionStorage.getItem("currentLessonIndex") || "0",
+            );
+
+            // Navigate to the lesson at current index
+            const route = lessonSequence[currentIndex] || lessonSequence[0];
+            router.push(route);
           }, 500);
           return 100;
         }

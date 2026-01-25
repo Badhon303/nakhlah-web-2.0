@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState } from "react";
@@ -11,10 +12,10 @@ import LeavingDialog from "../leaving/page";
 import { LessonResultHandler } from "../../components/ResultHandler";
 
 const options = [
-  { id: 1, text: "The key is eating a burger", correct: true },
-  { id: 2, text: "Kunci itu sedang makan burger", correct: false },
-  { id: 3, text: "Burger is the key", correct: false },
-  { id: 4, text: "Eating burger makes happy", correct: false },
+  { id: 1, text: "أهلاً وسهلاً", correct: true },
+  { id: 2, text: "مع السلامة", correct: false },
+  { id: 3, text: "صباح الخير", correct: false },
+  { id: 4, text: "مساء الخير", correct: false },
 ];
 
 export default function MCQLesson() {
@@ -35,6 +36,11 @@ export default function MCQLesson() {
   };
 
   const handleNext = () => {
+    // Move to next lesson in sequence
+    const currentIndex = parseInt(
+      sessionStorage.getItem("currentLessonIndex") || "0",
+    );
+    sessionStorage.setItem("currentLessonIndex", (currentIndex + 1).toString());
     router.push("/lesson/pair-match");
   };
 
@@ -51,7 +57,7 @@ export default function MCQLesson() {
               <X className="w-6 h-6" />
             </button>
             <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-accent w-2/5" />
+              <div className="h-full bg-accent w-3/6" />
             </div>
             <div className="flex items-center gap-2">
               <GemStone size="sm" />
@@ -74,25 +80,33 @@ export default function MCQLesson() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-8"
+            className="space-y-6"
           >
             {/* Question */}
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6 text-center sm:text-start">
-                What does this sentence mean?
+                What does this mean?
               </h2>
               <div className="flex items-center gap-4 bg-card p-6 rounded-2xl border border-border">
                 <button className="flex-shrink-0 w-12 h-12 rounded-full bg-accent flex items-center justify-center text-accent-foreground hover:opacity-90">
                   <Volume2 className="w-6 h-6" />
                 </button>
                 <p className="text-xl font-semibold text-foreground">
-                  Kunci itu sedang makan burger
+                  Welcome (in Arabic)
                 </p>
+              </div>
+
+              <div className="mt-4 flex justify-center">
+                <img
+                  src="/assalamu_alaykum.webp"
+                  alt="Arabic greeting"
+                  className="w-32 h-32 object-contain"
+                />
               </div>
             </div>
 
             {/* Options */}
-            <div className="grid gap-3">
+            <div className="grid grid-cols-2 gap-3">
               {options.map((option, index) => (
                 <motion.button
                   key={option.id}
@@ -118,7 +132,7 @@ export default function MCQLesson() {
       {/* Bottom Action */}
       <LessonResultHandler
         isCorrect={isCorrect}
-        correctAnswer="The key is eating a burger"
+        correctAnswer="أهلاً وسهلاً"
         onCheck={handleCheckAnswer}
         onContinue={handleNext}
         onSkip={handleNext}

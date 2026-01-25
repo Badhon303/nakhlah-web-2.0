@@ -8,13 +8,11 @@ import { useRouter } from "next/navigation";
 
 const navLinks = [
   { href: "/about", label: "About" },
-  { href: "/blog", label: "Blog" },
   { href: "/store", label: "Store" },
-  { href: "/efficacy", label: "Efficacy" },
-  { href: "/careers", label: "Careers" },
-  { href: "/investors", label: "Investors" },
-  { href: "/terms", label: "Terms" },
-  { href: "/privacy", label: "Privacy" },
+  { href: "/tips", label: "Learning tips and guides" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/terms-and-conditions", label: "Terms and Conditions" },
+  { href: "/privacy", label: "Privacy Policy" },
 ];
 
 export function ProfileSection() {

@@ -11,7 +11,7 @@ import LeavingDialog from "../leaving/page";
 import { LessonResultHandler } from "../../components/ResultHandler";
 
 // Dummy data
-const DUMMY_STATEMENT = "The Earth is the third planet from the Sun.";
+const DUMMY_STATEMENT = "كلمة 'شكراً' تعني 'Thank you' بالإنجليزية";
 const DUMMY_CORRECT_ANSWER = true;
 
 export default function TrueFalseLesson() {
@@ -31,7 +31,13 @@ export default function TrueFalseLesson() {
     setResult(selectedOption === DUMMY_CORRECT_ANSWER);
   };
 
-  const onNext = () => router.push("/lesson/completed");
+  const onNext = () => {
+    // Last lesson in sequence - go to completed
+    sessionStorage.removeItem("currentLessonIndex");
+    sessionStorage.removeItem("selectedLessonId");
+    sessionStorage.removeItem("selectedNodeId");
+    router.push("/lesson/completed");
+  };
 
   return (
     <div className="min-h-[calc(100vh_-_64px)] lg:min-h-screen bg-background flex flex-col">
@@ -46,7 +52,7 @@ export default function TrueFalseLesson() {
               <X className="w-6 h-6" />
             </button>
             <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-accent w-4/5" />
+              <div className="h-full bg-accent w-6/6" />
             </div>
             <div className="flex items-center gap-2">
               <GemStone size="sm" />

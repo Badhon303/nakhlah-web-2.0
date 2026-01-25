@@ -12,8 +12,8 @@ import LeavingDialog from "../leaving/page";
 import { LessonResultHandler } from "../../components/ResultHandler";
 
 // Dummy data
-const DUMMY_SENTENCE = "The ___ is the largest planet in our solar system.";
-const DUMMY_CORRECT_ANSWER = "Jupiter";
+const DUMMY_SENTENCE = "أنا ___ إلى المدرسة كل يوم";
+const DUMMY_CORRECT_ANSWER = "أذهب";
 
 export default function FillInBlankLesson() {
   const [answer, setAnswer] = useState("");
@@ -30,6 +30,11 @@ export default function FillInBlankLesson() {
   };
 
   const handleNext = () => {
+    // Move to next lesson in sequence
+    const currentIndex = parseInt(
+      sessionStorage.getItem("currentLessonIndex") || "0",
+    );
+    sessionStorage.setItem("currentLessonIndex", (currentIndex + 1).toString());
     router.push("/lesson/true-false");
   };
 
@@ -49,7 +54,7 @@ export default function FillInBlankLesson() {
             </button>
 
             <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-accent w-3/5" />
+              <div className="h-full bg-accent w-5/6" />
             </div>
 
             <div className="flex items-center gap-2">
