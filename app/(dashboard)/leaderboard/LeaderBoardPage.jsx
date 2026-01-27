@@ -218,14 +218,14 @@ export default function Leaderboard({ onViewProfile }) {
           {leaderboardData.slice(3).map((user, index) => (
             <motion.button
               key={user.rank}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ delay: 0.7 + index * 0.05 }}
               onClick={() => onViewProfile(user)}
               className={`w-full bg-transparent lg:bg-card flex items-center gap-4 px-2 py-4 lg:p-4 rounded-2xl transition-all hover:scale-[1.02] ${
                 user.isCurrentUser
                   ? "bg-muted/30 border-2 border-primary lg:shadow-lg"
-                  : "hover:bg-muted/30 border border-border shadow-md"
+                  : "border border-border shadow-md"
               }`}
             >
               <div className="w-8 text-center">

@@ -12,7 +12,7 @@ const navItems = [
   { path: "/", label: "Home", icon: Home },
   { path: "/challenge", label: "Challenges", icon: BookOpen },
   { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
-  { path: "/premium", label: "Store", icon: Crown },
+  { path: "/store", label: "Store", icon: Crown },
   { path: "/profile", label: "Profile", icon: User },
 ];
 

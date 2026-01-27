@@ -11,15 +11,21 @@ export default function ChallengesHome() {
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
-        <h1 className="text-3xl font-bold text-foreground md:text-4xl">
-          Challenges
-        </h1>
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center">
-          <LockKey />
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between mb-6"
+      >
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-foreground md:text-4xl">
+            Challenges
+          </h1>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+            <LockKey />
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
