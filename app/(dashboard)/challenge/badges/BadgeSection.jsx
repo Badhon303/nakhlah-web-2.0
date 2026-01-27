@@ -5,15 +5,17 @@ export default function BadgeSection({ section }) {
   return (
     <div className="space-y-4">
       {/* Section header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-muted-foreground" />
-          <h3 className="font-semibold text-foreground">
+      <div className="flex items-center justify-between px-1">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+            <Calendar className="w-4 h-4 text-muted-foreground" />
+          </div>
+          <h3 className="font-bold text-foreground text-lg">
             {section.year}
           </h3>
         </div>
 
-        <span className="text-sm text-muted-foreground">
+        <span className="text-sm font-semibold text-accent px-3 py-1 rounded-full bg-muted/50">
           {section.badges.length} earned
         </span>
       </div>
