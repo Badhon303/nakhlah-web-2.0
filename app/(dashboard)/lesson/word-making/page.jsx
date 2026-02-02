@@ -11,9 +11,9 @@ import { useToast } from "@/components/ui/use-toast";
 import LeavingDialog from "../leaving/page";
 import { LessonResultHandler } from "../../components/ResultHandler";
 
-const letters = ["م", "ر", "ح", "ب", "ا", "ل", "ك", "ت", "س"];
+const letters = ["ر", "م", "ب", "ا", "ي", "س"];
 
-const correctAnswer = ["م", "ر", "ح", "ب", "ا"];
+const correctAnswer = ["ا", "س", "م", "ي"]; // Fixed: Correct order for "اسمي"
 
 export default function WordMakingLesson() {
   const [selectedLetters, setSelectedLetters] = useState([]);
@@ -23,6 +23,20 @@ export default function WordMakingLesson() {
 
   const router = useRouter();
   const { toast } = useToast();
+
+  // Global lesson progress (Word-Making = 4/6)
+  const LESSON_TYPES = [
+    "mcq",
+    "true-false",
+    "fill-in-the-blanks",
+    "word-making",
+    "sentence-making",
+    "pair-match",
+  ];
+  const currentLessonType = "word-making";
+  const currentLessonIndex = LESSON_TYPES.indexOf(currentLessonType);
+  const totalLessons = LESSON_TYPES.length;
+  const progressPercentage = ((currentLessonIndex + 1) / totalLessons) * 100;
 
   const handleLetterClick = (letter) => {
     if (result !== null) return;
@@ -40,6 +54,7 @@ export default function WordMakingLesson() {
 
   const handleCheckAnswer = () => {
     if (selectedLetters.length === 0) return;
+    // NO REVERSE HERE - Compare as-is
     const isAnswerCorrect =
       JSON.stringify(selectedLetters) === JSON.stringify(correctAnswer);
     setResult(isAnswerCorrect);
@@ -51,7 +66,7 @@ export default function WordMakingLesson() {
       sessionStorage.getItem("currentLessonIndex") || "0",
     );
     sessionStorage.setItem("currentLessonIndex", (currentIndex + 1).toString());
-    router.push("/lesson/mcq");
+    router.push("/lesson/sentence-making");
   };
 
   return (
@@ -67,7 +82,10 @@ export default function WordMakingLesson() {
               <X className="w-6 h-6" />
             </button>
             <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-accent w-2/6" />
+              <div
+                className="h-full bg-accent transition-all duration-300"
+                style={{ width: `${progressPercentage}%` }}
+              />
             </div>
             <div className="flex items-center gap-2">
               <GemStone size="sm" />
@@ -95,30 +113,16 @@ export default function WordMakingLesson() {
             {/* Question */}
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6 text-center sm:text-start">
-                Make this word in Arabic
+                Write &quot;My name&quot; in Arabic
               </h2>
-              <div className="flex items-center gap-4 bg-card p-6 rounded-2xl border border-border">
-                <button className="flex-shrink-0 w-12 h-12 rounded-full bg-accent flex items-center justify-center text-accent-foreground hover:opacity-90">
-                  <Volume2 className="w-6 h-6" />
-                </button>
-                <p className="text-xl font-semibold text-foreground">
-                  Hello (مرحبا)
-                </p>
-              </div>
-
-              {/* Image for context */}
-              <div className="mt-4 flex justify-center">
-                <img
-                  src="/my_name.webp"
-                  alt="Arabic word illustration"
-                  className="w-40 h-40 object-contain"
-                />
-              </div>
             </div>
 
-            {/* Selected Letters Area */}
+            {/* Selected Letters Area - Use RTL direction */}
             <div className="min-h-[100px] bg-card rounded-2xl border-2 border-border p-4">
-              <div className="flex flex-wrap gap-2 justify-center items-center min-h-[68px]">
+              <div
+                dir="rtl"
+                className="flex flex-wrap gap-2 justify-center items-center min-h-[68px]"
+              >
                 {selectedLetters.map((letter, index) => (
                   <motion.button
                     key={index}
@@ -132,7 +136,7 @@ export default function WordMakingLesson() {
                   </motion.button>
                 ))}
                 {selectedLetters.length === 0 && (
-                  <p className="text-muted-foreground text-sm">
+                  <p dir="ltr" className="text-muted-foreground text-sm">
                     Tap the letters to form the word
                   </p>
                 )}
@@ -155,13 +159,6 @@ export default function WordMakingLesson() {
                 </motion.button>
               ))}
             </div>
-
-            {/* Hint */}
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">
-                💡 Arrange the letters to form the word &quot;مرحبا&quot;
-              </p>
-            </div>
           </motion.div>
         </div>
       </div>
@@ -169,7 +166,7 @@ export default function WordMakingLesson() {
       {/* Bottom Action */}
       <LessonResultHandler
         isCorrect={result}
-        correctAnswer="مرحبا"
+        correctAnswer="اسمي"
         onCheck={handleCheckAnswer}
         onContinue={onNext}
         onSkip={onNext}

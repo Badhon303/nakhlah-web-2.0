@@ -24,6 +24,20 @@ export default function SentenceMakingLesson() {
   const router = useRouter();
   const { toast } = useToast();
 
+  // Global lesson progress (Sentence-Making = 5/6)
+  const LESSON_TYPES = [
+    "mcq",
+    "true-false",
+    "fill-in-the-blanks",
+    "word-making",
+    "sentence-making",
+    "pair-match",
+  ];
+  const currentLessonType = "sentence-making";
+  const currentLessonIndex = LESSON_TYPES.indexOf(currentLessonType);
+  const totalLessons = LESSON_TYPES.length;
+  const progressPercentage = ((currentLessonIndex + 1) / totalLessons) * 100;
+
   const handleWordClick = (word) => {
     if (result !== null) return;
     setSelectedWords([...selectedWords, word]);
@@ -50,7 +64,7 @@ export default function SentenceMakingLesson() {
       sessionStorage.getItem("currentLessonIndex") || "0",
     );
     sessionStorage.setItem("currentLessonIndex", (currentIndex + 1).toString());
-    router.push("/lesson/word-making");
+    router.push("/lesson/pair-match");
   };
 
   return (
@@ -66,7 +80,10 @@ export default function SentenceMakingLesson() {
               <X className="w-6 h-6" />
             </button>
             <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-accent w-1/6" />
+              <div
+                className="h-full bg-accent transition-all duration-300"
+                style={{ width: `${progressPercentage}%` }}
+              />
             </div>
             <div className="flex items-center gap-2">
               <GemStone size="sm" />

@@ -5,14 +5,14 @@ import { motion } from "framer-motion";
 import { Mascot } from "@/components/nakhlah/Mascot";
 import { useRouter } from "next/navigation";
 
-// Define the lesson sequence - all lessons will go through these types
+// Define the lesson sequence - all lessons will go through these types in order
 const lessonSequence = [
-  "/lesson/sentence-making",
-  "/lesson/word-making",
   "/lesson/mcq",
-  "/lesson/pair-match",
-  "/lesson/fill-in-the-blanks",
   "/lesson/true-false",
+  "/lesson/fill-in-the-blanks",
+  "/lesson/word-making",
+  "/lesson/sentence-making",
+  "/lesson/pair-match",
 ];
 
 export default function LessonLoading() {
@@ -20,19 +20,17 @@ export default function LessonLoading() {
   const router = useRouter();
 
   useEffect(() => {
+    // Reset currentLessonIndex to 0 for fresh lesson start
+    sessionStorage.setItem("currentLessonIndex", "0");
+
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
           // Navigate to first lesson in the sequence
           setTimeout(() => {
-            // Get current lesson index, default to 0 (first lesson)
-            const currentIndex = parseInt(
-              sessionStorage.getItem("currentLessonIndex") || "0",
-            );
-
-            // Navigate to the lesson at current index
-            const route = lessonSequence[currentIndex] || lessonSequence[0];
+            // Always start at MCQ (index 0)
+            const route = lessonSequence[0];
             router.push(route);
           }, 500);
           return 100;

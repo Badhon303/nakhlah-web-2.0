@@ -6,7 +6,9 @@ import { ToastProvider } from "./nakhlah/Toast/ToastProvider";
 export default function MainLayout({ children }) {
   const pathname = usePathname();
   const hideNavbar =
-    pathname === "/onboarding" || pathname.startsWith("/auth/");
+    pathname === "/onboarding" ||
+    pathname.startsWith("/auth/") ||
+    pathname.startsWith("/lesson/");
 
   return (
     <div className="min-h-[calc(100vh_-_64px)]">
