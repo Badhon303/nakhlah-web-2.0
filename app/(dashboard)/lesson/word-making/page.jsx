@@ -69,7 +69,7 @@ export default function WordMakingLesson() {
   };
 
   return (
-    <div className="min-h-[calc(100vh_-_64px)] lg:min-h-screen bg-background flex flex-col relative">
+    <div className="min-h-screen sm:min-h-[calc(100vh_-_64px)] lg:min-h-screen bg-background flex flex-col relative">
       {/* Header */}
       <div className="border-b border-border">
         <div className="container max-w-4xl mx-auto px-4 py-8">

@@ -154,7 +154,7 @@ export default function MCQLesson() {
   };
 
   return (
-    <div className="min-h-[calc(100vh_-_64px)] lg:min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen sm:min-h-[calc(100vh_-_64px)] lg:min-h-screen bg-background flex flex-col">
       {/* Header */}
       <div className="border-b border-border">
         <div className="container max-w-4xl mx-auto px-4 py-4 sm:py-6">
@@ -373,7 +373,7 @@ export default function MCQLesson() {
       </div>
 
       {/* Bottom Action */}
-      <div className="px-3 sm:px-4">
+      <div className="">
         {currentQuestion.type === "learn" ? (
           <div className="border-t-2 border-border bg-background min-h-[120px] flex flex-col justify-center">
             <div className="container max-w-4xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">

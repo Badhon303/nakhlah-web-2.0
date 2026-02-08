@@ -272,7 +272,7 @@ export default function PairMatchLesson() {
       </div>
 
       {/* Bottom Action - EXACTLY like MCQ */}
-      <div className="px-3 sm:px-4">
+      <div className="">
         <LessonResultHandler
           isCorrect={isCorrect}
           correctAnswer={
