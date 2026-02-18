@@ -181,7 +181,7 @@ export function ZigzagPath({ lessons, levels, mascots }) {
                           icon={lesson.icon}
                           type={lesson.type}
                           size="lg"
-                          lessonId={lesson.id}
+                          lessonId={lesson.apiId}
                         />
                       )}
                     </div>

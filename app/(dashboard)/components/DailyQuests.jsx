@@ -22,7 +22,7 @@ export function DailyQuests() {
   const menuOptions = [
     {
       label: "View Challenges",
-      onClick: () => router.push("/dashboard/challenge?tab=target"),
+      onClick: () => router.push("/challenge?tab=target"),
     },
   ];
 

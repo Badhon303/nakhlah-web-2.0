@@ -27,7 +27,7 @@ export function ProfileSection() {
   const menuOptions = [
     {
       label: "View Full Profile",
-      onClick: () => router.push("/dashboard/profile"),
+      onClick: () => router.push("/profile"),
     },
   ];
 

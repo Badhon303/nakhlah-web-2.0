@@ -116,16 +116,17 @@ export function Circle({
       </div>
 
       {/* Lesson Selection Popup */}
-{showPopup && (
-  <LessonSelectionPopup
-  nodeId={lessonId}
-  isCompleted={isCompleted}
-  isCurrent={isCurrent}
-  isLocked={isLocked}  // Add this
-  onClose={handleClosePopup}
-  open={showPopup}
-/>
-)}
+      {showPopup && (
+        <LessonSelectionPopup
+          nodeId={lessonId}
+          lessonId={lessonId}
+          isCompleted={isCompleted}
+          isCurrent={isCurrent}
+          isLocked={isLocked}
+          onClose={handleClosePopup}
+          open={showPopup}
+        />
+      )}
     </>
   );
 }

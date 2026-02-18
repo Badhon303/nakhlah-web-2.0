@@ -5,33 +5,31 @@ import { motion } from "framer-motion";
 import { Mascot } from "@/components/nakhlah/Mascot";
 import { useRouter } from "next/navigation";
 
-// Define the lesson sequence - all lessons will go through these types in order
-const lessonSequence = [
-  "/lesson/mcq",
-  "/lesson/true-false",
-  "/lesson/fill-in-the-blanks",
-  "/lesson/word-making",
-  "/lesson/sentence-making",
-  "/lesson/pair-match",
-];
+const lessonSequence = ["/lesson"];
 
 export default function LessonLoading() {
   const [progress, setProgress] = useState(0);
   const router = useRouter();
+  const [error] = useState(null);
 
   useEffect(() => {
-    // Reset currentLessonIndex to 0 for fresh lesson start
+    const lessonId = sessionStorage.getItem("selectedLessonId")?.trim();
+
+    if (!lessonId) {
+      console.error("No lesson ID found");
+      router.push("/");
+      return;
+    }
+
     sessionStorage.setItem("currentLessonIndex", "0");
+    sessionStorage.setItem("selectedLessonId", lessonId);
 
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
-          // Navigate to first lesson in the sequence
           setTimeout(() => {
-            // Always start at MCQ (index 0)
-            const route = lessonSequence[0];
-            router.push(route);
+            router.push(lessonSequence[0]);
           }, 500);
           return 100;
         }
@@ -52,40 +50,57 @@ export default function LessonLoading() {
           transition={{ duration: 0.5 }}
           className="mb-8"
         >
-          <Mascot mood="proud" size="xxxl" />
+          <Mascot mood={error ? "sad" : "proud"} size="xxxl" />
         </motion.div>
 
-        {/* Loading Text */}
+        {/* Loading Text or Error */}
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-2xl font-bold text-accent mb-8"
+          className={`text-2xl font-bold mb-8 ${
+            error ? "text-destructive" : "text-accent"
+          }`}
         >
-          Loading...
+          {error ? "Error Loading Lesson" : "Loading..."}
         </motion.h2>
 
+        {error && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-sm text-destructive mb-6"
+          >
+            {error}
+          </motion.p>
+        )}
+
         {/* Progress Bar */}
-        <div className="mb-6">
-          <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-accent rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.3 }}
-            />
+        {!error && (
+          <div className="mb-6">
+            <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-accent rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.3 }}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Tip Text */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="text-sm text-muted-foreground max-w-xs mx-auto"
-        >
-          Complete the course faster to get more XP and Diamonds.
-        </motion.p>
+        {!error && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-sm text-muted-foreground max-w-xs mx-auto"
+          >
+            Complete the course faster to get more XP and Diamonds.
+          </motion.p>
+        )}
       </div>
     </div>
   );

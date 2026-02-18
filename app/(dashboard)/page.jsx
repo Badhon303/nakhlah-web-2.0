@@ -30,6 +30,7 @@ const lessons = [
   // Level 1
   {
     id: 1,
+    apiId: "691d5c822e12eb13348de931",
     type: "lesson",
     title: "Lesson 1",
     isCompleted: true,
@@ -39,42 +40,47 @@ const lessons = [
   },
   {
     id: 2,
+    apiId: "691d5c822e12eb13348de931",
     type: "lesson",
     title: "Lesson 2",
-    isCompleted: true,
-    isCurrent: false,
-    icon: <Star />,
-    level: 1,
-  },
-  {
-    id: 3,
-    type: "lesson",
-    title: "Lesson 3",
-    isCompleted: true,
-    isCurrent: false,
-    icon: <Star />,
-    level: 1,
-  },
-  {
-    id: 4,
-    type: "checkpoint",
-    title: "Checkpoint",
-    isCompleted: true,
-    isCurrent: false,
-    icon: <Medal size="xl" />,
-    level: 1,
-  },
-  {
-    id: 5,
-    type: "lesson",
-    title: "Lesson 4",
     isCompleted: false,
     isCurrent: true,
     icon: <Star />,
     level: 1,
   },
   {
+    id: 3,
+    apiId: "691d5c822e12eb13348de931",
+    type: "lesson",
+    title: "Lesson 3",
+    isCompleted: false,
+    isCurrent: false,
+    icon: <Star />,
+    level: 1,
+  },
+  {
+    id: 4,
+    apiId: "691d5c822e12eb13348de931",
+    type: "checkpoint",
+    title: "Checkpoint",
+    isCompleted: false,
+    isCurrent: false,
+    icon: <Medal size="xl" />,
+    level: 1,
+  },
+  {
+    id: 5,
+    apiId: "691d5c822e12eb13348de931",
+    type: "lesson",
+    title: "Lesson 4",
+    isCompleted: false,
+    isCurrent: false,
+    icon: <Star />,
+    level: 1,
+  },
+  {
     id: 6,
+    apiId: "691d5c822e12eb13348de936",
     type: "lesson",
     title: "Lesson 5",
     isCompleted: false,
@@ -84,6 +90,7 @@ const lessons = [
   },
   {
     id: 7,
+    apiId: "691d5c822e12eb13348de937",
     type: "lesson",
     title: "Lesson 6",
     isCompleted: false,
@@ -93,6 +100,7 @@ const lessons = [
   },
   {
     id: 8,
+    apiId: "691d5c822e12eb13348de938",
     type: "lesson",
     title: "Lesson 7",
     isCompleted: false,
@@ -102,6 +110,7 @@ const lessons = [
   },
   {
     id: 9,
+    apiId: "691d5c822e12eb13348de939",
     type: "trophy",
     title: "Level 1 Complete",
     isCompleted: false,
@@ -113,6 +122,7 @@ const lessons = [
   // Level 2
   {
     id: 10,
+    apiId: "691d5c822e12eb13348de940",
     type: "lesson",
     title: "Lesson 8",
     isCompleted: false,
@@ -122,6 +132,7 @@ const lessons = [
   },
   {
     id: 11,
+    apiId: "691d5c822e12eb13348de941",
     type: "lesson",
     title: "Lesson 9",
     isCompleted: false,
@@ -131,6 +142,7 @@ const lessons = [
   },
   {
     id: 12,
+    apiId: "691d5c822e12eb13348de942",
     type: "lesson",
     title: "Lesson 10",
     isCompleted: false,
@@ -140,6 +152,7 @@ const lessons = [
   },
   {
     id: 13,
+    apiId: "691d5c822e12eb13348de943",
     type: "checkpoint",
     title: "Checkpoint",
     isCompleted: false,
@@ -149,6 +162,7 @@ const lessons = [
   },
   {
     id: 14,
+    apiId: "691d5c822e12eb13348de944",
     type: "lesson",
     title: "Lesson 11",
     isCompleted: false,
@@ -158,6 +172,7 @@ const lessons = [
   },
   {
     id: 15,
+    apiId: "691d5c822e12eb13348de945",
     type: "lesson",
     title: "Lesson 12",
     isCompleted: false,
@@ -167,6 +182,7 @@ const lessons = [
   },
   {
     id: 16,
+    apiId: "691d5c822e12eb13348de946",
     type: "lesson",
     title: "Lesson 13",
     isCompleted: false,
@@ -176,6 +192,7 @@ const lessons = [
   },
   {
     id: 17,
+    apiId: "691d5c822e12eb13348de947",
     type: "lesson",
     title: "Lesson 14",
     isCompleted: false,
@@ -185,6 +202,7 @@ const lessons = [
   },
   {
     id: 18,
+    apiId: "691d5c822e12eb13348de948",
     type: "trophy",
     title: "Level 2 Complete",
     isCompleted: false,
@@ -196,6 +214,7 @@ const lessons = [
   // Level 3
   {
     id: 19,
+    apiId: "691d5c822e12eb13348de949",
     type: "lesson",
     title: "Lesson 15",
     isCompleted: false,
@@ -205,6 +224,7 @@ const lessons = [
   },
   {
     id: 20,
+    apiId: "691d5c822e12eb13348de950",
     type: "lesson",
     title: "Lesson 16",
     isCompleted: false,
@@ -214,6 +234,7 @@ const lessons = [
   },
   {
     id: 21,
+    apiId: "691d5c822e12eb13348de951",
     type: "lesson",
     title: "Lesson 17",
     isCompleted: false,
@@ -223,6 +244,7 @@ const lessons = [
   },
   {
     id: 22,
+    apiId: "691d5c822e12eb13348de952",
     type: "lesson",
     title: "Lesson 18",
     isCompleted: false,
@@ -232,6 +254,7 @@ const lessons = [
   },
   {
     id: 23,
+    apiId: "691d5c822e12eb13348de953",
     type: "crown",
     title: "Crown Challenge",
     isCompleted: false,

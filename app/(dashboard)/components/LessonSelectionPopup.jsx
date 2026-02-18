@@ -76,20 +76,40 @@ export function LessonSelectionPopup({
   isLocked,
   onClose,
   open,
+  lessonId,
 }) {
   const router = useRouter();
-  const lessons = getLessonsForNode(nodeId, isCompleted, isCurrent, isLocked);
+  const hasApiLessonId = Boolean(lessonId);
+  const footerText = hasApiLessonId
+    ? isLocked
+      ? "Complete previous lessons to unlock"
+      : ""
+    : isCompleted
+      ? "All lessons are available to practice"
+      : isCurrent
+        ? "Complete lessons to unlock more content"
+        : "Complete previous nodes to unlock";
+  const lessons = hasApiLessonId
+    ? [
+        {
+          id: lessonId,
+          title: "Lesson",
+          isLocked,
+          isCompleted,
+        },
+      ]
+    : getLessonsForNode(nodeId, isCompleted, isCurrent, isLocked);
 
   const handleLessonClick = (lesson) => {
     if (lesson.isLocked) return;
 
     // Store the selected lesson info in sessionStorage
-    sessionStorage.setItem("selectedLessonId", lesson.id);
+    // Use lessonId if provided (from actual API), otherwise fall back to lesson.id (mock data)
+    const actualLessonId = lessonId || lesson.id;
+    sessionStorage.setItem("selectedLessonId", actualLessonId);
     sessionStorage.setItem("selectedNodeId", nodeId);
-    sessionStorage.setItem("currentLessonIndex", "0"); // Start from first lesson type
 
-    // Navigate to loading page - will start the lesson sequence
-    router.push("/lesson/loading");
+    router.push("/lesson");
     onClose();
   };
 
@@ -105,20 +125,24 @@ export function LessonSelectionPopup({
             <X className="w-6 h-6" />
           </button>
           <DialogTitle className="text-2xl font-bold text-accent-foreground">
-            Choose a Lesson
+            {hasApiLessonId ? "Start Lesson" : "Choose a Lesson"}
           </DialogTitle>
           <p className="text-accent-foreground/90 text-sm mt-1">
-            {isCompleted
-              ? "All lessons unlocked"
-              : isCurrent
-                ? "Start learning"
-                : "Complete previous lessons first"}
+            {hasApiLessonId
+              ? isLocked
+                ? "Lesson is locked"
+                : "Tap to begin"
+              : isCompleted
+                ? "All lessons unlocked"
+                : isCurrent
+                  ? "Start learning"
+                  : "Complete previous lessons first"}
           </p>
         </div>
 
         {/* Lessons Grid */}
         <div className="p-8">
-          <div className="grid grid-cols-2 gap-4">
+          <div className={hasApiLessonId ? "grid grid-cols-1 gap-4" : "grid grid-cols-2 gap-4"}>
             {lessons.map((lesson, index) => {
               return (
                 <motion.button
@@ -170,7 +194,7 @@ export function LessonSelectionPopup({
                     ${lesson.isLocked ? "text-muted-foreground" : "text-foreground"}
                   `}
                   >
-                    {lesson.title}
+                    {hasApiLessonId ? "Start" : lesson.title}
                   </p>
                 </motion.button>
               );
@@ -178,13 +202,11 @@ export function LessonSelectionPopup({
           </div>
 
           {/* Info Text */}
-          <p className="text-xs text-muted-foreground text-center mt-6">
-            {isCompleted
-              ? "All lessons are available to practice"
-              : isCurrent
-                ? "Complete lessons to unlock more content"
-                : "Complete previous nodes to unlock"}
-          </p>
+          {footerText ? (
+            <p className="text-xs text-muted-foreground text-center mt-6">
+              {footerText}
+            </p>
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>

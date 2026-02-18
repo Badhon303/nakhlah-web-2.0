@@ -33,7 +33,7 @@ export function LeaderboardCard() {
   const menuOptions = [
     {
       label: "See Full Leaderboard",
-      onClick: () => router.push("/dashboard/leaderboard"),
+      onClick: () => router.push("/leaderboard"),
     },
   ];
 
