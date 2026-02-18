@@ -13,6 +13,9 @@ import { CompletionStep } from "@/components/nakhlah/onboarding/CompletionStep";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { registerUser } from "@/lib/authUtils";
+import { signIn } from "next-auth/react";
+import { toast } from "@/components/nakhlah/Toast";
 
 const steps = [
   { id: 1, label: "Level" },
@@ -29,6 +32,7 @@ export default function Onboarding() {
   const [proficiencyLevel, setProficiencyLevel] = useState("");
   const [dailyGoal, setDailyGoal] = useState("");
   const [quizScore, setQuizScore] = useState(0);
+  const [isRegistering, setIsRegistering] = useState(false);
 
   // account fields
   const [name, setName] = useState("");
@@ -56,9 +60,16 @@ export default function Onboarding() {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    // If on account step (step 4), handle registration
+    if (currentStep === 4) {
+      await handleRegistration();
+      return;
+    }
+    
     if (currentStep < steps.length) setCurrentStep((s) => s + 1);
   };
+
   const handleBack = () => {
     if (currentStep > 1) setCurrentStep((s) => s - 1);
   };
@@ -66,6 +77,49 @@ export default function Onboarding() {
   const handleQuizComplete = (score) => {
     setQuizScore(score);
     setCurrentStep(4);
+  };
+
+  const handleRegistration = async () => {
+    if (!email || !password) {
+      toast.error("Email and password are required");
+      return;
+    }
+
+    setIsRegistering(true);
+
+    try {
+      // Register the user
+      const result = await registerUser(email, password);
+
+      if (!result.success) {
+        toast.error(result.error || "Registration failed");
+        setIsRegistering(false);
+        return;
+      }
+
+      toast.success("Registration successful!");
+
+      // Auto-login with NextAuth
+      const signInResult = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        toast.error("Registration successful but auto-login failed. Please login manually.");
+        setIsRegistering(false);
+        return;
+      }
+
+      // Move to completion step
+      setCurrentStep(5);
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast.error("An error occurred during registration");
+    } finally {
+      setIsRegistering(false);
+    }
   };
 
   const handleComplete = () => {
@@ -82,7 +136,8 @@ export default function Onboarding() {
         completed: true,
       }),
     );
-    router.push("/challenge");
+    router.push("/");
+    router.refresh();
   };
 
   const renderStep = () => {
@@ -168,7 +223,7 @@ export default function Onboarding() {
           <Button
             variant="ghost"
             onClick={handleBack}
-            disabled={currentStep === 1}
+            disabled={currentStep === 1 || isRegistering}
             className={cn("gap-2", currentStep === 1 && "invisible")}
           >
             <ArrowLeft className="w-4 h-4" />
@@ -179,10 +234,10 @@ export default function Onboarding() {
           {currentStep < steps.length ? (
             <Button
               onClick={handleNext}
-              disabled={!canProceed()}
+              disabled={!canProceed() || isRegistering}
               className="gap-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white"
             >
-              Continue
+              {isRegistering ? "Creating Account..." : "Continue"}
               <ArrowRight className="w-4 h-4" />
             </Button>
           ) : (

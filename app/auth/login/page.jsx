@@ -9,16 +9,52 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Mascot } from "@/components/nakhlah/Mascot";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { toast } from "@/components/nakhlah/Toast";
 
 export default function Login() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle sign in logic
+    
+    if (!email || !password) {
+      toast.error("Please enter both email and password");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        toast.error(result.error || "Login failed");
+        setIsLoading(false);
+        return;
+      }
+
+      if (result?.ok) {
+        toast.success("Login successful!");
+        router.push("/");
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("An error occurred during login");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -75,7 +111,7 @@ export default function Login() {
             </div>
 
             {/* Form */}
-            <div className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email */}
               <div className="space-y-2">
                 <Label
@@ -91,6 +127,8 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="h-12 bg-background border-border text-foreground"
+                  disabled={isLoading}
+                  required
                 />
               </div>
 
@@ -110,6 +148,8 @@ export default function Login() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="h-12 bg-background border-border text-foreground pr-12"
+                    disabled={isLoading}
+                    required
                   />
                   <button
                     type="button"
@@ -132,6 +172,7 @@ export default function Login() {
                     id="remember"
                     checked={rememberMe}
                     onCheckedChange={setRememberMe}
+                    disabled={isLoading}
                   />
                   <Label
                     htmlFor="remember"
@@ -151,10 +192,11 @@ export default function Login() {
               {/* Sign In Button */}
               <div className="hidden sm:block">
                 <Button
-                  onClick={handleSubmit}
+                  type="submit"
+                  disabled={isLoading}
                   className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
                 >
-                  SIGN IN
+                  {isLoading ? "SIGNING IN..." : "SIGN IN"}
                 </Button>
               </div>
 
@@ -168,15 +210,16 @@ export default function Login() {
                   Sign Up
                 </Link>
               </p>
-            </div>
+            </form>
           </div>
           {/* Mobile bottom action */}
           <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-background border-t border-border p-4">
             <Button
               onClick={handleSubmit}
+              disabled={isLoading}
               className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
             >
-              SIGN IN
+              {isLoading ? "SIGNING IN..." : "SIGN IN"}
             </Button>
           </div>
         </motion.div>

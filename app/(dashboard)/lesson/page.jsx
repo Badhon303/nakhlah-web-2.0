@@ -11,6 +11,9 @@ import { LessonResultHandler } from "../components/ResultHandler";
 import { useAudio } from "@/hooks/use-audio";
 import { ArabicTooltip } from "@/components/nakhlah/ArabicTooltip";
 import { getMediaUrl, shuffleArray, sortByOrder } from "./utils/mediaUtils";
+import { useSession } from "next-auth/react";
+import { getSessionToken, isSessionValid } from "@/lib/authUtils";
+import { fetchLessonQuestions as fetchLessonAPI } from "@/services/api";
 
 function normalizeText(value) {
   return (value || "")
@@ -31,76 +34,6 @@ function getQuestionMedia(question, mediaType) {
   return mediaUrl ? getMediaUrl(mediaUrl) : "";
 }
 
-
-function extractTokenFromJsonString(value) {
-  try {
-    const parsed = JSON.parse(value);
-    if (!parsed || typeof parsed !== "object") return "";
-    return (
-      parsed.token ||
-      parsed.accessToken ||
-      parsed.access_token ||
-      parsed.jwt ||
-      ""
-    );
-  } catch {
-    return "";
-  }
-}
-
-function normalizeToken(token) {
-  if (!token) return "";
-
-  const cleaned = token.toString().trim().replace(/^"|"$/g, "");
-  if (!cleaned) return "";
-
-  return cleaned.toLowerCase().startsWith("bearer ")
-    ? cleaned.slice(7).trim()
-    : cleaned;
-}
-
-function resolveBearerToken() {
-  const envToken = normalizeToken(process.env.NEXT_PUBLIC_LESSON_BEARER_TOKEN || "");
-  if (envToken) return envToken;
-
-  if (typeof window === "undefined") return "";
-
-  const directKeys = [
-    "token",
-    "accessToken",
-    "access_token",
-    "authToken",
-    "bearerToken",
-    "jwt",
-  ];
-
-  for (const key of directKeys) {
-    const sessionValue = sessionStorage.getItem(key);
-    const normalizedSessionToken = normalizeToken(sessionValue);
-    if (normalizedSessionToken) return normalizedSessionToken;
-
-    const localValue = localStorage.getItem(key);
-    const normalizedLocalToken = normalizeToken(localValue);
-    if (normalizedLocalToken) return normalizedLocalToken;
-  }
-
-  const jsonKeys = ["auth", "user", "session"];
-  for (const key of jsonKeys) {
-    const sessionValue = sessionStorage.getItem(key);
-    if (sessionValue) {
-      const extracted = normalizeToken(extractTokenFromJsonString(sessionValue));
-      if (extracted) return extracted;
-    }
-    const localValue = localStorage.getItem(key);
-    if (localValue) {
-      const extracted = normalizeToken(extractTokenFromJsonString(localValue));
-      if (extracted) return extracted;
-    }
-  }
-
-  return "";
-}
-
 function normalizeQuestionsPayload(payload) {
   if (Array.isArray(payload)) return payload;
   if (Array.isArray(payload?.data)) return payload.data;
@@ -113,6 +46,7 @@ function normalizeQuestionsPayload(payload) {
 export default function LessonPage() {
   const router = useRouter();
   const { play } = useAudio();
+  const { data: session, status } = useSession();
 
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -145,8 +79,28 @@ export default function LessonPage() {
   const imageUrl = getQuestionMedia(currentQuestion, "image");
   const audioUrl = getQuestionMedia(currentQuestion, "audio");
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (status === "loading") return;
+    
+    if (status === "unauthenticated" || !isSessionValid(session)) {
+      router.push("/auth/login");
+    }
+  }, [status, session, router]);
+
   useEffect(() => {
     const fetchLessonQuestions = async () => {
+      // Wait for session to load
+      if (status === "loading") return;
+      
+      // Check if session is valid
+      if (!isSessionValid(session)) {
+        setLoadError("Please login to access lessons.");
+        setIsLoading(false);
+        router.push("/auth/login");
+        return;
+      }
+
       const lessonId = sessionStorage.getItem("selectedLessonId")?.trim();
       if (!lessonId) {
         setLoadError("No lesson selected.");
@@ -158,30 +112,21 @@ export default function LessonPage() {
         setIsLoading(true);
         setLoadError("");
 
-        const token = resolveBearerToken();
-        const headers = {
-          "Content-Type": "application/json",
-        };
-        if (token) {
-          headers.Authorization = `Bearer ${token}`;
+        const token = getSessionToken(session);
+        if (!token) {
+          throw new Error("No authentication token available");
         }
 
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/globals/questionnaires/lessons/${lessonId}`,
-          {
-            method: "GET",
-            headers,
-          },
-        );
-
-        const payload = await response.json();
-        console.log("Lesson API raw response:", payload);
-
-        if (!response.ok) {
-          throw new Error(payload?.message || "Failed to load lesson.");
+        // Use API service
+        const result = await fetchLessonAPI(lessonId, token);
+        
+        if (!result.success) {
+          throw new Error(result.error);
         }
 
-        const normalizedQuestions = normalizeQuestionsPayload(payload);
+        console.log("Lesson API raw response:", result.data);
+
+        const normalizedQuestions = normalizeQuestionsPayload(result.data);
         if (!normalizedQuestions.length) {
           throw new Error("No questions returned from API.");
         }
@@ -196,7 +141,7 @@ export default function LessonPage() {
     };
 
     fetchLessonQuestions();
-  }, []);
+  }, [status, session, router]);
 
   useEffect(() => {
     if (currentIndex >= totalQuestions && totalQuestions > 0) {
