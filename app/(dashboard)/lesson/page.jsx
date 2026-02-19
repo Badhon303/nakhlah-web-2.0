@@ -840,7 +840,7 @@ export default function LessonPage() {
                       <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-2 sm:mb-3 text-center">
                         Arabic
                       </h3>
-                      <div className="space-y-2 sm:space-y-3 pr-1">
+                      <div className="space-y-2.5 sm:space-y-4 pr-1">
                         {leftState.map((item, index) => {
                           const isSelected = selectedLeft?.id === item.id;
                           const isMatched = item.matched;
@@ -881,7 +881,7 @@ export default function LessonPage() {
                       <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-2 sm:mb-3 text-center">
                         English
                       </h3>
-                      <div className="space-y-2 sm:space-y-2.5 pr-1">
+                      <div className="space-y-2.5 sm:space-y-4 pr-1">
                         {rightState.map((item, index) => {
                           const isSelected = selectedRight?.id === item.id;
                           const isMatched = item.matched;
