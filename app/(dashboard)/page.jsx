@@ -1,289 +1,119 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { ZigzagPath } from "./components/ZigzagPath";
 import { UserStats } from "./components/UserStats";
 import { DailyQuests } from "./components/DailyQuests";
 import { ProfileSection } from "./components/ProfileSection";
 import { LeaderboardCard } from "./components/LeaderboardCard";
-import { Star } from "@/components/icons/Star";
-import { Medal } from "@/components/icons/Medal";
 import { Trophy } from "@/components/icons/Trophy";
-import { Crown } from "@/components/icons/Crown";
+import { fetchJourneyStructure } from "@/services/api";
+import { useSession } from "next-auth/react";
+import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 
-const levels = [
-  {
-    id: 1,
-    name: "The Basics",
-    description: "Start your journey with fundamental concepts.",
-  },
-  {
-    id: 2,
-    name: "Building Blocks",
-    description: "Expand your vocabulary and grammar.",
-  },
-  {
-    id: 3,
-    name: "First Conversations",
-    description: "Learn to form simple sentences and questions.",
-  },
-];
+const mascots = [];
 
-const lessons = [
-  // Level 1
-  {
-    id: 1,
-    apiId: "691d5c822e12eb13348de931",
-    type: "lesson",
-    title: "Lesson 1",
-    isCompleted: true,
-    isCurrent: false,
-    icon: <Star />,
-    level: 1,
-  },
-  {
-    id: 2,
-    apiId: "691d5c822e12eb13348de931",
-    type: "lesson",
-    title: "Lesson 2",
-    isCompleted: false,
-    isCurrent: true,
-    icon: <Star />,
-    level: 1,
-  },
-  {
-    id: 3,
-    apiId: "691d5c822e12eb13348de931",
-    type: "lesson",
-    title: "Lesson 3",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Star />,
-    level: 1,
-  },
-  {
-    id: 4,
-    apiId: "691d5c822e12eb13348de931",
-    type: "checkpoint",
-    title: "Checkpoint",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Medal size="xl" />,
-    level: 1,
-  },
-  {
-    id: 5,
-    apiId: "691d5c822e12eb13348de931",
-    type: "lesson",
-    title: "Lesson 4",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Star />,
-    level: 1,
-  },
-  {
-    id: 6,
-    apiId: "691d5c822e12eb13348de936",
-    type: "lesson",
-    title: "Lesson 5",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Star />,
-    level: 1,
-  },
-  {
-    id: 7,
-    apiId: "691d5c822e12eb13348de937",
-    type: "lesson",
-    title: "Lesson 6",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Star />,
-    level: 1,
-  },
-  {
-    id: 8,
-    apiId: "691d5c822e12eb13348de938",
-    type: "lesson",
-    title: "Lesson 7",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Star />,
-    level: 1,
-  },
-  {
-    id: 9,
-    apiId: "691d5c822e12eb13348de939",
-    type: "trophy",
-    title: "Level 1 Complete",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Trophy />,
-    level: 1,
-  },
+const sortByOrder = (items, key) =>
+  [...(items || [])].sort((a, b) => (a?.[key] || 0) - (b?.[key] || 0));
 
-  // Level 2
-  {
-    id: 10,
-    apiId: "691d5c822e12eb13348de940",
-    type: "lesson",
-    title: "Lesson 8",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Star />,
-    level: 2,
-  },
-  {
-    id: 11,
-    apiId: "691d5c822e12eb13348de941",
-    type: "lesson",
-    title: "Lesson 9",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Star />,
-    level: 2,
-  },
-  {
-    id: 12,
-    apiId: "691d5c822e12eb13348de942",
-    type: "lesson",
-    title: "Lesson 10",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Star />,
-    level: 2,
-  },
-  {
-    id: 13,
-    apiId: "691d5c822e12eb13348de943",
-    type: "checkpoint",
-    title: "Checkpoint",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Star />,
-    level: 2,
-  },
-  {
-    id: 14,
-    apiId: "691d5c822e12eb13348de944",
-    type: "lesson",
-    title: "Lesson 11",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Star />,
-    level: 2,
-  },
-  {
-    id: 15,
-    apiId: "691d5c822e12eb13348de945",
-    type: "lesson",
-    title: "Lesson 12",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Star />,
-    level: 2,
-  },
-  {
-    id: 16,
-    apiId: "691d5c822e12eb13348de946",
-    type: "lesson",
-    title: "Lesson 13",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Star />,
-    level: 2,
-  },
-  {
-    id: 17,
-    apiId: "691d5c822e12eb13348de947",
-    type: "lesson",
-    title: "Lesson 14",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Star />,
-    level: 2,
-  },
-  {
-    id: 18,
-    apiId: "691d5c822e12eb13348de948",
-    type: "trophy",
-    title: "Level 2 Complete",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Trophy />,
-    level: 2,
-  },
+const buildJourneyView = (journey) => {
+  const sections = [];
+  const nodes = [];
+  const sortedLevels = sortByOrder(journey?.levels, "levelOrder");
 
-  // Level 3
-  {
-    id: 19,
-    apiId: "691d5c822e12eb13348de949",
-    type: "lesson",
-    title: "Lesson 15",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Star />,
-    level: 3,
-  },
-  {
-    id: 20,
-    apiId: "691d5c822e12eb13348de950",
-    type: "lesson",
-    title: "Lesson 16",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Star />,
-    level: 3,
-  },
-  {
-    id: 21,
-    apiId: "691d5c822e12eb13348de951",
-    type: "lesson",
-    title: "Lesson 17",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Star />,
-    level: 3,
-  },
-  {
-    id: 22,
-    apiId: "691d5c822e12eb13348de952",
-    type: "lesson",
-    title: "Lesson 18",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Star />,
-    level: 3,
-  },
-  {
-    id: 23,
-    apiId: "691d5c822e12eb13348de953",
-    type: "crown",
-    title: "Crown Challenge",
-    isCompleted: false,
-    isCurrent: false,
-    icon: <Crown />,
-    level: 3,
-  },
-];
+  sortedLevels.forEach((level) => {
+    const units = sortByOrder(level?.units, "unitOrder");
 
-const mascots = [
-  { mood: "happy", size: "xxl", position: 3, message: "You're doing great!" },
-  {
-    mood: "proud",
-    size: "xxl",
-    position: 7,
-    message: "Keep up the good work!",
-  },
-  { mood: "excited", size: "xxl", position: 12, message: "Amazing progress!" },
-  { mood: "surprised", size: "xxl", position: 16, message: "You're on fire!" },
-  {
-    mood: "encouraging",
-    size: "xxl",
-    position: 21,
-    message: "Almost at the finish line!",
-  },
-];
+    units.forEach((unit) => {
+    const sectionId = `${level.id}-${unit.id}`;
+    const levelLocked = !level?.inProgressOrCompleted;
+    const unitLocked = !unit?.inProgressOrCompleted;
+    sections.push({
+      id: sectionId,
+      name: unit.title,
+      subtitle: level.title,
+      unitOrder: unit.unitOrder,
+      levelOrder: level.levelOrder,
+      colorIndex: level.levelOrder,
+    });
+
+    const tasks = sortByOrder(unit?.tasks, "taskOrder");
+    const lastActiveIndex = tasks
+      .map((task) => Boolean(task?.inProgressOrCompleted))
+      .lastIndexOf(true);
+
+    tasks.forEach((task, index) => {
+      const hasProgress = lastActiveIndex >= 0;
+      let isCurrent = hasProgress && index === lastActiveIndex;
+      let isCompleted = hasProgress && index < lastActiveIndex;
+      const isLocked =
+        levelLocked ||
+        unitLocked ||
+        (!task?.inProgressOrCompleted && !isCurrent && !isCompleted);
+      if (levelLocked || unitLocked) {
+        isCurrent = false;
+        isCompleted = false;
+      }
+      const isGiftBox = Boolean(task?.giftBox);
+      const type = isGiftBox ? "trophy" : "lesson";
+
+      nodes.push({
+        id: `${sectionId}-${task.id}`,
+        apiId: task.id,
+        type,
+        title: task.title,
+        isCompleted,
+        isCurrent,
+        isLocked,
+        icon: isGiftBox ? <Trophy size="xl" /> : null,
+        level: unit.unitOrder,
+        sectionId,
+      });
+    });
+    });
+  });
+
+  return { sections, nodes };
+};
 
 export default function LearnPage() {
   const stickyTopOffset = "top-6";
+  const [levels, setLevels] = useState([]);
+  const [lessons, setLessons] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    const loadJourney = async () => {
+      try {
+        setIsLoading(true);
+        setLoadError("");
+
+        if (status === "loading") return;
+        if (status === "unauthenticated" || !isSessionValid(session)) {
+          throw new Error("Please login to view your journey.");
+        }
+
+        const token = getSessionToken(session);
+
+        const result = await fetchJourneyStructure(token);
+        if (!result.success) {
+          throw new Error(result.error || "Failed to load journey structure");
+        }
+
+        const { sections, nodes } = buildJourneyView(result.data || {});
+        setLevels(sections);
+        setLessons(nodes);
+      } catch (error) {
+        setLoadError(error?.message || "Unable to load journey structure");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadJourney();
+  }, [session, status]);
 
   return (
     <div className="bg-background text-foreground">
@@ -305,7 +135,18 @@ export default function LearnPage() {
             className="lg:w-2/3 lg:h-[calc(100vh_-_64px)] lg:overflow-y-auto no-scrollbar"
             style={{ top: "env(safe-area-inset-top, 0px)" }}
           >
-            <ZigzagPath lessons={lessons} levels={levels} mascots={mascots} />
+            {loadError ? (
+              <div className="p-6 text-center text-sm text-muted-foreground">
+                {loadError}
+              </div>
+            ) : (
+              <ZigzagPath
+                lessons={lessons}
+                levels={levels}
+                mascots={mascots}
+                isLoading={isLoading}
+              />
+            )}
           </div>
 
           {/* Right side: Sticky Sidebar */}

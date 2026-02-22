@@ -1,27 +1,70 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Mascot } from "@/components/nakhlah/Mascot";
-import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { resetPassword } from "@/services/api/auth";
+import { toast } from "@/components/nakhlah/Toast";
 
 export default function CreatePasswordPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [resetToken, setResetToken] = useState("");
 
-  const handleContinue = () => {
-    // Handle create password logic
-    router.push("/auth/welcome-back");
+  useEffect(() => {
+    const tokenFromUrl = searchParams.get("token");
+    if (tokenFromUrl) {
+      setResetToken(tokenFromUrl);
+    }
+  }, [searchParams]);
+
+  const handleContinue = async () => {
+    if (!password || password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    if (!resetToken) {
+      toast.error("Invalid or missing reset token");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const result = await resetPassword(resetToken, password);
+
+      if (!result.success) {
+        toast.error(result.error || "Failed to reset password");
+        setIsLoading(false);
+        return;
+      }
+
+      toast.success(result.message || "Password reset successfully!");
+      router.push("/auth/welcome-back");
+    } catch (error) {
+      console.error("Reset password error:", error);
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -70,8 +113,7 @@ export default function CreatePasswordPage() {
                   Create new password 🔒
                 </h1>
                 <p className="text-muted-foreground">
-                  Save the new password in a safe place, if you forget it then
-                  you have to do a forgot password
+                  Save your new password in a safe place
                 </p>
               </motion.div>
             </div>
@@ -94,6 +136,7 @@ export default function CreatePasswordPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="h-12 bg-background border-border text-foreground pr-12"
+                    disabled={isLoading}
                   />
                   <button
                     type="button"
@@ -125,6 +168,7 @@ export default function CreatePasswordPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="h-12 bg-background border-border text-foreground pr-12"
+                    disabled={isLoading}
                   />
                   <button
                     type="button"
@@ -159,9 +203,10 @@ export default function CreatePasswordPage() {
               <div className="hidden sm:block">
                 <Button
                   onClick={handleContinue}
+                  disabled={isLoading}
                   className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
                 >
-                  Continue
+                  {isLoading ? "RESETTING PASSWORD..." : "CONTINUE"}
                 </Button>
               </div>
             </div>
@@ -170,9 +215,10 @@ export default function CreatePasswordPage() {
           <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-background border-t border-border p-4">
             <Button
               onClick={handleContinue}
+              disabled={isLoading}
               className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
             >
-              Continue
+              {isLoading ? "RESETTING PASSWORD..." : "CONTINUE"}
             </Button>
           </div>
         </motion.div>

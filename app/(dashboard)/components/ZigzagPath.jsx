@@ -3,16 +3,16 @@ import { Circle } from "./Circle";
 import { Mascot } from "@/components/nakhlah/Mascot";
 import { useEffect, useState } from "react";
 import { Lock, FileText } from "lucide-react";
-import { Trophy } from "@/components/icons/Trophy";
 
-export function ZigzagPath({ lessons, levels, mascots }) {
-  const [currentLevelName, setCurrentLevelName] = useState("");
+export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
+  const [currentLevelId, setCurrentLevelId] = useState("");
 
-  const currentLevel = levels.find((l) => l.name === currentLevelName);
+  const currentLevel = levels.find((l) => l.id === currentLevelId);
 
   const groupedLessons = lessons.reduce((acc, lesson) => {
-    if (!acc[lesson.level]) acc[lesson.level] = [];
-    acc[lesson.level].push(lesson);
+    const key = lesson.sectionId || lesson.level;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(lesson);
     return acc;
   }, {});
 
@@ -44,6 +44,8 @@ export function ZigzagPath({ lessons, levels, mascots }) {
   };
 
   useEffect(() => {
+    if (isLoading || !levels.length) return undefined;
+
     const observers = [];
     const levelElements = document.querySelectorAll("[data-level-id]");
 
@@ -53,7 +55,7 @@ export function ZigzagPath({ lessons, levels, mascots }) {
           const levelId = entry.target.getAttribute("data-level-id");
           const level = levels.find((l) => l.id.toString() === levelId);
           if (level) {
-            setCurrentLevelName(level.name);
+            setCurrentLevelId(level.id);
           }
         }
       });
@@ -71,11 +73,11 @@ export function ZigzagPath({ lessons, levels, mascots }) {
 
     // initial level name
     if (levels && levels.length > 0) {
-      setCurrentLevelName(levels[0].name);
+      setCurrentLevelId(levels[0].id);
     }
 
     return () => observers.forEach((o) => o.disconnect());
-  }, [levels]);
+  }, [levels, isLoading]);
 
   return (
     <div className="relative lg:max-w-lg mx-auto">
@@ -83,14 +85,17 @@ export function ZigzagPath({ lessons, levels, mascots }) {
       <div className="sticky top-[calc(env(safe-area-inset-top)+72px)] lg:top-0 z-50 bg-background/80 backdrop-blur-sm py-2 lg:py-0">
         <div
           className={`flex items-center justify-between px-4 py-3 rounded-lg shadow-lg transition-all duration-500 ease-in-out bg-gradient-to-r ${getLevelColor(
-            currentLevel?.id || 1,
+            currentLevel?.colorIndex || 1,
           )} text-white`}
         >
           <div>
             <div className="text-2xl font-bold">
-              {currentLevel ? `Unit ${currentLevel.id}` : ""}
+              {currentLevel ? `Unit ${currentLevel.unitOrder || ""}` : ""}
             </div>
-            <div>{currentLevel ? currentLevel.name : ""}</div>
+            {/* <div>{currentLevel ? currentLevel.name : ""}</div> */}
+            {currentLevel?.subtitle ? (
+              <div className="text-xs text-white/90">{currentLevel.subtitle}</div>
+            ) : null}
           </div>
           <button className="text-white hover:bg-white/20 p-2 rounded-full">
             <FileText className="w-6 h-6" />
@@ -114,7 +119,7 @@ export function ZigzagPath({ lessons, levels, mascots }) {
               <div className="relative bg-background px-4">
                 <span
                   className={`text-lg font-bold bg-gradient-to-r ${getLevelColor(
-                    level.id,
+                    level.colorIndex || levelIndex + 1,
                   )} bg-clip-text text-transparent`}
                 >
                   {level.name}
@@ -127,8 +132,6 @@ export function ZigzagPath({ lessons, levels, mascots }) {
               {(groupedLessons[level.id] || []).map((lesson, index) => {
                 const position = getPosition(index);
                 const mascotPosition = getMascotPosition(index);
-                const isLastLesson =
-                  index === (groupedLessons[level.id] || []).length - 1;
 
                 return (
                   <div key={lesson.id} className="relative h-28 w-full">
@@ -141,49 +144,15 @@ export function ZigzagPath({ lessons, levels, mascots }) {
                         transform: `${position.transform} translateY(-50%)`,
                       }}
                     >
-                      {isLastLesson ? (
-                        <div
-                          className={`flex items-center justify-center rounded-full cursor-pointer hover:scale-125 transition-transform scale-110 ${
-                            lesson.isLocked ||
-                            (!lesson.isCompleted && !lesson.isCurrent)
-                              ? ""
-                              : lesson.isCurrent
-                                ? ""
-                                : ""
-                          }`}
-                        >
-                          <Trophy
-                            size="xxl"
-                            variant={
-                              lesson.isLocked ||
-                              (!lesson.isCompleted && !lesson.isCurrent)
-                                ? "silver"
-                                : "gold"
-                            }
-                          />
-
-                          <span
-                            className={`
-      absolute 
-      text-lg font-extrabold
-      ${lesson.isLocked ? "text-muted-foreground" : "text-muted-foreground"}
-    `}
-                            style={{ top: "15%" }}
-                          >
-                            {lesson.level}
-                          </span>
-                        </div>
-                      ) : (
-                        <Circle
-                          isCompleted={lesson.isCompleted}
-                          isCurrent={lesson.isCurrent}
-                          isLocked={!lesson.isCompleted && !lesson.isCurrent}
-                          icon={lesson.icon}
-                          type={lesson.type}
-                          size="lg"
-                          lessonId={lesson.apiId}
-                        />
-                      )}
+                      <Circle
+                        isCompleted={lesson.isCompleted}
+                        isCurrent={lesson.isCurrent}
+                        isLocked={lesson.isLocked}
+                        icon={lesson.icon}
+                        type={lesson.type}
+                        size="lg"
+                        nodeId={lesson.apiId}
+                      />
                     </div>
 
                     {/* "Speech / quotation" bubble - positioned directly above the node */}

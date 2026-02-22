@@ -9,12 +9,39 @@ import { Mascot } from "@/components/nakhlah/Mascot";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { forgotPassword } from "@/services/api/auth";
+import { toast } from "@/components/nakhlah/Toast";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const handleContinue = () => {
-    router.push("/auth/otp-verification");
+  
+  const handleContinue = async () => {
+    if (!email || !email.includes("@")) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const result = await forgotPassword(email);
+
+      if (!result.success) {
+        toast.error(result.error || "Failed to send reset email");
+        setIsLoading(false);
+        return;
+      }
+
+      toast.success(result.message || "Reset link sent to your email");
+      router.push("/auth/reset-password");
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -63,8 +90,7 @@ export default function ForgotPasswordPage() {
                   Forgot Password 🔑
                 </h1>
                 <p className="text-muted-foreground">
-                  Enter your email address to get an OTP code to reset your
-                  password
+                  Enter your email address to receive a password reset link
                 </p>
               </motion.div>
             </div>
@@ -86,6 +112,7 @@ export default function ForgotPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="h-12 bg-background border-border text-foreground"
+                  disabled={isLoading}
                 />
               </div>
 
@@ -93,9 +120,10 @@ export default function ForgotPasswordPage() {
               <div className="hidden sm:block">
                 <Button
                   onClick={handleContinue}
+                  disabled={isLoading}
                   className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
                 >
-                  Continue
+                  {isLoading ? "SENDING..." : "CONTINUE"}
                 </Button>
               </div>
             </div>
@@ -103,9 +131,10 @@ export default function ForgotPasswordPage() {
           <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-background border-t border-border p-4">
             <Button
               onClick={handleContinue}
+              disabled={isLoading}
               className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
             >
-              Continue
+              {isLoading ? "SENDING..." : "CONTINUE"}
             </Button>
           </div>
         </motion.div>

@@ -25,7 +25,15 @@ export default function GetStartedPage() {
               Hi there! I&apos;m El!
             </p>
           </div>
-          <div className="absolute left-1/2 -bottom-3 -translate-x-1/2 w-0 h-0 border-l-12 border-l-transparent border-r-12 border-r-transparent border-t-12 border-t-card" />
+          {/* Fixed triangle with proper CSS values */}
+          <div 
+            className="absolute left-1/2 -bottom-3 -translate-x-1/2 w-0 h-0"
+            style={{
+              borderLeft: "12px solid transparent",
+              borderRight: "12px solid transparent",
+              borderTop: "12px solid hsl(var(--card))"
+            }}
+          />
         </motion.div>
 
         {/* Mascot */}
@@ -77,18 +85,6 @@ export default function GetStartedPage() {
             I ALREADY HAVE AN ACCOUNT
           </Link>
         </motion.div>
-
-        {/* Footer decoration */}
-        {/* <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-          className="mt-12 flex justify-center gap-2"
-        >
-          <div className="w-2 h-2 rounded-full bg-accent animate-pulse" style={{ animationDelay: "0s" }} />
-          <div className="w-2 h-2 rounded-full bg-accent/70 animate-pulse" style={{ animationDelay: "0.2s" }} />
-          <div className="w-2 h-2 rounded-full bg-accent animate-pulse" style={{ animationDelay: "0.4s" }} />
-        </motion.div> */}
       </motion.div>
     </div>
   );

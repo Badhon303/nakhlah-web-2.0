@@ -100,9 +100,10 @@ export default function OTPVerificationPage() {
   };
 
   const handleConfirm = () => {
-    // Handle OTP verification logic
+    // OTP verification will be implemented later
+    // For now, just navigate to reset-password
     console.log("OTP:", otp.join(""));
-    router.push("create-new-password");
+    router.push("/auth/reset-password");
   };
 
   return (
@@ -243,7 +244,7 @@ export default function OTPVerificationPage() {
               onClick={handleConfirm}
               className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
             >
-              Confirm
+              CONFIRM
             </Button>
           </div>
         </motion.div>

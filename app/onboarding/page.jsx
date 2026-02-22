@@ -9,20 +9,23 @@ import { ProficiencyStep } from "@/components/nakhlah/onboarding/ProficiencyStep
 import { GoalStep } from "@/components/nakhlah/onboarding/GoalStep";
 import { QuizStep } from "@/components/nakhlah/onboarding/QuizStep";
 import { AccountStep } from "@/components/nakhlah/onboarding/AccountStep";
+import { UserSourceStep } from "@/components/nakhlah/onboarding/UserSourceStep";
 import { CompletionStep } from "@/components/nakhlah/onboarding/CompletionStep";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { registerUser } from "@/lib/authUtils";
-import { signIn } from "next-auth/react";
+import { createUserProfile } from "@/services/api/auth";
+import { signIn, useSession } from "next-auth/react";
 import { toast } from "@/components/nakhlah/Toast";
 
 const steps = [
   { id: 1, label: "Level" },
   { id: 2, label: "Goal" },
   { id: 3, label: "Quiz" },
-  { id: 4, label: "Account" },
-  { id: 5, label: "Ready!" },
+  { id: 4, label: "About You" },
+  { id: 5, label: "Account" },
+  { id: 6, label: "Ready!" },
 ];
 
 export default function Onboarding() {
@@ -33,6 +36,10 @@ export default function Onboarding() {
   const [dailyGoal, setDailyGoal] = useState("");
   const [quizScore, setQuizScore] = useState(0);
   const [isRegistering, setIsRegistering] = useState(false);
+
+  // user source and contact fields  
+  const [userSource, setUserSource] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
 
   // account fields
   const [name, setName] = useState("");
@@ -49,6 +56,8 @@ export default function Onboarding() {
       case 3:
         return true;
       case 4:
+        return userSource !== "";
+      case 5:
         return (
           name.trim().length >= 2 &&
           email.trim().includes("@") &&
@@ -61,8 +70,8 @@ export default function Onboarding() {
   };
 
   const handleNext = async () => {
-    // If on account step (step 4), handle registration
-    if (currentStep === 4) {
+    // If on account step (step 5), handle registration
+    if (currentStep === 5) {
       await handleRegistration();
       return;
     }
@@ -113,7 +122,7 @@ export default function Onboarding() {
       }
 
       // Move to completion step
-      setCurrentStep(5);
+      setCurrentStep(6);
     } catch (error) {
       console.error("Registration error:", error);
       toast.error("An error occurred during registration");
@@ -122,7 +131,48 @@ export default function Onboarding() {
     }
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
+    // Get the session to retrieve the token
+    const session = await fetch('/api/auth/session')
+      .then(res => res.json())
+      .catch(() => null);
+    
+    const token = session?.accessToken;
+
+    if (!token) {
+      toast.error("Session not found. Please try logging in again.");
+      return;
+    }
+
+    // Map proficiency level to API format
+    const languageStrengthMap = {
+      "beginner": "Basic",
+      "elementary": "Elementary",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    };
+
+    // Create user profile before completing onboarding
+    const profileData = {
+      onboardInfo: {
+        age: age.toString(),
+        country: "", // Can be collected in future or left empty
+        purpose: "", // Can be collected in future or left empty
+        goalTime: parseInt(dailyGoal) || 10,
+        userSource: userSource,
+        languageStrength: languageStrengthMap[proficiencyLevel] || "Basic"
+      },
+      fullName: name,
+      // contactNumber: contactNumber
+    };
+
+    const profileResult = await createUserProfile(profileData, token);
+
+    if (!profileResult.success) {
+      toast.error(profileResult.error || "Failed to create profile");
+      return;
+    }
+
     localStorage.setItem(
       "nakhlah_onboarding",
       JSON.stringify({
@@ -136,6 +186,8 @@ export default function Onboarding() {
         completed: true,
       }),
     );
+    
+    toast.success("Profile created successfully!");
     router.push("/");
     router.refresh();
   };
@@ -155,6 +207,17 @@ export default function Onboarding() {
         return <QuizStep onComplete={handleQuizComplete} />;
       case 4:
         return (
+          <UserSourceStep
+            userSource={userSource}
+            contactNumber={contactNumber}
+            onSelect={({ userSource: source, contactNumber: contact }) => {
+              if (source !== undefined) setUserSource(source);
+              if (contact !== undefined) setContactNumber(contact);
+            }}
+          />
+        );
+      case 5:
+        return (
           <AccountStep
             name={name}
             age={age}
@@ -167,7 +230,7 @@ export default function Onboarding() {
             }}
           />
         );
-      case 5:
+      case 6:
         return (
           <CompletionStep
             language={selectedLanguage}

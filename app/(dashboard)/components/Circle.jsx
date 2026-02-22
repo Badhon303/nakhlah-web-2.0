@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Lock } from "@/components/icons/Lock";
 import { Star } from "@/components/icons/Star";
-import { useRouter } from "next/navigation";
 import { LessonSelectionPopup } from "./LessonSelectionPopup";
 
 // Shared state to ensure only one popup is open at a time
@@ -20,20 +19,19 @@ export function Circle({
   icon,
   type,
   size = "md",
-  lessonId,
+  nodeId,
 }) {
-  const router = useRouter();
   const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     const listener = (activeId) => {
-      if (activeId !== lessonId) {
+      if (activeId !== nodeId) {
         setShowPopup(false);
       }
     };
     popupListeners.add(listener);
     return () => popupListeners.delete(listener);
-  }, [lessonId]);
+  }, [nodeId]);
 
   const getCircleStyles = () => {
     if (isLocked) {
@@ -88,7 +86,7 @@ export function Circle({
 
   const handleClick = () => {
     if ((isCompleted || isCurrent) && !isLocked) {
-      setActivePopup(lessonId);
+      setActivePopup(nodeId);
       setShowPopup(true);
     }
   };
@@ -118,8 +116,7 @@ export function Circle({
       {/* Lesson Selection Popup */}
       {showPopup && (
         <LessonSelectionPopup
-          nodeId={lessonId}
-          lessonId={lessonId}
+          taskId={nodeId}
           isCompleted={isCompleted}
           isCurrent={isCurrent}
           isLocked={isLocked}
