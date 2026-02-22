@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { resetPassword } from "@/services/api/auth";
 import { toast } from "@/components/nakhlah/Toast";
 
-export default function CreatePasswordPage() {
+function CreatePasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
@@ -224,5 +224,13 @@ export default function CreatePasswordPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function CreatePasswordPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <CreatePasswordContent />
+    </Suspense>
   );
 }
