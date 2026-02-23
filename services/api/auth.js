@@ -1,5 +1,43 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+export async function fetchUserOnboardingGlobals(token) {
+    try {
+        const endpoint = API_URL
+            ? `${API_URL}/api/globals/user-onboarding`
+            : "/api/globals/user-onboarding";
+
+        const headers = {
+            "Content-Type": "application/json",
+        };
+
+        if (token) {
+            headers.Authorization = `Bearer ${token}`;
+        }
+
+        const response = await fetch(endpoint, {
+            method: "GET",
+            headers,
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data?.message || "Failed to load onboarding data");
+        }
+
+        return {
+            success: true,
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch onboarding globals error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to load onboarding data",
+        };
+    }
+}
+
 export async function registerUser(email, password) {
     try {
         const response = await fetch(`${API_URL}/api/users/sign-in`, {

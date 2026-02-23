@@ -1,40 +1,8 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Zap, Flame, Target, Trophy } from "lucide-react";
 import { Mascot } from "../Mascot";
 
-const dailyGoals = [
-  {
-    value: "5",
-    label: "Casual",
-    description: "5 min / day",
-    icon: Zap,
-    detail: "Perfect for busy schedules",
-  },
-  {
-    value: "10",
-    label: "Regular",
-    description: "10 min / day",
-    icon: Flame,
-    detail: "Build a consistent habit",
-  },
-  {
-    value: "15",
-    label: "Serious",
-    description: "15 min / day",
-    icon: Target,
-    detail: "Make steady progress",
-  },
-  {
-    value: "20",
-    label: "Intense",
-    description: "20 min / day",
-    icon: Trophy,
-    detail: "Learn fast and deep",
-  },
-];
-
-export function GoalStep({ selectedGoal, onSelect }) {
+export function GoalStep({ title, goals = [], selectedGoal, onSelect, getMediaUrl }) {
   return (
     <div className="w-full max-w-xl mx-auto">
       <motion.div
@@ -45,7 +13,7 @@ export function GoalStep({ selectedGoal, onSelect }) {
         <Mascot mood="sleeping" size="md" className="" />
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">
-            Set your daily goal
+            {title}
           </h1>
           <p className="text-muted-foreground text-lg">
             How much time can you dedicate each day?
@@ -54,19 +22,19 @@ export function GoalStep({ selectedGoal, onSelect }) {
       </motion.div>
 
       <div className="grid grid-cols-2 gap-4">
-        {dailyGoals.map((goal, index) => {
-          const Icon = goal.icon;
+        {goals.map((goal, index) => {
+          const value = String(goal.goalTime);
           return (
             <motion.button
-              key={goal.value}
+              key={goal.id}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.1 }}
-              onClick={() => onSelect(goal.value)}
+              onClick={() => onSelect(value)}
               className={cn(
                 "flex flex-col items-center gap-3 p-6 rounded-2xl border-2 transition-all duration-300",
                 "hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
-                selectedGoal === goal.value
+                selectedGoal === value
                   ? "border-accent bg-accent/10 shadow-accent-glow"
                   : "border-border bg-card hover:border-primary"
               )}
@@ -74,25 +42,27 @@ export function GoalStep({ selectedGoal, onSelect }) {
               <div
                 className={cn(
                   "w-14 h-14 rounded-2xl flex items-center justify-center transition-colors",
-                  selectedGoal === goal.value
+                  selectedGoal === value
                     ? "bg-accent text-accent-foreground"
                     : "bg-gradient-accent text-accent-foreground"
                 )}
               >
-                <Icon className="w-7 h-7" />
+                {goal?.goalMedia?.url ? (
+                  <img
+                    src={getMediaUrl(goal.goalMedia.url)}
+                    alt={goal?.goalMedia?.alt || `${value} minutes`}
+                    className="w-8 h-8 object-contain"
+                  />
+                ) : (
+                  <span className="font-bold">⏱</span>
+                )}
               </div>
               <div className="text-center">
-                <p className="font-bold text-foreground text-lg">
-                  {goal.label}
-                </p>
                 <p className="text-accent font-semibold text-sm">
-                  {goal.description}
-                </p>
-                <p className="text-muted-foreground text-xs mt-1">
-                  {goal.detail}
+                  {value} min / day
                 </p>
               </div>
-              {selectedGoal === goal.value && (
+              {selectedGoal === value && (
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}

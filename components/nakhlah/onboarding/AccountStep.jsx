@@ -1,10 +1,16 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { Mascot } from "../Mascot";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
 
-export function AccountStep({ name, age, email, onChange }) {
+export function AccountStep({ name, age, email, ageOptions = [], onChange }) {
   const [localName, setLocalName] = useState(name || "");
   const [localAge, setLocalAge] = useState(age || "");
   const [localEmail, setLocalEmail] = useState(email || "");
@@ -60,13 +66,30 @@ export function AccountStep({ name, age, email, onChange }) {
             <label className="block text-sm text-muted-foreground mb-1">
               How old are you?
             </label>
-            <input
-              value={localAge}
-              onChange={(e) => setLocalAge(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-border bg-transparent outline-none"
-              placeholder="25"
-              inputMode="numeric"
-            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="w-full px-4 py-3 rounded-xl border border-border bg-transparent outline-none flex items-center justify-between hover:border-accent/50"
+                >
+                  <span className={localAge ? "text-foreground" : "text-muted-foreground"}>
+                    {localAge || "Select age range"}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
+                {ageOptions.map((option) => (
+                  <DropdownMenuItem
+                    key={option.id}
+                    onClick={() => setLocalAge(option.ageTitle)}
+                    className="cursor-pointer"
+                  >
+                    {option.ageTitle}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <div>
