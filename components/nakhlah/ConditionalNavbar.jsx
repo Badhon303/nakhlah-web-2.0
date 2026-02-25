@@ -7,8 +7,12 @@ export default function ConditionalNavbar() {
   const pathname = usePathname();
   const hideNavbar =
     pathname === "/onboarding" ||
+    pathname === "/get-started" ||
     pathname.startsWith("/auth/") ||
-    pathname.startsWith("/lesson/");
+    pathname === "/lesson" ||
+    pathname.startsWith("/lesson/") ||
+    pathname === "/lessons" ||
+    pathname.startsWith("/lessons/");
 
   if (hideNavbar) return null;
 

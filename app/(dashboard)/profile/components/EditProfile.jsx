@@ -1,19 +1,75 @@
 import { motion } from "framer-motion";
 import { ChevronLeft, Camera, Calendar, MapPin, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { getSessionToken, isSessionValid } from "@/lib/authUtils";
+import { updateMyProfile } from "@/services/api/auth";
+import { toast } from "@/components/nakhlah/Toast";
 
-export default function EditProfilePage({ onBack }) {
+export default function EditProfilePage({ onBack, currentUser, profileData, onProfileUpdated }) {
   const [formData, setFormData] = useState({
     fullName: "Andrew Ainsley",
-    phoneNumber: "+1-300-555-0399",
+    phoneNumber: "",
     email: "andrew.ainsley@yourdomain.com",
-    dateOfBirth: "12/27/1995",
-    country: "United States"
+    dateOfBirth: "",
+    country: ""
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      fullName: profileData?.fullName || prev.fullName,
+      phoneNumber: profileData?.contactNumber || "",
+      email: currentUser?.email || profileData?.user?.email || prev.email,
+      country: profileData?.onboardInfo?.country || "",
+    }));
+  }, [currentUser, profileData]);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleUpdate = async () => {
+    if (!isSessionValid(session)) {
+      toast.error("Session not found. Please login again.");
+      return;
+    }
+
+    const token = getSessionToken(session);
+    if (!token) {
+      toast.error("Access token missing. Please login again.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    const result = await updateMyProfile(
+      {
+        fullName: formData.fullName,
+        contactNumber: formData.phoneNumber,
+        onboardInfo: {
+          ...(profileData?.onboardInfo || {}),
+          country: formData.country,
+        },
+      },
+      null,
+      token
+    );
+    setIsSubmitting(false);
+
+    if (!result.success) {
+      toast.error(result.error || "Failed to update profile");
+      return;
+    }
+
+    if (onProfileUpdated) {
+      onProfileUpdated(result.profile);
+    }
+
+    toast.success("Profile updated successfully");
+    onBack();
   };
 
   return (
@@ -85,7 +141,7 @@ export default function EditProfilePage({ onBack }) {
             <input
               type="email"
               value={formData.email}
-              onChange={(e) => handleChange('email', e.target.value)}
+              readOnly
               className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground"
             />
           </div>
@@ -127,8 +183,12 @@ export default function EditProfilePage({ onBack }) {
 
         {/* Action Button */}
         <div className="mt-8">
-          <Button className="w-full bg-gradient-accent hover:bg-gradient-accent/90 text-accent-foreground py-6 text-lg font-semibold">
-            Update Profile
+          <Button
+            onClick={handleUpdate}
+            disabled={isSubmitting}
+            className="w-full bg-gradient-accent hover:bg-gradient-accent/90 text-accent-foreground py-6 text-lg font-semibold"
+          >
+            {isSubmitting ? "Updating..." : "Update Profile"}
           </Button>
         </div>
       </motion.div>

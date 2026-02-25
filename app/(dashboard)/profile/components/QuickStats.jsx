@@ -2,13 +2,19 @@
 import { motion } from "framer-motion";
 import { Flame, Target, Zap, BookOpen, Award } from "lucide-react";
 
-export default function QuickStats() {
+export default function QuickStats({ profileData }) {
+  const currentStreak = profileData?.learnerStreak?.currentStreak ?? 7;
+  const longestStreak = profileData?.learnerStreak?.currentStreak ?? 21;
+  const totalXp = profileData?.gamificationStock?.injazStock ?? 15274;
+  const wordsLearned = profileData?.dailyChallengeActivity?.lessonsPracticed ?? 448;
+  const lessonsCompleted = profileData?.dailyChallengeActivity?.lessonsCompleted ?? 127;
+
   const quickStats = [
-    { label: "Current Streak", value: "7 days", icon: Flame, color: "text-primary" },
-    { label: "Longest Streak", value: "21 days", icon: Target, color: "text-palm-green" },
-    { label: "Total XP", value: "15,274", icon: Zap, color: "text-amber-500" },
-    { label: "Words Learned", value: "448", icon: BookOpen, color: "text-secondary" },
-    { label: "Lessons Completed", value: "127", icon: Award, color: "text-accent" },
+    { label: "Current Streak", value: `${currentStreak} day${currentStreak === 1 ? "" : "s"}`, icon: Flame, color: "text-primary" },
+    { label: "Longest Streak", value: `${longestStreak} day${longestStreak === 1 ? "" : "s"}`, icon: Target, color: "text-palm-green" },
+    { label: "Total XP", value: `${totalXp}`, icon: Zap, color: "text-amber-500" },
+    { label: "Words Learned", value: `${wordsLearned}`, icon: BookOpen, color: "text-secondary" },
+    { label: "Lessons Completed", value: `${lessonsCompleted}`, icon: Award, color: "text-accent" },
   ];
 
   return (

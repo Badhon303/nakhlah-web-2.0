@@ -1,4 +1,43 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { fetchCurrentUser, refreshAccessToken } from "./auth";
+import { buildApiUrl } from "@/lib/api-config";
+
+const withApiUrl = (path) => buildApiUrl(path);
+
+async function fetchWithAuthRetry(path, { method = "GET", token, body } = {}) {
+    const endpoint = withApiUrl(path);
+
+    const execute = (accessToken) =>
+        fetch(endpoint, {
+            method,
+            headers: {
+                "Content-Type": "application/json",
+                ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+            },
+            ...(body !== undefined ? { body } : {}),
+            credentials: "include",
+        });
+
+    let response = await execute(token);
+
+    if (response.status !== 401) {
+        return response;
+    }
+
+    const refreshed = await refreshAccessToken(token);
+    if (!refreshed.success) {
+        return response;
+    }
+
+    const me = await fetchCurrentUser(refreshed.token || token);
+    const retriedToken = me.success ? me.token : refreshed.token || token;
+
+    if (!retriedToken) {
+        return response;
+    }
+
+    response = await execute(retriedToken);
+    return response;
+}
 
 export async function fetchJourneyStructure(token) {
     try {
@@ -6,16 +45,10 @@ export async function fetchJourneyStructure(token) {
             throw new Error("Authentication required");
         }
 
-        const response = await fetch(
-            `${API_URL}/api/globals/questionnaires/journey-structure`,
-            {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
+        const response = await fetchWithAuthRetry("/api/globals/questionnaires/journey-structure", {
+            method: "GET",
+            token,
+        });
 
         const data = await response.json();
 
@@ -42,16 +75,10 @@ export async function fetchTaskLessons(taskId, token) {
             throw new Error("Authentication required");
         }
 
-        const response = await fetch(
-            `${API_URL}/api/globals/questionnaires/tasks/${taskId}/lessons`,
-            {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
+        const response = await fetchWithAuthRetry(`/api/globals/questionnaires/tasks/${taskId}/lessons`, {
+            method: "GET",
+            token,
+        });
 
         const data = await response.json();
 
@@ -75,16 +102,10 @@ export async function fetchTaskLessons(taskId, token) {
 
 export async function fetchLessonQuestions(lessonId, token) {
     try {
-        const response = await fetch(
-            `${API_URL}/api/globals/questionnaires/lessons/${lessonId}`,
-            {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
+        const response = await fetchWithAuthRetry(`/api/globals/questionnaires/lessons/${lessonId}`, {
+            method: "GET",
+            token,
+        });
 
         const data = await response.json();
 
@@ -108,17 +129,11 @@ export async function fetchLessonQuestions(lessonId, token) {
 
 export async function submitLessonCompletion(lessonId, score, token) {
     try {
-        const response = await fetch(
-            `${API_URL}/api/globals/questionnaires/lessons/${lessonId}/complete`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ score }),
-            }
-        );
+        const response = await fetchWithAuthRetry(`/api/globals/questionnaires/lessons/${lessonId}/complete`, {
+            method: "POST",
+            token,
+            body: JSON.stringify({ score }),
+        });
 
         const data = await response.json();
 

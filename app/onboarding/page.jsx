@@ -18,9 +18,15 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { registerUser } from "@/lib/authUtils";
-import { createUserProfile, fetchUserOnboardingGlobals } from "@/services/api/auth";
+import {
+  createUserProfile,
+  fetchCurrentUser,
+  fetchUserOnboardingGlobals,
+  refreshAccessToken,
+} from "@/services/api/auth";
 import { signIn } from "next-auth/react";
 import { toast } from "@/components/nakhlah/Toast";
+import { buildApiUrl } from "@/lib/api-config";
 
 const steps = [
   { id: 1, label: "Strength" },
@@ -34,8 +40,120 @@ const steps = [
   { id: 9, label: "Ready!" },
 ];
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const DEFAULT_PROFILE_IMAGE = "https://github.com/shadcn.png";
+
+const mediaCandidates = [
+  "strengthsMedia",
+  "strengthMedia",
+  "goalMedia",
+  "goalPicture",
+  "purposeMedia",
+  "purposePicture",
+  "countryMedia",
+  "countryPicture",
+  "sourcePicture",
+  "sourceMedia",
+  "interestPicture",
+  "interestMedia",
+  "media",
+  "image",
+  "picture",
+  "icon",
+  "thumbnail",
+  "asset",
+];
+
+const getMediaObject = (item, preferredKeys = []) => {
+  if (!item || typeof item !== "object") return null;
+
+  const keysToCheck = [...preferredKeys, ...mediaCandidates];
+  for (const key of keysToCheck) {
+    const value = item?.[key];
+    if (!value) continue;
+    if (typeof value === "string") return { url: value };
+    if (value?.url) return value;
+  }
+
+  if (Array.isArray(item?.media)) {
+    const mediaEntry = item.media.find((entry) => entry?.url || entry?.media?.url);
+    if (mediaEntry?.url) return mediaEntry;
+    if (mediaEntry?.media?.url) return mediaEntry.media;
+  }
+
+  if (item?.url) {
+    return { url: item.url, alt: item.alt };
+  }
+
+  return null;
+};
+
+const normalizeOnboardingData = (data) => {
+  if (!data || typeof data !== "object") return data;
+
+  const normalizedLanguageStrengthList = (data?.languageStrength?.strengthsList || []).map(
+    (entry) => ({
+      ...entry,
+      strengthsMedia: getMediaObject(entry, ["strengthsMedia", "strengthMedia"]),
+    })
+  );
+
+  const normalizedGoalList = ((data?.Goal?.goalList || data?.goal?.goalList) || []).map(
+    (entry) => ({
+      ...entry,
+      goalMedia: getMediaObject(entry, ["goalMedia", "goalPicture"]),
+    })
+  );
+
+  const normalizedPurposeList = (data?.purpose?.purposeList || []).map((entry) => ({
+    ...entry,
+    purposeMedia: getMediaObject(entry, ["purposeMedia", "purposePicture"]),
+  }));
+
+  const normalizedCountryList = ((data?.Country?.countryList || data?.country?.countryList) || []).map(
+    (entry) => ({
+      ...entry,
+      countryMedia: getMediaObject(entry, ["countryMedia", "countryPicture"]),
+    })
+  );
+
+  const normalizedSourceList = (data?.userSource?.sourceList || []).map((entry) => ({
+    ...entry,
+    sourcePicture: getMediaObject(entry, ["sourcePicture", "sourceMedia"]),
+  }));
+
+  const normalizedInterestList = (data?.interests?.interestList || []).map((entry) => ({
+    ...entry,
+    interestPicture: getMediaObject(entry, ["interestPicture", "interestMedia"]),
+  }));
+
+  return {
+    ...data,
+    languageStrength: {
+      ...(data?.languageStrength || {}),
+      strengthsList: normalizedLanguageStrengthList,
+    },
+    Goal: {
+      ...(data?.Goal || data?.goal || {}),
+      goalList: normalizedGoalList,
+    },
+    purpose: {
+      ...(data?.purpose || {}),
+      purposeList: normalizedPurposeList,
+    },
+    Country: {
+      ...(data?.Country || data?.country || {}),
+      countryList: normalizedCountryList,
+    },
+    userSource: {
+      ...(data?.userSource || {}),
+      sourceList: normalizedSourceList,
+    },
+    interests: {
+      ...(data?.interests || {}),
+      interestList: normalizedInterestList,
+    },
+  };
+};
 
 export default function Onboarding() {
   const router = useRouter();
@@ -57,20 +175,37 @@ export default function Onboarding() {
 
   const getMediaUrl = (url) => {
     if (!url) return "";
-    if (url.startsWith("http://") || url.startsWith("https://")) return url;
-    if (!API_URL) return url;
-    return `${API_URL}${url}`;
+    return buildApiUrl(url);
+  };
+
+  const getActiveAccessToken = async () => {
+    const session = await fetch("/api/auth/session")
+      .then((res) => res.json())
+      .catch(() => null);
+
+    if (session?.accessToken) {
+      return session.accessToken;
+    }
+
+    const refreshResult = await refreshAccessToken(session?.accessToken);
+    const meResult = await fetchCurrentUser(refreshResult?.token || session?.accessToken);
+
+    if (meResult.success && meResult.token) {
+      return meResult.token;
+    }
+
+    if (refreshResult.success && refreshResult.token) {
+      return refreshResult.token;
+    }
+
+    return null;
   };
 
   const loadOnboardingData = async () => {
     setIsLoadingOnboarding(true);
     setLoadingError("");
 
-    const session = await fetch("/api/auth/session")
-      .then((res) => res.json())
-      .catch(() => null);
-
-    const token = session?.accessToken;
+    const token = await getActiveAccessToken();
 
     if (!token) {
       setLoadingError("Please login first to continue onboarding.");
@@ -86,7 +221,7 @@ export default function Onboarding() {
       return;
     }
 
-    setOnboardingData(result.data);
+    setOnboardingData(normalizeOnboardingData(result.data));
     setIsLoadingOnboarding(false);
   };
 
@@ -210,11 +345,7 @@ export default function Onboarding() {
   };
 
   const handleComplete = async () => {
-    const session = await fetch("/api/auth/session")
-      .then((res) => res.json())
-      .catch(() => null);
-
-    const token = session?.accessToken;
+    const token = await getActiveAccessToken();
 
     if (!token) {
       toast.error("Session not found. Please try logging in again.");
