@@ -6,6 +6,9 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CardMenuOptions } from "@/components/nakhlah/CardMenuOptions";
+import { useSession } from "next-auth/react";
+
+const DEFAULT_PROFILE_IMAGE = "https://github.com/shadcn.png";
 
 const navLinks = [
   { href: "/about", label: "About" },
@@ -17,8 +20,14 @@ const navLinks = [
 ];
 
 export function ProfileSection() {
-  const isSignedIn = true;
+  const { data: session, status } = useSession();
+  const isSignedIn = status === "authenticated";
   const router = useRouter();
+  const profileImage = session?.user?.image || DEFAULT_PROFILE_IMAGE;
+  const fallbackInitial = (session?.user?.name || session?.user?.email || "U")
+    .trim()
+    .charAt(0)
+    .toUpperCase();
 
   const handleLogout = () => {
     router.push("/auth/login");
@@ -38,8 +47,8 @@ export function ProfileSection() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Avatar>
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>U</AvatarFallback>
+                <AvatarImage src={profileImage} />
+                <AvatarFallback>{fallbackInitial || "U"}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <p className="font-semibold">Username</p>

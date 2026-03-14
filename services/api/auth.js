@@ -1,22 +1,158 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { buildApiUrl } from "@/lib/api-config";
+
+const withApiUrl = (path) => {
+    return buildApiUrl(path);
+};
+
+const toErrorMessage = (data, fallback) => {
+    if (typeof data === "string" && data.trim()) return data;
+    return data?.message || fallback;
+};
+
+export async function refreshAccessToken(currentToken) {
+    try {
+        const response = await fetch(withApiUrl("/api/users/refresh-token"), {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                ...(currentToken ? { Authorization: `Bearer ${currentToken}` } : {}),
+            },
+            credentials: "include",
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to refresh token"));
+        }
+
+        return {
+            success: true,
+            token: data?.token || null,
+            exp: data?.exp || null,
+            data,
+        };
+    } catch (error) {
+        console.error("Refresh token error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to refresh token",
+        };
+    }
+}
+
+export async function fetchCurrentUser(token) {
+    try {
+        const response = await fetch(withApiUrl("/api/users/me"), {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            credentials: "include",
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to load account"));
+        }
+
+        return {
+            success: true,
+            user: data?.user || null,
+            token: data?.token || token || null,
+            exp: data?.exp || null,
+            message: data?.message,
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch current user error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to load account",
+        };
+    }
+}
+
+export async function logoutUser(token) {
+    try {
+        const response = await fetch(withApiUrl("/api/users/logout"), {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            credentials: "include",
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to logout"));
+        }
+
+        return {
+            success: true,
+            message: data?.message || "Logged out successfully",
+        };
+    } catch (error) {
+        console.error("Logout API error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to logout",
+        };
+    }
+}
+
+async function fetchWithAuthRetry(path, { method = "GET", token, headers = {}, body } = {}) {
+    const endpoint = withApiUrl(path);
+
+    const buildHeaders = (accessToken) => ({
+        ...headers,
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    });
+
+    const execute = (accessToken) =>
+        fetch(endpoint, {
+            method,
+            headers: buildHeaders(accessToken),
+            ...(body !== undefined ? { body } : {}),
+            credentials: "include",
+        });
+
+    let response = await execute(token);
+    let resolvedToken = token || null;
+
+    if (response.status !== 401) {
+        return { response, token: resolvedToken };
+    }
+
+    const refreshed = await refreshAccessToken(token);
+    if (!refreshed.success) {
+        return { response, token: resolvedToken };
+    }
+
+    const me = await fetchCurrentUser(refreshed.token || token);
+    const retriedToken = me.success ? me.token : refreshed.token || token;
+
+    if (!retriedToken) {
+        return { response, token: resolvedToken };
+    }
+
+    resolvedToken = retriedToken;
+    response = await execute(retriedToken);
+    return { response, token: resolvedToken };
+}
 
 export async function fetchUserOnboardingGlobals(token) {
     try {
-        const endpoint = API_URL
-            ? `${API_URL}/api/globals/user-onboarding`
-            : "/api/globals/user-onboarding";
-
-        const headers = {
-            "Content-Type": "application/json",
-        };
-
-        if (token) {
-            headers.Authorization = `Bearer ${token}`;
-        }
-
-        const response = await fetch(endpoint, {
+        const { response } = await fetchWithAuthRetry("/api/globals/user-onboarding", {
             method: "GET",
-            headers,
+            token,
+            headers: {
+                "Content-Type": "application/json",
+            },
         });
 
         const data = await response.json();
@@ -40,11 +176,12 @@ export async function fetchUserOnboardingGlobals(token) {
 
 export async function registerUser(email, password) {
     try {
-        const response = await fetch(`${API_URL}/api/users/sign-in`, {
+        const response = await fetch(withApiUrl("/api/users/sign-in"), {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
+            credentials: "include",
             body: JSON.stringify({ email, password }),
         });
 
@@ -73,11 +210,12 @@ export async function registerUser(email, password) {
 
 export async function loginUser(email, password) {
     try {
-        const response = await fetch(`${API_URL}/api/users/login`, {
+        const response = await fetch(withApiUrl("/api/users/login"), {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
+            credentials: "include",
             body: JSON.stringify({ email, password }),
         });
 
@@ -105,11 +243,11 @@ export async function loginUser(email, password) {
 
 export async function createUserProfile(profileData, token) {
     try {
-        const response = await fetch(`${API_URL}/api/user-profile`, {
+        const { response } = await fetchWithAuthRetry("/api/user-profile", {
             method: "POST",
+            token,
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
             },
             body: JSON.stringify(profileData),
         });
@@ -134,13 +272,90 @@ export async function createUserProfile(profileData, token) {
     }
 }
 
+export async function updateMyProfile(profileDetails, profilePictureFile, token) {
+    try {
+        if (!token) {
+            throw new Error("Missing authentication token");
+        }
+
+        const formData = new FormData();
+        formData.append("data", JSON.stringify(profileDetails || {}));
+
+        if (profilePictureFile) {
+            formData.append("profilePicture", profilePictureFile);
+        }
+
+        const { response } = await fetchWithAuthRetry("/api/user-profile/update-me", {
+            method: "PATCH",
+            token,
+            body: formData,
+        });
+
+        const rawText = await response.text();
+        let data = null;
+
+        try {
+            data = rawText ? JSON.parse(rawText) : null;
+        } catch {
+            data = null;
+        }
+
+        if (!response.ok) {
+            throw new Error(data?.message || rawText || "Profile update failed");
+        }
+
+        return {
+            success: true,
+            profile: data?.doc || data,
+            message: data?.message || "Profile updated successfully",
+        };
+    } catch (error) {
+        console.error("Profile update error:", error);
+        return {
+            success: false,
+            error: error.message || "Profile update failed",
+        };
+    }
+}
+
+export async function fetchMyProfile(token) {
+    try {
+        const { response } = await fetchWithAuthRetry("/api/user-profile", {
+            method: "GET",
+            token,
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to load profile"));
+        }
+
+        return {
+            success: true,
+            profile: Array.isArray(data?.docs) ? data.docs[0] || null : data?.doc || null,
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch profile error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to load profile",
+        };
+    }
+}
+
 export async function forgotPassword(email) {
     try {
-        const response = await fetch(`${API_URL}/api/users/forgot-password`, {
+        const response = await fetch(withApiUrl("/api/users/forgot-password"), {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
+            credentials: "include",
             body: JSON.stringify({ email }),
         });
 
@@ -165,11 +380,12 @@ export async function forgotPassword(email) {
 
 export async function resetPassword(token, password) {
     try {
-        const response = await fetch(`${API_URL}/api/users/reset-password`, {
+        const response = await fetch(withApiUrl("/api/users/reset-password"), {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
+            credentials: "include",
             body: JSON.stringify({ token, password }),
         });
 
@@ -194,11 +410,12 @@ export async function resetPassword(token, password) {
 
 export async function verifyOTP(email, otp) {
     try {
-        const response = await fetch(`${API_URL}/api/users/verify-otp`, {
+        const response = await fetch(withApiUrl("/api/users/verify-otp"), {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
+            credentials: "include",
             body: JSON.stringify({ email, otp }),
         });
 

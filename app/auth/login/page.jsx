@@ -123,7 +123,7 @@ export default function Login() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="andrew.ainsley@yourdomain.com"
+                  placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="h-12 bg-background border-border text-foreground"
@@ -144,7 +144,7 @@ export default function Login() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="••••••••••••"
+                    placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="h-12 bg-background border-border text-foreground pr-12"
@@ -216,7 +216,12 @@ export default function Login() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => signIn("google", { callbackUrl: "/" })}
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    localStorage.setItem("nakhlah_profile_prompt_pending", "true");
+                  }
+                  signIn("google", { callbackUrl: "/" });
+                }}
                 disabled={isLoading}
                 className="w-full h-12 border-border hover:bg-accent/10 font-semibold text-foreground rounded-xl"
               >

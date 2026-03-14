@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import NotificationSettingsPage from "./components/NotificationSettings";
 import AccessibilitySettingsPage from "./components/AccessibilitySettings";
@@ -16,10 +16,53 @@ import FollowingPage from "./components/Following";
 import ShareProfileDrawer from "./components/ShareProfileDrawer";
 import GeneralSettingsPage from "./components/GeneralSettings";
 import AboutNakhlahPage from "./components/AboutNakhlah";
+import { useSession } from "next-auth/react";
+import { getSessionToken, isSessionValid } from "@/lib/authUtils";
+import { fetchCurrentUser, fetchMyProfile } from "@/services/api/auth";
 
 export default function ProfileAndSettings() {
   const [activeView, setActiveView] = useState("profile");
   const [showShareDrawer, setShowShareDrawer] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [profileData, setProfileData] = useState(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (status === "loading") return;
+      if (status === "unauthenticated" || !isSessionValid(session)) {
+        setIsProfileLoading(false);
+        return;
+      }
+
+      const token = getSessionToken(session);
+      setIsProfileLoading(true);
+
+      const [meResult, profileResult] = await Promise.all([
+        fetchCurrentUser(token),
+        fetchMyProfile(token),
+      ]);
+
+      if (meResult.success) {
+        setCurrentUser(meResult.user || null);
+      }
+
+      if (profileResult.success) {
+        setProfileData(profileResult.profile || null);
+      }
+
+      setIsProfileLoading(false);
+    };
+
+    loadProfile();
+  }, [session, status]);
+
+  const handleProfileUpdated = (updatedProfile) => {
+    if (updatedProfile) {
+      setProfileData(updatedProfile);
+    }
+  };
 
   const handleNavigate = (view) => {
     if (view === "share-profile") {
@@ -32,7 +75,14 @@ export default function ProfileAndSettings() {
   const renderView = () => {
     switch (activeView) {
       case "profile":
-        return <ProfilePage onNavigate={handleNavigate} />;
+        return (
+          <ProfilePage
+            onNavigate={handleNavigate}
+            currentUser={currentUser}
+            profileData={profileData}
+            isLoading={isProfileLoading}
+          />
+        );
       case "settings":
         return (
           <SettingsPage
@@ -41,7 +91,14 @@ export default function ProfileAndSettings() {
           />
         );
       case "edit-profile":
-        return <EditProfilePage onBack={() => setActiveView("profile")} />;
+        return (
+          <EditProfilePage
+            onBack={() => setActiveView("profile")}
+            currentUser={currentUser}
+            profileData={profileData}
+            onProfileUpdated={handleProfileUpdated}
+          />
+        );
       case "followers":
         return <FollowersPage onBack={() => setActiveView("profile")} />;
       case "following":
@@ -76,7 +133,14 @@ export default function ProfileAndSettings() {
       case "about-nakhlah":
         return <AboutNakhlahPage onBack={() => setActiveView("settings")} />;
       default:
-        return <ProfilePage onNavigate={handleNavigate} />;
+        return (
+          <ProfilePage
+            onNavigate={handleNavigate}
+            currentUser={currentUser}
+            profileData={profileData}
+            isLoading={isProfileLoading}
+          />
+        );
     }
   };
 

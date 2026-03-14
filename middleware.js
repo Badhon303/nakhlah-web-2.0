@@ -27,7 +27,7 @@ export default withAuth(
         }
 
         // Check for expired token
-        if (token.error === "TokenExpired") {
+        if (token.error === "TokenExpired" || token.error === "RefreshAccessTokenError") {
             return NextResponse.redirect(
                 new URL("/auth/login?error=SessionExpired", req.url)
             );

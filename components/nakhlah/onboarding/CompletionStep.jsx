@@ -1,88 +1,35 @@
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { Mascot } from "@/components/nakhlah/Mascot";
-import { ArrowRight, Languages, Clock, Award } from "lucide-react";
 
-const languageNames = {
-  arabic: "Arabic",
-  english: "English",
-  french: "French",
-  spanish: "Spanish",
-  german: "German",
-  urdu: "Urdu",
-};
-
-export function CompletionStep({ language, dailyGoal, quizScore, onComplete }) {
+export function CompletionStep({ onComplete }) {
   return (
     <div className="w-full max-w-[520px] mx-auto text-center">
       <motion.div
-        initial={{ scale: 0.96, opacity: 0 }}
+        initial={{ scale: 0.94, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 18 }}
-        className="bg-gradient-to-b from-white/60 to-white/40 dark:from-black/40 dark:to-black/30 p-6 rounded-3xl border border-border shadow-lg"
+        transition={{ type: "spring", stiffness: 220, damping: 18 }}
+        className="bg-gradient-to-b from-card/95 to-card/70 p-8 rounded-3xl border border-border shadow-lg"
       >
-        <Mascot mood="proud" size="xxl" className="mx-auto" />
-        <div className="flex flex-col items-center gap-4">
-          <div className="text-center">
-            <h1 className="text-3xl font-extrabold text-foreground mb-1">
-              You&apos;re all set!
-            </h1>
-            <p className="text-muted-foreground">
-              Your personalized learning journey begins now.
-            </p>
-          </div>
+        <motion.div
+          animate={{ y: [0, -6, 0] }}
+          transition={{ repeat: Infinity, duration: 2.4 }}
+          className="flex justify-center"
+        >
+          <Mascot mood="proud" size="xxxl" className="mx-auto" />
+        </motion.div>
 
-          <div className="w-full mt-3 bg-card p-4 rounded-2xl border border-border">
-            <div className="grid grid-cols-1 gap-3">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-                  <Languages className="w-5 h-5 text-accent" />
-                </div>
-                <div className="text-left">
-                  <p className="font-semibold text-foreground">
-                    Learning {languageNames[language] || language}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Your chosen language
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-accent" />
-                </div>
-                <div className="text-left">
-                  <p className="font-semibold text-foreground">
-                    {dailyGoal} minutes daily
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Your daily goal
-                  </p>
-                </div>
-              </div>
-
-              {quizScore > 0 && (
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-                    <Award className="w-5 h-5 text-accent" />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-semibold text-foreground">
-                      {quizScore}/3 correct answers
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Assessment result
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-          <p className="text-sm text-muted-foreground mt-3">
-            Complete your first lesson today to start your streak! 🔥
-          </p>
+        <div className="mt-6 space-y-2">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-foreground">You&apos;re ready</h1>
+          <p className="text-muted-foreground">Start your first lesson now ✨</p>
         </div>
+
+        <button
+          type="button"
+          onClick={onComplete}
+          className="mt-8 w-full h-12 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 text-white font-semibold"
+        >
+          Start Learning
+        </button>
       </motion.div>
     </div>
   );

@@ -11,15 +11,22 @@ import { PurposeStep } from "@/components/nakhlah/onboarding/PurposeStep";
 import { CountryStep } from "@/components/nakhlah/onboarding/CountryStep";
 import { UserSourceStep } from "@/components/nakhlah/onboarding/UserSourceStep";
 import { InterestsStep } from "@/components/nakhlah/onboarding/InterestsStep";
+import { AgeStep } from "@/components/nakhlah/onboarding/AgeStep";
 import { AccountStep } from "@/components/nakhlah/onboarding/AccountStep";
 import { CompletionStep } from "@/components/nakhlah/onboarding/CompletionStep";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { registerUser } from "@/lib/authUtils";
-import { createUserProfile, fetchUserOnboardingGlobals } from "@/services/api/auth";
+import {
+  createUserProfile,
+  fetchCurrentUser,
+  fetchUserOnboardingGlobals,
+  refreshAccessToken,
+} from "@/services/api/auth";
 import { signIn } from "next-auth/react";
 import { toast } from "@/components/nakhlah/Toast";
+import { buildApiUrl } from "@/lib/api-config";
 
 const steps = [
   { id: 1, label: "Strength" },
@@ -28,11 +35,125 @@ const steps = [
   { id: 4, label: "Country" },
   { id: 5, label: "Source" },
   { id: 6, label: "Interests" },
-  { id: 7, label: "Account" },
-  { id: 8, label: "Ready!" },
+  { id: 7, label: "Age" },
+  { id: 8, label: "Account" },
+  { id: 9, label: "Ready!" },
 ];
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const DEFAULT_PROFILE_IMAGE = "https://github.com/shadcn.png";
+
+const mediaCandidates = [
+  "strengthsMedia",
+  "strengthMedia",
+  "goalMedia",
+  "goalPicture",
+  "purposeMedia",
+  "purposePicture",
+  "countryMedia",
+  "countryPicture",
+  "sourcePicture",
+  "sourceMedia",
+  "interestPicture",
+  "interestMedia",
+  "media",
+  "image",
+  "picture",
+  "icon",
+  "thumbnail",
+  "asset",
+];
+
+const getMediaObject = (item, preferredKeys = []) => {
+  if (!item || typeof item !== "object") return null;
+
+  const keysToCheck = [...preferredKeys, ...mediaCandidates];
+  for (const key of keysToCheck) {
+    const value = item?.[key];
+    if (!value) continue;
+    if (typeof value === "string") return { url: value };
+    if (value?.url) return value;
+  }
+
+  if (Array.isArray(item?.media)) {
+    const mediaEntry = item.media.find((entry) => entry?.url || entry?.media?.url);
+    if (mediaEntry?.url) return mediaEntry;
+    if (mediaEntry?.media?.url) return mediaEntry.media;
+  }
+
+  if (item?.url) {
+    return { url: item.url, alt: item.alt };
+  }
+
+  return null;
+};
+
+const normalizeOnboardingData = (data) => {
+  if (!data || typeof data !== "object") return data;
+
+  const normalizedLanguageStrengthList = (data?.languageStrength?.strengthsList || []).map(
+    (entry) => ({
+      ...entry,
+      strengthsMedia: getMediaObject(entry, ["strengthsMedia", "strengthMedia"]),
+    })
+  );
+
+  const normalizedGoalList = ((data?.Goal?.goalList || data?.goal?.goalList) || []).map(
+    (entry) => ({
+      ...entry,
+      goalMedia: getMediaObject(entry, ["goalMedia", "goalPicture"]),
+    })
+  );
+
+  const normalizedPurposeList = (data?.purpose?.purposeList || []).map((entry) => ({
+    ...entry,
+    purposeMedia: getMediaObject(entry, ["purposeMedia", "purposePicture"]),
+  }));
+
+  const normalizedCountryList = ((data?.Country?.countryList || data?.country?.countryList) || []).map(
+    (entry) => ({
+      ...entry,
+      countryMedia: getMediaObject(entry, ["countryMedia", "countryPicture"]),
+    })
+  );
+
+  const normalizedSourceList = (data?.userSource?.sourceList || []).map((entry) => ({
+    ...entry,
+    sourcePicture: getMediaObject(entry, ["sourcePicture", "sourceMedia"]),
+  }));
+
+  const normalizedInterestList = (data?.interests?.interestList || []).map((entry) => ({
+    ...entry,
+    interestPicture: getMediaObject(entry, ["interestPicture", "interestMedia"]),
+  }));
+
+  return {
+    ...data,
+    languageStrength: {
+      ...(data?.languageStrength || {}),
+      strengthsList: normalizedLanguageStrengthList,
+    },
+    Goal: {
+      ...(data?.Goal || data?.goal || {}),
+      goalList: normalizedGoalList,
+    },
+    purpose: {
+      ...(data?.purpose || {}),
+      purposeList: normalizedPurposeList,
+    },
+    Country: {
+      ...(data?.Country || data?.country || {}),
+      countryList: normalizedCountryList,
+    },
+    userSource: {
+      ...(data?.userSource || {}),
+      sourceList: normalizedSourceList,
+    },
+    interests: {
+      ...(data?.interests || {}),
+      interestList: normalizedInterestList,
+    },
+  };
+};
 
 export default function Onboarding() {
   const router = useRouter();
@@ -43,7 +164,6 @@ export default function Onboarding() {
   const [country, setCountry] = useState("");
   const [userSource, setUserSource] = useState("");
   const [interests, setInterests] = useState([]);
-  const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -55,20 +175,37 @@ export default function Onboarding() {
 
   const getMediaUrl = (url) => {
     if (!url) return "";
-    if (url.startsWith("http://") || url.startsWith("https://")) return url;
-    if (!API_URL) return url;
-    return `${API_URL}${url}`;
+    return buildApiUrl(url);
+  };
+
+  const getActiveAccessToken = async () => {
+    const session = await fetch("/api/auth/session")
+      .then((res) => res.json())
+      .catch(() => null);
+
+    if (session?.accessToken) {
+      return session.accessToken;
+    }
+
+    const refreshResult = await refreshAccessToken(session?.accessToken);
+    const meResult = await fetchCurrentUser(refreshResult?.token || session?.accessToken);
+
+    if (meResult.success && meResult.token) {
+      return meResult.token;
+    }
+
+    if (refreshResult.success && refreshResult.token) {
+      return refreshResult.token;
+    }
+
+    return null;
   };
 
   const loadOnboardingData = async () => {
     setIsLoadingOnboarding(true);
     setLoadingError("");
 
-    const session = await fetch("/api/auth/session")
-      .then((res) => res.json())
-      .catch(() => null);
-
-    const token = session?.accessToken;
+    const token = await getActiveAccessToken();
 
     if (!token) {
       setLoadingError("Please login first to continue onboarding.");
@@ -84,7 +221,7 @@ export default function Onboarding() {
       return;
     }
 
-    setOnboardingData(result.data);
+    setOnboardingData(normalizeOnboardingData(result.data));
     setIsLoadingOnboarding(false);
   };
 
@@ -105,6 +242,7 @@ export default function Onboarding() {
     const selectedSource = onboardingData?.userSource?.sourceList?.find(
       (item) => item.id === userSource
     );
+    const selectedAge = onboardingData?.age?.ageList?.find((item) => item.id === age);
     const selectedInterests = onboardingData?.interests?.interestList?.filter((item) =>
       interests.includes(item.id)
     );
@@ -114,9 +252,10 @@ export default function Onboarding() {
       selectedPurpose,
       selectedCountry,
       selectedSource,
+      selectedAge,
       selectedInterests,
     };
-  }, [onboardingData, proficiencyLevel, purpose, country, userSource, interests]);
+  }, [onboardingData, proficiencyLevel, purpose, country, userSource, interests, age]);
 
   const canProceed = () => {
     switch (currentStep) {
@@ -133,9 +272,9 @@ export default function Onboarding() {
       case 6:
         return interests.length > 0;
       case 7:
+        return age !== "";
+      case 8:
         return (
-          age !== "" &&
-          name.trim().length >= 2 &&
           email.trim().includes("@") &&
           password.trim().length >= 6
         );
@@ -145,7 +284,7 @@ export default function Onboarding() {
   };
 
   const handleNext = async () => {
-    if (currentStep === 7) {
+    if (currentStep === 8) {
       await handleRegistration();
       return;
     }
@@ -196,7 +335,7 @@ export default function Onboarding() {
         return;
       }
 
-      setCurrentStep(8);
+      setCurrentStep(9);
     } catch (error) {
       console.error("Registration error:", error);
       toast.error("An error occurred during registration");
@@ -206,37 +345,25 @@ export default function Onboarding() {
   };
 
   const handleComplete = async () => {
-    const session = await fetch("/api/auth/session")
-      .then((res) => res.json())
-      .catch(() => null);
-
-    const token = session?.accessToken;
+    const token = await getActiveAccessToken();
 
     if (!token) {
       toast.error("Session not found. Please try logging in again.");
       return;
     }
 
-    const rawStrength = (selectedValues.strength?.strengthsTitle || "").toLowerCase();
-
-    let languageStrength = "Basic";
-    if (rawStrength.includes("some words") || rawStrength.includes("phrases")) {
-      languageStrength = "Elementary";
-    } else if (rawStrength.includes("simple conversation")) {
-      languageStrength = "Intermediate";
-    } else if (rawStrength.includes("intermediate") || rawStrength.includes("above")) {
-      languageStrength = "Advanced";
-    }
+    const languageStrength = selectedValues.strength?.strengthsTitle || "";
 
     const profileData = {
       onboardInfo: {
-        age: age.toString(),
+        age: selectedValues.selectedAge?.ageTitle || age.toString(),
         country: selectedValues.selectedCountry?.countryName || "",
         purpose: "",
         goalTime: parseInt(dailyGoal) || 10,
         userSource: (selectedValues.selectedSource?.sourceName || "").toLowerCase(),
         languageStrength,
       },
+      profilePictureUrl: DEFAULT_PROFILE_IMAGE,
     };
 
     const profileResult = await createUserProfile(profileData, token);
@@ -255,12 +382,12 @@ export default function Onboarding() {
         country,
         userSource,
         interests,
-        name,
         age,
         email,
         completed: true,
       })
     );
+    localStorage.setItem("nakhlah_profile_prompt_pending", "true");
 
     toast.success("Profile created successfully!");
     router.push("/");
@@ -333,20 +460,25 @@ export default function Onboarding() {
         );
       case 7:
         return (
+          <AgeStep
+            title={onboardingData?.age?.ageTitleTop || "How old are you?"}
+            ages={onboardingData?.age?.ageList || []}
+            selectedAge={age}
+            onSelect={setAge}
+          />
+        );
+      case 8:
+        return (
           <AccountStep
-            name={name}
-            age={age}
             email={email}
-            ageOptions={onboardingData?.age?.ageList || []}
+            password={password}
             onChange={(fields) => {
-              if (fields.name !== undefined) setName(fields.name);
-              if (fields.age !== undefined) setAge(fields.age);
               if (fields.email !== undefined) setEmail(fields.email);
               if (fields.password !== undefined) setPassword(fields.password);
             }}
           />
         );
-      case 8:
+      case 9:
         return (
           <CompletionStep
             language={"arabic"}

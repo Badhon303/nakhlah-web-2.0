@@ -2,28 +2,17 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Mascot } from "../Mascot";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
 
-export function AccountStep({ name, age, email, ageOptions = [], onChange }) {
-  const [localName, setLocalName] = useState(name || "");
-  const [localAge, setLocalAge] = useState(age || "");
+export function AccountStep({ email, password = "", onChange }) {
   const [localEmail, setLocalEmail] = useState(email || "");
-  const [password, setPassword] = useState("");
+  const [localPassword, setLocalPassword] = useState(password || "");
 
   useEffect(() => {
     onChange({
-      name: localName,
-      age: localAge,
       email: localEmail,
-      password,
+      password: localPassword,
     });
-  }, [localName, localAge, localEmail, password, onChange]);
+  }, [localEmail, localPassword, onChange]);
 
   return (
     <div className="w-full max-w-[520px] mx-auto">
@@ -50,60 +39,14 @@ export function AccountStep({ name, age, email, ageOptions = [], onChange }) {
         className="space-y-4"
       >
         <div className="bg-card border border-border p-4 rounded-2xl">
-          <label className="block text-sm text-muted-foreground mb-1">
-            What is your name?
-          </label>
+          <label className="block text-sm text-muted-foreground mb-1">Email</label>
           <input
-            value={localName}
-            onChange={(e) => setLocalName(e.target.value)}
+            value={localEmail}
+            onChange={(e) => setLocalEmail(e.target.value)}
             className="w-full px-4 py-3 rounded-xl border border-border bg-transparent outline-none"
-            placeholder="Jane Doe"
+            placeholder="you@example.com"
+            type="email"
           />
-        </div>
-
-        <div className="bg-card border border-border p-4 rounded-2xl grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm text-muted-foreground mb-1">
-              How old are you?
-            </label>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className="w-full px-4 py-3 rounded-xl border border-border bg-transparent outline-none flex items-center justify-between hover:border-accent/50"
-                >
-                  <span className={localAge ? "text-foreground" : "text-muted-foreground"}>
-                    {localAge || "Select age range"}
-                  </span>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
-                {ageOptions.map((option) => (
-                  <DropdownMenuItem
-                    key={option.id}
-                    onClick={() => setLocalAge(option.ageTitle)}
-                    className="cursor-pointer"
-                  >
-                    {option.ageTitle}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          <div>
-            <label className="block text-sm text-muted-foreground mb-1">
-              Email
-            </label>
-            <input
-              value={localEmail}
-              onChange={(e) => setLocalEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-border bg-transparent outline-none"
-              placeholder="you@example.com"
-              type="email"
-            />
-          </div>
         </div>
 
         <div className="bg-card border border-border p-4 rounded-2xl">
@@ -111,8 +54,8 @@ export function AccountStep({ name, age, email, ageOptions = [], onChange }) {
             Create a password
           </label>
           <input
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={localPassword}
+            onChange={(e) => setLocalPassword(e.target.value)}
             className="w-full px-4 py-3 rounded-xl border border-border bg-transparent outline-none"
             placeholder="Choose a secure password"
             type="password"

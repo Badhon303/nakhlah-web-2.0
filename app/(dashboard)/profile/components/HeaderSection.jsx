@@ -3,7 +3,51 @@ import { motion } from "framer-motion";
 import { Edit, Share2, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function HeaderSection({ stats, onNavigateSettings, onNavigateEdit, onShare }) {
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+const getMediaUrl = (url) => {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  if (!API_URL) return url;
+  return `${API_URL}${url}`;
+};
+
+const getInitials = (fullName, email) => {
+  const source = fullName || email || "User";
+  return source
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || "")
+    .join("");
+};
+
+const formatJoinedDate = (dateInput) => {
+  if (!dateInput) return "";
+  const date = new Date(dateInput);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
+export default function HeaderSection({
+  stats,
+  onNavigateSettings,
+  onNavigateEdit,
+  onShare,
+  currentUser,
+  profileData,
+  isLoading,
+}) {
+  const fullName = profileData?.fullName || "Andrew Ainsley";
+  const email = currentUser?.email || profileData?.user?.email || "andrew.ainsley@yourdomain.com";
+  const joined = formatJoinedDate(currentUser?.createdAt || profileData?.createdAt);
+  const avatarUrl = getMediaUrl(profileData?.profilePicture?.url || currentUser?.socialMediaPictureUrl);
+  const initials = getInitials(fullName, email);
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -17,24 +61,32 @@ export default function HeaderSection({ stats, onNavigateSettings, onNavigateEdi
           <div className="relative">
             <div className="w-28 h-28 lg:w-32 lg:h-32 rounded-full bg-gradient-to-br from-primary via-accent to-palm-green p-1">
               <div className="w-full h-full rounded-full bg-gradient-to-br from-primary/80 to-accent/80 border-4 border-background lg:border-card overflow-hidden flex items-center justify-center text-3xl lg:text-4xl font-bold text-primary-foreground">
-                AA
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={fullName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  initials
+                )}
               </div>
             </div>
             <div className="absolute -bottom-2 -right-2 w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold text-base lg:text-lg shadow-xl border-4 border-background lg:border-card">
-              5
+              {profileData?.learnerStreak?.currentStreak ?? 0}
             </div>
           </div>
 
           {/* Profile Info */}
           <div className="flex-1 text-center lg:text-left">
             <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
-              Andrew Ainsley
+              {isLoading ? "Loading..." : fullName}
             </h1>
             <p className="text-muted-foreground mb-4">
-              andrew.ainsley@yourdomain.com
+              {email}
             </p>
             <p className="text-sm text-muted-foreground">
-              Joined on 20 June 2020
+              {joined ? `Joined on ${joined}` : ""}
             </p>
 
             {/* Action Buttons - Only on Desktop */}
