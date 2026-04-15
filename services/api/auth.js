@@ -348,6 +348,36 @@ export async function fetchMyProfile(token) {
     }
 }
 
+export async function fetchLearnerStreak(token) {
+    try {
+        const { response } = await fetchWithAuthRetry("/api/user-profile/learner-streak", {
+            method: "GET",
+            token,
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to load learner streak"));
+        }
+
+        return {
+            success: true,
+            streak: data,
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch learner streak error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to load learner streak",
+        };
+    }
+}
+
 export async function forgotPassword(email) {
     try {
         const response = await fetch(withApiUrl("/api/users/forgot-password"), {

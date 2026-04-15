@@ -19,14 +19,19 @@ const mascots = [];
 const sortByOrder = (items, key) =>
   [...(items || [])].sort((a, b) => (a?.[key] || 0) - (b?.[key] || 0));
 
-const buildJourneyView = (journey, userLevelOrder) => {
+const buildJourneyView = (journey, currentProgress) => {
   const sections = [];
   const nodes = [];
+  const levelOrder = Number(currentProgress?.levelOrder);
+  const unitOrder = Number(currentProgress?.unitOrder);
+  const taskOrder = Number(currentProgress?.taskOrder);
   const sortedLevels = sortByOrder(journey?.levels, "levelOrder");
   const selectedLevel =
-    sortedLevels.find((level) => level?.levelOrder === userLevelOrder) ||
+    sortedLevels.find((level) => level?.levelOrder === levelOrder) ||
     sortedLevels.find((level) => level?.inProgressOrCompleted) ||
     sortedLevels[0];
+  const hasExplicitProgress =
+    Number.isFinite(unitOrder) && Number.isFinite(taskOrder);
 
   if (!selectedLevel) {
     return { sections, nodes };
@@ -36,7 +41,15 @@ const buildJourneyView = (journey, userLevelOrder) => {
 
   units.forEach((unit) => {
     const sectionId = `${selectedLevel.id}-${unit.id}`;
-    const unitLocked = !unit?.inProgressOrCompleted;
+    const isEarlierUnit = hasExplicitProgress && unit.unitOrder < unitOrder;
+    const isCurrentUnit = hasExplicitProgress && unit.unitOrder === unitOrder;
+    const unitUnlocked =
+      !hasExplicitProgress ||
+      isEarlierUnit ||
+      isCurrentUnit ||
+      unit?.inProgressOrCompleted;
+    const unitLocked = !unitUnlocked;
+
     sections.push({
       id: sectionId,
       name: unit.title,
@@ -51,16 +64,41 @@ const buildJourneyView = (journey, userLevelOrder) => {
       .lastIndexOf(true);
 
     tasks.forEach((task, index) => {
-      const hasProgress = lastActiveIndex >= 0;
-      let isCurrent = hasProgress && index === lastActiveIndex;
-      let isCompleted = hasProgress && index < lastActiveIndex;
+      const hasTaskProgress = lastActiveIndex >= 0;
+      const isEarlierTaskInCurrentUnit =
+        hasExplicitProgress && isCurrentUnit && task.taskOrder < taskOrder;
+      const isCurrentTask =
+        hasExplicitProgress && isCurrentUnit && task.taskOrder === taskOrder;
+      let isCompleted =
+        (hasExplicitProgress &&
+          (isEarlierUnit || isEarlierTaskInCurrentUnit)) ||
+        (!hasExplicitProgress && hasTaskProgress && index < lastActiveIndex);
+      let isCurrent =
+        (hasExplicitProgress && isCurrentTask) ||
+        (!hasExplicitProgress && hasTaskProgress && index === lastActiveIndex);
+
+      if (
+        !hasExplicitProgress &&
+        !hasTaskProgress &&
+        !unitLocked &&
+        index === 0
+      ) {
+        isCurrent = true;
+      }
+
+      if (task?.inProgressOrCompleted && !isCurrent) {
+        isCompleted = true;
+      }
+
       const isLocked =
         unitLocked ||
         (!task?.inProgressOrCompleted && !isCurrent && !isCompleted);
+
       if (unitLocked) {
         isCurrent = false;
         isCompleted = false;
       }
+
       const isGiftBox = Boolean(task?.giftBox);
       const type = isGiftBox ? "trophy" : "lesson";
 
@@ -123,16 +161,9 @@ export default function LearnPage() {
           );
         }
 
-        const levelOrderFromProfile = Number(
-          profileResult?.profile?.currentProgress?.levelOrder,
-        );
-        const resolvedLevelOrder = Number.isFinite(levelOrderFromProfile)
-          ? levelOrderFromProfile
-          : null;
-
         const { sections, nodes } = buildJourneyView(
           journeyResult.data || {},
-          resolvedLevelOrder,
+          profileResult?.profile?.currentProgress || null,
         );
         setLevels(sections);
         setLessons(nodes);
