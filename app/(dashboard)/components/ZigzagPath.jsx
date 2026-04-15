@@ -114,133 +114,147 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
 
       {/* Lessons grouped by level */}
       <div className="relative mt-6">
-        {levels.map((level, levelIndex) => (
-          <div
-            key={level.id}
-            data-level-id={level.id}
-            className="mb-12 relative"
-          >
-            {/* Level barrier */}
-            <div className="relative h-1 flex items-center justify-center mb-10">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t-2 border-dashed border-border"></div>
+        {levels.map((level, levelIndex) => {
+          const levelLessons = groupedLessons[level.id] || [];
+          const isFirstLessonCurrent = levelLessons[0]?.isCurrent;
+
+          return (
+            <div
+              key={level.id}
+              data-level-id={level.id}
+              className="mb-12 relative"
+            >
+              {/* Level barrier */}
+              <div
+                className={`relative h-1 flex items-center justify-center ${
+                  isFirstLessonCurrent ? "mb-16 mt-6" : "mb-6"
+                }`}
+              >
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t-2 border-dashed border-border"></div>
+                </div>
+                <div className="relative bg-background px-4">
+                  <span
+                    className={`text-lg font-bold bg-gradient-to-r ${getLevelColor(
+                      level.colorIndex || levelIndex + 1,
+                    )} bg-clip-text text-transparent`}
+                  >
+                    {level.name}
+                  </span>
+                </div>
               </div>
-              <div className="relative bg-background px-4">
-                <span
-                  className={`text-lg font-bold bg-gradient-to-r ${getLevelColor(
-                    level.colorIndex || levelIndex + 1,
-                  )} bg-clip-text text-transparent`}
-                >
-                  {level.name}
-                </span>
-              </div>
-            </div>
 
-            {/* Zigzag path for this level */}
-            <div className="relative">
-              {(groupedLessons[level.id] || []).map((lesson, index) => {
-                const position = getPosition(index);
-                const mascotPosition = getMascotPosition(index);
+              {/* Zigzag path for this level */}
+              <div className="relative">
+                {levelLessons.map((lesson, index) => {
+                  const position = getPosition(index);
+                  const mascotPosition = getMascotPosition(index);
 
-                return (
-                  <div key={lesson.id} className="relative h-28 w-full">
-                    {/* Lesson circle */}
-                    <div
-                      className="absolute"
-                      style={{
-                        left: position.left,
-                        top: "50%",
-                        transform: `${position.transform} translateY(-50%)`,
-                      }}
-                    >
-                      <Circle
-                        isCompleted={lesson.isCompleted}
-                        isCurrent={lesson.isCurrent}
-                        isLocked={lesson.isLocked}
-                        icon={lesson.icon}
-                        type={lesson.type}
-                        size="lg"
-                        nodeId={lesson.apiId}
-                      />
-                    </div>
-
-                    {/* "Speech / quotation" bubble - positioned directly above the node */}
-                    {lesson.isCurrent && (
+                  return (
+                    <div key={lesson.id} className="relative h-28 w-full">
+                      {/* Lesson circle */}
                       <div
-                        aria-hidden
-                        className="absolute z-10"
+                        className="absolute"
                         style={{
                           left: position.left,
-                          top: "-40%",
-                          transform: "translateX(-50%)",
+                          top: "50%",
+                          transform: `${position.transform} translateY(-50%)`,
                         }}
                       >
+                        <Circle
+                          isCompleted={lesson.isCompleted}
+                          isCurrent={lesson.isCurrent}
+                          isLocked={lesson.isLocked}
+                          icon={lesson.icon}
+                          type={lesson.type}
+                          size="lg"
+                          nodeId={lesson.apiId}
+                        />
+                      </div>
+
+                      {/* "Speech / quotation" bubble - positioned directly above the node */}
+                      {lesson.isCurrent && (
                         <div
-                          className="relative mx-auto bg-white text-sm font-semibold px-3 py-2 rounded-md shadow-md border-accent w-[110px]"
+                          aria-hidden
+                          className="absolute z-10"
                           style={{
-                            borderWidth: 4,
+                            left: position.left,
+                            top: "-40%",
+                            transform: "translateX(-50%)",
                           }}
                         >
-                          {/* The bubble text */}
-                          <div className="text-center font-semibold text-accent">
-                            START!
-                          </div>
-
-                          {/* Arrow pointing down */}
                           <div
-                            className="absolute left-1/2 bg-white border-accent"
+                            className="relative mx-auto bg-white text-sm font-semibold px-4 py-2 rounded-2xl shadow-md border-accent w-max min-w-[100px]"
                             style={{
-                              width: 16,
-                              height: 16,
-                              bottom: -11,
-                              transform: "translateX(-50%) rotate(45deg)",
-                              borderRightWidth: 4,
-                              borderBottomWidth: 4,
-                            }}
-                          />
-
-                          {/* Mask to hide the top part of the arrow */}
-                          <div
-                            className="absolute left-1/2 -translate-x-1/2 bg-white"
-                            style={{
-                              width: 20,
-                              height: 8,
-                              bottom: -2,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Mascot */}
-                    {mascots.map(
-                      (mascot) =>
-                        mascot.position === lesson.id && (
-                          <div
-                            key={mascot.mood}
-                            className="absolute"
-                            style={{
-                              left: mascotPosition.left,
-                              top:
-                                mascotPosition.left === "85%" ? "90%" : "70%",
-                              transform: `${mascotPosition.transform} translateY(-50%)`,
+                              borderWidth: 4,
                             }}
                           >
-                            <Mascot
-                              mood={mascot.mood}
-                              size={mascot.size}
-                              message={mascot.message}
-                              className=""
-                            />
+                            {/* The bubble text */}
+                            <div className="text-center font-bold text-accent tracking-wide uppercase">
+                              START!
+                            </div>
+
+                            {/* Beautiful curved SVG tail */}
+                            <svg
+                              className="absolute left-1/2 -translate-x-1/2 text-accent"
+                              style={{
+                                bottom: -14,
+                              }}
+                              width="24"
+                              height="14"
+                              viewBox="0 0 24 14"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <rect
+                                x="-1"
+                                y="-1"
+                                width="26"
+                                height="5"
+                                fill="white"
+                              />
+                              <path
+                                d="M-1 2 C 8 2, 8 12, 12 12 C 16 12, 16 2, 25 2"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                                strokeLinejoin="round"
+                                fill="white"
+                              />
+                            </svg>
                           </div>
-                        ),
-                    )}
-                  </div>
-                );
-              })}
+                        </div>
+                      )}
+
+                      {/* Mascot */}
+                      {mascots.map(
+                        (mascot) =>
+                          mascot.position === lesson.id && (
+                            <div
+                              key={mascot.mood}
+                              className="absolute"
+                              style={{
+                                left: mascotPosition.left,
+                                top:
+                                  mascotPosition.left === "85%" ? "90%" : "70%",
+                                transform: `${mascotPosition.transform} translateY(-50%)`,
+                              }}
+                            >
+                              <Mascot
+                                mood={mascot.mood}
+                                size={mascot.size}
+                                message={mascot.message}
+                                className=""
+                              />
+                            </div>
+                          ),
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Section unlocker placeholder */}
         <div className="mt-8 flex justify-center">
