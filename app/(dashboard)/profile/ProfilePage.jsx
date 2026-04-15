@@ -8,7 +8,12 @@ import ShareProfile from "./components/ShareProfile";
 import SubscriptionCard from "./components/SubscriptionCard";
 import RefillLivesCard from "./components/RefillLivesCard";
 
-export default function ProfilePage({ onNavigate, currentUser, profileData, isLoading }) {
+export default function ProfilePage({
+  onNavigate,
+  currentUser,
+  profileData,
+  isLoading,
+}) {
   const dynamicStats = [
     {
       label: "Followers",
@@ -55,7 +60,7 @@ export default function ProfilePage({ onNavigate, currentUser, profileData, isLo
             profileData={profileData}
             isLoading={isLoading}
           />
-          <StatisticsGrid />
+          <StatisticsGrid profileData={profileData} />
           <XPChart />
           <AchievementsList onViewAll={() => onNavigate("all-achievements")} />
         </div>

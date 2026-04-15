@@ -9,12 +9,64 @@ import { Flame } from "@/components/icons/Flame";
 import { Heart } from "@/components/icons/Heart";
 import { TreasureChest } from "@/components/icons/TreasureChest";
 import { StreakCalendar } from "@/components/nakhlah/StreakCalendar";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { getSessionToken, isSessionValid } from "@/lib/authUtils";
+import { fetchLearnerStreak, fetchMyProfile } from "@/services/api";
 
 export function UserStats() {
   const router = useRouter();
   const [mobileOpenCard, setMobileOpenCard] = useState(null);
+  const [streakData, setStreakData] = useState(null);
+  const [profileData, setProfileData] = useState(null);
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    const loadStats = async () => {
+      if (status === "loading") return;
+      if (status === "unauthenticated" || !isSessionValid(session)) return;
+
+      const token = getSessionToken(session);
+      if (!token) return;
+
+      const [profileResult, streakResult] = await Promise.all([
+        fetchMyProfile(token),
+        fetchLearnerStreak(token),
+      ]);
+
+      if (profileResult.success) {
+        setProfileData(profileResult.profile || null);
+      }
+
+      if (streakResult.success) {
+        setStreakData(streakResult.streak || null);
+      }
+    };
+
+    loadStats();
+  }, [session, status]);
+
+  const streakCount = streakData?.currentStreak ?? 0;
+  const gemsCount = profileData?.gamificationStock?.dateStock ?? 0;
+  const heartsCount = profileData?.gamificationStock?.palm?.palmStock ?? 5;
+  const streakActivities = useMemo(() => {
+    const dates = Array.isArray(streakData?.dates) ? streakData.dates : [];
+    return dates.reduce((acc, entry) => {
+      if (entry?.date && entry?.status === "completed") {
+        acc[entry.date] = true;
+      }
+      return acc;
+    }, {});
+  }, [streakData]);
+  const streakMessage =
+    streakCount > 0
+      ? `You're on a ${streakCount}-day streak.`
+      : "Do a lesson today to start a new streak!";
+  const heartsMessage =
+    heartsCount >= 5
+      ? "You have full hearts"
+      : `You have ${heartsCount} hearts`;
 
   const handleMobileClick = (stat) => {
     setMobileOpenCard(mobileOpenCard === stat ? null : stat);
@@ -55,7 +107,7 @@ export function UserStats() {
             className="lg:hidden flex items-center space-x-2 text-lg font-semibold cursor-pointer"
           >
             <Flame className="text-orange-500" />
-            <span className="text-white">0</span>
+            <span className="text-white">{streakCount}</span>
           </div>
 
           <div className="hidden lg:block">
@@ -67,19 +119,19 @@ export function UserStats() {
                   className="flex items-center space-x-2 text-lg font-semibold"
                 >
                   <Flame className="text-orange-500" />
-                  <span className="text-foreground">0</span>
+                  <span className="text-foreground">{streakCount}</span>
                 </Button>
               </HoverCardTrigger>
               <HoverCardContent className="w-80 space-y-4" align="start">
                 <div className="space-y-2">
                   <h4 className="font-medium leading-none text-lg">
-                    0 day streak
+                    {streakCount} day{streakCount === 1 ? "" : "s"} streak
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    Do a lesson today to start a new streak!
+                    {streakMessage}
                   </p>
                 </div>
-                <StreakCalendar activities={{}} />
+                <StreakCalendar activities={streakActivities} />
               </HoverCardContent>
             </HoverCard>
           </div>
@@ -91,13 +143,11 @@ export function UserStats() {
             >
               <div className="space-y-2">
                 <h4 className="font-medium leading-none text-lg">
-                  0 day streak
+                  {streakCount} day{streakCount === 1 ? "" : "s"} streak
                 </h4>
-                <p className="text-sm text-muted-foreground">
-                  Do a lesson today to start a new streak!
-                </p>
+                <p className="text-sm text-muted-foreground">{streakMessage}</p>
               </div>
-              <StreakCalendar activities={{}} />
+              <StreakCalendar activities={streakActivities} />
             </div>
           )}
         </div>
@@ -109,7 +159,7 @@ export function UserStats() {
             className="lg:hidden flex items-center space-x-2 text-lg font-semibold cursor-pointer"
           >
             <GemStone />
-            <span className="text-white">500</span>
+            <span className="text-white">{gemsCount}</span>
           </div>
 
           <div className="hidden lg:block">
@@ -121,7 +171,7 @@ export function UserStats() {
                   className="flex items-center space-x-2 text-lg font-semibold"
                 >
                   <GemStone />
-                  <span className="text-foreground">500</span>
+                  <span className="text-foreground">{gemsCount}</span>
                 </Button>
               </HoverCardTrigger>
               <HoverCardContent className="w-80 space-y-4" align="center">
@@ -130,7 +180,7 @@ export function UserStats() {
                   <div className="space-y-1">
                     <h4 className="font-medium">Gems</h4>
                     <p className="text-sm text-muted-foreground">
-                      You have 500 gems
+                      You have {gemsCount} gems
                     </p>
                     <Button
                       variant="link"
@@ -159,7 +209,7 @@ export function UserStats() {
                 <div className="space-y-1">
                   <h4 className="font-medium">Gems</h4>
                   <p className="text-sm text-muted-foreground">
-                    You have 500 gems
+                    You have {gemsCount} gems
                   </p>
                   <button
                     onClick={(e) => {
@@ -187,7 +237,7 @@ export function UserStats() {
             className="lg:hidden flex items-center space-x-2 text-lg font-semibold cursor-pointer"
           >
             <Heart className="text-destructive" />
-            <span className="text-white">5</span>
+            <span className="text-white">{heartsCount}</span>
           </div>
 
           <div className="hidden lg:block">
@@ -199,7 +249,7 @@ export function UserStats() {
                   className="flex items-center space-x-2 text-lg font-semibold"
                 >
                   <Heart className="text-destructive" />
-                  <span className="text-foreground">5</span>
+                  <span className="text-foreground">{heartsCount}</span>
                 </Button>
               </HoverCardTrigger>
               <HoverCardContent className="w-80 space-y-4" align="end">
@@ -209,11 +259,11 @@ export function UserStats() {
                     {[...Array(5)].map((_, i) => (
                       <Heart
                         key={i}
-                        className="text-destructive fill-destructive"
+                        className={i < heartsCount ? "opacity-100" : "opacity-30"}
                       />
                     ))}
                   </div>
-                  <p className="text-sm font-semibold">You have full hearts</p>
+                  <p className="text-sm font-semibold">{heartsMessage}</p>
                   <p className="text-sm text-muted-foreground">
                     Keep on learning
                   </p>
@@ -240,11 +290,11 @@ export function UserStats() {
                   {[...Array(5)].map((_, i) => (
                     <Heart
                       key={i}
-                      className="text-destructive fill-destructive"
+                      className={i < heartsCount ? "opacity-100" : "opacity-30"}
                     />
                   ))}
                 </div>
-                <p className="text-sm font-semibold">You have full hearts</p>
+                <p className="text-sm font-semibold">{heartsMessage}</p>
                 <p className="text-sm text-muted-foreground">
                   Keep on learning
                 </p>

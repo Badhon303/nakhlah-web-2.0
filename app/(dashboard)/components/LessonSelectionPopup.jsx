@@ -5,7 +5,7 @@ import { Lock } from "@/components/icons/Lock";
 import { Trophy } from "@/components/icons/Trophy";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
-import { X } from "lucide-react";
+import { CheckCircle2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { fetchTaskLessons } from "@/services/api";
@@ -60,7 +60,9 @@ export function LessonSelectionPopup({
           const isCurrentLesson = hasProgress && index === lastActiveIndex;
           const isCompletedLesson = hasProgress && index < lastActiveIndex;
           const isLockedLesson =
-            !lesson?.inProgressOrCompleted && !isCurrentLesson && !isCompletedLesson;
+            !lesson?.inProgressOrCompleted &&
+            !isCurrentLesson &&
+            !isCompletedLesson;
 
           return {
             id: lesson.id,
@@ -173,15 +175,21 @@ export function LessonSelectionPopup({
                       </div>
                     )}
 
+                    {lesson.isCompleted && !lesson.isLocked && (
+                      <div className="absolute top-2 right-2 z-10 rounded-full bg-emerald-500 text-white shadow-md">
+                        <CheckCircle2 className="w-6 h-6" />
+                      </div>
+                    )}
+
                     {/* Book/Exam Icon */}
                     <div
                       className={`
-                      w-16 h-16 rounded-full flex items-center justify-center
+                      w-16 h-16 flex items-center justify-center
                       ${
                         lesson.isLocked
                           ? "bg-muted text-muted-foreground"
                           : lesson.isCompleted
-                            ? "bg-accent text-accent-foreground"
+                            ? "text-emerald-600"
                             : "text-accent"
                       }
                     `}

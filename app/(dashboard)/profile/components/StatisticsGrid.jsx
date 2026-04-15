@@ -9,54 +9,57 @@ import { Medal } from "@/components/icons/Medal";
 import { Trophy } from "@/components/icons/Trophy";
 import { motion } from "framer-motion";
 
-export default function StatisticsGrid() {
+export default function StatisticsGrid({ profileData }) {
+  const totalDiamonds = profileData?.gamificationStock?.dateStock ?? 957;
+  const totalXp = profileData?.gamificationStock?.injazStock ?? 15274;
+
   const userStats = [
-    { 
-      icon: Flame, 
-      value: "127", 
-      label: "Challenges", 
-      color: "text-primary", 
-      bg: "bg-muted/30" 
+    {
+      icon: Flame,
+      value: "127",
+      label: "Challenges",
+      color: "text-primary",
+      bg: "bg-muted/30",
     },
-    { 
-      icon: Calendar, 
-      value: "448", 
-      label: "Lesson Passed", 
-      color: "text-primary", 
-      bg: "bg-muted/30" 
+    {
+      icon: Calendar,
+      value: "448",
+      label: "Lesson Passed",
+      color: "text-primary",
+      bg: "bg-muted/30",
     },
-    { 
-      icon: GemStone, 
-      value: "957", 
-      label: "Total Diamonds", 
-      color: "text-primary", 
-      bg: "bg-muted/30" 
+    {
+      icon: GemStone,
+      value: totalDiamonds.toLocaleString(),
+      label: "Total Diamonds",
+      color: "text-primary",
+      bg: "bg-muted/30",
     },
-    { 
-      icon: HighVoltage, 
-      value: "15,274", 
-      label: "Total XP Gained", 
-      color: "text-primary", 
-      bg: "bg-muted/30" 
+    {
+      icon: HighVoltage,
+      value: totalXp.toLocaleString(),
+      label: "Total XP Gained",
+      color: "text-primary",
+      bg: "bg-muted/30",
     },
-    { 
-      icon: Bullseye, 
-      value: "289", 
-      label: "Correct Practice", 
-      color: "text-primary", 
-      bg: "bg-muted/30" 
+    {
+      icon: Bullseye,
+      value: "289",
+      label: "Correct Practice",
+      color: "text-primary",
+      bg: "bg-muted/30",
     },
-    { 
-      icon: Medal, 
-      value: "16", 
-      label: "Top 3 Position", 
-      color: "text-primary", 
-      bg: "bg-muted/30" 
+    {
+      icon: Medal,
+      value: "16",
+      label: "Top 3 Position",
+      color: "text-primary",
+      bg: "bg-muted/30",
     },
   ];
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1, duration: 0.5 }}
@@ -80,9 +83,9 @@ export default function StatisticsGrid() {
                 transition={{ delay: 0.1 * index, duration: 0.3 }}
                 className={`${stat.bg} rounded-xl lg:rounded-2xl p-4 lg:p-6 hover:shadow-sm lg:hover:shadow-md transition-all cursor-pointer border border-border/30`}
               >
-                <IconComponent 
-                  size="sm" 
-                  className={`${stat.color} mb-2 lg:mb-3`} 
+                <IconComponent
+                  size="sm"
+                  className={`${stat.color} mb-2 lg:mb-3`}
                 />
                 <div className="text-xl lg:text-2xl font-bold text-foreground mb-1">
                   {stat.value}

@@ -14,6 +14,9 @@ import {
   Calendar,
   Flame,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { getSessionToken, isSessionValid } from "@/lib/authUtils";
+import { fetchMyProfile } from "@/services/api";
 
 const weeklyData = [
   { day: "Mon", xp: 120 },
@@ -62,10 +65,22 @@ const activityData = Array.from({ length: 28 }).map((_, i) => {
 export default function Stats() {
   const maxXp = Math.max(...weeklyData.map((d) => d.xp));
   const [mounted, setMounted] = useState(false);
+  const [profileData, setProfileData] = useState(null);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (status === "loading" || !isSessionValid(session)) return;
+      const token = getSessionToken(session);
+      const result = await fetchMyProfile(token);
+      if (result.success) setProfileData(result.profile || null);
+    };
+    loadProfile();
+  }, [session, status]);
 
   return (
     <div className="min-h-screen bg-background max-w-7xl mx-auto">
@@ -89,7 +104,9 @@ export default function Stats() {
           {[
             {
               label: "Total XP",
-              value: "2,340",
+              value: (
+                profileData?.gamificationStock?.injazStock ?? 2340
+              ).toLocaleString(),
               icon: TrendingUp,
               color: "text-accent",
             },

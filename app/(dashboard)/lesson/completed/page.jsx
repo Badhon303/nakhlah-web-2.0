@@ -4,37 +4,53 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Mascot } from "@/components/nakhlah/Mascot";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { GemStone } from "@/components/icons/Gem";
 import { Bullseye } from "@/components/icons/BullsEye";
 import { HighVoltage } from "@/components/icons/High-Voltage";
 import { NotoStopwatch } from "@/components/icons/NotoStopwatch";
 
-const stats = [
-  {
-    label: "Total XP",
-    value: "24",
-    icon: <HighVoltage size="sm" />,
-    border: "border-amber-400",
-    header: "bg-amber-500",
-  },
-  {
-    label: "Time",
-    value: "1:45",
-    icon: <NotoStopwatch size="sm" />,
-    border: "border-emerald-400",
-    header: "bg-emerald-500",
-  },
-  {
-    label: "Accuracy",
-    value: "87%",
-    icon: <Bullseye size="sm" />,
-    border: "border-rose-400",
-    header: "bg-rose-500",
-  },
-];
-
 export default function LessonCompleted() {
   const router = useRouter();
+  const [progressData, setProgressData] = useState(null);
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem("lessonProgressData");
+    if (raw) {
+      try {
+        setProgressData(JSON.parse(raw));
+      } catch {}
+      sessionStorage.removeItem("lessonProgressData");
+    }
+  }, []);
+
+  const diamondsEarned =
+    progressData?.dateStock ?? progressData?.dateEarned ?? 12;
+  const xpEarned = progressData?.injazStock ?? progressData?.xpEarned ?? 24;
+
+  const stats = [
+    {
+      label: "Total XP",
+      value: String(xpEarned),
+      icon: <HighVoltage size="sm" />,
+      border: "border-amber-400",
+      header: "bg-amber-500",
+    },
+    {
+      label: "Time",
+      value: "1:45",
+      icon: <NotoStopwatch size="sm" />,
+      border: "border-emerald-400",
+      header: "bg-emerald-500",
+    },
+    {
+      label: "Accuracy",
+      value: "87%",
+      icon: <Bullseye size="sm" />,
+      border: "border-rose-400",
+      header: "bg-rose-500",
+    },
+  ];
 
   const handleContinue = () => {
     router.push("/lesson/daily-mission");
@@ -89,7 +105,7 @@ export default function LessonCompleted() {
                 <div className="flex items-center justify-center gap-3">
                   <GemStone size="md" className="text-sky-500" />
                   <span className="text-4xl font-extrabold text-slate-800">
-                    12
+                    {diamondsEarned}
                   </span>
                 </div>
               </div>

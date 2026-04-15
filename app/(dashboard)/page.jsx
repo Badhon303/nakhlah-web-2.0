@@ -8,7 +8,7 @@ import { ProfileSection } from "./components/ProfileSection";
 import { LeaderboardCard } from "./components/LeaderboardCard";
 import { CompleteProfilePrompt } from "./components/CompleteProfilePrompt";
 import { Trophy } from "@/components/icons/Trophy";
-import { fetchJourneyStructure } from "@/services/api";
+import { fetchJourneyStructure, fetchMyProfile } from "@/services/api";
 import { updateMyProfile } from "@/services/api/auth";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
@@ -19,25 +19,43 @@ const mascots = [];
 const sortByOrder = (items, key) =>
   [...(items || [])].sort((a, b) => (a?.[key] || 0) - (b?.[key] || 0));
 
-const buildJourneyView = (journey) => {
+const buildJourneyView = (journey, currentProgress) => {
   const sections = [];
   const nodes = [];
+  const levelOrder = Number(currentProgress?.levelOrder);
+  const unitOrder = Number(currentProgress?.unitOrder);
+  const taskOrder = Number(currentProgress?.taskOrder);
   const sortedLevels = sortByOrder(journey?.levels, "levelOrder");
+  const selectedLevel =
+    sortedLevels.find((level) => level?.levelOrder === levelOrder) ||
+    sortedLevels.find((level) => level?.inProgressOrCompleted) ||
+    sortedLevels[0];
+  const hasExplicitProgress =
+    Number.isFinite(unitOrder) && Number.isFinite(taskOrder);
 
-  sortedLevels.forEach((level) => {
-    const units = sortByOrder(level?.units, "unitOrder");
+  if (!selectedLevel) {
+    return { sections, nodes };
+  }
 
-    units.forEach((unit) => {
-    const sectionId = `${level.id}-${unit.id}`;
-    const levelLocked = !level?.inProgressOrCompleted;
-    const unitLocked = !unit?.inProgressOrCompleted;
+  const units = sortByOrder(selectedLevel?.units, "unitOrder");
+
+  units.forEach((unit) => {
+    const sectionId = `${selectedLevel.id}-${unit.id}`;
+    const isEarlierUnit = hasExplicitProgress && unit.unitOrder < unitOrder;
+    const isCurrentUnit = hasExplicitProgress && unit.unitOrder === unitOrder;
+    const unitUnlocked =
+      !hasExplicitProgress ||
+      isEarlierUnit ||
+      isCurrentUnit ||
+      unit?.inProgressOrCompleted;
+    const unitLocked = !unitUnlocked;
+
     sections.push({
       id: sectionId,
       name: unit.title,
-      subtitle: level.title,
       unitOrder: unit.unitOrder,
-      levelOrder: level.levelOrder,
-      colorIndex: level.levelOrder,
+      levelOrder: selectedLevel.levelOrder,
+      colorIndex: selectedLevel.levelOrder,
     });
 
     const tasks = sortByOrder(unit?.tasks, "taskOrder");
@@ -46,17 +64,41 @@ const buildJourneyView = (journey) => {
       .lastIndexOf(true);
 
     tasks.forEach((task, index) => {
-      const hasProgress = lastActiveIndex >= 0;
-      let isCurrent = hasProgress && index === lastActiveIndex;
-      let isCompleted = hasProgress && index < lastActiveIndex;
+      const hasTaskProgress = lastActiveIndex >= 0;
+      const isEarlierTaskInCurrentUnit =
+        hasExplicitProgress && isCurrentUnit && task.taskOrder < taskOrder;
+      const isCurrentTask =
+        hasExplicitProgress && isCurrentUnit && task.taskOrder === taskOrder;
+      let isCompleted =
+        (hasExplicitProgress &&
+          (isEarlierUnit || isEarlierTaskInCurrentUnit)) ||
+        (!hasExplicitProgress && hasTaskProgress && index < lastActiveIndex);
+      let isCurrent =
+        (hasExplicitProgress && isCurrentTask) ||
+        (!hasExplicitProgress && hasTaskProgress && index === lastActiveIndex);
+
+      if (
+        !hasExplicitProgress &&
+        !hasTaskProgress &&
+        !unitLocked &&
+        index === 0
+      ) {
+        isCurrent = true;
+      }
+
+      if (task?.inProgressOrCompleted && !isCurrent) {
+        isCompleted = true;
+      }
+
       const isLocked =
-        levelLocked ||
         unitLocked ||
         (!task?.inProgressOrCompleted && !isCurrent && !isCompleted);
-      if (levelLocked || unitLocked) {
+
+      if (unitLocked) {
         isCurrent = false;
         isCompleted = false;
       }
+
       const isGiftBox = Boolean(task?.giftBox);
       const type = isGiftBox ? "trophy" : "lesson";
 
@@ -72,7 +114,6 @@ const buildJourneyView = (journey) => {
         level: unit.unitOrder,
         sectionId,
       });
-    });
     });
   });
 
@@ -92,7 +133,8 @@ export default function LearnPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const shouldPrompt = localStorage.getItem("nakhlah_profile_prompt_pending") === "true";
+    const shouldPrompt =
+      localStorage.getItem("nakhlah_profile_prompt_pending") === "true";
     setShowProfilePrompt(shouldPrompt);
   }, []);
 
@@ -108,13 +150,21 @@ export default function LearnPage() {
         }
 
         const token = getSessionToken(session);
+        const [profileResult, journeyResult] = await Promise.all([
+          fetchMyProfile(token),
+          fetchJourneyStructure(token),
+        ]);
 
-        const result = await fetchJourneyStructure(token);
-        if (!result.success) {
-          throw new Error(result.error || "Failed to load journey structure");
+        if (!journeyResult.success) {
+          throw new Error(
+            journeyResult.error || "Failed to load journey structure",
+          );
         }
 
-        const { sections, nodes } = buildJourneyView(result.data || {});
+        const { sections, nodes } = buildJourneyView(
+          journeyResult.data || {},
+          profileResult?.profile?.currentProgress || null,
+        );
         setLevels(sections);
         setLessons(nodes);
       } catch (error) {
@@ -127,7 +177,11 @@ export default function LearnPage() {
     loadJourney();
   }, [session, status]);
 
-  const handleCompleteProfile = async ({ fullName, contactNumber, profilePicture }) => {
+  const handleCompleteProfile = async ({
+    fullName,
+    contactNumber,
+    profilePicture,
+  }) => {
     if (!isSessionValid(session)) {
       toast.error("Session not found. Please login again.");
       return;
@@ -140,7 +194,11 @@ export default function LearnPage() {
     }
 
     setIsUpdatingProfile(true);
-    const result = await updateMyProfile({ fullName, contactNumber }, profilePicture, token);
+    const result = await updateMyProfile(
+      { fullName, contactNumber },
+      profilePicture,
+      token,
+    );
     setIsUpdatingProfile(false);
 
     if (!result.success) {

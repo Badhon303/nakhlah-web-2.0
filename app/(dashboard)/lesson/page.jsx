@@ -13,7 +13,12 @@ import { ArabicTooltip } from "@/components/nakhlah/ArabicTooltip";
 import { getMediaUrl, shuffleArray, sortByOrder } from "./utils/mediaUtils";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
-import { fetchLessonQuestions as fetchLessonAPI } from "@/services/api";
+import {
+  fetchLessonQuestions as fetchLessonAPI,
+  fetchMyProfile,
+  makeLearnerProgress,
+  reportWrongAnswer,
+} from "@/services/api";
 import LessonLoadingView from "./loading/LessonLoadingView";
 
 function normalizeText(value) {
@@ -56,7 +61,7 @@ export default function LessonPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [isCorrect, setIsCorrect] = useState(null);
-  const [lives] = useState(5);
+  const [lives, setLives] = useState(5);
 
   const [selectedOptionId, setSelectedOptionId] = useState(null);
   const [selectedTrueFalse, setSelectedTrueFalse] = useState(null);
@@ -84,7 +89,7 @@ export default function LessonPage() {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (status === "loading") return;
-    
+
     if (status === "unauthenticated" || !isSessionValid(session)) {
       router.push("/auth/login");
     }
@@ -94,7 +99,7 @@ export default function LessonPage() {
     const fetchLessonQuestions = async () => {
       // Wait for session to load
       if (status === "loading") return;
-      
+
       // Check if session is valid
       if (!isSessionValid(session)) {
         setLoadError("Please login to access lessons.");
@@ -119,11 +124,22 @@ export default function LessonPage() {
           throw new Error("No authentication token available");
         }
 
-        // Use API service
-        const result = await fetchLessonAPI(lessonId, token);
-        
+        const [result, profileResult] = await Promise.all([
+          fetchLessonAPI(lessonId, token),
+          fetchMyProfile(token),
+        ]);
+
         if (!result.success) {
           throw new Error(result.error);
+        }
+
+        if (profileResult?.success) {
+          const palmStock = Number(
+            profileResult.profile?.gamificationStock?.palm?.palmStock,
+          );
+          if (Number.isFinite(palmStock)) {
+            setLives(palmStock);
+          }
         }
 
         console.log("Lesson API raw response:", result.data);
@@ -163,8 +179,9 @@ export default function LessonPage() {
   const fillBlankCorrectAnswer = useMemo(() => {
     if (questionType !== "fill_blank") return "";
     return (
-      (currentQuestion.answers || []).find((answer) => Boolean(answer.is_correct))
-        ?.title || ""
+      (currentQuestion.answers || []).find((answer) =>
+        Boolean(answer.is_correct),
+      )?.title || ""
     );
   }, [currentQuestion, questionType]);
 
@@ -209,7 +226,9 @@ export default function LessonPage() {
     if (questionType !== "word_making" && questionType !== "sentence_making") {
       return [];
     }
-    return sortByOrder(currentQuestion.answers || []).map((answer) => answer.title);
+    return sortByOrder(currentQuestion.answers || []).map(
+      (answer) => answer.title,
+    );
   }, [currentQuestion, questionType]);
 
   useEffect(() => {
@@ -263,55 +282,106 @@ export default function LessonPage() {
     play({ url: audioUrl, rate: 0.6 });
   };
 
-  const goToNext = () => {
+  const applyWrongAnswerPenalty = async () => {
+    if (!isSessionValid(session)) return;
+
+    const token = getSessionToken(session);
+    if (!token) return;
+
+    const result = await reportWrongAnswer(token);
+    if (!result.success) return;
+
+    const palmStock = Number(result.data?.palmStock);
+    if (Number.isFinite(palmStock)) {
+      setLives(palmStock);
+    }
+  };
+
+  const goToNext = async () => {
     if (currentIndex < totalQuestions - 1) {
       setCurrentIndex((prev) => prev + 1);
       return;
     }
+
+    const lessonId = sessionStorage.getItem("selectedLessonId")?.trim();
+    const token = getSessionToken(session);
+
+    if (lessonId && token) {
+      const progressResult = await makeLearnerProgress(lessonId, token);
+      if (progressResult.success && progressResult.data) {
+        sessionStorage.setItem(
+          "lessonProgressData",
+          JSON.stringify(progressResult.data),
+        );
+      }
+    }
+
     sessionStorage.removeItem("currentLessonIndex");
     sessionStorage.removeItem("selectedLessonId");
     sessionStorage.removeItem("selectedNodeId");
     router.push("/lesson/completed");
   };
 
-  const handleCheckAnswer = () => {
+  const handleCheckAnswer = async () => {
     if (!currentQuestion) return;
 
     if (questionType === "mcq") {
-      const selected = mcqOptions.find((option) => option.id === selectedOptionId);
+      const selected = mcqOptions.find(
+        (option) => option.id === selectedOptionId,
+      );
       if (!selected) return;
+      if (!selected.correct) {
+        await applyWrongAnswerPenalty();
+      }
       setIsCorrect(selected.correct);
       return;
     }
 
     if (questionType === "true_false") {
       if (selectedTrueFalse === null) return;
-      setIsCorrect(selectedTrueFalse === Boolean(currentQuestion.true_false_answer));
+      const answerIsCorrect =
+        selectedTrueFalse === Boolean(currentQuestion.true_false_answer);
+      if (!answerIsCorrect) {
+        await applyWrongAnswerPenalty();
+      }
+      setIsCorrect(answerIsCorrect);
       return;
     }
 
     if (questionType === "fill_blank") {
       if (!fillBlankAnswer.trim()) return;
-      setIsCorrect(
-        normalizeText(fillBlankAnswer) === normalizeText(fillBlankCorrectAnswer),
-      );
+      const answerIsCorrect =
+        normalizeText(fillBlankAnswer) ===
+        normalizeText(fillBlankCorrectAnswer);
+      if (!answerIsCorrect) {
+        await applyWrongAnswerPenalty();
+      }
+      setIsCorrect(answerIsCorrect);
       return;
     }
 
     if (questionType === "word_making" || questionType === "sentence_making") {
       if (selectedTokens.length === 0) return;
-      setIsCorrect(
-        JSON.stringify(selectedTokens) === JSON.stringify(orderedTokens),
-      );
+      const answerIsCorrect =
+        JSON.stringify(selectedTokens) === JSON.stringify(orderedTokens);
+      if (!answerIsCorrect) {
+        await applyWrongAnswerPenalty();
+      }
+      setIsCorrect(answerIsCorrect);
       return;
     }
 
     if (questionType === "pair_matching") {
-      setIsCorrect(leftState.length > 0 && leftState.every((item) => item.matched));
+      const answerIsCorrect =
+        leftState.length > 0 && leftState.every((item) => item.matched);
+      if (!answerIsCorrect) {
+        await applyWrongAnswerPenalty();
+      }
+      setIsCorrect(answerIsCorrect);
       return;
     }
 
-    goToNext();
+    await goToNext();
   };
 
   const handleTokenClick = (token, index) => {
@@ -344,6 +414,7 @@ export default function LessonPage() {
         ...prev,
         { leftId: leftItem.id, rightId: rightItem.id },
       ]);
+      void applyWrongAnswerPenalty();
       setTimeout(() => setIncorrectPairs([]), 450);
     }
     setTimeout(() => {
@@ -521,7 +592,9 @@ export default function LessonPage() {
                       </button>
                     </>
                   ) : null}
-                  <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground">Question</p>
+                  <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground">
+                    Question
+                  </p>
                 </div>
 
                 <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-4 sm:mb-6 text-center sm:text-start">
@@ -694,7 +767,11 @@ export default function LessonPage() {
                                 initial={{ y: 30, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 exit={{ y: -20, opacity: 0 }}
-                                transition={{ type: "spring", stiffness: 320, damping: 28 }}
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 320,
+                                  damping: 28,
+                                }}
                                 className="inline-block text-foreground"
                               >
                                 {fillBlankAnswer}
@@ -725,7 +802,11 @@ export default function LessonPage() {
                                 initial={{ y: 30, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 exit={{ y: -20, opacity: 0 }}
-                                transition={{ type: "spring", stiffness: 320, damping: 28 }}
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 320,
+                                  damping: 28,
+                                }}
                                 className="inline-block text-foreground"
                               >
                                 {fillBlankAnswer}
@@ -749,7 +830,8 @@ export default function LessonPage() {
                   <div className="mt-4 sm:mt-6 grid grid-cols-2 gap-3 sm:gap-4">
                     {fillBlankOptions.map((option, index) => {
                       const isSelected =
-                        normalizeText(fillBlankAnswer) === normalizeText(option.text);
+                        normalizeText(fillBlankAnswer) ===
+                        normalizeText(option.text);
 
                       return (
                         <motion.button
@@ -780,7 +862,8 @@ export default function LessonPage() {
               </>
             )}
 
-            {(questionType === "word_making" || questionType === "sentence_making") && (
+            {(questionType === "word_making" ||
+              questionType === "sentence_making") && (
               <>
                 <div>
                   <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-4 sm:mb-6 text-center sm:text-start">
@@ -957,7 +1040,8 @@ export default function LessonPage() {
                     : "False"
                   : questionType === "fill_blank"
                     ? fillBlankCorrectAnswer
-                    : questionType === "word_making" || questionType === "sentence_making"
+                    : questionType === "word_making" ||
+                        questionType === "sentence_making"
                       ? orderedTokens.join(" ")
                       : !isCorrect && isCorrect !== null
                         ? "All pairs need to be correctly matched"
@@ -973,7 +1057,8 @@ export default function LessonPage() {
                   ? selectedTrueFalse === null
                   : questionType === "fill_blank"
                     ? !fillBlankAnswer.trim()
-                    : questionType === "word_making" || questionType === "sentence_making"
+                    : questionType === "word_making" ||
+                        questionType === "sentence_making"
                       ? selectedTokens.length === 0
                       : false
             }
