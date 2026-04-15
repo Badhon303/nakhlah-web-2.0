@@ -8,7 +8,7 @@ import { ProfileSection } from "./components/ProfileSection";
 import { LeaderboardCard } from "./components/LeaderboardCard";
 import { CompleteProfilePrompt } from "./components/CompleteProfilePrompt";
 import { Trophy } from "@/components/icons/Trophy";
-import { fetchJourneyStructure } from "@/services/api";
+import { fetchJourneyStructure, fetchMyProfile } from "@/services/api";
 import { updateMyProfile } from "@/services/api/auth";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
@@ -19,25 +19,30 @@ const mascots = [];
 const sortByOrder = (items, key) =>
   [...(items || [])].sort((a, b) => (a?.[key] || 0) - (b?.[key] || 0));
 
-const buildJourneyView = (journey) => {
+const buildJourneyView = (journey, userLevelOrder) => {
   const sections = [];
   const nodes = [];
   const sortedLevels = sortByOrder(journey?.levels, "levelOrder");
+  const selectedLevel =
+    sortedLevels.find((level) => level?.levelOrder === userLevelOrder) ||
+    sortedLevels.find((level) => level?.inProgressOrCompleted) ||
+    sortedLevels[0];
 
-  sortedLevels.forEach((level) => {
-    const units = sortByOrder(level?.units, "unitOrder");
+  if (!selectedLevel) {
+    return { sections, nodes };
+  }
 
-    units.forEach((unit) => {
-    const sectionId = `${level.id}-${unit.id}`;
-    const levelLocked = !level?.inProgressOrCompleted;
+  const units = sortByOrder(selectedLevel?.units, "unitOrder");
+
+  units.forEach((unit) => {
+    const sectionId = `${selectedLevel.id}-${unit.id}`;
     const unitLocked = !unit?.inProgressOrCompleted;
     sections.push({
       id: sectionId,
       name: unit.title,
-      subtitle: level.title,
       unitOrder: unit.unitOrder,
-      levelOrder: level.levelOrder,
-      colorIndex: level.levelOrder,
+      levelOrder: selectedLevel.levelOrder,
+      colorIndex: selectedLevel.levelOrder,
     });
 
     const tasks = sortByOrder(unit?.tasks, "taskOrder");
@@ -50,10 +55,9 @@ const buildJourneyView = (journey) => {
       let isCurrent = hasProgress && index === lastActiveIndex;
       let isCompleted = hasProgress && index < lastActiveIndex;
       const isLocked =
-        levelLocked ||
         unitLocked ||
         (!task?.inProgressOrCompleted && !isCurrent && !isCompleted);
-      if (levelLocked || unitLocked) {
+      if (unitLocked) {
         isCurrent = false;
         isCompleted = false;
       }
@@ -73,7 +77,6 @@ const buildJourneyView = (journey) => {
         sectionId,
       });
     });
-    });
   });
 
   return { sections, nodes };
@@ -92,7 +95,8 @@ export default function LearnPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const shouldPrompt = localStorage.getItem("nakhlah_profile_prompt_pending") === "true";
+    const shouldPrompt =
+      localStorage.getItem("nakhlah_profile_prompt_pending") === "true";
     setShowProfilePrompt(shouldPrompt);
   }, []);
 
@@ -108,13 +112,28 @@ export default function LearnPage() {
         }
 
         const token = getSessionToken(session);
+        const [profileResult, journeyResult] = await Promise.all([
+          fetchMyProfile(token),
+          fetchJourneyStructure(token),
+        ]);
 
-        const result = await fetchJourneyStructure(token);
-        if (!result.success) {
-          throw new Error(result.error || "Failed to load journey structure");
+        if (!journeyResult.success) {
+          throw new Error(
+            journeyResult.error || "Failed to load journey structure",
+          );
         }
 
-        const { sections, nodes } = buildJourneyView(result.data || {});
+        const levelOrderFromProfile = Number(
+          profileResult?.profile?.currentProgress?.levelOrder,
+        );
+        const resolvedLevelOrder = Number.isFinite(levelOrderFromProfile)
+          ? levelOrderFromProfile
+          : null;
+
+        const { sections, nodes } = buildJourneyView(
+          journeyResult.data || {},
+          resolvedLevelOrder,
+        );
         setLevels(sections);
         setLessons(nodes);
       } catch (error) {
@@ -127,7 +146,11 @@ export default function LearnPage() {
     loadJourney();
   }, [session, status]);
 
-  const handleCompleteProfile = async ({ fullName, contactNumber, profilePicture }) => {
+  const handleCompleteProfile = async ({
+    fullName,
+    contactNumber,
+    profilePicture,
+  }) => {
     if (!isSessionValid(session)) {
       toast.error("Session not found. Please login again.");
       return;
@@ -140,7 +163,11 @@ export default function LearnPage() {
     }
 
     setIsUpdatingProfile(true);
-    const result = await updateMyProfile({ fullName, contactNumber }, profilePicture, token);
+    const result = await updateMyProfile(
+      { fullName, contactNumber },
+      profilePicture,
+      token,
+    );
     setIsUpdatingProfile(false);
 
     if (!result.success) {

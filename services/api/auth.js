@@ -408,34 +408,34 @@ export async function resetPassword(token, password) {
     }
 }
 
-export async function verifyOTP(email, otp) {
-    try {
-        const response = await fetch(withApiUrl("/api/users/verify-otp"), {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({ email, otp }),
-        });
+// export async function verifyOTP(email, otp) {
+//     try {
+//         const response = await fetch(withApiUrl("/api/users/verify-otp"), {
+//             method: "POST",
+//             headers: {
+//                 "Content-Type": "application/json",
+//             },
+//             credentials: "include",
+//             body: JSON.stringify({ email, otp }),
+//         });
 
-        const data = await response.json();
+//         const data = await response.json();
 
-        if (!response.ok || data.errors) {
-            throw new Error(data?.errors?.message || data?.message || "Invalid OTP code");
-        }
+//         if (!response.ok || data.errors) {
+//             throw new Error(data?.errors?.message || data?.message || "Invalid OTP code");
+//         }
 
-        return {
-            success: true,
-            token: data.token || data.access_token,
-            message: data.message || "OTP verified successfully",
-        };
-    } catch (error) {
-        console.error("OTP verification error:", error);
-        return {
-            success: false,
-            error: error.message || "Failed to verify OTP",
-        };
-    }
-}
+//         return {
+//             success: true,
+//             token: data.token || data.access_token,
+//             message: data.message || "OTP verified successfully",
+//         };
+//     } catch (error) {
+//         console.error("OTP verification error:", error);
+//         return {
+//             success: false,
+//             error: error.message || "Failed to verify OTP",
+//         };
+//     }
+// }
 

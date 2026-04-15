@@ -16,6 +16,14 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
     return acc;
   }, {});
 
+  const currentSectionLessons = currentLevel
+    ? groupedLessons[currentLevel.id] || []
+    : [];
+  const currentTask =
+    currentSectionLessons.find((lesson) => lesson.isCurrent) ||
+    currentSectionLessons.find((lesson) => !lesson.isLocked) ||
+    currentSectionLessons[0];
+
   const getPosition = (index) => {
     const amplitude = 25;
     const center = 50;
@@ -81,7 +89,7 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
 
   return (
     <div className="relative lg:max-w-lg mx-auto">
-      {/* Sticky level header */}
+      {/* Sticky unit header */}
       <div className="sticky top-[calc(env(safe-area-inset-top)+72px)] lg:top-0 z-50 bg-background/80 backdrop-blur-sm py-2 lg:py-0">
         <div
           className={`flex items-center justify-between px-4 py-3 rounded-lg shadow-lg transition-all duration-500 ease-in-out bg-gradient-to-r ${getLevelColor(
@@ -89,13 +97,14 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
           )} text-white`}
         >
           <div>
-            <div className="text-2xl font-bold">
-              {currentLevel ? `Unit ${currentLevel.unitOrder || ""}` : ""}
-            </div>
-            {/* <div>{currentLevel ? currentLevel.name : ""}</div> */}
-            {currentLevel?.subtitle ? (
-              <div className="text-xs text-white/90">{currentLevel.subtitle}</div>
+            {currentTask?.title ? (
+              <div className="text-2xl font-bold leading-tight">
+                {currentTask.title}
+              </div>
             ) : null}
+            <div className="text-sm text-white/90 mt-1">
+              {currentLevel?.name || ""}
+            </div>
           </div>
           <button className="text-white hover:bg-white/20 p-2 rounded-full">
             <FileText className="w-6 h-6" />
