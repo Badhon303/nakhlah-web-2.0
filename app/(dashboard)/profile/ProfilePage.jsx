@@ -12,6 +12,7 @@ export default function ProfilePage({
   onNavigate,
   currentUser,
   profileData,
+  achievementsData,
   isLoading,
 }) {
   const dynamicStats = [
@@ -62,7 +63,11 @@ export default function ProfilePage({
           />
           <StatisticsGrid profileData={profileData} />
           <XPChart />
-          <AchievementsList onViewAll={() => onNavigate("all-achievements")} />
+          <AchievementsList
+            onViewAll={() => onNavigate("all-achievements")}
+            achievements={achievementsData}
+            isLoading={isLoading}
+          />
         </div>
 
         {/* Sidebar - Only on Desktop */}

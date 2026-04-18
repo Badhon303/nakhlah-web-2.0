@@ -18,13 +18,18 @@ import GeneralSettingsPage from "./components/GeneralSettings";
 import AboutNakhlahPage from "./components/AboutNakhlah";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
-import { fetchCurrentUser, fetchMyProfile } from "@/services/api/auth";
+import {
+  fetchCurrentUser,
+  fetchMyProfile,
+  fetchQuestionnaireAchievements,
+} from "@/services/api";
 
 export default function ProfileAndSettings() {
   const [activeView, setActiveView] = useState("profile");
   const [showShareDrawer, setShowShareDrawer] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [profileData, setProfileData] = useState(null);
+  const [achievementsData, setAchievementsData] = useState([]);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   const { data: session, status } = useSession();
 
@@ -39,9 +44,10 @@ export default function ProfileAndSettings() {
       const token = getSessionToken(session);
       setIsProfileLoading(true);
 
-      const [meResult, profileResult] = await Promise.all([
+      const [meResult, profileResult, achievementsResult] = await Promise.all([
         fetchCurrentUser(token),
         fetchMyProfile(token),
+        fetchQuestionnaireAchievements(token),
       ]);
 
       if (meResult.success) {
@@ -50,6 +56,10 @@ export default function ProfileAndSettings() {
 
       if (profileResult.success) {
         setProfileData(profileResult.profile || null);
+      }
+
+      if (achievementsResult.success) {
+        setAchievementsData(achievementsResult.achievements || []);
       }
 
       setIsProfileLoading(false);
@@ -80,6 +90,7 @@ export default function ProfileAndSettings() {
             onNavigate={handleNavigate}
             currentUser={currentUser}
             profileData={profileData}
+            achievementsData={achievementsData}
             isLoading={isProfileLoading}
           />
         );
@@ -104,7 +115,13 @@ export default function ProfileAndSettings() {
       case "following":
         return <FollowingPage onBack={() => setActiveView("profile")} />;
       case "all-achievements":
-        return <AllAchievementsPage onBack={() => setActiveView("profile")} />;
+        return (
+          <AllAchievementsPage
+            onBack={() => setActiveView("profile")}
+            achievements={achievementsData}
+            isLoading={isProfileLoading}
+          />
+        );
       case "notification":
         return (
           <NotificationSettingsPage onBack={() => setActiveView("settings")} />
@@ -138,6 +155,7 @@ export default function ProfileAndSettings() {
             onNavigate={handleNavigate}
             currentUser={currentUser}
             profileData={profileData}
+            achievementsData={achievementsData}
             isLoading={isProfileLoading}
           />
         );

@@ -186,6 +186,105 @@ export async function reportWrongAnswer(token) {
     }
 }
 
+function normalizeBadgesPayload(payload) {
+    const badgesObject = payload?.badges || payload?.data?.badges || payload || {};
+
+    if (!badgesObject || typeof badgesObject !== "object" || Array.isArray(badgesObject)) {
+        return [];
+    }
+
+    return Object.entries(badgesObject)
+        .map(([key, value]) => ({
+            key,
+            target: Number(value?.target) || 0,
+            icon: value?.icon || null,
+        }))
+        .sort((a, b) => a.target - b.target);
+}
+
+function normalizeAchievementsPayload(payload) {
+    const list = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.data)
+            ? payload.data
+            : Array.isArray(payload?.docs)
+                ? payload.docs
+                : [];
+
+    return list.map((item) => ({
+        id: item?.id,
+        title: item?.title || "",
+        unitIcon: item?.unitIcon || null,
+        unitDescription: item?.unitDescription || null,
+        levelOrder: Number(item?.levelOrder) || 0,
+        unitOrder: Number(item?.unitOrder) || 0,
+        achievementTitle: item?.achievementTitle || "",
+        achieved: Boolean(item?.achieved),
+    }));
+}
+
+export async function fetchGamificationBadges(token) {
+    try {
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        const response = await fetchWithAuthRetry("/api/globals/gamification?select[badges]=true", {
+            method: "GET",
+            token,
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(data?.message || "Failed to load badges");
+        }
+
+        return {
+            success: true,
+            badges: normalizeBadgesPayload(data),
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch gamification badges error:", error);
+        return {
+            success: false,
+            error: error.message || "Unable to load badges",
+        };
+    }
+}
+
+export async function fetchQuestionnaireAchievements(token) {
+    try {
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        const response = await fetchWithAuthRetry("/api/globals/questionnaires/get-achievements", {
+            method: "GET",
+            token,
+        });
+
+        const data = await response.json().catch(() => ([]));
+
+        if (!response.ok) {
+            throw new Error(data?.message || "Failed to load achievements");
+        }
+
+        return {
+            success: true,
+            achievements: normalizeAchievementsPayload(data),
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch questionnaire achievements error:", error);
+        return {
+            success: false,
+            error: error.message || "Unable to load achievements",
+        };
+    }
+}
+
 
 export async function submitLessonCompletion(lessonId, score, token) {
     try {

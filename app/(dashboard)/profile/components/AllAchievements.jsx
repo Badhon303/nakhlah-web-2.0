@@ -1,74 +1,49 @@
 import { Medal } from "@/components/icons/Medal";
-import { MilitaryMedal } from "@/components/icons/MilitaryMedal";
 import { motion } from "framer-motion";
 import { ChevronLeft, CheckCircle, Lock } from "lucide-react";
+import { useMemo } from "react";
 
-export default function AllAchievementsPage({ onBack }) {
-  const achievements = [
-    {
-      title: "Great King",
-      description: "Get 5000 XP in the month to get this badge",
-      progress: 3.7,
-      total: 5,
-      color: "bg-violet",
-      icon: "👑",
-      unlocked: true
-    },
-    {
-      title: "Einstein's Brain",
-      description: "Completed 80% in solo lesson to earn this",
-      progress: 12,
-      total: 20,
-      color: "bg-secondary",
-      icon: "🧠",
-      unlocked: true
-    },
-    {
-      title: "Tough Knight",
-      description: "Solve 3000 mix words to pass this quest",
-      progress: 1.8,
-      total: 25,
-      color: "bg-primary",
-      icon: "⚔️",
-      unlocked: true
-    },
-    {
-      title: "Time Killer",
-      description: "Complete 100 lessons in order 2 days",
-      progress: 73,
-      total: 100,
-      color: "bg-amber-500",
-      icon: "⏰",
-      unlocked: false
-    },
-    {
-      title: "Great Sage",
-      description: "Finish 100 chapter in 30 days",
-      progress: 84,
-      total: 120,
-      color: "bg-secondary",
-      icon: "📚",
-      unlocked: false
-    },
-    {
-      title: "Bookworm",
-      description: "Read 500 pages without breaks",
-      progress: 0,
-      total: 500,
-      color: "bg-secondary",
-      icon: "🐛",
-      unlocked: false
-    },
-    {
-      title: "Night Owl",
-      description: "Study for 5 consecutive nights",
-      progress: 0,
-      total: 5,
-      color: "bg-violet",
-      icon: "🦉",
-      unlocked: false
-    },
-  ];
+const levelColorClasses = [
+  "bg-violet text-white",
+  "bg-palm-green text-white",
+  "bg-primary text-primary-foreground",
+  "bg-amber-500 text-white",
+];
+
+function getLevelChip(levelOrder) {
+  if (!Number.isFinite(levelOrder) || levelOrder <= 0) {
+    return levelColorClasses[0];
+  }
+  return levelColorClasses[(levelOrder - 1) % levelColorClasses.length];
+}
+
+export default function AllAchievementsPage({
+  onBack,
+  achievements = [],
+  isLoading = false,
+}) {
+  const groupedAchievements = useMemo(() => {
+    const groups = achievements.reduce((acc, item) => {
+      const level = Number(item?.levelOrder) || 0;
+      if (!acc[level]) {
+        acc[level] = [];
+      }
+      acc[level].push(item);
+      return acc;
+    }, {});
+
+    return Object.entries(groups)
+      .map(([level, items]) => ({
+        level: Number(level),
+        items: [...items].sort(
+          (a, b) => (a.unitOrder || 0) - (b.unitOrder || 0),
+        ),
+      }))
+      .sort((a, b) => a.level - b.level);
+  }, [achievements]);
+
+  const unlockedCount = achievements.filter((item) => item.achieved).length;
+  const inProgressCount = Math.max(achievements.length - unlockedCount, 0);
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-4xl">
@@ -92,81 +67,100 @@ export default function AllAchievementsPage({ onBack }) {
               <Medal />
             </h1>
             <p className="text-sm text-muted-foreground">
-              3 unlocked • {achievements.length - 3} in progress
+              {unlockedCount} unlocked • {inProgressCount} in progress
             </p>
           </div>
         </div>
 
-        {/* Achievements Grid */}
-        <div className="grid md:grid-cols-2 gap-4">
-          {achievements.map((achievement, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.05 * index, duration: 0.3 }}
-              className={`relative p-5 rounded-xl border-2 transition-all ${
-                achievement.unlocked
-                  ? "bg-muted/30 border-accent shadow-lg shadow-accent/20"
-                  : "bg-muted/10 border-border/50"
-              }`}
-            >
-              {!achievement.unlocked && (
-                <div className="absolute top-3 right-3">
-                  <Lock className="w-4 h-4 text-muted-foreground" />
-                </div>
-              )}
-              
-              <div className="flex items-start gap-4 mb-3">
-                <div className="relative">
-                  <div
-                    className={`w-14 h-14 rounded-xl ${achievement.color} flex items-center justify-center text-3xl ${
-                      !achievement.unlocked && "opacity-50 grayscale"
-                    }`}
-                  >
-                    {achievement.icon}
-                  </div>
-                  {achievement.unlocked && (
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-palm-green border-2 border-card flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-card" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-base mb-1">{achievement.title}</h4>
-                  <p className="text-xs text-muted-foreground">
-                    {achievement.description}
-                  </p>
-                </div>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Progress</span>
-                  <span className="font-semibold">
-                    {achievement.progress}K / {achievement.total}K
+        {isLoading ? (
+          <div className="rounded-xl border border-border p-6 text-center text-muted-foreground">
+            Loading achievements...
+          </div>
+        ) : !groupedAchievements.length ? (
+          <div className="rounded-xl border border-border p-6 text-center text-muted-foreground">
+            No achievements available yet.
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {groupedAchievements.map((group) => (
+              <section key={`level-${group.level}`} className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Level {group.level || "-"}
+                  </h2>
+                  <span className="text-xs text-muted-foreground">
+                    {group.items.filter((item) => item.achieved).length}/
+                    {group.items.length} unlocked
                   </span>
                 </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <motion.div
-                    className={`h-full ${achievement.color}`}
-                    initial={{ width: 0 }}
-                    animate={{
-                      width: `${(achievement.progress / achievement.total) * 100}%`,
-                    }}
-                    transition={{
-                      delay: 0.1 * index + 0.3,
-                      duration: 0.8,
-                      ease: "easeOut",
-                    }}
-                  />
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  {group.items.map((achievement, index) => {
+                    const isUnlocked = Boolean(achievement.achieved);
+                    return (
+                      <motion.div
+                        key={
+                          achievement.id ||
+                          `${achievement.achievementTitle}-${index}`
+                        }
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.04 * index, duration: 0.25 }}
+                        className={`relative p-5 rounded-xl border-2 transition-all ${
+                          isUnlocked
+                            ? "bg-muted/30 border-accent shadow-lg shadow-accent/20"
+                            : "bg-muted/10 border-border/50"
+                        }`}
+                      >
+                        {!isUnlocked && (
+                          <div className="absolute top-3 right-3">
+                            <Lock className="w-4 h-4 text-muted-foreground" />
+                          </div>
+                        )}
+
+                        <div className="flex items-start gap-4 mb-3">
+                          <div className="relative">
+                            <div
+                              className={`w-14 h-14 rounded-xl ${getLevelChip(group.level)} flex items-center justify-center text-sm font-bold ${
+                                !isUnlocked ? "opacity-60" : ""
+                              }`}
+                            >
+                              U{achievement.unitOrder || "-"}
+                            </div>
+                            {isUnlocked && (
+                              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-palm-green border-2 border-card flex items-center justify-center">
+                                <CheckCircle className="w-4 h-4 text-card" />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <h4 className="font-bold text-base break-words">
+                              {achievement.achievementTitle || "Achievement"}
+                            </h4>
+                            <p className="text-xs text-muted-foreground">
+                              Unit {achievement.unitOrder || "-"}:{" "}
+                              {achievement.title || "Untitled Unit"}
+                            </p>
+                            {achievement.unitDescription ? (
+                              <p className="text-xs text-muted-foreground line-clamp-2">
+                                {achievement.unitDescription}
+                              </p>
+                            ) : null}
+                          </div>
+                        </div>
+
+                        <div className="text-xs font-medium text-muted-foreground">
+                          Status: {isUnlocked ? "Unlocked" : "Locked"}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+              </section>
+            ))}
+          </div>
+        )}
       </motion.div>
     </div>
   );

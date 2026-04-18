@@ -2,58 +2,127 @@
 
 import { Search } from "lucide-react";
 import BadgeSection from "./BadgeSection";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
+import { fetchGamificationBadges, fetchMyProfile } from "@/services/api";
+import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 
-const badgesByYear = [
-  {
-    year: "This Year",
-    badges: [
-      {
-        title: "Quiz King",
-        xp: 2000,
-        earnedAt: "March 2025",
-      },
-      { title: "Compass Smart", xp: 1500, earnedAt: "February 2025" },
-      { title: "Diamond Winner", xp: 2500, earnedAt: "January 2025" },
-      { title: "Consistency Champ", xp: 3000, earnedAt: "December 2025" },
-      { title: "Perfect Week", xp: 1200, earnedAt: "November 2025" },
-    ],
-  },
-  {
-    year: "2024",
-    badges: [
-      { title: "Shining Star", xp: 2500, earnedAt: "December 2024" },
-      { title: "Most Active", xp: 3000, earnedAt: "November 2024" },
-      { title: "The Sweetest", xp: 1000, earnedAt: "October 2024" },
-    ],
-  },
-];
+const toTitleCase = (key) =>
+  key
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/^./, (char) => char.toUpperCase());
 
 export default function BadgesList() {
+  const { data: session, status } = useSession();
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("xp-desc");
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [badges, setBadges] = useState([]);
+  const [injazStock, setInjazStock] = useState(0);
+
+  useEffect(() => {
+    const loadBadges = async () => {
+      if (status === "loading") return;
+
+      if (!isSessionValid(session)) {
+        setIsLoading(false);
+        setLoadError("Please login to view badges.");
+        return;
+      }
+
+      const token = getSessionToken(session);
+      if (!token) {
+        setIsLoading(false);
+        setLoadError("No authentication token available.");
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setLoadError("");
+
+        const [badgesResult, profileResult] = await Promise.all([
+          fetchGamificationBadges(token),
+          fetchMyProfile(token),
+        ]);
+
+        if (!badgesResult.success) {
+          throw new Error(badgesResult.error || "Failed to load badges.");
+        }
+
+        const resolvedInjaz = Number(
+          profileResult?.profile?.gamificationStock?.injazStock,
+        );
+        if (Number.isFinite(resolvedInjaz)) {
+          setInjazStock(resolvedInjaz);
+        }
+
+        const normalizedBadges = (badgesResult.badges || []).map((badge) => {
+          const xp = Number(badge.target) || 0;
+          return {
+            key: badge.key,
+            title: toTitleCase(badge.key || "Badge"),
+            xp,
+            icon: badge.icon,
+            earned: (Number.isFinite(resolvedInjaz) ? resolvedInjaz : 0) >= xp,
+          };
+        });
+
+        setBadges(normalizedBadges);
+      } catch (error) {
+        setLoadError(error?.message || "Unable to load badges.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadBadges();
+  }, [session, status]);
 
   const filteredSections = useMemo(() => {
-    return badgesByYear
-      .map((section) => {
-        const filteredBadges = section.badges
-          .filter((badge) =>
-            badge.title.toLowerCase().includes(search.toLowerCase())
-          )
-          .sort((a, b) => {
-            if (sort === "xp-desc") return b.xp - a.xp;
-            if (sort === "xp-asc") return a.xp - b.xp;
-            if (sort === "az") return a.title.localeCompare(b.title);
-            return 0;
-          });
+    const filteredBadges = badges
+      .filter((badge) =>
+        badge.title.toLowerCase().includes(search.toLowerCase()),
+      )
+      .sort((a, b) => {
+        if (sort === "xp-desc") return b.xp - a.xp;
+        if (sort === "xp-asc") return a.xp - b.xp;
+        if (sort === "az") return a.title.localeCompare(b.title);
+        return 0;
+      });
 
-        return {
-          ...section,
-          badges: filteredBadges,
-        };
-      })
-      .filter((section) => section.badges.length > 0);
-  }, [search, sort]);
+    return [
+      {
+        id: "earned",
+        title: "Earned",
+        description: "Badges already unlocked",
+        badges: filteredBadges.filter((badge) => badge.earned),
+      },
+      {
+        id: "locked",
+        title: "Locked",
+        description: "Reach the XP target to unlock",
+        badges: filteredBadges.filter((badge) => !badge.earned),
+      },
+    ].filter((section) => section.badges.length > 0);
+  }, [badges, search, sort]);
+
+  if (isLoading) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-6 text-center text-muted-foreground">
+        Loading badges...
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-6 text-center text-destructive">
+        {loadError}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -87,8 +156,20 @@ export default function BadgesList() {
       {/* Sections */}
       <div className="space-y-10">
         {filteredSections.map((section) => (
-          <BadgeSection key={section.year} section={section} />
+          <BadgeSection key={section.id} section={section} />
         ))}
+        {!filteredSections.length && (
+          <div className="rounded-2xl border border-border bg-card p-6 text-center text-muted-foreground">
+            No badges found for your search.
+          </div>
+        )}
+      </div>
+
+      <div className="text-sm text-muted-foreground text-center lg:text-right">
+        Your current Activity XP:{" "}
+        <span className="font-semibold text-foreground">
+          {injazStock.toLocaleString()}
+        </span>
       </div>
     </div>
   );
