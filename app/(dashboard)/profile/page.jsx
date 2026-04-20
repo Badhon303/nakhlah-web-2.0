@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import NotificationSettingsPage from "./components/NotificationSettings";
 import AccessibilitySettingsPage from "./components/AccessibilitySettings";
@@ -8,6 +8,9 @@ import FindFriendsPage from "./components/FindFriends";
 import HelpCenterPage from "./components/HelpCenter";
 import ContactUsPage from "./components/ContactUs";
 import AllAchievementsPage from "./components/AllAchievements";
+import TermsAndConditionsPage from "./components/TermsAndConditions";
+import PrivacyPolicyPage from "./components/PrivacyPolicy";
+import LearningTipsGuidesPage from "./components/LearningTipsGuides";
 import ProfilePage from "./ProfilePage";
 import SettingsPage from "./SettingsPage";
 import EditProfilePage from "./components/EditProfile";
@@ -17,6 +20,7 @@ import ShareProfileDrawer from "./components/ShareProfileDrawer";
 import GeneralSettingsPage from "./components/GeneralSettings";
 import AboutNakhlahPage from "./components/AboutNakhlah";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import {
   fetchCurrentUser,
@@ -24,7 +28,27 @@ import {
   fetchQuestionnaireAchievements,
 } from "@/services/api";
 
-export default function ProfileAndSettings() {
+const VALID_VIEWS = new Set([
+  "profile",
+  "settings",
+  "edit-profile",
+  "followers",
+  "following",
+  "all-achievements",
+  "notification",
+  "accessibility",
+  "security",
+  "find-friends",
+  "help-center",
+  "contact-us",
+  "general",
+  "about-nakhlah",
+  "terms-and-conditions",
+  "privacy-policy",
+  "learning-tips",
+]);
+
+function ProfileAndSettingsContent() {
   const [activeView, setActiveView] = useState("profile");
   const [showShareDrawer, setShowShareDrawer] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
@@ -32,6 +56,14 @@ export default function ProfileAndSettings() {
   const [achievementsData, setAchievementsData] = useState([]);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const requestedView = searchParams.get("view");
+    if (requestedView && VALID_VIEWS.has(requestedView)) {
+      setActiveView(requestedView);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -141,6 +173,7 @@ export default function ProfileAndSettings() {
           <HelpCenterPage
             onBack={() => setActiveView("settings")}
             onNavigateContact={() => setActiveView("contact-us")}
+            onNavigateLearningTips={() => setActiveView("learning-tips")}
           />
         );
       case "contact-us":
@@ -148,7 +181,26 @@ export default function ProfileAndSettings() {
       case "general":
         return <GeneralSettingsPage onBack={() => setActiveView("settings")} />;
       case "about-nakhlah":
-        return <AboutNakhlahPage onBack={() => setActiveView("settings")} />;
+        return (
+          <AboutNakhlahPage
+            onBack={() => setActiveView("settings")}
+            onNavigate={handleNavigate}
+          />
+        );
+      case "terms-and-conditions":
+        return (
+          <TermsAndConditionsPage
+            onBack={() => setActiveView("about-nakhlah")}
+          />
+        );
+      case "privacy-policy":
+        return (
+          <PrivacyPolicyPage onBack={() => setActiveView("about-nakhlah")} />
+        );
+      case "learning-tips":
+        return (
+          <LearningTipsGuidesPage onBack={() => setActiveView("help-center")} />
+        );
       default:
         return (
           <ProfilePage
@@ -180,5 +232,13 @@ export default function ProfileAndSettings() {
         onClose={() => setShowShareDrawer(false)}
       />
     </div>
+  );
+}
+
+export default function ProfileAndSettings() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background overflow-hidden" />}>
+      <ProfileAndSettingsContent />
+    </Suspense>
   );
 }
