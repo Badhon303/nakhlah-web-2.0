@@ -136,6 +136,7 @@ export function Circle({
           isCompleted={isCompleted}
           isCurrent={isCurrent}
           isLocked={isLocked}
+          isTaskGiftBox={isTrophy}
           onClose={handleClosePopup}
           open={showPopup}
         />

@@ -69,6 +69,36 @@ export async function fetchJourneyStructure(token) {
     }
 }
 
+export async function claimGiftBoxTask(taskId, token) {
+    try {
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        const response = await fetchWithAuthRetry(`/api/globals/questionnaires/gift-box/${taskId}`, {
+            method: "GET",
+            token,
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Failed to claim gift box");
+        }
+
+        return {
+            success: true,
+            data,
+        };
+    } catch (error) {
+        console.error("Claim gift box error:", error);
+        return {
+            success: false,
+            error: error.message || "Unable to claim gift box",
+        };
+    }
+}
+
 export async function fetchTaskLessons(taskId, token) {
     try {
         if (!token) {
