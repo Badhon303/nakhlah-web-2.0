@@ -54,27 +54,18 @@ export function LessonSelectionPopup({
 
         const docs = Array.isArray(result.data?.docs) ? result.data.docs : [];
         const sortedLessons = sortByOrder(docs, "lessonOrder");
-        const lastActiveIndex = sortedLessons
-          .map((lesson) => Boolean(lesson?.inProgressOrCompleted))
-          .lastIndexOf(true);
 
-        const normalized = sortedLessons.map((lesson, index) => {
-          const hasProgress = lastActiveIndex >= 0;
-          const isCurrentLesson = hasProgress && index === lastActiveIndex;
-          const isCompletedLesson = hasProgress && index < lastActiveIndex;
-          const isLockedLesson =
-            !lesson?.inProgressOrCompleted &&
-            !isCurrentLesson &&
-            !isCompletedLesson;
+        const normalized = sortedLessons.map((lesson) => {
+          const status = lesson?.status;
 
           return {
             id: lesson.id,
             title: lesson.title,
             isExam: Boolean(lesson.isExam),
             isGiftBox: Boolean(isTaskGiftBox),
-            isCompleted: isCompletedLesson,
-            isCurrent: isCurrentLesson,
-            isLocked: isLockedLesson,
+            isCompleted: status === "completed",
+            isCurrent: status === "inProgress",
+            isLocked: status === "locked",
           };
         });
 
