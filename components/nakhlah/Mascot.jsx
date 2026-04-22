@@ -11,9 +11,7 @@ export const Mascot = ({
     md: 64,
     lg: 80,
     xl: 100,
-    "2xl": 128,
     xxl: 128,
-    "3xl": 160,
     xxxl: 160,
   };
 

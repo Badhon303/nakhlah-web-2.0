@@ -10,7 +10,12 @@ import { CheckCircle2, X } from "lucide-react";
 import { Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { fetchTaskLessons, claimGiftBoxTask } from "@/services/api";
+import {
+  fetchTaskLessons,
+  claimGiftBoxTask,
+  fetchMyProfile,
+  makeLearnerProgress,
+} from "@/services/api";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 
@@ -30,6 +35,9 @@ export function LessonSelectionPopup({
   const [lessons, setLessons] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const [isGiftAlreadyOpened, setIsGiftAlreadyOpened] = useState(false);
+  const [isClaiming, setIsClaiming] = useState(false);
+  const [hasClaimed, setHasClaimed] = useState(false);
   const { data: session, status } = useSession();
 
   useEffect(() => {
@@ -39,6 +47,8 @@ export function LessonSelectionPopup({
       try {
         setIsLoading(true);
         setLoadError("");
+        setIsGiftAlreadyOpened(false);
+        setHasClaimed(false);
 
         if (status === "loading") return;
         if (status === "unauthenticated" || !isSessionValid(session)) {
@@ -47,38 +57,46 @@ export function LessonSelectionPopup({
 
         const token = getSessionToken(session);
 
-        const result = await fetchTaskLessons(taskId, token);
+        const [result, profileResult] = await Promise.all([
+          fetchTaskLessons(taskId, token),
+          isTaskGiftBox ? fetchMyProfile(token) : Promise.resolve(null),
+        ]);
         if (!result.success) {
           throw new Error(result.error || "Failed to load lessons");
         }
 
         const docs = Array.isArray(result.data?.docs) ? result.data.docs : [];
         const sortedLessons = sortByOrder(docs, "lessonOrder");
-        const lastActiveIndex = sortedLessons
-          .map((lesson) => Boolean(lesson?.inProgressOrCompleted))
-          .lastIndexOf(true);
 
-        const normalized = sortedLessons.map((lesson, index) => {
-          const hasProgress = lastActiveIndex >= 0;
-          const isCurrentLesson = hasProgress && index === lastActiveIndex;
-          const isCompletedLesson = hasProgress && index < lastActiveIndex;
-          const isLockedLesson =
-            !lesson?.inProgressOrCompleted &&
-            !isCurrentLesson &&
-            !isCompletedLesson;
+        const normalized = sortedLessons.map((lesson) => {
+          const status = lesson?.status;
 
           return {
             id: lesson.id,
             title: lesson.title,
+            status,
             isExam: Boolean(lesson.isExam),
             isGiftBox: Boolean(isTaskGiftBox),
-            isCompleted: isCompletedLesson,
-            isCurrent: isCurrentLesson,
-            isLocked: isLockedLesson,
+            isCompleted: status === "completed",
+            isCurrent: status === "inProgress",
+            isLocked: status === "locked",
           };
         });
 
         setLessons(normalized);
+
+        if (isTaskGiftBox && profileResult?.success) {
+          const openedGiftBoxes = profileResult.profile?.openedGiftBoxes;
+          const alreadyOpened =
+            Array.isArray(openedGiftBoxes) &&
+            openedGiftBoxes.some((gift) => gift?.taskId === taskId);
+
+          if (alreadyOpened) {
+            setIsGiftAlreadyOpened(true);
+            setHasClaimed(true);
+            setLoadError("");
+          }
+        }
       } catch (error) {
         setLoadError(error?.message || "Unable to load lessons");
       } finally {
@@ -103,16 +121,15 @@ export function LessonSelectionPopup({
 
     sessionStorage.setItem("selectedLessonId", lesson.id);
     sessionStorage.setItem("selectedNodeId", taskId);
+    sessionStorage.setItem("selectedLessonIsExam", lesson.isExam ? "true" : "false");
+    sessionStorage.setItem("selectedLessonStatus", lesson.status || "");
 
     router.push("/lesson");
     onClose();
   };
 
-  const [isClaiming, setIsClaiming] = useState(false);
-  const [hasClaimed, setHasClaimed] = useState(false);
-
   const handleClaimGift = async () => {
-    if (isClaiming || hasClaimed || isLocked) return;
+    if (isClaiming || hasClaimed || isLocked || isGiftAlreadyOpened) return;
     
     setIsClaiming(true);
     // Optimistic UI update
@@ -125,6 +142,14 @@ export function LessonSelectionPopup({
       if (!result.success) {
         throw new Error(result.error);
       }
+
+      const giftLessonId =
+        lessons.find((lesson) => lesson.isCurrent || !lesson.isLocked)?.id ||
+        lessons[0]?.id;
+
+      if (giftLessonId) {
+        await makeLearnerProgress(giftLessonId, token);
+      }
       
       // Auto close after showing animation for a bit
       setTimeout(() => {
@@ -133,8 +158,15 @@ export function LessonSelectionPopup({
       
     } catch (error) {
       console.error(error);
-      setLoadError("Failed to claim gift. Please try again.");
-      setHasClaimed(false);
+      const errorMessage = error?.message || "";
+      if (errorMessage.toLowerCase().includes("gift box already opened")) {
+        setIsGiftAlreadyOpened(true);
+        setHasClaimed(true);
+        setLoadError("");
+      } else {
+        setLoadError("Failed to claim gift. Please try again.");
+        setHasClaimed(false);
+      }
     } finally {
       setIsClaiming(false);
     }
@@ -153,7 +185,11 @@ export function LessonSelectionPopup({
               <X className="w-5 h-5" />
             </button>
             <DialogTitle className="text-xl font-black text-white tracking-wide">
-              {hasClaimed ? "Gift Claimed!" : "Mystery Gift Box"}
+              {isGiftAlreadyOpened
+                ? "Gift Already Claimed"
+                : hasClaimed
+                  ? "Gift Claimed!"
+                  : "Mystery Gift Box"}
             </DialogTitle>
           </div>
 
@@ -164,7 +200,7 @@ export function LessonSelectionPopup({
               </div>
             )}
             
-            {hasClaimed && (
+            {hasClaimed && !isGiftAlreadyOpened && (
               <motion.div 
                 className="absolute inset-0 pointer-events-none flex items-center justify-center z-0"
                 initial={{ opacity: 0 }}
@@ -180,31 +216,47 @@ export function LessonSelectionPopup({
 
             <motion.button
               onClick={handleClaimGift}
-              disabled={isLocked || hasClaimed || isClaiming}
+              disabled={isLocked || hasClaimed || isClaiming || isGiftAlreadyOpened}
               className={`
                 relative z-10 w-48 h-48 rounded-full flex flex-col items-center justify-center
                 transition-all duration-300
                 ${isLocked ? "opacity-50 grayscale cursor-not-allowed" : "cursor-pointer"}
-                ${!hasClaimed && !isLocked ? "hover:scale-105 active:scale-95 drop-shadow-xl" : ""}
+                ${!hasClaimed && !isLocked && !isGiftAlreadyOpened ? "hover:scale-105 active:scale-95 drop-shadow-xl" : ""}
               `}
-              animate={hasClaimed ? { 
-                scale: [1, 1.2, 1.1],
-                rotate: [0, -10, 10, -10, 10, 0],
-              } : {
-                y: [0, -10, 0]
-              }}
-              transition={hasClaimed ? { duration: 0.8, ease: "easeOut" } : { repeat: Infinity, duration: 3, ease: "easeInOut" }}
+              animate={
+                hasClaimed && !isGiftAlreadyOpened
+                  ? {
+                      scale: [1, 1.2, 1.1],
+                      rotate: [0, -10, 10, -10, 10, 0],
+                    }
+                  : {
+                      y: [0, -10, 0],
+                    }
+              }
+              transition={
+                hasClaimed && !isGiftAlreadyOpened
+                  ? { duration: 0.8, ease: "easeOut" }
+                  : { repeat: Infinity, duration: 3, ease: "easeInOut" }
+              }
             >
               <div className={`
                 absolute inset-0 rounded-full blur-3xl opacity-50
-                ${hasClaimed ? "bg-yellow-400" : "bg-accent"}
+                ${
+                  isGiftAlreadyOpened
+                    ? "bg-muted"
+                    : hasClaimed
+                      ? "bg-yellow-400"
+                      : "bg-accent"
+                }
               `} />
               
               <div className="relative text-accent">
-                {hasClaimed ? (
+                {hasClaimed && !isGiftAlreadyOpened ? (
                   <TreasureChest className="w-36 h-36 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)] text-yellow-500" />
                 ) : (
-                  <TreasureChest className="w-32 h-32" />
+                  <TreasureChest
+                    className={`w-32 h-32 ${isGiftAlreadyOpened ? "opacity-70" : ""}`}
+                  />
                 )}
               </div>
             </motion.button>
@@ -215,11 +267,19 @@ export function LessonSelectionPopup({
               animate={{ y: hasClaimed ? -10 : 0 }}
             >
               <h3 className="text-2xl font-black text-foreground mb-2">
-                {isLocked ? "Locked Gift" : hasClaimed ? "Awesome!" : "You found a gift!"}
+                {isLocked
+                  ? "Locked Gift"
+                  : isGiftAlreadyOpened
+                    ? "Already opened!"
+                    : hasClaimed
+                      ? "Awesome!"
+                      : "You found a gift!"}
               </h3>
               <p className="text-muted-foreground font-semibold">
                 {isLocked 
                   ? "Complete previous tasks to open." 
+                  : isGiftAlreadyOpened
+                    ? "You already collected this gift earlier."
                   : hasClaimed 
                     ? "Your rewards have been added to your account."
                     : "Tap the chest to claim your rewards."}

@@ -83,7 +83,7 @@ export async function claimGiftBoxTask(taskId, token) {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.message || "Failed to claim gift box");
+            throw new Error(data?.error || data?.message || "Failed to claim gift box");
         }
 
         return {
@@ -129,6 +129,36 @@ export async function fetchTaskLessons(taskId, token) {
     }
 }
 
+export async function fetchTaskExamQuestions(taskId, token) {
+    try {
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        const response = await fetchWithAuthRetry(`/api/globals/questionnaires/tasks/${taskId}/exam-questions`, {
+            method: "GET",
+            token,
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data?.message || "Failed to load exam questions");
+        }
+
+        return {
+            success: true,
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch task exam questions error:", error);
+        return {
+            success: false,
+            error: error.message || "Unable to load exam questions",
+        };
+    }
+}
+
 
 export async function fetchLessonQuestions(lessonId, token) {
     try {
@@ -152,6 +182,36 @@ export async function fetchLessonQuestions(lessonId, token) {
         return {
             success: false,
             error: error.message || "Unable to load lesson",
+        };
+    }
+}
+
+export async function reportFullMarks(lessonId, token) {
+    try {
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        const response = await fetchWithAuthRetry(`/api/globals/questionnaires/full-marks/${lessonId}`, {
+            method: "GET",
+            token,
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(data?.error || data?.message || "Failed to submit full marks");
+        }
+
+        return {
+            success: true,
+            data,
+        };
+    } catch (error) {
+        console.error("Report full marks error:", error);
+        return {
+            success: false,
+            error: error.message || "Unable to submit full marks",
         };
     }
 }

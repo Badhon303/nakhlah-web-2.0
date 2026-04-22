@@ -10,13 +10,16 @@ import { LessonResultHandler } from "../components/ResultHandler";
 import LessonHeader from "../components/LessonHeader";
 import { useAudio } from "@/hooks/use-audio";
 import { ArabicTooltip } from "@/components/nakhlah/ArabicTooltip";
+import { Mascot } from "@/components/nakhlah/Mascot";
 import { getMediaUrl, shuffleArray, sortByOrder } from "./utils/mediaUtils";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import {
   fetchLessonQuestions as fetchLessonAPI,
+  fetchTaskExamQuestions,
   fetchMyProfile,
   makeLearnerProgress,
+  reportFullMarks,
   reportWrongAnswer,
 } from "@/services/api";
 import LessonLoadingView from "./loading/LessonLoadingView";
@@ -62,6 +65,12 @@ export default function LessonPage() {
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [isCorrect, setIsCorrect] = useState(null);
   const [lives, setLives] = useState(5);
+  const [hasWrongAnswer, setHasWrongAnswer] = useState(false);
+  const [isExamLesson, setIsExamLesson] = useState(false);
+  const [selectedLessonStatus, setSelectedLessonStatus] = useState("");
+  const [showFullMarksClaimedNotice, setShowFullMarksClaimedNotice] =
+    useState(false);
+  const [isCompletingFromNotice, setIsCompletingFromNotice] = useState(false);
 
   const [selectedOptionId, setSelectedOptionId] = useState(null);
   const [selectedTrueFalse, setSelectedTrueFalse] = useState(null);
@@ -109,8 +118,20 @@ export default function LessonPage() {
       }
 
       const lessonId = sessionStorage.getItem("selectedLessonId")?.trim();
+      const taskId = sessionStorage.getItem("selectedNodeId")?.trim();
+      const selectedLessonIsExam =
+        sessionStorage.getItem("selectedLessonIsExam") === "true";
+      const selectedStatus =
+        sessionStorage.getItem("selectedLessonStatus")?.trim() || "";
+
       if (!lessonId) {
         setLoadError("No lesson selected.");
+        setIsLoading(false);
+        return;
+      }
+
+      if (selectedLessonIsExam && !taskId) {
+        setLoadError("No task selected for exam lesson.");
         setIsLoading(false);
         return;
       }
@@ -118,14 +139,21 @@ export default function LessonPage() {
       try {
         setIsLoading(true);
         setLoadError("");
+        setHasWrongAnswer(false);
+        setIsExamLesson(selectedLessonIsExam);
+        setSelectedLessonStatus(selectedStatus);
 
         const token = getSessionToken(session);
         if (!token) {
           throw new Error("No authentication token available");
         }
 
+        const questionsRequest = selectedLessonIsExam
+          ? fetchTaskExamQuestions(taskId, token)
+          : fetchLessonAPI(lessonId, token);
+
         const [result, profileResult] = await Promise.all([
-          fetchLessonAPI(lessonId, token),
+          questionsRequest,
           fetchMyProfile(token),
         ]);
 
@@ -283,6 +311,8 @@ export default function LessonPage() {
   };
 
   const applyWrongAnswerPenalty = async () => {
+    setHasWrongAnswer(true);
+
     if (!isSessionValid(session)) return;
 
     const token = getSessionToken(session);
@@ -297,12 +327,7 @@ export default function LessonPage() {
     }
   };
 
-  const goToNext = async () => {
-    if (currentIndex < totalQuestions - 1) {
-      setCurrentIndex((prev) => prev + 1);
-      return;
-    }
-
+  const completeLessonAndRedirect = async () => {
     const lessonId = sessionStorage.getItem("selectedLessonId")?.trim();
     const token = getSessionToken(session);
 
@@ -319,7 +344,44 @@ export default function LessonPage() {
     sessionStorage.removeItem("currentLessonIndex");
     sessionStorage.removeItem("selectedLessonId");
     sessionStorage.removeItem("selectedNodeId");
+    sessionStorage.removeItem("selectedLessonIsExam");
+    sessionStorage.removeItem("selectedLessonStatus");
     router.push("/lesson/completed");
+  };
+
+  const goToNext = async () => {
+    if (currentIndex < totalQuestions - 1) {
+      setCurrentIndex((prev) => prev + 1);
+      return;
+    }
+
+    const lessonId = sessionStorage.getItem("selectedLessonId")?.trim();
+    const token = getSessionToken(session);
+
+    if (lessonId && token && isExamLesson && !hasWrongAnswer) {
+      const fullMarksResult = await reportFullMarks(lessonId, token);
+      if (!fullMarksResult.success) {
+        const fullMarksError = (fullMarksResult.error || "").toLowerCase();
+        const shouldShowAlreadyClaimed =
+          fullMarksError === "please maintain the sequence" ||
+          fullMarksError.includes("maintain the sequence") ||
+          selectedLessonStatus === "completed";
+
+        if (shouldShowAlreadyClaimed) {
+          setShowFullMarksClaimedNotice(true);
+          return;
+        }
+      }
+    }
+
+    await completeLessonAndRedirect();
+  };
+
+  const handleClaimedNoticeContinue = async () => {
+    if (isCompletingFromNotice) return;
+    setIsCompletingFromNotice(true);
+    setShowFullMarksClaimedNotice(false);
+    await completeLessonAndRedirect();
   };
 
   const handleCheckAnswer = async () => {
@@ -470,6 +532,80 @@ export default function LessonPage() {
 
   return (
     <div className="min-h-screen sm:min-h-[calc(100vh_-_64px)] lg:min-h-screen bg-background flex flex-col">
+      <AnimatePresence>
+        {showFullMarksClaimedNotice ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[130] bg-background p-4 flex flex-col items-center justify-center"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.35 }}
+              className="w-full max-w-lg mx-auto text-center bg-transparent lg:bg-card rounded-none lg:rounded-3xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-8"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.35 }}
+                className="mb-6"
+              >
+                <Mascot mood="sad" size="xxl" className="w-32 h-32 mx-auto" />
+              </motion.div>
+
+              <motion.h1
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.18, duration: 0.35 }}
+                className="text-3xl sm:text-4xl font-extrabold text-accent mb-4"
+              >
+                Perfect score again!
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25, duration: 0.35 }}
+                className="text-base sm:text-lg font-semibold text-foreground mb-2"
+              >
+                Great job. You nailed the exam.
+              </motion.p>
+
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.35 }}
+                className="text-sm text-muted-foreground max-w-md mx-auto"
+              >
+                Full marks gift was already claimed earlier, so it cannot be
+                collected again.
+              </motion.p>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.45, duration: 0.35 }}
+                className="mt-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                Continue when you&apos;re ready
+              </motion.p>
+
+              <button
+                type="button"
+                onClick={handleClaimedNoticeContinue}
+                disabled={isCompletingFromNotice}
+                className="w-full mt-6 h-14 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isCompletingFromNotice ? "CONTINUING..." : "CONTINUE"}
+              </button>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
       <LessonHeader
         progressPercentage={progressPercentage}
         onExit={() => setShowExitDialog(true)}

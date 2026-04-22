@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { Circle } from "./Circle";
 import { Mascot } from "@/components/nakhlah/Mascot";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Lock, FileText } from "lucide-react";
 
 export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
@@ -39,6 +39,53 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
       ? { left: "20%", transform: "translateX(-50%)" }
       : { left: "80%", transform: "translateX(-50%) translateY(-20%)" };
   };
+
+  const autoMascotPlacements = useMemo(() => {
+    if (!Array.isArray(lessons) || lessons.length === 0) return [];
+
+    const moods = ["proud", "encouraging", "happy", "cool"];
+    const sizes = ["xxl", "xxl", "xxl", "xxl"];
+    const desiredCount = Math.min(
+      4,
+      Math.max(2, Math.floor(lessons.length / 3)),
+    );
+    const step = Math.max(1, Math.floor(lessons.length / (desiredCount + 1)));
+
+    const selectedIndices = new Set();
+    for (let i = 1; i <= desiredCount; i += 1) {
+      const idx = Math.min(lessons.length - 1, i * step);
+      selectedIndices.add(idx);
+    }
+
+    if (selectedIndices.size === 0 && lessons[0]) {
+      selectedIndices.add(0);
+    }
+
+    return Array.from(selectedIndices)
+      .sort((a, b) => a - b)
+      .map((index, idx) => ({
+        position: lessons[index]?.id,
+        mood: moods[idx % moods.length],
+        size: sizes[idx % sizes.length],
+        placementIndex: idx,
+      }))
+      .filter((item) => Boolean(item.position));
+  }, [lessons]);
+
+  const activeMascots =
+    Array.isArray(mascots) && mascots.length > 0
+      ? mascots
+      : autoMascotPlacements;
+
+  const mascotByLessonId = useMemo(() => {
+    const placementMap = new Map();
+    activeMascots.forEach((mascot) => {
+      if (mascot?.position) {
+        placementMap.set(mascot.position, mascot);
+      }
+    });
+    return placementMap;
+  }, [activeMascots]);
 
   const getLevelColor = (level) => {
     const colors = [
@@ -131,9 +178,9 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
                   isFirstLessonCurrent ? "mb-16 mt-6" : "mb-6"
                 }`}
               >
-                <div className="absolute inset-0 flex items-center">
+                {/* <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t-2 border-dashed border-border"></div>
-                </div>
+                </div> */}
                 <div className="relative bg-background px-4">
                   <span
                     className={`text-lg font-bold bg-gradient-to-r ${getLevelColor(
@@ -148,9 +195,18 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
               {/* Zigzag path for this level */}
               <div className="relative">
                 {levelLessons.map((lesson, index) => {
-                  const globalIndex = lessons.findIndex((l) => l.id === lesson.id);
-                  const position = getPosition(globalIndex >= 0 ? globalIndex : index);
-                  const mascotPosition = getMascotPosition(globalIndex >= 0 ? globalIndex : index);
+                  const globalIndex = lessons.findIndex(
+                    (l) => l.id === lesson.id,
+                  );
+                  const position = getPosition(
+                    globalIndex >= 0 ? globalIndex : index,
+                  );
+                  const mascotPosition = getMascotPosition(
+                    globalIndex >= 0 ? globalIndex : index,
+                  );
+                  const mascot = mascotByLessonId.get(lesson.id);
+                  const baseTop = mascotPosition.left === "20%" ? 72 : 200;
+                  const topOffset = mascot?.placementIndex === 1 ? 8 : 0;
 
                   return (
                     <div key={lesson.id} className="relative h-28 w-full">
@@ -228,27 +284,23 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
                       )}
 
                       {/* Mascot */}
-                      {mascots.map(
-                        (mascot) =>
-                          mascot.position === lesson.id && (
-                            <div
-                              key={mascot.mood}
-                              className="absolute"
-                              style={{
-                                left: mascotPosition.left,
-                                top:
-                                  mascotPosition.left === "85%" ? "90%" : "70%",
-                                transform: `${mascotPosition.transform} translateY(-50%)`,
-                              }}
-                            >
-                              <Mascot
-                                mood={mascot.mood}
-                                size={mascot.size}
-                                message={mascot.message}
-                                className=""
-                              />
-                            </div>
-                          ),
+                      {mascot && (
+                        <div
+                          key={`${lesson.id}-${mascot.mood || "helper"}`}
+                          className="absolute"
+                          style={{
+                            left: mascotPosition.left,
+                            top: `${baseTop + topOffset}%`,
+                            transform: `${mascotPosition.transform} translateY(-50%)`,
+                          }}
+                        >
+                          <Mascot
+                            mood={mascot.mood || "happy"}
+                            size={mascot.size || "md"}
+                            message={mascot.message}
+                            className=""
+                          />
+                        </div>
                       )}
                     </div>
                   );
