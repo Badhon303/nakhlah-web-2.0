@@ -4,6 +4,15 @@ import AchievementTick from "@/components/icons/AchievementTick";
 import { motion } from "framer-motion";
 import { ChevronRight, Lock } from "lucide-react";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+
+const getMediaUrl = (url) => {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  if (!API_URL) return url;
+  return `${API_URL}${url}`;
+};
+
 const resolveCardColor = (isAchieved) =>
   isAchieved
     ? "bg-accent text-accent-foreground"
@@ -63,7 +72,17 @@ export default function AchievementsList({
                 <div
                   className={`w-12 h-12 rounded-xl ${resolveCardColor(achievement.achieved)} flex items-center justify-center text-sm font-bold`}
                 >
-                  U{achievement.unitOrder || "-"}
+                  {achievement.unitIcon ? (
+                    <img
+                      src={getMediaUrl(
+                        achievement.unitIcon?.url || achievement.unitIcon,
+                      )}
+                      alt={achievement.title || "Unit icon"}
+                      className="w-10 h-10 rounded-lg object-cover"
+                    />
+                  ) : (
+                    `U${achievement.unitOrder || "-"}`
+                  )}
                 </div>
               </div>
 

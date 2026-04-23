@@ -4,9 +4,34 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Flame } from "@/components/icons/Flame";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { fetchLearnerStreak } from "@/services/api";
+import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 
 export default function StreakUpdate() {
   const router = useRouter();
+  const { data: session, status } = useSession();
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [missedDays, setMissedDays] = useState(0);
+
+  useEffect(() => {
+    const loadStreak = async () => {
+      if (status === "loading") return;
+      if (!isSessionValid(session)) return;
+
+      const token = getSessionToken(session);
+      if (!token) return;
+
+      const result = await fetchLearnerStreak(token);
+      if (result.success) {
+        setCurrentStreak(Number(result.streak?.currentStreak) || 0);
+        setMissedDays(Number(result.streak?.missedDays) || 0);
+      }
+    };
+
+    loadStreak();
+  }, [session, status]);
 
   const handleContinue = () => {
     router.push("/lesson/five-days-straight");
@@ -56,7 +81,7 @@ export default function StreakUpdate() {
             transition={{ delay: 0.4, duration: 0.5 }}
             className="text-3xl md:text-4xl font-extrabold text-foreground mb-3"
           >
-            5 day streak!
+            {currentStreak} day streak!
           </motion.h1>
 
           {/* Description */}
@@ -66,7 +91,9 @@ export default function StreakUpdate() {
             transition={{ delay: 0.5, duration: 0.5 }}
             className="text-muted-foreground mb-8"
           >
-            Keep up the amazing work! You&apos;re on fire! 🔥
+            {missedDays > 0
+              ? `You missed ${missedDays} day${missedDays === 1 ? "" : "s"}. Keep going to rebuild your streak!`
+              : "Keep up the amazing work! You&apos;re on fire!"}
           </motion.p>
 
           {/* Desktop Continue Button */}

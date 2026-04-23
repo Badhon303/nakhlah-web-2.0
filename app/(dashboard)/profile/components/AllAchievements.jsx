@@ -4,6 +4,15 @@ import { motion } from "framer-motion";
 import { ChevronLeft, Lock } from "lucide-react";
 import { useMemo } from "react";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+
+const getMediaUrl = (url) => {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  if (!API_URL) return url;
+  return `${API_URL}${url}`;
+};
+
 const levelColorClasses = [
   "bg-violet text-white",
   "bg-palm-green text-white",
@@ -126,7 +135,18 @@ export default function AllAchievementsPage({
                                 !isUnlocked ? "opacity-60" : ""
                               }`}
                             >
-                              U{achievement.unitOrder || "-"}
+                              {achievement.unitIcon ? (
+                                <img
+                                  src={getMediaUrl(
+                                    achievement.unitIcon?.url ||
+                                      achievement.unitIcon,
+                                  )}
+                                  alt={achievement.title || "Unit icon"}
+                                  className="w-12 h-12 rounded-lg object-cover"
+                                />
+                              ) : (
+                                `U${achievement.unitOrder || "-"}`
+                              )}
                             </div>
                             {isUnlocked && (
                               <AchievementTick className="absolute -bottom-1 -right-1" />
