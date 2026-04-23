@@ -26,12 +26,12 @@ export default function GetStartedPage() {
             </p>
           </div>
           {/* Fixed triangle with proper CSS values */}
-          <div 
+          <div
             className="absolute left-1/2 -bottom-3 -translate-x-1/2 w-0 h-0"
             style={{
               borderLeft: "12px solid transparent",
               borderRight: "12px solid transparent",
-              borderTop: "12px solid hsl(var(--card))"
+              borderTop: "12px solid hsl(var(--card))",
             }}
           />
         </motion.div>
@@ -46,9 +46,9 @@ export default function GetStartedPage() {
             stiffness: 200,
             damping: 15,
           }}
-          className="mb-12 flex justify-center"
+          className="mb-8 flex justify-center"
         >
-          <Mascot mood="happy" size="2xl" className="w-48 h-48" />
+          <Mascot mood="happy" size="xxl" />
         </motion.div>
 
         {/* Brand Name */}

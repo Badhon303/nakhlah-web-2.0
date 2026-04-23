@@ -44,9 +44,7 @@ export default function HeaderSection({
 }) {
   const fullName = profileData?.fullName || "No Name Set";
   const email =
-    currentUser?.email ||
-    profileData?.user?.email ||
-    "andrew.ainsley@yourdomain.com";
+    currentUser?.email || profileData?.user?.email || "No Email Set";
   const joined = formatJoinedDate(
     currentUser?.createdAt || profileData?.createdAt,
   );
@@ -66,8 +64,8 @@ export default function HeaderSection({
         <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">
           {/* Avatar */}
           <div className="relative">
-            <div className="w-28 h-28 lg:w-32 lg:h-32 rounded-full bg-gradient-to-br from-primary via-accent to-palm-green p-1">
-              <div className="w-full h-full rounded-full bg-gradient-to-br from-primary/80 to-accent/80 border-4 border-background lg:border-card overflow-hidden flex items-center justify-center text-3xl lg:text-4xl font-bold text-primary-foreground">
+            <div className="w-28 h-28 lg:w-32 lg:h-32 rounded-full bg-gradient-to-br from-primary via-accent to-palm-green">
+              <div className="w-full h-full rounded-full bg-gradient-to-br from-primary/80 to-accent/80 overflow-hidden flex items-center justify-center text-3xl lg:text-4xl font-bold text-primary-foreground">
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
@@ -79,9 +77,9 @@ export default function HeaderSection({
                 )}
               </div>
             </div>
-            <div className="absolute -bottom-2 -right-2 w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold text-base lg:text-lg shadow-xl border-4 border-background lg:border-card">
+            {/* <div className="absolute -bottom-2 -right-2 w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold text-base lg:text-lg shadow-xl border-4 border-background lg:border-card">
               {profileData?.learnerStreak?.currentStreak ?? 0}
-            </div>
+            </div> */}
           </div>
 
           {/* Profile Info */}

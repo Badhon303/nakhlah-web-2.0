@@ -143,18 +143,39 @@ export default function DailyMissionUpdate() {
             <h1 className="text-3xl font-extrabold text-accent mb-2">
               Daily mission updated!
             </h1>
-            <p className="text-sm text-muted-foreground">
-              Injaz reward: {injazReward.toLocaleString()}
-              {rewardBadges.length ? ` • Badges: ${rewardBadges.length}` : ""}
-            </p>
+            {(injazReward > 0 || rewardBadges.length > 0) && (
+              <p className="text-sm text-muted-foreground">
+                {injazReward > 0 &&
+                  `Injaz reward: ${injazReward.toLocaleString()}`}
+                {injazReward > 0 && rewardBadges.length > 0 && " • "}
+                {rewardBadges.length > 0 && `Badges: ${rewardBadges.length}`}
+              </p>
+            )}
           </motion.div>
 
           {/* Mission Cards */}
           <div className="space-y-4 mb-8">
             {isLoading ? (
-              <div className="rounded-xl border border-border p-4 text-sm text-muted-foreground">
-                Loading daily mission...
-              </div>
+              <>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={`mission-skeleton-${i}`}
+                    className="border border-accent/20 rounded-2xl p-4"
+                  >
+                    <div className="flex items-center gap-4 mb-3">
+                      <div className="w-12 h-12 rounded-xl bg-muted animate-pulse flex-shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+                          <div className="h-3 w-12 bg-muted animate-pulse rounded" />
+                        </div>
+                        <div className="h-3 w-48 bg-muted animate-pulse rounded" />
+                        <div className="w-full h-2 bg-muted animate-pulse rounded-full" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </>
             ) : null}
 
             {!isLoading && loadError ? (

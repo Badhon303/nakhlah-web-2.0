@@ -93,7 +93,7 @@ export default function StreakUpdate() {
           >
             {missedDays > 0
               ? `You missed ${missedDays} day${missedDays === 1 ? "" : "s"}. Keep going to rebuild your streak!`
-              : "Keep up the amazing work! You&apos;re on fire!"}
+              : "Keep up the amazing work! You are on fire!"}
           </motion.p>
 
           {/* Desktop Continue Button */}

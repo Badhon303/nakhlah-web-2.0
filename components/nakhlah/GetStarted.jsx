@@ -39,7 +39,7 @@ export default function GetStartedPage() {
           }}
           className="mb-12 flex justify-center"
         >
-          <Mascot mood="happy" size="2xl" className="w-48 h-48" />
+          <Mascot mood="happy" size="xxl" className="w-48 h-48" />
         </motion.div>
 
         {/* Brand Name */}

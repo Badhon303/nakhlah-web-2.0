@@ -48,7 +48,7 @@
 // }
 
 import { Button } from "@/components/ui/button";
-import mascot from "/mascot.png";
+import { Mascot } from "../Mascot";
 
 export function WelcomeStep({ onStart, onLogin }) {
   return (
@@ -59,7 +59,7 @@ export function WelcomeStep({ onStart, onLogin }) {
       </div>
 
       {/* mascot */}
-      <img src={mascot} alt="Mascot" className="w-40 h-auto mb-6" />
+      <Mascot size="xxl" mood="happy" />
 
       {/* app title */}
       <h1 className="text-3xl font-bold text-violet-600 mb-2">Nakhlah</h1>
