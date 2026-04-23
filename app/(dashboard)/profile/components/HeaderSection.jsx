@@ -42,14 +42,21 @@ export default function HeaderSection({
   profileData,
   isLoading,
 }) {
-  const fullName = profileData?.fullName || "Andrew Ainsley";
-  const email = currentUser?.email || profileData?.user?.email || "andrew.ainsley@yourdomain.com";
-  const joined = formatJoinedDate(currentUser?.createdAt || profileData?.createdAt);
-  const avatarUrl = getMediaUrl(profileData?.profilePicture?.url || currentUser?.socialMediaPictureUrl);
+  const fullName = profileData?.fullName || "No Name Set";
+  const email =
+    currentUser?.email ||
+    profileData?.user?.email ||
+    "andrew.ainsley@yourdomain.com";
+  const joined = formatJoinedDate(
+    currentUser?.createdAt || profileData?.createdAt,
+  );
+  const avatarUrl = getMediaUrl(
+    profileData?.profilePicture?.url || currentUser?.socialMediaPictureUrl,
+  );
   const initials = getInitials(fullName, email);
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -82,25 +89,23 @@ export default function HeaderSection({
             <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
               {isLoading ? "Loading..." : fullName}
             </h1>
-            <p className="text-muted-foreground mb-4">
-              {email}
-            </p>
+            <p className="text-muted-foreground mb-4">{email}</p>
             <p className="text-sm text-muted-foreground">
               {joined ? `Joined on ${joined}` : ""}
             </p>
 
             {/* Action Buttons - Only on Desktop */}
             <div className="hidden lg:flex flex-wrap gap-3 mt-6">
-              <Button 
+              <Button
                 onClick={onNavigateEdit}
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Profile
               </Button>
-              <Button 
+              <Button
                 onClick={onShare}
-                variant="outline" 
+                variant="outline"
                 className="border-border hover:bg-muted"
               >
                 <Share2 className="w-4 h-4 mr-2" />
@@ -138,16 +143,16 @@ export default function HeaderSection({
 
         {/* Mobile Action Buttons */}
         <div className="flex lg:hidden gap-3 mt-6">
-          <Button 
+          <Button
             onClick={onNavigateEdit}
             className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <Edit className="w-4 h-4 mr-2" />
             Edit
           </Button>
-          <Button 
+          <Button
             onClick={onShare}
-            variant="outline" 
+            variant="outline"
             className="flex-1 border-border hover:bg-muted"
           >
             <Share2 className="w-4 h-4 mr-2" />

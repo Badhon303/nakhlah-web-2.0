@@ -9,9 +9,9 @@ import { toast } from "@/components/nakhlah/Toast";
 
 export default function EditProfilePage({ onBack, currentUser, profileData, onProfileUpdated }) {
   const [formData, setFormData] = useState({
-    fullName: "Andrew Ainsley",
+    fullName: "",
     phoneNumber: "",
-    email: "andrew.ainsley@yourdomain.com",
+    email: "",
     dateOfBirth: "",
     country: ""
   });

@@ -5,12 +5,65 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Flame } from "@/components/icons/Flame";
 import { Check } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
+import { fetchLearnerStreak } from "@/services/api";
+import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 
-const days = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
-const streakDays = [false, false, true, true, true, true, true];
+const weekdayLabel = (date) =>
+  date.toLocaleDateString("en-US", { weekday: "short" }).slice(0, 2);
+
+const dateKey = (date) => date.toISOString().slice(0, 10);
 
 export default function FiveDaysStraight() {
   const router = useRouter();
+  const { data: session, status } = useSession();
+  const [streakData, setStreakData] = useState(null);
+
+  useEffect(() => {
+    const loadStreak = async () => {
+      if (status === "loading") return;
+      if (!isSessionValid(session)) return;
+
+      const token = getSessionToken(session);
+      if (!token) return;
+
+      const result = await fetchLearnerStreak(token);
+      if (result.success) {
+        setStreakData(result.streak || null);
+      }
+    };
+
+    loadStreak();
+  }, [session, status]);
+
+  const recentDays = useMemo(() => {
+    const completedDates = new Set(
+      (Array.isArray(streakData?.dates) ? streakData.dates : [])
+        .filter((item) => item?.status === "completed" && item?.date)
+        .map((item) => item.date),
+    );
+
+    const today = new Date();
+    const output = [];
+
+    for (let offset = 6; offset >= 0; offset -= 1) {
+      const day = new Date(today);
+      day.setDate(today.getDate() - offset);
+
+      output.push({
+        label: weekdayLabel(day),
+        completed: completedDates.has(dateKey(day)),
+      });
+    }
+
+    return output;
+  }, [streakData]);
+
+  const currentStreak = Number(streakData?.currentStreak) || 0;
+  const trackedCompletedDays = (
+    Array.isArray(streakData?.dates) ? streakData.dates : []
+  ).filter((item) => item?.status === "completed").length;
 
   const handleContinue = () => {
     router.push("/");
@@ -60,7 +113,7 @@ export default function FiveDaysStraight() {
             transition={{ delay: 0.3, duration: 0.5 }}
             className="text-3xl md:text-4xl font-extrabold text-foreground mb-2"
           >
-            5 days straight!
+            {currentStreak} days straight!
           </motion.h1>
 
           {/* Description */}
@@ -81,9 +134,9 @@ export default function FiveDaysStraight() {
             className="mb-8 border border-border p-3 rounded-3xl"
           >
             <div className="grid grid-cols-7 gap-3">
-              {days.map((day, index) => (
+              {recentDays.map((day, index) => (
                 <motion.div
-                  key={day}
+                  key={`${day.label}-${index}`}
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.6 + index * 0.05, type: "spring" }}
@@ -91,17 +144,17 @@ export default function FiveDaysStraight() {
                 >
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
-                      streakDays[index]
+                      day.completed
                         ? "bg-accent text-accent-foreground"
                         : "bg-muted text-muted-foreground"
                     }`}
                   >
-                    {streakDays[index] && (
+                    {day.completed && (
                       <Check strokeWidth={4} className="w-5 h-5" />
                     )}
                   </div>
                   <p className="text-xs font-semibold text-muted-foreground">
-                    {day}
+                    {day.label}
                   </p>
                 </motion.div>
               ))}
@@ -131,12 +184,16 @@ export default function FiveDaysStraight() {
             className="grid grid-cols-2 gap-4 mb-8"
           >
             <div className="bg-muted/50 rounded-2xl p-4 border border-border">
-              <p className="text-3xl font-bold text-orange-500">5</p>
+              <p className="text-3xl font-bold text-orange-500">
+                {currentStreak}
+              </p>
               <p className="text-sm text-muted-foreground">Current Streak</p>
             </div>
             <div className="bg-muted/50 rounded-2xl p-4 border border-border">
-              <p className="text-3xl font-bold text-accent">7</p>
-              <p className="text-sm text-muted-foreground">Longest Streak</p>
+              <p className="text-3xl font-bold text-accent">
+                {trackedCompletedDays}
+              </p>
+              <p className="text-sm text-muted-foreground">Tracked Completed</p>
             </div>
           </motion.div>
 

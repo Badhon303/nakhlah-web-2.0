@@ -7,6 +7,10 @@ import { Home, BookOpen, Trophy, User, Crown } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { StreakCounter } from "./StreakCounter";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { fetchLearnerStreak } from "@/services/api";
+import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 
 const navItems = [
   { path: "/", label: "Home", icon: Home },
@@ -18,6 +22,28 @@ const navItems = [
 
 export function Navbar() {
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+  const [streakCount, setStreakCount] = useState(0);
+
+  useEffect(() => {
+    const loadStreak = async () => {
+      if (status === "loading") return;
+      if (!isSessionValid(session)) {
+        setStreakCount(0);
+        return;
+      }
+
+      const token = getSessionToken(session);
+      if (!token) return;
+
+      const result = await fetchLearnerStreak(token);
+      if (result.success) {
+        setStreakCount(Number(result.streak?.currentStreak) || 0);
+      }
+    };
+
+    loadStreak();
+  }, [session, status]);
 
   return (
     <>
@@ -64,7 +90,7 @@ export function Navbar() {
         </div>
 
         <div className="mt-auto flex flex-col sm:flex-row lg:mx-auto gap-4">
-          <StreakCounter count={0} />
+          <StreakCounter count={streakCount} />
           <ThemeToggle />
         </div>
       </nav>

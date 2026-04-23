@@ -71,6 +71,7 @@ export default function LessonPage() {
   const [showFullMarksClaimedNotice, setShowFullMarksClaimedNotice] =
     useState(false);
   const [isCompletingFromNotice, setIsCompletingFromNotice] = useState(false);
+  const [fullMarksRewardData, setFullMarksRewardData] = useState(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [totalAnswerAttempts, setTotalAnswerAttempts] = useState(0);
   const [correctAnswerAttempts, setCorrectAnswerAttempts] = useState(0);
@@ -145,6 +146,7 @@ export default function LessonPage() {
         setHasWrongAnswer(false);
         setIsExamLesson(selectedLessonIsExam);
         setSelectedLessonStatus(selectedStatus);
+        setFullMarksRewardData(null);
 
         const token = getSessionToken(session);
         if (!token) {
@@ -353,6 +355,7 @@ export default function LessonPage() {
           "lessonProgressData",
           JSON.stringify({
             ...progressResult.data,
+            ...(fullMarksRewardData || {}),
             __clientStats: {
               elapsedSeconds,
               totalAnswerAttempts,
@@ -383,7 +386,9 @@ export default function LessonPage() {
 
     if (lessonId && token && isExamLesson && !hasWrongAnswer) {
       const fullMarksResult = await reportFullMarks(lessonId, token);
-      if (!fullMarksResult.success) {
+      if (fullMarksResult.success) {
+        setFullMarksRewardData(fullMarksResult.data || null);
+      } else {
         const fullMarksError = (fullMarksResult.error || "").toLowerCase();
         const shouldShowAlreadyClaimed =
           fullMarksError === "please maintain the sequence" ||

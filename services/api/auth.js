@@ -378,6 +378,36 @@ export async function fetchLearnerStreak(token) {
     }
 }
 
+export async function fetchUserDailyQuest(token) {
+    try {
+        const { response } = await fetchWithAuthRetry("/api/user-profile/daily-quest", {
+            method: "GET",
+            token,
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to load daily quest progress"));
+        }
+
+        return {
+            success: true,
+            dailyQuest: data,
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch user daily quest error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to load daily quest progress",
+        };
+    }
+}
+
 export async function forgotPassword(email) {
     try {
         const response = await fetch(withApiUrl("/api/users/forgot-password"), {

@@ -7,36 +7,118 @@ import { HighVoltage } from "@/components/icons/High-Voltage";
 import { GemStone } from "@/components/icons/Gem";
 import { Bullseye } from "@/components/icons/BullsEye";
 import { Flame } from "@/components/icons/Flame";
+import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
+import {
+  fetchGamificationDailyQuest,
+  fetchUserDailyQuest,
+} from "@/services/api";
+import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 
-const missions = [
-  {
-    label: "Get 40 Injaz",
-    current: 23,
-    target: 40,
-    icon: (props) => <HighVoltage {...props} />,
-  },
-  {
-    label: "Get 25 Dates",
-    current: 12,
-    target: 25,
-    icon: (props) => <GemStone {...props} />,
-  },
-  {
-    label: "Get 2 perfect lessons",
-    current: 1,
-    target: 2,
-    icon: (props) => <Bullseye {...props} />,
-  },
-  {
-    label: "Complete 1 challenge",
-    current: 1,
-    target: 1,
-    icon: (props) => <Flame {...props} />,
-  },
+const defaultMissionLabels = [
+  "Complete daily challenge",
+  "Practice streak target",
+  "Score goal challenge",
+  "Bonus challenge",
 ];
+const missionIcons = [HighVoltage, GemStone, Bullseye, Flame];
+
+const toTitleCase = (value = "") =>
+  value
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/^./, (char) => char.toUpperCase());
 
 export default function DailyMissionUpdate() {
   const router = useRouter();
+  const { data: session, status } = useSession();
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [dailyQuestState, setDailyQuestState] = useState([]);
+  const [injazReward, setInjazReward] = useState(0);
+  const [rewardBadges, setRewardBadges] = useState([]);
+
+  useEffect(() => {
+    const loadDailyMission = async () => {
+      if (status === "loading") return;
+
+      if (!isSessionValid(session)) {
+        setLoadError("Please login to view daily missions.");
+        setIsLoading(false);
+        return;
+      }
+
+      const token = getSessionToken(session);
+      if (!token) {
+        setLoadError("No authentication token available.");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setLoadError("");
+
+        const [currentResult, globalResult] = await Promise.all([
+          fetchUserDailyQuest(token),
+          fetchGamificationDailyQuest(token),
+        ]);
+
+        if (!currentResult.success) {
+          throw new Error(
+            currentResult.error || "Failed to load daily mission progress.",
+          );
+        }
+
+        const currentStatuses = Array.isArray(
+          currentResult.dailyQuest?.challengeStatuses,
+        )
+          ? currentResult.dailyQuest.challengeStatuses
+          : [];
+
+        const globalDailyQuest = Array.isArray(globalResult?.dailyQuest)
+          ? globalResult.dailyQuest
+          : [];
+
+        const merged = currentStatuses.map((item, index) => {
+          const details = item?.details || {};
+          const globalQuest = globalDailyQuest[index] || {};
+          const IconComponent = missionIcons[index % missionIcons.length];
+
+          return {
+            key: globalQuest?.key || `daily-${index + 1}`,
+            label:
+              (globalQuest?.key && toTitleCase(globalQuest.key)) ||
+              defaultMissionLabels[index] ||
+              `Mission ${index + 1}`,
+            current: Number(details.current) || 0,
+            target:
+              Number(details.required) || Number(globalQuest?.required) || 0,
+            reward: Number(details.reward) || Number(globalQuest?.reward) || 0,
+            status: item?.status || "pending",
+            IconComponent,
+          };
+        });
+
+        setDailyQuestState(merged);
+        setInjazReward(Number(currentResult.dailyQuest?.injazReward) || 0);
+        setRewardBadges(
+          Array.isArray(currentResult.dailyQuest?.badges)
+            ? currentResult.dailyQuest.badges
+            : [],
+        );
+      } catch (error) {
+        setLoadError(
+          error?.message || "Unable to load daily mission progress.",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadDailyMission();
+  }, [session, status]);
+
+  const missions = useMemo(() => dailyQuestState, [dailyQuestState]);
 
   const handleContinue = () => {
     router.push("/lesson/streak-update");
@@ -61,13 +143,36 @@ export default function DailyMissionUpdate() {
             <h1 className="text-3xl font-extrabold text-accent mb-2">
               Daily mission updated!
             </h1>
+            <p className="text-sm text-muted-foreground">
+              Injaz reward: {injazReward.toLocaleString()}
+              {rewardBadges.length ? ` • Badges: ${rewardBadges.length}` : ""}
+            </p>
           </motion.div>
 
           {/* Mission Cards */}
           <div className="space-y-4 mb-8">
+            {isLoading ? (
+              <div className="rounded-xl border border-border p-4 text-sm text-muted-foreground">
+                Loading daily mission...
+              </div>
+            ) : null}
+
+            {!isLoading && loadError ? (
+              <div className="rounded-xl border border-destructive/30 p-4 text-sm text-destructive">
+                {loadError}
+              </div>
+            ) : null}
+
+            {!isLoading && !loadError && !missions.length ? (
+              <div className="rounded-xl border border-border p-4 text-sm text-muted-foreground">
+                No daily mission available for now.
+              </div>
+            ) : null}
+
             {missions.map((mission, index) => {
-              const progress = (mission.current / mission.target) * 100;
-              const IconComponent = mission.icon;
+              const safeTarget = mission.target > 0 ? mission.target : 1;
+              const progress = (mission.current / safeTarget) * 100;
+              const IconComponent = mission.IconComponent;
 
               return (
                 <motion.div
@@ -90,6 +195,10 @@ export default function DailyMissionUpdate() {
                           {mission.current} / {mission.target}
                         </p>
                       </div>
+                      <p className="text-xs text-left text-muted-foreground mb-2">
+                        Status: {mission.status} • Reward:{" "}
+                        {mission.reward.toLocaleString()} Injaz
+                      </p>
                       <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                         <motion.div
                           initial={{ width: 0 }}

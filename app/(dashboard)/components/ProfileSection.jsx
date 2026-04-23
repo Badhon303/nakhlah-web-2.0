@@ -7,8 +7,34 @@ import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CardMenuOptions } from "@/components/nakhlah/CardMenuOptions";
 import { useSession } from "next-auth/react";
+import { useEffect, useMemo, useState } from "react";
+import { getSessionToken, isSessionValid } from "@/lib/authUtils";
+import {
+  fetchMyProfile,
+  fetchGamificationBadges,
+  fetchQuestionnaireAchievements,
+} from "@/services/api";
+import { Medal } from "@/components/icons/Medal";
 
 const DEFAULT_PROFILE_IMAGE = "https://github.com/shadcn.png";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+
+const getMediaUrl = (url) => {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  if (!API_URL) return url;
+  return `${API_URL}${url}`;
+};
+
+const formatJoinedDate = (dateInput) => {
+  if (!dateInput) return "";
+  const date = new Date(dateInput);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    year: "numeric",
+  });
+};
 
 const navLinks = [
   { href: "/about", label: "About" },
@@ -23,11 +49,89 @@ export function ProfileSection() {
   const { data: session, status } = useSession();
   const isSignedIn = status === "authenticated";
   const router = useRouter();
-  const profileImage = session?.user?.image || DEFAULT_PROFILE_IMAGE;
-  const fallbackInitial = (session?.user?.name || session?.user?.email || "U")
+  const [profileData, setProfileData] = useState(null);
+  const [badgeDictionary, setBadgeDictionary] = useState([]);
+  const [achievements, setAchievements] = useState([]);
+
+  useEffect(() => {
+    const loadProfileData = async () => {
+      if (status === "loading") return;
+      if (!isSessionValid(session)) {
+        setProfileData(null);
+        setBadgeDictionary([]);
+        setAchievements([]);
+        return;
+      }
+
+      const token = getSessionToken(session);
+      if (!token) return;
+
+      const [profileResult, badgesResult, achievementsResult] =
+        await Promise.all([
+          fetchMyProfile(token),
+          fetchGamificationBadges(token),
+          fetchQuestionnaireAchievements(token),
+        ]);
+
+      if (profileResult.success) {
+        setProfileData(profileResult.profile || null);
+      }
+
+      if (badgesResult.success) {
+        setBadgeDictionary(badgesResult.badges || []);
+      }
+
+      if (achievementsResult.success) {
+        setAchievements(achievementsResult.achievements || []);
+      }
+    };
+
+    loadProfileData();
+  }, [session, status]);
+
+  const profileImage =
+    getMediaUrl(profileData?.profilePicture?.url || session?.user?.image) ||
+    DEFAULT_PROFILE_IMAGE;
+  const fallbackInitial = (
+    profileData?.fullName ||
+    session?.user?.name ||
+    session?.user?.email ||
+    "U"
+  )
     .trim()
     .charAt(0)
     .toUpperCase();
+  const displayName = profileData?.fullName || session?.user?.name || "Name not set";
+  const joinedLabel = formatJoinedDate(profileData?.createdAt);
+
+  const earnedBadgeIcons = useMemo(() => {
+    const resolvedInjaz = Number(profileData?.gamificationStock?.injazStock);
+    const currentInjaz = Number.isFinite(resolvedInjaz) ? resolvedInjaz : 0;
+
+    return badgeDictionary
+      .filter((badge) => currentInjaz >= (Number(badge.target) || 0))
+      .map((badge) => ({
+        key: `badge-${badge.key}`,
+        iconUrl: getMediaUrl(badge?.icon?.url || badge?.icon),
+        fallback: "badge",
+      }));
+  }, [badgeDictionary, profileData]);
+
+  const earnedAchievementIcons = useMemo(() => {
+    return achievements
+      .filter((achievement) => achievement?.achieved)
+      .map((achievement) => ({
+        key: `achievement-${achievement.id || achievement.achievementTitle || achievement.unitOrder}`,
+        iconUrl: getMediaUrl(
+          achievement?.unitIcon?.url || achievement?.unitIcon || "",
+        ),
+        fallback: achievement?.unitOrder || "-",
+      }));
+  }, [achievements]);
+
+  const earnedIcons = useMemo(() => {
+    return [...earnedBadgeIcons, ...earnedAchievementIcons].slice(0, 10);
+  }, [earnedBadgeIcons, earnedAchievementIcons]);
 
   const handleLogout = () => {
     router.push("/auth/login");
@@ -51,17 +155,44 @@ export function ProfileSection() {
                 <AvatarFallback>{fallbackInitial || "U"}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <p className="font-semibold">Username</p>
-                <p className="text-sm text-muted-foreground">Joined 2023</p>
+                <p className="font-semibold">{displayName}</p>
+                <p className="text-sm text-muted-foreground">
+                  {joinedLabel ? `Joined ${joinedLabel}` : "Your profile"}
+                </p>
               </div>
             </div>
             <CardMenuOptions options={menuOptions} />
           </div>
           <div className="mt-4">
-            <h3 className="text-md font-semibold">Achievements</h3>
-            <div className="flex space-x-2 mt-2">
-              <span className="text-2xl">🏆</span>
-              <span className="text-2xl">🏅</span>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {earnedIcons.length ? (
+                earnedIcons.map((item) => (
+                  <div
+                    key={item.key}
+                    className="w-9 h-9 rounded-full bg-muted flex items-center justify-center overflow-hidden border border-border/50"
+                  >
+                    {item.iconUrl ? (
+                      <img
+                        src={item.iconUrl}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center w-full h-full text-xs font-bold text-muted-foreground">
+                        {item.fallback === "badge" ? (
+                          <Medal size="sm" />
+                        ) : (
+                          `U${item.fallback}`
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No earned badges yet.
+                </p>
+              )}
             </div>
           </div>
 
