@@ -60,6 +60,7 @@ export default function LessonCompleted() {
   const addedBadges = Array.isArray(progressData?.badges?.added)
     ? progressData.badges.added
     : [];
+  const streakMessage = progressData?.streak?.message || "";
 
   const stats = [
     {
@@ -170,22 +171,22 @@ export default function LessonCompleted() {
             ))}
           </div>
 
-          {(injazReceived > 0 || addedBadges.length > 0) && (
+          {addedBadges.length > 0 && (
             <div className="mb-8 px-4">
               <div className="max-w-sm mx-auto rounded-2xl border border-border bg-card p-4 text-left">
                 <p className="text-sm font-bold text-foreground">
                   Gifts earned
                 </p>
-                {injazReceived > 0 ? (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    +{injazReceived.toLocaleString()} Injaz
-                  </p>
-                ) : null}
                 {addedBadges.length ? (
                   <p className="text-sm text-muted-foreground mt-1">
                     New badges: {addedBadges.join(", ")}
                   </p>
                 ) : null}
+                {/* {streakMessage ? (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {streakMessage}
+                  </p>
+                ) : null} */}
               </div>
             </div>
           )}

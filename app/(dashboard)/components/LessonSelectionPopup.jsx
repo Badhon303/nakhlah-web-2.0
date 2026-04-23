@@ -368,23 +368,76 @@ export function LessonSelectionPopup({
               </p>
 
               {hasClaimed && !isGiftAlreadyOpened && giftRewards ? (
-                <div className="mt-4 inline-flex flex-col items-start gap-1 rounded-xl border border-border/60 bg-card/70 px-4 py-3 text-left">
-                  <p className="text-sm font-bold text-foreground">
-                    You received:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {giftRewards.injazReceived} Injaz
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {giftRewards.datesReceived} Dates
-                  </p>
-                  {giftRewards.badgesAdded.length ? (
-                    <p className="text-sm text-muted-foreground">
-                      {giftRewards.badgesAdded.length} new badge
-                      {giftRewards.badgesAdded.length > 1 ? "s" : ""}
-                    </p>
-                  ) : null}
-                </div>
+                <motion.div
+                  className="mt-6 flex flex-col items-center gap-3"
+                  initial="hidden"
+                  animate="visible"
+                  variants={{
+                    visible: { transition: { staggerChildren: 0.18 } },
+                  }}
+                >
+                  {giftRewards.injazReceived > 0 && (
+                    <motion.p
+                      className="text-2xl font-black text-amber-500 drop-shadow-sm"
+                      variants={{
+                        hidden: { opacity: 0, y: 20, scale: 0.85 },
+                        visible: {
+                          opacity: 1,
+                          y: 0,
+                          scale: 1,
+                          transition: {
+                            type: "spring",
+                            stiffness: 260,
+                            damping: 18,
+                          },
+                        },
+                      }}
+                    >
+                      +{giftRewards.injazReceived.toLocaleString()} Injaz ✨
+                    </motion.p>
+                  )}
+                  {giftRewards.datesReceived > 0 && (
+                    <motion.p
+                      className="text-2xl font-black text-sky-500 drop-shadow-sm"
+                      variants={{
+                        hidden: { opacity: 0, y: 20, scale: 0.85 },
+                        visible: {
+                          opacity: 1,
+                          y: 0,
+                          scale: 1,
+                          transition: {
+                            type: "spring",
+                            stiffness: 260,
+                            damping: 18,
+                          },
+                        },
+                      }}
+                    >
+                      +{giftRewards.datesReceived.toLocaleString()} Dates 🌴
+                    </motion.p>
+                  )}
+                  {giftRewards.badgesAdded.length > 0 && (
+                    <motion.p
+                      className="text-xl font-bold text-emerald-500 drop-shadow-sm"
+                      variants={{
+                        hidden: { opacity: 0, y: 20, scale: 0.85 },
+                        visible: {
+                          opacity: 1,
+                          y: 0,
+                          scale: 1,
+                          transition: {
+                            type: "spring",
+                            stiffness: 260,
+                            damping: 18,
+                          },
+                        },
+                      }}
+                    >
+                      +{giftRewards.badgesAdded.length} Badge
+                      {giftRewards.badgesAdded.length > 1 ? "s" : ""} Earned 🏅
+                    </motion.p>
+                  )}
+                </motion.div>
               ) : null}
             </motion.div>
           </div>
@@ -422,9 +475,18 @@ export function LessonSelectionPopup({
         {/* Lessons Grid (Tighter Spacing) */}
         <div className="p-6 bg-card">
           {isLoading ? (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              Loading lessons...
-            </p>
+            <div className="grid grid-cols-2 gap-4">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={`lesson-skeleton-${index}`}
+                  className="relative p-5 rounded-2xl border-4 border-border/60 bg-background/70"
+                >
+                  <div className="w-24 h-24 mx-auto rounded-2xl bg-muted animate-pulse" />
+                  <div className="mt-4 h-4 w-3/4 mx-auto rounded bg-muted animate-pulse" />
+                  <div className="mt-2 h-3 w-1/2 mx-auto rounded bg-muted/80 animate-pulse" />
+                </div>
+              ))}
+            </div>
           ) : loadError ? (
             <p className="text-sm font-semibold text-destructive text-center py-4">
               {loadError}

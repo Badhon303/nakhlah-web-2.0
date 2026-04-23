@@ -11,6 +11,7 @@ import { PurposeStep } from "@/components/nakhlah/onboarding/PurposeStep";
 import { CountryStep } from "@/components/nakhlah/onboarding/CountryStep";
 import { UserSourceStep } from "@/components/nakhlah/onboarding/UserSourceStep";
 import { InterestsStep } from "@/components/nakhlah/onboarding/InterestsStep";
+import { ProfileInfoStep } from "@/components/nakhlah/onboarding/ProfileInfoStep";
 import { AgeStep } from "@/components/nakhlah/onboarding/AgeStep";
 import { AccountStep } from "@/components/nakhlah/onboarding/AccountStep";
 import { CompletionStep } from "@/components/nakhlah/onboarding/CompletionStep";
@@ -23,6 +24,7 @@ import {
   fetchCurrentUser,
   fetchUserOnboardingGlobals,
   refreshAccessToken,
+  updateMyProfile,
 } from "@/services/api/auth";
 import { signIn } from "next-auth/react";
 import { toast } from "@/components/nakhlah/Toast";
@@ -35,9 +37,10 @@ const steps = [
   { id: 4, label: "Country" },
   { id: 5, label: "Source" },
   { id: 6, label: "Interests" },
-  { id: 7, label: "Age" },
-  { id: 8, label: "Account" },
-  { id: 9, label: "Ready!" },
+  { id: 7, label: "Profile" },
+  { id: 8, label: "Age" },
+  { id: 9, label: "Account" },
+  { id: 10, label: "Ready!" },
 ];
 
 const DEFAULT_PROFILE_IMAGE = "https://github.com/shadcn.png";
@@ -75,7 +78,9 @@ const getMediaObject = (item, preferredKeys = []) => {
   }
 
   if (Array.isArray(item?.media)) {
-    const mediaEntry = item.media.find((entry) => entry?.url || entry?.media?.url);
+    const mediaEntry = item.media.find(
+      (entry) => entry?.url || entry?.media?.url,
+    );
     if (mediaEntry?.url) return mediaEntry;
     if (mediaEntry?.media?.url) return mediaEntry.media;
   }
@@ -90,41 +95,54 @@ const getMediaObject = (item, preferredKeys = []) => {
 const normalizeOnboardingData = (data) => {
   if (!data || typeof data !== "object") return data;
 
-  const normalizedLanguageStrengthList = (data?.languageStrength?.strengthsList || []).map(
-    (entry) => ({
-      ...entry,
-      strengthsMedia: getMediaObject(entry, ["strengthsMedia", "strengthMedia"]),
-    })
-  );
-
-  const normalizedGoalList = ((data?.Goal?.goalList || data?.goal?.goalList) || []).map(
-    (entry) => ({
-      ...entry,
-      goalMedia: getMediaObject(entry, ["goalMedia", "goalPicture"]),
-    })
-  );
-
-  const normalizedPurposeList = (data?.purpose?.purposeList || []).map((entry) => ({
+  const normalizedLanguageStrengthList = (
+    data?.languageStrength?.strengthsList || []
+  ).map((entry) => ({
     ...entry,
-    purposeMedia: getMediaObject(entry, ["purposeMedia", "purposePicture"]),
+    strengthsMedia: getMediaObject(entry, ["strengthsMedia", "strengthMedia"]),
   }));
 
-  const normalizedCountryList = ((data?.Country?.countryList || data?.country?.countryList) || []).map(
+  const normalizedGoalList = (
+    data?.Goal?.goalList ||
+    data?.goal?.goalList ||
+    []
+  ).map((entry) => ({
+    ...entry,
+    goalMedia: getMediaObject(entry, ["goalMedia", "goalPicture"]),
+  }));
+
+  const normalizedPurposeList = (data?.purpose?.purposeList || []).map(
     (entry) => ({
       ...entry,
-      countryMedia: getMediaObject(entry, ["countryMedia", "countryPicture"]),
-    })
+      purposeMedia: getMediaObject(entry, ["purposeMedia", "purposePicture"]),
+    }),
   );
 
-  const normalizedSourceList = (data?.userSource?.sourceList || []).map((entry) => ({
+  const normalizedCountryList = (
+    data?.Country?.countryList ||
+    data?.country?.countryList ||
+    []
+  ).map((entry) => ({
     ...entry,
-    sourcePicture: getMediaObject(entry, ["sourcePicture", "sourceMedia"]),
+    countryMedia: getMediaObject(entry, ["countryMedia", "countryPicture"]),
   }));
 
-  const normalizedInterestList = (data?.interests?.interestList || []).map((entry) => ({
-    ...entry,
-    interestPicture: getMediaObject(entry, ["interestPicture", "interestMedia"]),
-  }));
+  const normalizedSourceList = (data?.userSource?.sourceList || []).map(
+    (entry) => ({
+      ...entry,
+      sourcePicture: getMediaObject(entry, ["sourcePicture", "sourceMedia"]),
+    }),
+  );
+
+  const normalizedInterestList = (data?.interests?.interestList || []).map(
+    (entry) => ({
+      ...entry,
+      interestPicture: getMediaObject(entry, [
+        "interestPicture",
+        "interestMedia",
+      ]),
+    }),
+  );
 
   return {
     ...data,
@@ -164,6 +182,11 @@ export default function Onboarding() {
   const [country, setCountry] = useState("");
   const [userSource, setUserSource] = useState("");
   const [interests, setInterests] = useState([]);
+  const [fullName, setFullName] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [profileFileError, setProfileFileError] = useState("");
+  const [profileContactError, setProfileContactError] = useState("");
   const [age, setAge] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -188,7 +211,9 @@ export default function Onboarding() {
     }
 
     const refreshResult = await refreshAccessToken(session?.accessToken);
-    const meResult = await fetchCurrentUser(refreshResult?.token || session?.accessToken);
+    const meResult = await fetchCurrentUser(
+      refreshResult?.token || session?.accessToken,
+    );
 
     if (meResult.success && meResult.token) {
       return meResult.token;
@@ -231,20 +256,22 @@ export default function Onboarding() {
 
   const selectedValues = useMemo(() => {
     const strength = onboardingData?.languageStrength?.strengthsList?.find(
-      (item) => item.id === proficiencyLevel
+      (item) => item.id === proficiencyLevel,
     );
     const selectedPurpose = onboardingData?.purpose?.purposeList?.find(
-      (item) => item.id === purpose
+      (item) => item.id === purpose,
     );
     const selectedCountry = onboardingData?.Country?.countryList?.find(
-      (item) => item.id === country
+      (item) => item.id === country,
     );
     const selectedSource = onboardingData?.userSource?.sourceList?.find(
-      (item) => item.id === userSource
+      (item) => item.id === userSource,
     );
-    const selectedAge = onboardingData?.age?.ageList?.find((item) => item.id === age);
-    const selectedInterests = onboardingData?.interests?.interestList?.filter((item) =>
-      interests.includes(item.id)
+    const selectedAge = onboardingData?.age?.ageList?.find(
+      (item) => item.id === age,
+    );
+    const selectedInterests = onboardingData?.interests?.interestList?.filter(
+      (item) => interests.includes(item.id),
     );
 
     return {
@@ -255,7 +282,15 @@ export default function Onboarding() {
       selectedAge,
       selectedInterests,
     };
-  }, [onboardingData, proficiencyLevel, purpose, country, userSource, interests, age]);
+  }, [
+    onboardingData,
+    proficiencyLevel,
+    purpose,
+    country,
+    userSource,
+    interests,
+    age,
+  ]);
 
   const canProceed = () => {
     switch (currentStep) {
@@ -272,19 +307,24 @@ export default function Onboarding() {
       case 6:
         return interests.length > 0;
       case 7:
-        return age !== "";
-      case 8:
         return (
-          email.trim().includes("@") &&
-          password.trim().length >= 6
+          fullName.trim().length > 1 &&
+          contactNumber.trim().startsWith("0") &&
+          contactNumber.trim().length > 1 &&
+          !profileFileError &&
+          !profileContactError
         );
+      case 8:
+        return age !== "";
+      case 9:
+        return email.trim().includes("@") && password.trim().length >= 6;
       default:
         return true;
     }
   };
 
   const handleNext = async () => {
-    if (currentStep === 8) {
+    if (currentStep === 9) {
       await handleRegistration();
       return;
     }
@@ -300,7 +340,7 @@ export default function Onboarding() {
     setInterests((prev) =>
       prev.includes(interestId)
         ? prev.filter((id) => id !== interestId)
-        : [...prev, interestId]
+        : [...prev, interestId],
     );
   };
 
@@ -330,12 +370,14 @@ export default function Onboarding() {
       });
 
       if (signInResult?.error) {
-        toast.error("Registration successful but auto-login failed. Please login manually.");
+        toast.error(
+          "Registration successful but auto-login failed. Please login manually.",
+        );
         setIsRegistering(false);
         return;
       }
 
-      setCurrentStep(9);
+      setCurrentStep(10);
     } catch (error) {
       console.error("Registration error:", error);
       toast.error("An error occurred during registration");
@@ -360,9 +402,13 @@ export default function Onboarding() {
         country: selectedValues.selectedCountry?.countryName || "",
         purpose: "",
         goalTime: parseInt(dailyGoal) || 10,
-        userSource: (selectedValues.selectedSource?.sourceName || "").toLowerCase(),
+        userSource: (
+          selectedValues.selectedSource?.sourceName || ""
+        ).toLowerCase(),
         languageStrength,
       },
+      fullName: fullName.trim(),
+      contactNumber: contactNumber.trim(),
       profilePictureUrl: DEFAULT_PROFILE_IMAGE,
     };
 
@@ -371,6 +417,15 @@ export default function Onboarding() {
     if (!profileResult.success) {
       toast.error(profileResult.error || "Failed to create profile");
       return;
+    }
+
+    if (profilePicture) {
+      const pictureResult = await updateMyProfile({}, profilePicture, token);
+      if (!pictureResult.success) {
+        toast.error(
+          pictureResult.error || "Profile created but image upload failed",
+        );
+      }
     }
 
     localStorage.setItem(
@@ -382,12 +437,14 @@ export default function Onboarding() {
         country,
         userSource,
         interests,
+        fullName,
+        contactNumber,
         age,
         email,
         completed: true,
-      })
+      }),
     );
-    localStorage.setItem("nakhlah_profile_prompt_pending", "true");
+    localStorage.removeItem("nakhlah_profile_prompt_pending");
 
     toast.success("Profile created successfully!");
     router.push("/");
@@ -460,6 +517,25 @@ export default function Onboarding() {
         );
       case 7:
         return (
+          <ProfileInfoStep
+            fullName={fullName}
+            contactNumber={contactNumber}
+            profilePicture={profilePicture}
+            onChange={(fields) => {
+              if (fields.fullName !== undefined) setFullName(fields.fullName);
+              if (fields.contactNumber !== undefined)
+                setContactNumber(fields.contactNumber);
+              if (fields.profilePicture !== undefined)
+                setProfilePicture(fields.profilePicture);
+              if (fields.fileError !== undefined)
+                setProfileFileError(fields.fileError);
+              if (fields.contactError !== undefined)
+                setProfileContactError(fields.contactError);
+            }}
+          />
+        );
+      case 8:
+        return (
           <AgeStep
             title={onboardingData?.age?.ageTitleTop || "How old are you?"}
             ages={onboardingData?.age?.ageList || []}
@@ -467,7 +543,7 @@ export default function Onboarding() {
             onSelect={setAge}
           />
         );
-      case 8:
+      case 9:
         return (
           <AccountStep
             email={email}
@@ -478,7 +554,7 @@ export default function Onboarding() {
             }}
           />
         );
-      case 9:
+      case 10:
         return (
           <CompletionStep
             language={"arabic"}
@@ -553,7 +629,12 @@ export default function Onboarding() {
           {currentStep < steps.length ? (
             <Button
               onClick={handleNext}
-              disabled={isLoadingOnboarding || !!loadingError || !canProceed() || isRegistering}
+              disabled={
+                isLoadingOnboarding ||
+                !!loadingError ||
+                !canProceed() ||
+                isRegistering
+              }
               className="gap-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white"
             >
               {isRegistering ? "Creating Account..." : "Continue"}

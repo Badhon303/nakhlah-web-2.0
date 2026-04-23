@@ -101,7 +101,8 @@ export function ProfileSection() {
     .trim()
     .charAt(0)
     .toUpperCase();
-  const displayName = profileData?.fullName || session?.user?.name || "Name not set";
+  const displayName =
+    profileData?.fullName || session?.user?.name || "Name not set";
   const joinedLabel = formatJoinedDate(profileData?.createdAt);
 
   const earnedBadgeIcons = useMemo(() => {
@@ -214,11 +215,11 @@ export function ProfileSection() {
             Create a profile to save your progress!
           </h3>
           <div className="flex flex-col gap-2">
-            <Button size="lg" className="w-full">
-              Create a Profile
+            <Button size="lg" className="w-full" asChild>
+              <Link href="/onboarding">Create a Profile</Link>
             </Button>
-            <Button size="lg" variant="outline" className="w-full">
-              Sign In
+            <Button size="lg" variant="outline" className="w-full" asChild>
+              <Link href="/auth/login">Sign In</Link>
             </Button>
           </div>
         </div>

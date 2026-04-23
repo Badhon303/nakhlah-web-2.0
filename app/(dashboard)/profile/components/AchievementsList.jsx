@@ -14,9 +14,7 @@ const getMediaUrl = (url) => {
 };
 
 const resolveCardColor = (isAchieved) =>
-  isAchieved
-    ? "bg-accent text-accent-foreground"
-    : "bg-muted text-muted-foreground";
+  isAchieved ? "text-accent-foreground" : "text-muted-foreground";
 
 export default function AchievementsList({
   onViewAll,
