@@ -74,24 +74,39 @@ export default function DailyMissions() {
         const globalQuests = Array.isArray(globalResult.dailyQuest)
           ? globalResult.dailyQuest
           : [];
-        const currentStatuses = Array.isArray(
-          currentResult.dailyQuest?.challengeStatuses,
-        )
-          ? currentResult.dailyQuest.challengeStatuses
-          : [];
+        const rawStatuses = currentResult.dailyQuest?.challengeStatuses;
+        const statusByKey = new Map();
+        const fallbackStatuses = Array.isArray(rawStatuses) ? rawStatuses : [];
 
-        const maxLength = Math.max(globalQuests.length, currentStatuses.length);
+        if (Array.isArray(rawStatuses)) {
+          rawStatuses.forEach((status, index) => {
+            const key =
+              status?.key ||
+              status?.challengeKey ||
+              status?.questKey ||
+              globalQuests[index]?.key ||
+              `daily-${index + 1}`;
+            statusByKey.set(key, status || {});
+          });
+        } else if (rawStatuses && typeof rawStatuses === "object") {
+          Object.entries(rawStatuses).forEach(([key, status]) => {
+            statusByKey.set(key, status || {});
+          });
+        }
 
-        const normalized = Array.from({ length: maxLength }).map((_, index) => {
-          const quest = globalQuests[index] || {};
-          const status = currentStatuses[index] || {};
+        const normalized = globalQuests.map((quest, index) => {
+          const questKey = quest.key || `daily-${index + 1}`;
+          const status =
+            statusByKey.get(questKey) || fallbackStatuses[index] || {};
           const details = status?.details || {};
 
           return {
-            key: quest.key || `daily-${index + 1}`,
-            label: quest.key
-              ? toTitleCase(quest.key)
-              : defaultLabels[index] || `Mission ${index + 1}`,
+            key: questKey,
+            label: quest.name
+              ? quest.name
+              : quest.key
+                ? toTitleCase(quest.key)
+                : defaultLabels[index] || `Mission ${index + 1}`,
             current: Number(details.current) || 0,
             target: Number(details.required) || Number(quest.required) || 0,
             reward: Number(details.reward) || Number(quest.reward) || 0,

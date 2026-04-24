@@ -62,7 +62,7 @@ export default function BadgesList() {
           const xp = Number(badge.target) || 0;
           return {
             key: badge.key,
-            title: toTitleCase(badge.key || "Badge"),
+            title: badge.name || toTitleCase(badge.key || "Badge"),
             xp,
             icon: badge.icon,
             earned: (Number.isFinite(resolvedInjaz) ? resolvedInjaz : 0) >= xp,

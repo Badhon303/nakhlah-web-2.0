@@ -276,8 +276,28 @@ export async function reportWrongAnswer(token) {
     }
 }
 
+function resolveGamificationCollection(payload, nestedKey) {
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+        return {};
+    }
+
+    if (payload[nestedKey] && typeof payload[nestedKey] === "object" && !Array.isArray(payload[nestedKey])) {
+        return payload[nestedKey];
+    }
+
+    if (payload.data && typeof payload.data === "object" && !Array.isArray(payload.data)) {
+        if (payload.data[nestedKey] && typeof payload.data[nestedKey] === "object" && !Array.isArray(payload.data[nestedKey])) {
+            return payload.data[nestedKey];
+        }
+
+        return payload.data;
+    }
+
+    return payload;
+}
+
 function normalizeBadgesPayload(payload) {
-    const badgesObject = payload?.badges || payload?.data?.badges || payload || {};
+    const badgesObject = resolveGamificationCollection(payload, "badges");
 
     if (!badgesObject || typeof badgesObject !== "object" || Array.isArray(badgesObject)) {
         return [];
@@ -286,6 +306,7 @@ function normalizeBadgesPayload(payload) {
     return Object.entries(badgesObject)
         .map(([key, value]) => ({
             key,
+            name: value?.name || key,
             target: Number(value?.target) || 0,
             icon: value?.icon || null,
         }))
@@ -314,7 +335,7 @@ function normalizeAchievementsPayload(payload) {
 }
 
 function normalizeDailyQuestPayload(payload) {
-    const dailyQuestObject = payload?.dailyQuest || payload?.data?.dailyQuest || {};
+    const dailyQuestObject = resolveGamificationCollection(payload, "dailyQuest");
 
     if (!dailyQuestObject || typeof dailyQuestObject !== "object" || Array.isArray(dailyQuestObject)) {
         return [];
@@ -322,6 +343,7 @@ function normalizeDailyQuestPayload(payload) {
 
     return Object.entries(dailyQuestObject).map(([key, value]) => ({
         key,
+        name: value?.name || key,
         required: Number(value?.required) || 0,
         reward: Number(value?.reward) || 0,
         icon: value?.icon || null,
@@ -334,7 +356,7 @@ export async function fetchGamificationBadges(token) {
             throw new Error("Authentication required");
         }
 
-        const response = await fetchWithAuthRetry("/api/globals/gamification?select[badges]=true", {
+        const response = await fetchWithAuthRetry("/api/globals/gamification/get-badges", {
             method: "GET",
             token,
         });
@@ -396,7 +418,7 @@ export async function fetchGamificationDailyQuest(token) {
             throw new Error("Authentication required");
         }
 
-        const response = await fetchWithAuthRetry("/api/globals/gamification?select[dailyQuest]=true", {
+        const response = await fetchWithAuthRetry("/api/globals/gamification/get-daily-quests", {
             method: "GET",
             token,
         });
