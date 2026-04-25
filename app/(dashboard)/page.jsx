@@ -7,6 +7,7 @@ import { DailyQuests } from "./components/DailyQuests";
 import { ProfileSection } from "./components/ProfileSection";
 import { LeaderboardCard } from "./components/LeaderboardCard";
 import { CompleteProfilePrompt } from "./components/CompleteProfilePrompt";
+import { JourneyErrorFallback } from "./components/JourneyErrorFallback";
 import { Trophy } from "@/components/icons/Trophy";
 import { fetchJourneyStructure, fetchMyProfile } from "@/services/api";
 import { updateMyProfile } from "@/services/api/auth";
@@ -34,11 +35,15 @@ const buildJourneyView = (journey, currentProgress) => {
 
     units.forEach((unit) => {
       const sectionId = `${level.id}-${unit.id}`;
-      const isEarlierLevel = hasExplicitProgress && level.levelOrder < levelOrder;
-      const isCurrentLevel = hasExplicitProgress && level.levelOrder === levelOrder;
-      const isEarlierUnitInCurrentLevel = hasExplicitProgress && isCurrentLevel && unit.unitOrder < unitOrder;
+      const isEarlierLevel =
+        hasExplicitProgress && level.levelOrder < levelOrder;
+      const isCurrentLevel =
+        hasExplicitProgress && level.levelOrder === levelOrder;
+      const isEarlierUnitInCurrentLevel =
+        hasExplicitProgress && isCurrentLevel && unit.unitOrder < unitOrder;
       const isEarlierUnit = isEarlierLevel || isEarlierUnitInCurrentLevel;
-      const isCurrentUnit = hasExplicitProgress && isCurrentLevel && unit.unitOrder === unitOrder;
+      const isCurrentUnit =
+        hasExplicitProgress && isCurrentLevel && unit.unitOrder === unitOrder;
 
       const unitUnlocked =
         !hasExplicitProgress ||
@@ -46,7 +51,7 @@ const buildJourneyView = (journey, currentProgress) => {
         isCurrentUnit ||
         unit?.inProgressOrCompleted ||
         level?.inProgressOrCompleted;
-        
+
       const unitLocked = !unitUnlocked;
 
       sections.push({
@@ -69,15 +74,17 @@ const buildJourneyView = (journey, currentProgress) => {
           hasExplicitProgress && isCurrentUnit && task.taskOrder < taskOrder;
         const isCurrentTask =
           hasExplicitProgress && isCurrentUnit && task.taskOrder === taskOrder;
-          
+
         let isCompleted =
           (hasExplicitProgress &&
             (isEarlierUnit || isEarlierTaskInCurrentUnit)) ||
           (!hasExplicitProgress && hasTaskProgress && index < lastActiveIndex);
-          
+
         let isCurrent =
           (hasExplicitProgress && isCurrentTask) ||
-          (!hasExplicitProgress && hasTaskProgress && index === lastActiveIndex);
+          (!hasExplicitProgress &&
+            hasTaskProgress &&
+            index === lastActiveIndex);
 
         if (
           !hasExplicitProgress &&
@@ -135,48 +142,47 @@ export default function LearnPage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-
     const shouldPrompt =
       localStorage.getItem("nakhlah_profile_prompt_pending") === "true";
     setShowProfilePrompt(shouldPrompt);
   }, []);
 
-  useEffect(() => {
-    const loadJourney = async () => {
-      try {
-        setIsLoading(true);
-        setLoadError("");
+  const loadJourney = async () => {
+    try {
+      setIsLoading(true);
+      setLoadError("");
 
-        if (status === "loading") return;
-        if (status === "unauthenticated" || !isSessionValid(session)) {
-          throw new Error("Please login to view your journey.");
-        }
-
-        const token = getSessionToken(session);
-        const [profileResult, journeyResult] = await Promise.all([
-          fetchMyProfile(token),
-          fetchJourneyStructure(token),
-        ]);
-
-        if (!journeyResult.success) {
-          throw new Error(
-            journeyResult.error || "Failed to load journey structure",
-          );
-        }
-
-        const { sections, nodes } = buildJourneyView(
-          journeyResult.data || {},
-          profileResult?.profile?.currentProgress || null,
-        );
-        setLevels(sections);
-        setLessons(nodes);
-      } catch (error) {
-        setLoadError(error?.message || "Unable to load journey structure");
-      } finally {
-        setIsLoading(false);
+      if (status === "loading") return;
+      if (status === "unauthenticated" || !isSessionValid(session)) {
+        throw new Error("Please login to view your journey.");
       }
-    };
 
+      const token = getSessionToken(session);
+      const [profileResult, journeyResult] = await Promise.all([
+        fetchMyProfile(token),
+        fetchJourneyStructure(token),
+      ]);
+
+      if (!journeyResult.success) {
+        throw new Error(
+          journeyResult.error || "Failed to load journey structure",
+        );
+      }
+
+      const { sections, nodes } = buildJourneyView(
+        journeyResult.data || {},
+        profileResult?.profile?.currentProgress || null,
+      );
+      setLevels(sections);
+      setLessons(nodes);
+    } catch (error) {
+      setLoadError(error?.message || "Unable to load journey structure");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadJourney();
   }, [session, status]);
 
@@ -242,9 +248,7 @@ export default function LearnPage() {
             style={{ top: "env(safe-area-inset-top, 0px)" }}
           >
             {loadError ? (
-              <div className="p-6 text-center text-sm text-muted-foreground">
-                {loadError}
-              </div>
+              <JourneyErrorFallback error={loadError} onRetry={loadJourney} />
             ) : (
               <ZigzagPath
                 lessons={lessons}

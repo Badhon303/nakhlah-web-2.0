@@ -7,13 +7,18 @@ import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { updateMyProfile } from "@/services/api/auth";
 import { toast } from "@/components/nakhlah/Toast";
 
-export default function EditProfilePage({ onBack, currentUser, profileData, onProfileUpdated }) {
+export default function EditProfilePage({
+  onBack,
+  currentUser,
+  profileData,
+  onProfileUpdated,
+}) {
   const [formData, setFormData] = useState({
     fullName: "",
     phoneNumber: "",
     email: "",
     dateOfBirth: "",
-    country: ""
+    country: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: session } = useSession();
@@ -29,7 +34,7 @@ export default function EditProfilePage({ onBack, currentUser, profileData, onPr
   }, [currentUser, profileData]);
 
   const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleUpdate = async () => {
@@ -55,7 +60,7 @@ export default function EditProfilePage({ onBack, currentUser, profileData, onPr
         },
       },
       null,
-      token
+      token,
     );
     setIsSubmitting(false);
 
@@ -89,7 +94,9 @@ export default function EditProfilePage({ onBack, currentUser, profileData, onPr
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Personal Info</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              Personal Info
+            </h1>
           </div>
         </div>
 
@@ -102,9 +109,9 @@ export default function EditProfilePage({ onBack, currentUser, profileData, onPr
             <button className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center shadow-lg hover:bg-accent/90 transition-all">
               <Camera className="w-4 h-4" />
             </button>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-palm-green border-2 border-card flex items-center justify-center">
+            {/* <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-palm-green border-2 border-card flex items-center justify-center">
               <Check className="w-3 h-3 text-white" />
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -117,7 +124,7 @@ export default function EditProfilePage({ onBack, currentUser, profileData, onPr
             <input
               type="text"
               value={formData.fullName}
-              onChange={(e) => handleChange('fullName', e.target.value)}
+              onChange={(e) => handleChange("fullName", e.target.value)}
               className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground"
             />
           </div>
@@ -129,7 +136,7 @@ export default function EditProfilePage({ onBack, currentUser, profileData, onPr
             <input
               type="tel"
               value={formData.phoneNumber}
-              onChange={(e) => handleChange('phoneNumber', e.target.value)}
+              onChange={(e) => handleChange("phoneNumber", e.target.value)}
               className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground"
             />
           </div>
@@ -154,7 +161,7 @@ export default function EditProfilePage({ onBack, currentUser, profileData, onPr
               <input
                 type="text"
                 value={formData.dateOfBirth}
-                onChange={(e) => handleChange('dateOfBirth', e.target.value)}
+                onChange={(e) => handleChange("dateOfBirth", e.target.value)}
                 className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground"
               />
               <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -168,7 +175,7 @@ export default function EditProfilePage({ onBack, currentUser, profileData, onPr
             <div className="relative">
               <select
                 value={formData.country}
-                onChange={(e) => handleChange('country', e.target.value)}
+                onChange={(e) => handleChange("country", e.target.value)}
                 className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
               >
                 <option>United States</option>
