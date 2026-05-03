@@ -6,6 +6,12 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CardMenuOptions } from "@/components/nakhlah/CardMenuOptions";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
@@ -114,6 +120,8 @@ export function ProfileSection() {
       .map((badge) => ({
         key: `badge-${badge.key}`,
         iconUrl: getMediaUrl(badge?.icon?.url || badge?.icon),
+        label:
+          badge?.title || badge?.name || badge?.label || badge?.key || "Badge",
         fallback: "badge",
       }));
   }, [badgeDictionary, profileData]);
@@ -126,6 +134,11 @@ export function ProfileSection() {
         iconUrl: getMediaUrl(
           achievement?.unitIcon?.url || achievement?.unitIcon || "",
         ),
+        label:
+          achievement?.achievementTitle ||
+          achievement?.title ||
+          achievement?.unitTitle ||
+          "Achievement",
         fallback: achievement?.unitOrder || "-",
       }));
   }, [achievements]);
@@ -165,36 +178,45 @@ export function ProfileSection() {
             <CardMenuOptions options={menuOptions} />
           </div>
           <div className="mt-4">
-            <div className="flex flex-wrap gap-2 mt-2">
-              {earnedIcons.length ? (
-                earnedIcons.map((item) => (
-                  <div
-                    key={item.key}
-                    className="w-9 h-9 rounded-full bg-muted flex items-center justify-center overflow-hidden border border-border/50"
-                  >
-                    {item.iconUrl ? (
-                      <img
-                        src={item.iconUrl}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center w-full h-full text-xs font-bold text-muted-foreground">
-                        {item.fallback === "badge" ? (
-                          <Medal size="sm" />
-                        ) : (
-                          `U${item.fallback}`
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No earned badges yet.
-                </p>
-              )}
-            </div>
+            <TooltipProvider>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {earnedIcons.length ? (
+                  earnedIcons.map((item) => (
+                    <Tooltip key={item.key}>
+                      <TooltipTrigger asChild>
+                        <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center overflow-hidden border border-border/50 cursor-help transition-colors hover:border-foreground/30">
+                          {item.iconUrl ? (
+                            <img
+                              src={item.iconUrl}
+                              alt={item.label}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center w-full h-full text-xs font-bold text-muted-foreground">
+                              {item.fallback === "badge" ? (
+                                <Medal size="sm" />
+                              ) : (
+                                `U${item.fallback}`
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="top"
+                        className="bg-foreground text-background"
+                      >
+                        <p className="text-sm font-medium">{item.label}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No earned badges yet.
+                  </p>
+                )}
+              </div>
+            </TooltipProvider>
           </div>
 
           {/* Logout Button */}

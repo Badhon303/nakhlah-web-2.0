@@ -24,6 +24,24 @@ import {
 } from "@/services/api";
 import LessonLoadingView from "./loading/LessonLoadingView";
 
+const LESSON_SESSION_STORAGE_KEY = "activeLessonSessionV1";
+
+function buildLessonSessionKey({ lessonId, taskId, isExamLesson }) {
+  return [lessonId || "", taskId || "", isExamLesson ? "exam" : "lesson"].join(
+    "::",
+  );
+}
+
+function safelyParseLessonSession(rawValue) {
+  if (!rawValue) return null;
+  try {
+    const parsed = JSON.parse(rawValue);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 function normalizeText(value) {
   return (value || "")
     .toString()
@@ -177,6 +195,11 @@ export default function LessonPage() {
         sessionStorage.getItem("selectedLessonIsExam") === "true";
       const selectedStatus =
         sessionStorage.getItem("selectedLessonStatus")?.trim() || "";
+      const lessonSessionKey = buildLessonSessionKey({
+        lessonId,
+        taskId,
+        isExamLesson: selectedLessonIsExam,
+      });
 
       if (!lessonId) {
         setLoadError("No lesson selected.");
@@ -197,6 +220,56 @@ export default function LessonPage() {
         setIsExamLesson(selectedLessonIsExam);
         setSelectedLessonStatus(selectedStatus);
         setFullMarksRewardData(null);
+
+        const cachedSession = safelyParseLessonSession(
+          sessionStorage.getItem(LESSON_SESSION_STORAGE_KEY),
+        );
+
+        if (
+          cachedSession?.key === lessonSessionKey &&
+          Array.isArray(cachedSession.questions) &&
+          cachedSession.questions.length > 0
+        ) {
+          const cachedIndex = Number(cachedSession.currentIndex);
+          const maxIndex = cachedSession.questions.length - 1;
+
+          setQuestions(cachedSession.questions);
+          setCurrentIndex(
+            Number.isFinite(cachedIndex)
+              ? Math.max(0, Math.min(cachedIndex, maxIndex))
+              : 0,
+          );
+
+          const cachedLives = Number(cachedSession.lives);
+          if (Number.isFinite(cachedLives)) {
+            setLives(cachedLives);
+          }
+
+          setHasWrongAnswer(Boolean(cachedSession.hasWrongAnswer));
+          setFullMarksRewardData(cachedSession.fullMarksRewardData || null);
+
+          const cachedElapsedSeconds = Number(cachedSession.elapsedSeconds);
+          if (Number.isFinite(cachedElapsedSeconds)) {
+            setElapsedSeconds(cachedElapsedSeconds);
+          }
+
+          const cachedTotalAnswerAttempts = Number(
+            cachedSession.totalAnswerAttempts,
+          );
+          if (Number.isFinite(cachedTotalAnswerAttempts)) {
+            setTotalAnswerAttempts(cachedTotalAnswerAttempts);
+          }
+
+          const cachedCorrectAnswerAttempts = Number(
+            cachedSession.correctAnswerAttempts,
+          );
+          if (Number.isFinite(cachedCorrectAnswerAttempts)) {
+            setCorrectAnswerAttempts(cachedCorrectAnswerAttempts);
+          }
+
+          setIsLoading(false);
+          return;
+        }
 
         const token = getSessionToken(session);
         if (!token) {
@@ -252,6 +325,52 @@ export default function LessonPage() {
       setCurrentIndex(0);
     }
   }, [currentIndex, totalQuestions]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (isLoading || !questions.length) return;
+
+    const lessonId = sessionStorage.getItem("selectedLessonId")?.trim();
+    const taskId = sessionStorage.getItem("selectedNodeId")?.trim();
+    const selectedLessonIsExam =
+      sessionStorage.getItem("selectedLessonIsExam") === "true";
+
+    if (!lessonId) return;
+
+    sessionStorage.setItem(
+      LESSON_SESSION_STORAGE_KEY,
+      JSON.stringify({
+        key: buildLessonSessionKey({
+          lessonId,
+          taskId,
+          isExamLesson: selectedLessonIsExam,
+        }),
+        lessonId,
+        taskId,
+        isExamLesson: selectedLessonIsExam,
+        selectedLessonStatus,
+        questions,
+        currentIndex,
+        lives,
+        hasWrongAnswer,
+        fullMarksRewardData,
+        elapsedSeconds,
+        totalAnswerAttempts,
+        correctAnswerAttempts,
+      }),
+    );
+  }, [
+    isLoading,
+    questions,
+    selectedLessonStatus,
+    currentIndex,
+    lives,
+    hasWrongAnswer,
+    fullMarksRewardData,
+    elapsedSeconds,
+    totalAnswerAttempts,
+    correctAnswerAttempts,
+  ]);
 
   const mcqOptions = useMemo(() => {
     if (questionType !== "mcq") return [];
@@ -421,6 +540,7 @@ export default function LessonPage() {
     }
 
     sessionStorage.removeItem("currentLessonIndex");
+    sessionStorage.removeItem(LESSON_SESSION_STORAGE_KEY);
     sessionStorage.removeItem("selectedLessonId");
     sessionStorage.removeItem("selectedNodeId");
     sessionStorage.removeItem("selectedLessonIsExam");
