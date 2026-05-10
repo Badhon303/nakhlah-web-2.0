@@ -672,8 +672,14 @@ export default function LessonPage() {
     }
 
     const lessonId = sessionStorage.getItem("selectedLessonId")?.trim();
-    const nextLessonId = sessionStorage.getItem("selectedNextLessonId")?.trim();
     const token = getSessionToken(session);
+    const isReplayOfCompletedLesson =
+      (selectedLessonStatus || "").trim().toLowerCase() === "completed";
+
+    if (isReplayOfCompletedLesson) {
+      await completeLessonAndRedirect();
+      return;
+    }
 
     if (lessonId && token && !hasWrongAnswer) {
       const fullMarksResult = await reportFullMarks(lessonId, token);
@@ -694,8 +700,7 @@ export default function LessonPage() {
         const fullMarksError = (fullMarksResult.error || "").toLowerCase();
         const shouldShowAlreadyClaimed =
           fullMarksError === "please maintain the sequence" ||
-          fullMarksError.includes("maintain the sequence") ||
-          selectedLessonStatus === "completed";
+          fullMarksError.includes("maintain the sequence");
 
         if (shouldShowAlreadyClaimed) {
           setShowFullMarksClaimedNotice(true);

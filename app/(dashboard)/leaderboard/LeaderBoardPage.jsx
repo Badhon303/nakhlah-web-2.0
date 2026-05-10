@@ -1,10 +1,57 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { Trophy } from "@/components/icons/Trophy";
+import { useSession } from "next-auth/react";
+import { getSessionToken, isSessionValid } from "@/lib/authUtils";
+import { buildApiUrl } from "@/lib/api-config";
+import { fetchLeaderboard } from "@/services/api";
+
+const LEADERBOARD_COLORS = [
+  "from-purple-500 to-pink-500",
+  "from-primary to-accent",
+  "from-orange-500 to-red-500",
+  "from-green-500 to-emerald-500",
+  "from-violet-500 to-purple-500",
+  "from-amber-500 to-orange-500",
+  "from-teal-500 to-cyan-500",
+  "from-rose-500 to-pink-500",
+];
+
+const toDisplayName = (fullName, email) => {
+  const trimmedName = (fullName || "").trim();
+  if (trimmedName) return trimmedName;
+  const trimmedEmail = (email || "").trim();
+  if (!trimmedEmail) return "Unknown learner";
+  return trimmedEmail;
+};
+
+const toAvatarText = (nameOrEmail) => {
+  const text = (nameOrEmail || "").trim();
+  if (!text) return "NA";
+  const localPart = text.includes("@") ? text.split("@")[0] : text;
+  const parts = localPart
+    .replace(/[^a-zA-Z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (parts.length >= 2) {
+    return `${parts[0][0] || ""}${parts[1][0] || ""}`.toUpperCase();
+  }
+  return localPart.slice(0, 2).toUpperCase();
+};
+
+const toMediaUrl = (url) => {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  return buildApiUrl(url);
+};
 
 export default function Leaderboard({ onViewProfile }) {
+  const { data: session, status } = useSession();
   const [timeFilter, setTimeFilter] = useState("weekly");
+  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const timeFilters = [
     { id: "weekly", label: "Weekly" },
@@ -12,68 +59,51 @@ export default function Leaderboard({ onViewProfile }) {
     { id: "alltime", label: "All Time" },
   ];
 
-  const leaderboardData = [
-    {
-      rank: 1,
-      name: "Maryland Winkles",
-      xp: 948,
-      avatar: "MW",
-      color: "from-purple-500 to-pink-500",
-    },
-    {
-      rank: 2,
-      name: "Andrew Ainsley",
-      xp: 872,
-      avatar: "AA",
-      color: "from-primary to-accent",
-      isCurrentUser: true,
-    },
-    {
-      rank: 3,
-      name: "Charlotte Hanlin",
-      xp: 769,
-      avatar: "CH",
-      color: "from-orange-500 to-red-500",
-    },
-    {
-      rank: 4,
-      name: "Florencio Dollore",
-      xp: 723,
-      avatar: "FD",
-      color: "from-green-500 to-emerald-500",
-    },
-    {
-      rank: 5,
-      name: "Roselle Ehram",
-      xp: 640,
-      avatar: "RE",
-      color: "from-violet-500 to-purple-500",
-    },
-    {
-      rank: 6,
-      name: "Darron Kulinowzi",
-      xp: 596,
-      avatar: "DK",
-      color: "from-amber-500 to-orange-500",
-    },
-    {
-      rank: 7,
-      name: "Clinton Mcclure",
-      xp: 537,
-      avatar: "CM",
-      color: "from-teal-500 to-cyan-500",
-    },
-    {
-      rank: 8,
-      name: "Darcell Ballentine",
-      xp: 481,
-      avatar: "DB",
-      color: "from-rose-500 to-pink-500",
-    },
-  ];
+  useEffect(() => {
+    const loadLeaderboard = async () => {
+      if (status === "loading") return;
+
+      if (!isSessionValid(session)) {
+        setLeaderboardData([]);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      const token = getSessionToken(session);
+      const result = await fetchLeaderboard(token);
+
+      if (result.success) {
+        const mapped = (result.leaderboard || []).map((item, index) => {
+          const name = toDisplayName(item?.fullName, item?.email);
+          const rankNumber = Number(item?.rank);
+
+          return {
+            rank: Number.isFinite(rankNumber) ? rankNumber : index + 1,
+            id: item?.id || `leader-${index}`,
+            name,
+            email: item?.email || "",
+            xp: Number(item?.injazCount) || 0,
+            avatar: toAvatarText(name),
+            avatarUrl: toMediaUrl(item?.profilePictureUrl),
+            color: LEADERBOARD_COLORS[index % LEADERBOARD_COLORS.length],
+            isCurrentUser:
+              Boolean(session?.user?.id) && session.user.id === item?.id,
+          };
+        });
+        mapped.sort((a, b) => a.rank - b.rank);
+        setLeaderboardData(mapped);
+      } else {
+        setLeaderboardData([]);
+      }
+
+      setIsLoading(false);
+    };
+
+    loadLeaderboard();
+  }, [session, status]);
 
   const topThree = leaderboardData.slice(0, 3);
-  const currentUser = leaderboardData.find((u) => u.isCurrentUser);
 
   return (
     <div className="min-h-screen">
@@ -137,7 +167,15 @@ export default function Leaderboard({ onViewProfile }) {
               <div
                 className={`w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-gradient-to-br ${topThree[1]?.color} flex items-center justify-center text-white font-bold text-xl lg:text-2xl shadow-xl border-4 border-background`}
               >
-                {topThree[1]?.avatar}
+                {topThree[1]?.avatarUrl ? (
+                  <img
+                    src={topThree[1].avatarUrl}
+                    alt={topThree[1]?.name || "Rank 2"}
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  topThree[1]?.avatar
+                )}
               </div>
             </motion.div>
             <div className="mt-2 bg-card rounded-2xl px-4 py-3 text-center shadow-lg border border-border min-w-[120px]">
@@ -164,7 +202,15 @@ export default function Leaderboard({ onViewProfile }) {
               <div
                 className={`w-24 h-24 lg:w-28 lg:h-28 rounded-full bg-gradient-to-br ${topThree[0]?.color} flex items-center justify-center text-white font-bold text-2xl lg:text-3xl shadow-2xl border-4 border-background`}
               >
-                {topThree[0]?.avatar}
+                {topThree[0]?.avatarUrl ? (
+                  <img
+                    src={topThree[0].avatarUrl}
+                    alt={topThree[0]?.name || "Rank 1"}
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  topThree[0]?.avatar
+                )}
               </div>
             </motion.div>
             <div className="mt-2 bg-card rounded-2xl px-6 py-4 text-center shadow-xl border-2 border-primary/20 min-w-[140px]">
@@ -191,7 +237,15 @@ export default function Leaderboard({ onViewProfile }) {
               <div
                 className={`w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-gradient-to-br ${topThree[2]?.color} flex items-center justify-center text-white font-bold text-xl lg:text-2xl shadow-xl border-4 border-background`}
               >
-                {topThree[2]?.avatar}
+                {topThree[2]?.avatarUrl ? (
+                  <img
+                    src={topThree[2].avatarUrl}
+                    alt={topThree[2]?.name || "Rank 3"}
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  topThree[2]?.avatar
+                )}
               </div>
             </motion.div>
             <div className="mt-2 bg-card rounded-2xl px-4 py-3 text-center shadow-lg border border-border min-w-[120px]">
@@ -215,41 +269,66 @@ export default function Leaderboard({ onViewProfile }) {
           transition={{ delay: 0.6 }}
           className="lg:space-y-3"
         >
-          {leaderboardData.slice(3).map((user, index) => (
-            <motion.button
-              key={user.rank}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.7 + index * 0.05 }}
-              onClick={() => onViewProfile(user)}
-              className={`w-full bg-transparent lg:bg-card flex items-center gap-4 px-2 py-4 lg:p-4 rounded-2xl transition-all hover:scale-[1.02] ${
-                user.isCurrentUser
-                  ? "bg-muted/30 border-2 border-primary lg:shadow-lg"
-                  : "border border-border shadow-md"
-              }`}
-            >
-              <div className="w-8 text-center">
-                <span className="font-bold text-muted-foreground text-lg">
-                  {user.rank}
-                </span>
-              </div>
-              <div
-                className={`w-14 h-14 rounded-full bg-gradient-to-br ${user.color} flex items-center justify-center text-white font-bold text-lg shadow-lg`}
+          {isLoading ? (
+            <div className="space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={`leader-skeleton-${i}`}
+                  className="h-20 rounded-2xl bg-card border border-border animate-pulse"
+                />
+              ))}
+            </div>
+          ) : leaderboardData.length === 0 ? (
+            <div className="w-full rounded-2xl border border-border bg-card p-5 text-center text-muted-foreground">
+              No leaderboard data available.
+            </div>
+          ) : (
+            leaderboardData.slice(3).map((user, index) => (
+              <motion.button
+                key={user.id}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7 + index * 0.05 }}
+                onClick={() => onViewProfile(user)}
+                className={`w-full bg-transparent lg:bg-card flex items-center gap-4 px-2 py-4 lg:p-4 rounded-2xl transition-all hover:scale-[1.02] ${
+                  user.isCurrentUser
+                    ? "bg-muted/30 border-2 border-primary lg:shadow-lg"
+                    : "border border-border shadow-md"
+                }`}
               >
-                {user.avatar}
-              </div>
-              <div className="flex-1 text-left">
-                <p
-                  className={`font-bold ${
-                    user.isCurrentUser ? "text-primary" : "text-foreground"
-                  }`}
+                <div className="w-8 text-center">
+                  <span className="font-bold text-muted-foreground text-lg">
+                    {user.rank}
+                  </span>
+                </div>
+                <div
+                  className={`w-14 h-14 rounded-full bg-gradient-to-br ${user.color} flex items-center justify-center text-white font-bold text-lg shadow-lg`}
                 >
-                  {user.name}
-                </p>
-                <p className="text-muted-foreground text-sm">{user.xp} Injaz</p>
-              </div>
-            </motion.button>
-          ))}
+                  {user.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    user.avatar
+                  )}
+                </div>
+                <div className="flex-1 text-left">
+                  <p
+                    className={`font-bold ${
+                      user.isCurrentUser ? "text-primary" : "text-foreground"
+                    }`}
+                  >
+                    {user.name}
+                  </p>
+                  <p className="text-muted-foreground text-sm">
+                    {user.xp} Injaz
+                  </p>
+                </div>
+              </motion.button>
+            ))
+          )}
         </motion.div>
       </div>
     </div>

@@ -382,6 +382,36 @@ export async function fetchLearnerStreak(token) {
     }
 }
 
+export async function fetchLeaderboard(token) {
+    try {
+        const { response } = await fetchWithAuthRetry("/api/user-profile/get-leaderboard", {
+            method: "GET",
+            token,
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to load leaderboard"));
+        }
+
+        return {
+            success: true,
+            leaderboard: Array.isArray(data?.data) ? data.data : [],
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch leaderboard error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to load leaderboard",
+        };
+    }
+}
+
 export async function forgotPassword(email) {
     try {
         const response = await fetch(withApiUrl("/api/users/forgot-password"), {

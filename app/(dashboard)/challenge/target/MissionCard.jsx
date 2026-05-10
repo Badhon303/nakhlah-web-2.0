@@ -11,18 +11,19 @@ const getIconUrl = (url) => {
   return `${API_URL}${url}`;
 };
 
-export default function MissionCard({ mission, onClaimMission, isClaiming }) {
+export default function MissionCard({ mission }) {
   const Icon = mission.icon;
   const iconUrl = getIconUrl(
     mission.iconUrl || mission.icon?.url || mission.icon,
   );
   const reward = Number(mission.reward) || 0;
-  const completed =
+  const completedByStatus =
+    (mission.status || "").toLowerCase() === "completed";
+  const completedByProgress =
     Number(mission.target) > 0 &&
     Number(mission.current) >= Number(mission.target);
+  const completed = completedByStatus || completedByProgress;
   const isActive = mission.active !== false;
-  const isClaimable = Boolean(mission.claimable);
-  const isDisabled = !isActive || isClaiming;
 
   return (
     <motion.div
@@ -76,16 +77,7 @@ export default function MissionCard({ mission, onClaimMission, isClaiming }) {
         </div>
       </div>
 
-      {isClaimable ? (
-        <button
-          type="button"
-          onClick={() => onClaimMission?.(mission)}
-          disabled={isDisabled}
-          className="mt-4 w-full rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {isClaiming ? "Claiming..." : "Claim"}
-        </button>
-      ) : null}
+      {/* Claim action is handled at lesson completion time for selected quests. */}
     </motion.div>
   );
 }

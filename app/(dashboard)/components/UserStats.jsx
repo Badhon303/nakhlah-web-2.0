@@ -18,6 +18,17 @@ import { getCached, setCached } from "@/lib/clientCache";
 
 const CACHE_PROFILE = "my_profile";
 
+const normalizeDateKey = (value) => {
+  if (!value) return "";
+  if (typeof value === "string") {
+    return value.slice(0, 10);
+  }
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+  return "";
+};
+
 export function UserStats() {
   const router = useRouter();
   const [mobileOpenCard, setMobileOpenCard] = useState(null);
@@ -63,7 +74,10 @@ export function UserStats() {
     const dates = Array.isArray(streakData?.dates) ? streakData.dates : [];
     return dates.reduce((acc, entry) => {
       if (entry?.date && entry?.status === "completed") {
-        acc[entry.date] = true;
+        const key = normalizeDateKey(entry.date);
+        if (key) {
+          acc[key] = true;
+        }
       }
       return acc;
     }, {});

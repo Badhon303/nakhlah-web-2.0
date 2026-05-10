@@ -1,10 +1,6 @@
 import MissionCard from "./MissionCard";
 
-export default function MissionSection({
-  section,
-  onClaimMission,
-  claimingMissionKey,
-}) {
+export default function MissionSection({ section }) {
   return (
     <div className="space-y-4">
       {/* Section header */}
@@ -31,12 +27,7 @@ export default function MissionSection({
       {/* Grid on desktop, list on mobile */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
         {section.missions.map((mission, index) => (
-          <MissionCard
-            key={index}
-            mission={mission}
-            onClaimMission={onClaimMission}
-            isClaiming={claimingMissionKey === mission.key}
-          />
+          <MissionCard key={index} mission={mission} />
         ))}
       </div>
     </div>

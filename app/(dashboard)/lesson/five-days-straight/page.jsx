@@ -15,6 +15,17 @@ const weekdayLabel = (date) =>
 
 const dateKey = (date) => date.toISOString().slice(0, 10);
 
+const normalizeDateKey = (value) => {
+  if (!value) return "";
+  if (typeof value === "string") {
+    return value.slice(0, 10);
+  }
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+  return "";
+};
+
 export default function FiveDaysStraight() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -41,7 +52,8 @@ export default function FiveDaysStraight() {
     const completedDates = new Set(
       (Array.isArray(streakData?.dates) ? streakData.dates : [])
         .filter((item) => item?.status === "completed" && item?.date)
-        .map((item) => item.date),
+        .map((item) => normalizeDateKey(item.date))
+        .filter(Boolean),
     );
 
     const today = new Date();

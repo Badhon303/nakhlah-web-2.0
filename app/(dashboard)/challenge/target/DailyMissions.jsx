@@ -2,15 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import MissionSection from "./MissionSection";
 import {
-  claimUserDailyQuest,
   fetchGamificationDailyQuest,
   fetchUserDailyQuest,
 } from "@/services/api";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
-import {
-  DAILY_QUEST_PARAM_BASED_CHALLENGES,
-  resolveDailyQuestClaimParam,
-} from "@/lib/gamification";
 
 const toTitleCase = (key = "") =>
   key
@@ -29,6 +24,8 @@ const questAliases = {
   scoreHighPoints: ["scoreHighPoints", "highScore", "scoreEightyPlus"],
   shareTheApp: ["shareTheApp", "shareApp"],
   spendDatesForLives: ["spendDatesForLives", "spendDates"],
+  completeLessonsToday: ["completeLessonsToday", "completeLessons"],
+  earnInjazToday: ["earnInjazToday", "earnInjaz"],
 };
 
 const resolveQuestAliases = (questId = "") => {
@@ -38,6 +35,16 @@ const resolveQuestAliases = (questId = "") => {
     aliases.includes(questId),
   );
   return Array.from(new Set([questId, ...explicit, ...(fromGroup || [])]));
+};
+
+const getMatchingQuestConfig = (challengeId, globalQuests) => {
+  const aliases = resolveQuestAliases(challengeId);
+  return globalQuests.find((quest) => {
+    const questKey = quest?.key || "";
+    if (!questKey) return false;
+    if (questKey === challengeId) return true;
+    return aliases.includes(questKey);
+  });
 };
 
 const getMatchingChallengeStatus = (questKey, challengeStatuses) => {
@@ -64,7 +71,6 @@ export default function DailyMissions() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [dailyMissions, setDailyMissions] = useState([]);
-  const [claimingMissionKey, setClaimingMissionKey] = useState("");
 
   const loadDailyQuests = useCallback(async () => {
     if (status === "loading") return;
@@ -116,36 +122,40 @@ export default function DailyMissions() {
           questKey,
           challengeStatuses,
         );
+        const questConfig =
+          getMatchingQuestConfig(questKey, globalQuests) || quest;
+        const statusValue = (statusEntry?.status || "pending").toLowerCase();
+        const isCompleted = statusValue === "completed";
         const current = Number(statusEntry?.details?.current) || 0;
         const target =
-          Number(statusEntry?.details?.required) || Number(quest.required) || 0;
-        const statusValue = statusEntry?.status || "pending";
-        const isActive = Boolean(statusEntry);
-        const claimQuestParam = resolveDailyQuestClaimParam(
-          statusEntry?.challengeId || questKey,
-        );
-        const shouldUseQuestParam =
-          DAILY_QUEST_PARAM_BASED_CHALLENGES.includes(claimQuestParam);
+          Number(statusEntry?.details?.required) ||
+          Number(questConfig?.required) ||
+          0;
 
         return {
           key: questKey,
-          label: quest.name
-            ? quest.name
-            : quest.key
-              ? toTitleCase(quest.key)
+          label: questConfig?.name
+            ? questConfig.name
+            : questKey
+              ? toTitleCase(questKey)
               : defaultLabels[index] || `Mission ${index + 1}`,
           current,
           target,
           reward:
-            Number(statusEntry?.details?.reward) || Number(quest.reward) || 0,
+            Number(statusEntry?.details?.reward) ||
+            Number(questConfig?.reward) ||
+            0,
           status: statusValue,
-          iconUrl: quest.icon?.url || quest.icon || "",
+          iconUrl: questConfig?.icon?.url || questConfig?.icon || "",
           type: "daily",
-          active: isActive,
-          claimable: isActive && statusValue === "completed",
-          claimQuestParam,
-          shouldUseQuestParam,
+          active: isCompleted,
         };
+      });
+
+      normalized.sort((a, b) => {
+        const aCompleted = a.active ? 1 : 0;
+        const bCompleted = b.active ? 1 : 0;
+        return bCompleted - aCompleted;
       });
 
       setDailyMissions(normalized);
@@ -159,38 +169,6 @@ export default function DailyMissions() {
   useEffect(() => {
     loadDailyQuests();
   }, [loadDailyQuests]);
-
-  const handleClaimMission = async (mission) => {
-    if (!mission?.claimable || claimingMissionKey) return;
-    if (!isSessionValid(session)) {
-      setLoadError("Please login to claim daily quests.");
-      return;
-    }
-
-    const token = getSessionToken(session);
-    if (!token) {
-      setLoadError("No authentication token available.");
-      return;
-    }
-
-    try {
-      setClaimingMissionKey(mission.key || "");
-      const questParam = mission.shouldUseQuestParam
-        ? resolveDailyQuestClaimParam(mission.claimQuestParam)
-        : undefined;
-      const claimResult = await claimUserDailyQuest(token, questParam);
-
-      if (!claimResult.success) {
-        throw new Error(claimResult.error || "Failed to claim daily quest.");
-      }
-
-      await loadDailyQuests();
-    } catch (error) {
-      setLoadError(error?.message || "Unable to claim daily quest.");
-    } finally {
-      setClaimingMissionKey("");
-    }
-  };
 
   const sections = useMemo(() => {
     return questSections.map((section) => ({
@@ -225,12 +203,7 @@ export default function DailyMissions() {
         </div>
       )}
       {activeSections.map((section) => (
-        <MissionSection
-          key={section.type}
-          section={section}
-          onClaimMission={handleClaimMission}
-          claimingMissionKey={claimingMissionKey}
-        />
+        <MissionSection key={section.type} section={section} />
       ))}
     </div>
   );

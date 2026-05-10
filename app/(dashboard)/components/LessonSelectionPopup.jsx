@@ -227,10 +227,10 @@ export function LessonSelectionPopup({
 
       const activeGiftLessonId =
         lessons.find((lesson) => lesson.isCurrent || !lesson.isLocked)?.id ||
-        lessons[0]?.id;
-      const targetLessonId = activeGiftLessonId
-        ? await resolveImmediateNextLessonId(activeGiftLessonId)
-        : "";
+        lessons[0]?.id ||
+        "";
+      const targetLessonId =
+        await resolveImmediateNextLessonId(activeGiftLessonId);
 
       if (targetLessonId) {
         await makeLearnerProgress(targetLessonId, token);
