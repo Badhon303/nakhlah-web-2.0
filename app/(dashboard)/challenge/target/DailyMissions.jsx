@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import MissionSection from "./MissionSection";
-import { fetchGamificationDailyQuest, fetchMyProfile } from "@/services/api";
+import {
+  fetchGamificationDailyQuest,
+  fetchUserDailyQuest,
+} from "@/services/api";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
-import { getDailyQuestCurrentValue } from "@/lib/gamification";
 
 const toTitleCase = (key = "") =>
   key
@@ -16,6 +18,44 @@ const defaultLabels = [
   "Score goal challenge",
   "Bonus challenge",
 ];
+
+const questAliases = {
+  lessonWithNoMistake: ["lessonWithNoMistake", "noMistakes"],
+  scoreHighPoints: ["scoreHighPoints", "highScore", "scoreEightyPlus"],
+  shareTheApp: ["shareTheApp", "shareApp"],
+  spendDatesForLives: ["spendDatesForLives", "spendDates"],
+  completeLessonsToday: ["completeLessonsToday", "completeLessons"],
+  earnInjazToday: ["earnInjazToday", "earnInjaz"],
+};
+
+const resolveQuestAliases = (questId = "") => {
+  if (!questId) return [];
+  const explicit = questAliases[questId] || [];
+  const fromGroup = Object.values(questAliases).find((aliases) =>
+    aliases.includes(questId),
+  );
+  return Array.from(new Set([questId, ...explicit, ...(fromGroup || [])]));
+};
+
+const getMatchingQuestConfig = (challengeId, globalQuests) => {
+  const aliases = resolveQuestAliases(challengeId);
+  return globalQuests.find((quest) => {
+    const questKey = quest?.key || "";
+    if (!questKey) return false;
+    if (questKey === challengeId) return true;
+    return aliases.includes(questKey);
+  });
+};
+
+const getMatchingChallengeStatus = (questKey, challengeStatuses) => {
+  const aliases = resolveQuestAliases(questKey);
+  return challengeStatuses.find((item) => {
+    const challengeId = item?.challengeId || "";
+    if (!challengeId) return false;
+    if (challengeId === questKey) return true;
+    return aliases.includes(challengeId);
+  });
+};
 
 const questSections = [
   {
@@ -32,79 +72,103 @@ export default function DailyMissions() {
   const [loadError, setLoadError] = useState("");
   const [dailyMissions, setDailyMissions] = useState([]);
 
-  useEffect(() => {
-    const loadDailyQuests = async () => {
-      if (status === "loading") return;
+  const loadDailyQuests = useCallback(async () => {
+    if (status === "loading") return;
 
-      if (!isSessionValid(session)) {
-        setIsLoading(false);
-        setLoadError("Please login to view quests.");
-        return;
+    if (!isSessionValid(session)) {
+      setIsLoading(false);
+      setLoadError("Please login to view quests.");
+      return;
+    }
+
+    const token = getSessionToken(session);
+    if (!token) {
+      setIsLoading(false);
+      setLoadError("No authentication token available.");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setLoadError("");
+
+      const [globalResult, userQuestResult] = await Promise.all([
+        fetchGamificationDailyQuest(token),
+        fetchUserDailyQuest(token),
+      ]);
+
+      if (!globalResult.success) {
+        throw new Error(globalResult.error || "Failed to load daily quests.");
       }
 
-      const token = getSessionToken(session);
-      if (!token) {
-        setIsLoading(false);
-        setLoadError("No authentication token available.");
-        return;
+      if (!userQuestResult.success) {
+        throw new Error(
+          userQuestResult.error || "Failed to load current daily quest status.",
+        );
       }
 
-      try {
-        setIsLoading(true);
-        setLoadError("");
+      const globalQuests = Array.isArray(globalResult.dailyQuest)
+        ? globalResult.dailyQuest
+        : [];
+      const challengeStatuses = Array.isArray(
+        userQuestResult.dailyQuest?.challengeStatuses,
+      )
+        ? userQuestResult.dailyQuest.challengeStatuses
+        : [];
 
-        const [globalResult, profileResult] = await Promise.all([
-          fetchGamificationDailyQuest(token),
-          fetchMyProfile(token),
-        ]);
+      const normalized = globalQuests.map((quest, index) => {
+        const questKey = quest.key || `daily-${index + 1}`;
+        const statusEntry = getMatchingChallengeStatus(
+          questKey,
+          challengeStatuses,
+        );
+        const questConfig =
+          getMatchingQuestConfig(questKey, globalQuests) || quest;
+        const statusValue = (statusEntry?.status || "pending").toLowerCase();
+        const isCompleted = statusValue === "completed";
+        const current = Number(statusEntry?.details?.current) || 0;
+        const target =
+          Number(statusEntry?.details?.required) ||
+          Number(questConfig?.required) ||
+          0;
 
-        if (!globalResult.success) {
-          throw new Error(globalResult.error || "Failed to load daily quests.");
-        }
+        return {
+          key: questKey,
+          label: questConfig?.name
+            ? questConfig.name
+            : questKey
+              ? toTitleCase(questKey)
+              : defaultLabels[index] || `Mission ${index + 1}`,
+          current,
+          target,
+          reward:
+            Number(statusEntry?.details?.reward) ||
+            Number(questConfig?.reward) ||
+            0,
+          status: statusValue,
+          iconUrl: questConfig?.icon?.url || questConfig?.icon || "",
+          type: "daily",
+          active: isCompleted,
+        };
+      });
 
-        if (!profileResult.success) {
-          throw new Error(
-            profileResult.error ||
-              "Failed to load current daily quest progress.",
-          );
-        }
+      normalized.sort((a, b) => {
+        const aCompleted = a.active ? 1 : 0;
+        const bCompleted = b.active ? 1 : 0;
+        return bCompleted - aCompleted;
+      });
 
-        const globalQuests = Array.isArray(globalResult.dailyQuest)
-          ? globalResult.dailyQuest
-          : [];
-        const profile = profileResult.profile || null;
-
-        const normalized = globalQuests.map((quest, index) => {
-          const questKey = quest.key || `daily-${index + 1}`;
-          const current = getDailyQuestCurrentValue(questKey, profile);
-          const target = Number(quest.required) || 0;
-
-          return {
-            key: questKey,
-            label: quest.name
-              ? quest.name
-              : quest.key
-                ? toTitleCase(quest.key)
-                : defaultLabels[index] || `Mission ${index + 1}`,
-            current,
-            target,
-            reward: Number(quest.reward) || 0,
-            status: current >= target && target > 0 ? "completed" : "pending",
-            iconUrl: quest.icon?.url || quest.icon || "",
-            type: "daily",
-          };
-        });
-
-        setDailyMissions(normalized);
-      } catch (error) {
-        setLoadError(error?.message || "Unable to load daily quests.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadDailyQuests();
+      setDailyMissions(normalized);
+    } catch (error) {
+      setLoadError(error?.message || "Unable to load daily quests.");
+    } finally {
+      setIsLoading(false);
+    }
   }, [session, status]);
+
+  useEffect(() => {
+    loadDailyQuests();
+  }, [loadDailyQuests]);
 
   const sections = useMemo(() => {
     return questSections.map((section) => ({

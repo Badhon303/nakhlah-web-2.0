@@ -10,16 +10,8 @@ import { Flame } from "@/components/icons/Flame";
 import { CheckCircle2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
-import { fetchGamificationDailyQuest, fetchMyProfile } from "@/services/api";
+import { fetchUserDailyQuest } from "@/services/api";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
-import { getDailyQuestCurrentValue } from "@/lib/gamification";
-
-const defaultMissionLabels = [
-  "Complete daily challenge",
-  "Practice streak target",
-  "Score goal challenge",
-  "Bonus challenge",
-];
 
 const missionIcons = [HighVoltage, GemStone, Bullseye, Flame];
 
@@ -56,42 +48,33 @@ export default function DailyMissionUpdate() {
         setIsLoading(true);
         setLoadError("");
 
-        const [profileResult, globalResult] = await Promise.all([
-          fetchMyProfile(token),
-          fetchGamificationDailyQuest(token),
-        ]);
+        const dailyQuestResult = await fetchUserDailyQuest(token);
 
-        if (!profileResult.success) {
+        if (!dailyQuestResult.success) {
           throw new Error(
-            profileResult.error || "Failed to load daily mission progress.",
+            dailyQuestResult.error || "Failed to load daily mission progress.",
           );
         }
 
-        if (!globalResult.success) {
-          throw new Error(globalResult.error || "Failed to load daily quests.");
-        }
-
-        const globalDailyQuest = Array.isArray(globalResult.dailyQuest)
-          ? globalResult.dailyQuest
+        const challengeStatuses = Array.isArray(
+          dailyQuestResult.dailyQuest?.challengeStatuses,
+        )
+          ? dailyQuestResult.dailyQuest.challengeStatuses
           : [];
-        const profile = profileResult.profile || null;
 
-        const merged = globalDailyQuest.map((quest, index) => {
-          const current = getDailyQuestCurrentValue(quest?.key, profile);
-          const target = Number(quest?.required) || 0;
+        const merged = challengeStatuses.map((quest, index) => {
+          const challengeId = quest?.challengeId || `daily-${index + 1}`;
+          const current = Number(quest?.details?.current) || 0;
+          const target = Number(quest?.details?.required) || 0;
+          const completed = quest?.status === "completed";
           const IconComponent = missionIcons[index % missionIcons.length];
 
           return {
-            key: quest?.key || `daily-${index + 1}`,
-            label:
-              quest?.name ||
-              (quest?.key && toTitleCase(quest.key)) ||
-              defaultMissionLabels[index] ||
-              `Mission ${index + 1}`,
+            key: challengeId,
+            label: toTitleCase(challengeId),
             current,
             target,
-            reward: Number(quest?.reward) || 0,
-            completed: target > 0 && current >= target,
+            completed,
             IconComponent,
           };
         });
@@ -194,17 +177,16 @@ export default function DailyMissionUpdate() {
                           {mission.label}
                         </p>
                         <p className="text-xs text-left text-muted-foreground mt-1">
-                          Reward: {mission.reward.toLocaleString()} Injaz
+                          {mission.completed ? "Completed" : "In progress"}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <p className="text-sm text-muted-foreground">
-                        {mission.current} / {mission.target}
-                      </p>
                       {mission.completed ? (
                         <CheckCircle2 className="w-5 h-5 text-accent" />
-                      ) : null}
+                      ) : (
+                        <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/40" />
+                      )}
                     </div>
                   </div>
                 </motion.div>

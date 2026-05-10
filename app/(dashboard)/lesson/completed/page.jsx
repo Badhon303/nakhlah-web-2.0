@@ -43,8 +43,9 @@ export default function LessonCompleted() {
   const injazReceived =
     progressData?.injazReceived ??
     progressData?.InjazReceived ??
-    progressData?.InjazEarned ??
-    progressData?.dailyQuest?.InjazEarned ??
+    progressData?.injazReward ??
+    progressData?.reward?.injazReceived ??
+    progressData?.reward?.InjazReceived ??
     progressData?.xpEarned ??
     progressData?.injazStock ??
     0;

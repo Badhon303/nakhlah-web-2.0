@@ -49,11 +49,19 @@ export default function UserProfilePage({ user, onBack }) {
                 } p-1`}
               >
                 <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border-4 border-background lg:border-card overflow-hidden flex items-center justify-center text-3xl lg:text-4xl font-bold text-white">
-                  {user?.avatar || "MW"}
+                  {user?.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user?.name || "User"}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    user?.avatar || "MW"
+                  )}
                 </div>
               </div>
               <div className="absolute -bottom-2 -right-2 w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold text-base lg:text-lg shadow-xl border-4 border-background lg:border-card">
-                5
+                {user?.rank || 0}
               </div>
             </div>
 

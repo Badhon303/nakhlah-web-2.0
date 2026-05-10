@@ -17,16 +17,24 @@ export default function MissionCard({ mission }) {
     mission.iconUrl || mission.icon?.url || mission.icon,
   );
   const reward = Number(mission.reward) || 0;
-  const completed =
+  const completedByStatus =
+    (mission.status || "").toLowerCase() === "completed";
+  const completedByProgress =
     Number(mission.target) > 0 &&
     Number(mission.current) >= Number(mission.target);
+  const completed = completedByStatus || completedByProgress;
+  const isActive = mission.active !== false;
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      whileHover={{ scale: 1.02 }}
-      className="bg-card border border-border rounded-2xl p-5 shadow-md hover:shadow-lg transition-all"
+      whileHover={isActive ? { scale: 1.02 } : {}}
+      className={`bg-card border rounded-2xl p-5 shadow-md transition-all ${
+        isActive
+          ? "border-border hover:shadow-lg"
+          : "border-border/40 opacity-40 grayscale pointer-events-none"
+      }`}
     >
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4 min-w-0">
@@ -68,6 +76,8 @@ export default function MissionCard({ mission }) {
           {completed ? <CheckCircle2 className="w-5 h-5 text-accent" /> : null}
         </div>
       </div>
+
+      {/* Claim action is handled at lesson completion time for selected quests. */}
     </motion.div>
   );
 }
