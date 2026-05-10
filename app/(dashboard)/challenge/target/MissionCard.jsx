@@ -11,7 +11,7 @@ const getIconUrl = (url) => {
   return `${API_URL}${url}`;
 };
 
-export default function MissionCard({ mission }) {
+export default function MissionCard({ mission, onClaimMission, isClaiming }) {
   const Icon = mission.icon;
   const iconUrl = getIconUrl(
     mission.iconUrl || mission.icon?.url || mission.icon,
@@ -20,13 +20,20 @@ export default function MissionCard({ mission }) {
   const completed =
     Number(mission.target) > 0 &&
     Number(mission.current) >= Number(mission.target);
+  const isActive = mission.active !== false;
+  const isClaimable = Boolean(mission.claimable);
+  const isDisabled = !isActive || isClaiming;
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      whileHover={{ scale: 1.02 }}
-      className="bg-card border border-border rounded-2xl p-5 shadow-md hover:shadow-lg transition-all"
+      whileHover={isActive ? { scale: 1.02 } : {}}
+      className={`bg-card border rounded-2xl p-5 shadow-md transition-all ${
+        isActive
+          ? "border-border hover:shadow-lg"
+          : "border-border/40 opacity-40 grayscale pointer-events-none"
+      }`}
     >
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4 min-w-0">
@@ -68,6 +75,17 @@ export default function MissionCard({ mission }) {
           {completed ? <CheckCircle2 className="w-5 h-5 text-accent" /> : null}
         </div>
       </div>
+
+      {isClaimable ? (
+        <button
+          type="button"
+          onClick={() => onClaimMission?.(mission)}
+          disabled={isDisabled}
+          className="mt-4 w-full rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isClaiming ? "Claiming..." : "Claim"}
+        </button>
+      ) : null}
     </motion.div>
   );
 }

@@ -14,6 +14,10 @@ import { updateMyProfile } from "@/services/api/auth";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { toast } from "@/components/nakhlah/Toast";
+import { getCached, setCached, invalidateCache } from "@/lib/clientCache";
+
+const CACHE_JOURNEY = "journey_structure";
+const CACHE_PROFILE = "my_profile";
 
 const mascots = [];
 
@@ -149,7 +153,6 @@ export default function LearnPage() {
 
   const loadJourney = useCallback(async () => {
     try {
-      setIsLoading(true);
       setLoadError("");
 
       if (status === "loading") return;
@@ -157,6 +160,21 @@ export default function LearnPage() {
         throw new Error("Please login to view your journey.");
       }
 
+      // Serve from cache instantly — no loading flicker on revisit
+      const cachedJourney = getCached(CACHE_JOURNEY);
+      const cachedProfile = getCached(CACHE_PROFILE);
+      if (cachedJourney && cachedProfile) {
+        const { sections, nodes } = buildJourneyView(
+          cachedJourney,
+          cachedProfile?.currentProgress || null,
+        );
+        setLevels(sections);
+        setLessons(nodes);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
       const token = getSessionToken(session);
       const [profileResult, journeyResult] = await Promise.all([
         fetchMyProfile(token),
@@ -169,9 +187,15 @@ export default function LearnPage() {
         );
       }
 
+      const journeyData = journeyResult.data || {};
+      const profileData = profileResult?.profile || null;
+
+      setCached(CACHE_JOURNEY, journeyData);
+      if (profileData) setCached(CACHE_PROFILE, profileData);
+
       const { sections, nodes } = buildJourneyView(
-        journeyResult.data || {},
-        profileResult?.profile?.currentProgress || null,
+        journeyData,
+        profileData?.currentProgress || null,
       );
       setLevels(sections);
       setLessons(nodes);
@@ -190,6 +214,8 @@ export default function LearnPage() {
     if (typeof window === "undefined") return undefined;
 
     const handleJourneyUpdated = () => {
+      invalidateCache(CACHE_JOURNEY);
+      invalidateCache(CACHE_PROFILE);
       loadJourney();
     };
 

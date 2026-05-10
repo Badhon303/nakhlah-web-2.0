@@ -18,10 +18,15 @@ import {
   fetchLessonQuestions as fetchLessonAPI,
   fetchTaskExamQuestions,
   fetchMyProfile,
+  claimUserDailyQuest,
   makeLearnerProgress,
   reportFullMarks,
   reportWrongAnswer,
 } from "@/services/api";
+import { getCached, setCached } from "@/lib/clientCache";
+import { resolveLessonCompletionDailyQuestParams } from "@/lib/gamification";
+
+const CACHE_PROFILE = "my_profile";
 import LessonLoadingView from "./loading/LessonLoadingView";
 
 const LESSON_SESSION_STORAGE_KEY = "activeLessonSessionV1";
@@ -118,6 +123,45 @@ function sortExamQuestionsForDisplay(questions) {
       return a.index - b.index;
     })
     .map(({ question }) => question);
+}
+
+function normalizeLessonRewardPayload(payload) {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  const injazReceived = Number(
+    payload?.injazReceived ??
+      payload?.InjazReceived ??
+      payload?.InjazEarned ??
+      payload?.injazReward ??
+      payload?.reward?.injazReceived ??
+      payload?.reward?.InjazReceived ??
+      payload?.reward?.InjazEarned ??
+      0,
+  );
+
+  return {
+    ...payload,
+    injazReceived: Number.isFinite(injazReceived) ? injazReceived : 0,
+  };
+}
+
+async function claimLessonCompletionDailyQuests(token, rewards) {
+  if (!token) return [];
+
+  const questParams = resolveLessonCompletionDailyQuestParams(rewards);
+  if (!questParams.length) return [];
+
+  const results = [];
+  for (const questParam of questParams) {
+    const claimResult = await claimUserDailyQuest(token, questParam);
+    if (claimResult.success && claimResult.data) {
+      results.push(claimResult.data);
+    }
+  }
+
+  return results;
 }
 
 export default function LessonPage() {
@@ -280,18 +324,25 @@ export default function LessonPage() {
           ? fetchTaskExamQuestions(taskId, token)
           : fetchLessonAPI(lessonId, token);
 
+        const cachedProfile = getCached(CACHE_PROFILE);
         const [result, profileResult] = await Promise.all([
           questionsRequest,
-          fetchMyProfile(token),
+          cachedProfile ? Promise.resolve(null) : fetchMyProfile(token),
         ]);
 
         if (!result.success) {
           throw new Error(result.error);
         }
 
-        if (profileResult?.success) {
+        const resolvedProfile =
+          cachedProfile ||
+          (profileResult?.success ? profileResult.profile : null);
+        if (resolvedProfile) {
+          if (!cachedProfile && profileResult?.success) {
+            setCached(CACHE_PROFILE, resolvedProfile);
+          }
           const palmStock = Number(
-            profileResult.profile?.gamificationStock?.palm?.palmStock,
+            resolvedProfile?.gamificationStock?.palm?.palmStock,
           );
           if (Number.isFinite(palmStock)) {
             setLives(palmStock);
@@ -511,37 +562,103 @@ export default function LessonPage() {
     }
   };
 
-  const completeLessonAndRedirect = async () => {
+  const completeLessonAndRedirect = async ({
+    skipLearnerProgress = false,
+    rewardPayload = null,
+    accuracyPercentageOverride = null,
+    hasWrongAnswerOverride = null,
+  } = {}) => {
     const lessonId = sessionStorage.getItem("selectedLessonId")?.trim();
+    const nextLessonId = sessionStorage.getItem("selectedNextLessonId")?.trim();
     const token = getSessionToken(session);
+    let progressPayload = normalizeLessonRewardPayload(rewardPayload);
 
-    if (lessonId && token) {
-      const progressResult = await makeLearnerProgress(lessonId, token);
+    if (lessonId && token && !skipLearnerProgress && nextLessonId) {
+      const progressResult = await makeLearnerProgress(nextLessonId, token);
       if (progressResult.success && progressResult.data) {
-        const accuracyPercentage =
-          totalAnswerAttempts > 0
-            ? Math.round((correctAnswerAttempts / totalAnswerAttempts) * 100)
-            : 0;
-
-        sessionStorage.setItem(
-          "lessonProgressData",
-          JSON.stringify({
-            ...progressResult.data,
-            ...(fullMarksRewardData || {}),
-            __clientStats: {
-              elapsedSeconds,
-              totalAnswerAttempts,
-              correctAnswerAttempts,
-              accuracyPercentage,
-            },
-          }),
-        );
+        progressPayload = normalizeLessonRewardPayload({
+          ...progressResult.data,
+          ...(progressPayload || {}),
+        });
       }
+    }
+
+    if (progressPayload) {
+      const accuracyPercentage = Number.isFinite(
+        Number(accuracyPercentageOverride),
+      )
+        ? Number(accuracyPercentageOverride)
+        : totalAnswerAttempts > 0
+          ? Math.round((correctAnswerAttempts / totalAnswerAttempts) * 100)
+          : 0;
+      const hasWrongAnswerToUse =
+        typeof hasWrongAnswerOverride === "boolean"
+          ? hasWrongAnswerOverride
+          : hasWrongAnswer;
+
+      const dailyQuestClaims = await claimLessonCompletionDailyQuests(token, {
+        accuracyPercentage,
+        hasWrongAnswer: hasWrongAnswerToUse,
+      });
+
+      const mergedClaimPayload = dailyQuestClaims.reduce(
+        (accumulator, item) => {
+          const itemInjaz = Number(
+            item?.injazReceived ??
+              item?.InjazReceived ??
+              item?.injazReward ??
+              item?.reward?.injazReceived ??
+              item?.reward?.InjazReceived ??
+              item?.reward?.injazReward ??
+              0,
+          );
+
+          return {
+            ...accumulator,
+            injazReceived:
+              (Number(accumulator?.injazReceived) || 0) +
+              (Number.isFinite(itemInjaz) ? itemInjaz : 0),
+            badges: {
+              added: [
+                ...(Array.isArray(accumulator?.badges?.added)
+                  ? accumulator.badges.added
+                  : []),
+                ...(Array.isArray(item?.badges?.added)
+                  ? item.badges.added
+                  : []),
+              ],
+              total: [
+                ...(Array.isArray(accumulator?.badges?.total)
+                  ? accumulator.badges.total
+                  : []),
+                ...(Array.isArray(item?.badges?.total)
+                  ? item.badges.total
+                  : []),
+              ],
+            },
+          };
+        },
+        progressPayload,
+      );
+
+      sessionStorage.setItem(
+        "lessonProgressData",
+        JSON.stringify({
+          ...mergedClaimPayload,
+          __clientStats: {
+            elapsedSeconds,
+            totalAnswerAttempts,
+            correctAnswerAttempts,
+            accuracyPercentage,
+          },
+        }),
+      );
     }
 
     sessionStorage.removeItem("currentLessonIndex");
     sessionStorage.removeItem(LESSON_SESSION_STORAGE_KEY);
     sessionStorage.removeItem("selectedLessonId");
+    sessionStorage.removeItem("selectedNextLessonId");
     sessionStorage.removeItem("selectedNodeId");
     sessionStorage.removeItem("selectedLessonIsExam");
     sessionStorage.removeItem("selectedLessonStatus");
@@ -555,12 +672,24 @@ export default function LessonPage() {
     }
 
     const lessonId = sessionStorage.getItem("selectedLessonId")?.trim();
+    const nextLessonId = sessionStorage.getItem("selectedNextLessonId")?.trim();
     const token = getSessionToken(session);
 
-    if (lessonId && token && isExamLesson && !hasWrongAnswer) {
+    if (lessonId && token && !hasWrongAnswer) {
       const fullMarksResult = await reportFullMarks(lessonId, token);
       if (fullMarksResult.success) {
-        setFullMarksRewardData(fullMarksResult.data || null);
+        const rewardData = fullMarksResult.data || null;
+        setFullMarksRewardData(rewardData);
+        await completeLessonAndRedirect({
+          skipLearnerProgress: true,
+          rewardPayload: rewardData,
+          accuracyPercentageOverride:
+            totalAnswerAttempts > 0
+              ? Math.round((correctAnswerAttempts / totalAnswerAttempts) * 100)
+              : 0,
+          hasWrongAnswerOverride: hasWrongAnswer,
+        });
+        return;
       } else {
         const fullMarksError = (fullMarksResult.error || "").toLowerCase();
         const shouldShowAlreadyClaimed =

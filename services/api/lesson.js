@@ -350,6 +350,31 @@ function normalizeDailyQuestPayload(payload) {
     }));
 }
 
+function normalizeUserDailyQuestPayload(payload) {
+    const statuses = Array.isArray(payload?.challengeStatuses)
+        ? payload.challengeStatuses
+        : [];
+
+    return {
+        challengeStatuses: statuses
+            .map((item) => ({
+                challengeId: item?.challengeId || "",
+                status: item?.status || "pending",
+                details: {
+                    required: Number(item?.details?.required) || 0,
+                    current: Number(item?.details?.current) || 0,
+                    reward: Number(item?.details?.reward) || 0,
+                },
+            }))
+            .filter((item) => Boolean(item.challengeId)),
+        injazReward: Number(payload?.injazReward) || 0,
+        badges: {
+            added: Array.isArray(payload?.badges?.added) ? payload.badges.added : [],
+            total: Array.isArray(payload?.badges?.total) ? payload.badges.total : [],
+        },
+    };
+}
+
 export async function fetchGamificationBadges(token) {
     try {
         if (!token) {
@@ -439,6 +464,71 @@ export async function fetchGamificationDailyQuest(token) {
         return {
             success: false,
             error: error.message || "Unable to load daily quests",
+        };
+    }
+}
+
+export async function fetchUserDailyQuest(token) {
+    try {
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        const response = await fetchWithAuthRetry("/api/user-profile/daily-quest", {
+            method: "GET",
+            token,
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(data?.message || "Failed to load user daily quest");
+        }
+
+        return {
+            success: true,
+            dailyQuest: normalizeUserDailyQuestPayload(data),
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch user daily quest error:", error);
+        return {
+            success: false,
+            error: error.message || "Unable to load user daily quest",
+        };
+    }
+}
+
+export async function claimUserDailyQuest(token, quest) {
+    try {
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        const endpoint = quest
+            ? `/api/user-profile/daily-quest?quest=${encodeURIComponent(quest)}`
+            : "/api/user-profile/daily-quest";
+
+        const response = await fetchWithAuthRetry(endpoint, {
+            method: "GET",
+            token,
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(data?.message || "Failed to claim daily quest");
+        }
+
+        return {
+            success: true,
+            data,
+        };
+    } catch (error) {
+        console.error("Claim user daily quest error:", error);
+        return {
+            success: false,
+            error: error.message || "Unable to claim daily quest",
         };
     }
 }
