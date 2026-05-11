@@ -20,6 +20,10 @@ import {
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { hasOpenedGiftBox } from "@/lib/gamification";
+import {
+  getDailyQuestUserKey,
+  invalidateDailyQuestBundle,
+} from "@/lib/dailyQuestCache";
 
 const sortByOrder = (items, key) =>
   [...(items || [])].sort((a, b) => (a?.[key] || 0) - (b?.[key] || 0));
@@ -233,7 +237,10 @@ export function LessonSelectionPopup({
         await resolveImmediateNextLessonId(activeGiftLessonId);
 
       if (targetLessonId) {
-        await makeLearnerProgress(targetLessonId, token);
+        const progressResult = await makeLearnerProgress(targetLessonId, token);
+        if (progressResult?.success) {
+          invalidateDailyQuestBundle(getDailyQuestUserKey(session));
+        }
         if (typeof window !== "undefined") {
           window.dispatchEvent(new Event("nakhlah:journey-updated"));
         }

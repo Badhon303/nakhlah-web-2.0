@@ -25,6 +25,10 @@ import {
 } from "@/services/api";
 import { getCached, setCached } from "@/lib/clientCache";
 import { resolveLessonCompletionDailyQuestParams } from "@/lib/gamification";
+import {
+  getDailyQuestUserKey,
+  invalidateDailyQuestBundle,
+} from "@/lib/dailyQuestCache";
 
 const CACHE_PROFILE = "my_profile";
 import LessonLoadingView from "./loading/LessonLoadingView";
@@ -567,15 +571,18 @@ export default function LessonPage() {
     rewardPayload = null,
     accuracyPercentageOverride = null,
     hasWrongAnswerOverride = null,
+    forceDailyQuestRefresh = false,
   } = {}) => {
     const lessonId = sessionStorage.getItem("selectedLessonId")?.trim();
     const nextLessonId = sessionStorage.getItem("selectedNextLessonId")?.trim();
     const token = getSessionToken(session);
     let progressPayload = normalizeLessonRewardPayload(rewardPayload);
+    let shouldInvalidateDailyQuestCache = Boolean(forceDailyQuestRefresh);
 
     if (lessonId && token && !skipLearnerProgress && nextLessonId) {
       const progressResult = await makeLearnerProgress(nextLessonId, token);
       if (progressResult.success && progressResult.data) {
+        shouldInvalidateDailyQuestCache = true;
         progressPayload = normalizeLessonRewardPayload({
           ...progressResult.data,
           ...(progressPayload || {}),
@@ -600,6 +607,10 @@ export default function LessonPage() {
         accuracyPercentage,
         hasWrongAnswer: hasWrongAnswerToUse,
       });
+
+      if (dailyQuestClaims.length > 0) {
+        shouldInvalidateDailyQuestCache = true;
+      }
 
       const mergedClaimPayload = dailyQuestClaims.reduce(
         (accumulator, item) => {
@@ -655,6 +666,10 @@ export default function LessonPage() {
       );
     }
 
+    if (token && shouldInvalidateDailyQuestCache) {
+      invalidateDailyQuestBundle(getDailyQuestUserKey(session));
+    }
+
     sessionStorage.removeItem("currentLessonIndex");
     sessionStorage.removeItem(LESSON_SESSION_STORAGE_KEY);
     sessionStorage.removeItem("selectedLessonId");
@@ -689,6 +704,7 @@ export default function LessonPage() {
         await completeLessonAndRedirect({
           skipLearnerProgress: true,
           rewardPayload: rewardData,
+          forceDailyQuestRefresh: true,
           accuracyPercentageOverride:
             totalAnswerAttempts > 0
               ? Math.round((correctAnswerAttempts / totalAnswerAttempts) * 100)

@@ -49,15 +49,8 @@ const toMediaUrl = (url) => {
 
 export default function Leaderboard({ onViewProfile }) {
   const { data: session, status } = useSession();
-  const [timeFilter, setTimeFilter] = useState("weekly");
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  const timeFilters = [
-    { id: "weekly", label: "Weekly" },
-    { id: "monthly", label: "Monthly" },
-    { id: "alltime", label: "All Time" },
-  ];
 
   useEffect(() => {
     const loadLeaderboard = async () => {
@@ -125,28 +118,6 @@ export default function Leaderboard({ onViewProfile }) {
           <button className="w-10 h-10 rounded-xl hover:bg-muted flex items-center justify-center transition-colors">
             <Search className="w-5 h-5 text-muted-foreground" />
           </button>
-        </motion.div>
-
-        {/* Time Filters */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="flex gap-2 mb-8 mx-auto justify-center lg:justify-start"
-        >
-          {timeFilters.map((filter) => (
-            <button
-              key={filter.id}
-              onClick={() => setTimeFilter(filter.id)}
-              className={`px-6 py-2 rounded-full text-sm font-semibold transition-all ${
-                timeFilter === filter.id
-                  ? "bg-primary text-primary-foreground shadow-lg"
-                  : "bg-card text-muted-foreground hover:bg-muted border border-border"
-              }`}
-            >
-              {filter.label}
-            </button>
-          ))}
         </motion.div>
 
         {/* Top 3 Podium */}

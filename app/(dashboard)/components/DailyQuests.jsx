@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Circle } from "lucide-react";
 import { CardMenuOptions } from "@/components/nakhlah/CardMenuOptions";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -12,6 +12,12 @@ import {
   fetchUserDailyQuest,
 } from "@/services/api";
 import { buildApiUrl } from "@/lib/api-config";
+import {
+  getDailyQuestUserKey,
+  getCachedDailyQuestBundle,
+  onDailyQuestStatusChanged,
+  setCachedDailyQuestBundle,
+} from "@/lib/dailyQuestCache";
 
 const toTitleCase = (key = "") =>
   key
@@ -62,82 +68,127 @@ const getMatchingChallengeStatus = (questKey, challengeStatuses) => {
   });
 };
 
+const isQuestCompleted = (quest) => {
+  const completedByStatus = (quest?.status || "").toLowerCase() === "completed";
+  const completedByProgress =
+    Number(quest?.target) > 0 &&
+    Number(quest?.current) >= Number(quest?.target);
+  return completedByStatus || completedByProgress;
+};
+
 export function DailyQuests() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [completedQuests, setCompletedQuests] = useState([]);
+  const [dailyQuests, setDailyQuests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadDailyQuests = useCallback(async () => {
-    if (status === "loading") return;
+  const loadDailyQuests = useCallback(
+    async (forceRefresh = false) => {
+      if (status === "loading") return;
 
-    if (!isSessionValid(session)) {
-      setIsLoading(false);
-      return;
-    }
-
-    const token = getSessionToken(session);
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-
-      const [globalResult, userQuestResult] = await Promise.all([
-        fetchGamificationDailyQuest(token),
-        fetchUserDailyQuest(token),
-      ]);
-
-      if (!globalResult.success || !userQuestResult.success) {
-        setCompletedQuests([]);
+      if (!isSessionValid(session)) {
+        setIsLoading(false);
         return;
       }
 
-      const globalQuests = Array.isArray(globalResult.dailyQuest)
-        ? globalResult.dailyQuest
-        : [];
-      const challengeStatuses = Array.isArray(
-        userQuestResult.dailyQuest?.challengeStatuses,
-      )
-        ? userQuestResult.dailyQuest.challengeStatuses
-        : [];
+      const token = getSessionToken(session);
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
 
-      const quests = challengeStatuses.map((statusEntry) => {
-        const questKey = statusEntry?.challengeId || "";
-        const questConfig = getMatchingQuestConfig(questKey, globalQuests);
-        const statusValue = (statusEntry?.status || "pending").toLowerCase();
+      const userKey = getDailyQuestUserKey(session);
 
-        return {
-          key: questKey,
-          label: questConfig?.name
-            ? questConfig.name
-            : questKey
-              ? toTitleCase(questKey)
-              : `Quest`,
-          iconUrl: toMediaUrl(
-            questConfig?.icon?.url || questConfig?.icon || "",
-          ),
-          current: Number(statusEntry?.details?.current) || 0,
-          target: Number(statusEntry?.details?.required) || 0,
-          reward: Number(statusEntry?.details?.reward) || 0,
-          status: statusValue,
-        };
-      });
+      const mapDailyQuests = (globalQuests = [], challengeStatuses = []) =>
+        challengeStatuses.map((statusEntry) => {
+          const questKey = statusEntry?.challengeId || "";
+          const questConfig = getMatchingQuestConfig(questKey, globalQuests);
+          const statusValue = (statusEntry?.status || "pending").toLowerCase();
 
-      setCompletedQuests(quests);
-    } catch (error) {
-      console.error("Error loading daily quests:", error);
-      setCompletedQuests([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [session, status]);
+          return {
+            key: questKey,
+            label: questConfig?.name
+              ? questConfig.name
+              : questKey
+                ? toTitleCase(questKey)
+                : "Quest",
+            iconUrl: toMediaUrl(
+              questConfig?.icon?.url || questConfig?.icon || "",
+            ),
+            current: Number(statusEntry?.details?.current) || 0,
+            target: Number(statusEntry?.details?.required) || 0,
+            reward: Number(statusEntry?.details?.reward) || 0,
+            status: statusValue,
+          };
+        });
+
+      if (!forceRefresh) {
+        const cachedBundle = getCachedDailyQuestBundle(userKey);
+        if (cachedBundle) {
+          setDailyQuests(
+            mapDailyQuests(
+              Array.isArray(cachedBundle?.globalQuests)
+                ? cachedBundle.globalQuests
+                : [],
+              Array.isArray(cachedBundle?.challengeStatuses)
+                ? cachedBundle.challengeStatuses
+                : [],
+            ),
+          );
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      try {
+        setIsLoading(true);
+
+        const [globalResult, userQuestResult] = await Promise.all([
+          fetchGamificationDailyQuest(token),
+          fetchUserDailyQuest(token),
+        ]);
+
+        if (!globalResult.success || !userQuestResult.success) {
+          setDailyQuests([]);
+          return;
+        }
+
+        const globalQuests = Array.isArray(globalResult.dailyQuest)
+          ? globalResult.dailyQuest
+          : [];
+        const challengeStatuses = Array.isArray(
+          userQuestResult.dailyQuest?.challengeStatuses,
+        )
+          ? userQuestResult.dailyQuest.challengeStatuses
+          : [];
+
+        const quests = mapDailyQuests(globalQuests, challengeStatuses);
+
+        setDailyQuests(quests);
+        setCachedDailyQuestBundle(userKey, { globalQuests, challengeStatuses });
+      } catch (error) {
+        console.error("Error loading daily quests:", error);
+        setDailyQuests([]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [session, status],
+  );
 
   useEffect(() => {
     loadDailyQuests();
   }, [loadDailyQuests]);
+
+  useEffect(() => {
+    return onDailyQuestStatusChanged((event) => {
+      const changedUserKey = event?.detail?.userKey;
+      const currentUserKey = getDailyQuestUserKey(session);
+
+      if (changedUserKey && changedUserKey !== currentUserKey) return;
+      loadDailyQuests(true);
+    });
+  }, [loadDailyQuests, session]);
 
   const menuOptions = [
     {
@@ -175,12 +226,10 @@ export function DailyQuests() {
         <CardMenuOptions options={menuOptions} />
       </div>
       <ul className="space-y-2">
-        {completedQuests.length === 0 ? (
-          <li className="text-xs text-muted-foreground">
-            No completed quests yet
-          </li>
+        {dailyQuests.length === 0 ? (
+          <li className="text-xs text-muted-foreground">No daily quests yet</li>
         ) : (
-          completedQuests.map((quest, index) => (
+          dailyQuests.map((quest, index) => (
             <motion.li
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
@@ -200,7 +249,11 @@ export function DailyQuests() {
                 </div>
                 <span>{quest.label}</span>
               </div>
-              <CheckCircle2 className="text-accent" />
+              {isQuestCompleted(quest) ? (
+                <CheckCircle2 className="text-accent" />
+              ) : (
+                <Circle className="text-muted-foreground" />
+              )}
             </motion.li>
           ))
         )}
