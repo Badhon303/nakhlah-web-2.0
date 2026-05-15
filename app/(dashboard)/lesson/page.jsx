@@ -1103,7 +1103,7 @@ export default function LessonPage() {
                           <img
                             src={imageUrl}
                             alt="Learning illustration"
-                            className="w-full h-full object-contain rounded-lg sm:rounded-xl"
+                            className="w-full h-full object-cover rounded-lg sm:rounded-xl"
                           />
                         ) : null}
                       </div>
@@ -1181,7 +1181,7 @@ export default function LessonPage() {
                           <img
                             src={imageUrl}
                             alt="Question illustration"
-                            className="w-full h-full object-contain rounded-lg sm:rounded-xl"
+                            className="w-full h-full object-cover rounded-lg sm:rounded-xl"
                           />
                         ) : null}
                       </div>

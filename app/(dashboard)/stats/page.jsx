@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   BarChart3,
   TrendingUp,
@@ -17,16 +17,6 @@ import {
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { fetchMyProfile } from "@/services/api";
-
-const weeklyData = [
-  { day: "Mon", xp: 120 },
-  { day: "Tue", xp: 85 },
-  { day: "Wed", xp: 200 },
-  { day: "Thu", xp: 150 },
-  { day: "Fri", xp: 90 },
-  { day: "Sat", xp: 180 },
-  { day: "Sun", xp: 75 },
-];
 
 const achievements = [
   {
@@ -63,7 +53,6 @@ const activityData = Array.from({ length: 28 }).map((_, i) => {
 });
 
 export default function Stats() {
-  const maxXp = Math.max(...weeklyData.map((d) => d.xp));
   const [mounted, setMounted] = useState(false);
   const [profileData, setProfileData] = useState(null);
   const { data: session, status } = useSession();
@@ -81,6 +70,20 @@ export default function Stats() {
     };
     loadProfile();
   }, [session, status]);
+
+  // Static demo data for weekly chart
+  const weeklyData = [
+    { day: "Mon", xp: 120 },
+    { day: "Tue", xp: 150 },
+    { day: "Wed", xp: 100 },
+    { day: "Thu", xp: 180 },
+    { day: "Fri", xp: 140 },
+    { day: "Sat", xp: 160 },
+    { day: "Sun", xp: 130 },
+  ];
+
+  const maxXp = Math.max(...weeklyData.map((d) => d.xp), 1);
+  const totalWeeklyInjaz = weeklyData.reduce((sum, d) => sum + d.xp, 0);
 
   return (
     <div className="min-h-screen bg-background max-w-7xl mx-auto">
@@ -105,28 +108,28 @@ export default function Stats() {
             {
               label: "Total Injaz",
               value: (
-                profileData?.gamificationStock?.injazStock ?? 2340
+                profileData?.gamificationStock?.injazStock ?? 0
               ).toLocaleString(),
               icon: TrendingUp,
               color: "text-accent",
             },
             {
               label: "Current Streak",
-              value: "7 days",
+              value: `${profileData?.learnerStreak?.currentStreak ?? 0} days`,
               icon: Flame,
               color: "text-orange-500",
             },
             {
-              label: "Time Learned",
-              value: "24h 35m",
-              icon: Clock,
-              color: "text-palm",
-            },
-            {
-              label: "Lessons Done",
-              value: "24",
+              label: "Lessons Completed",
+              value: profileData?.dailyChallengeActivity?.lessonsCompleted ?? 0,
               icon: BookOpen,
               color: "text-primary",
+            },
+            {
+              label: "Tasks Completed",
+              value: profileData?.dailyChallengeActivity?.tasksCompleted ?? 0,
+              icon: Award,
+              color: "text-palm",
             },
           ].map((stat, index) => (
             <motion.div
@@ -159,9 +162,14 @@ export default function Stats() {
         {/* Weekly Injaz Chart */}
         <Card variant="elevated" className="mb-8">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-accent" />
-              Weekly Injaz
+            <CardTitle className="flex items-center justify-between gap-2">
+              <span className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-accent" />
+                Weekly Injaz
+              </span>
+              <span className="text-lg font-bold text-accent">
+                {totalWeeklyInjaz} Total
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -170,22 +178,23 @@ export default function Stats() {
                 <motion.div
                   key={day.day}
                   initial={{ height: 0 }}
-                  animate={{ height: `${(day.xp / maxXp) * 100}%` }}
+                  animate={{
+                    height: maxXp > 0 ? `${(day.xp / maxXp) * 100}%` : "0%",
+                  }}
                   transition={{ delay: 0.1 * index, duration: 0.5 }}
                   className="flex flex-1 flex-col items-center"
                 >
                   <div
-                    className="w-full rounded-t-lg bg-gradient-accent transition-all hover:opacity-80"
+                    className="w-full rounded-t-lg transition-all hover:opacity-80 bg-gradient-to-t from-accent to-accent/80"
                     style={{
-                      height: `${(day.xp / maxXp) * 100}%`,
+                      height: maxXp > 0 ? `${(day.xp / maxXp) * 100}%` : "0%",
                       minHeight: "20px",
-                      background: "var(--gradient-accent)",
                     }}
                   />
                   <span className="mt-2 text-xs font-medium text-muted-foreground">
                     {day.day}
                   </span>
-                  <span className="text-xs font-bold text-foreground">
+                  <span className="text-xs font-bold text-accent">
                     {day.xp}
                   </span>
                 </motion.div>

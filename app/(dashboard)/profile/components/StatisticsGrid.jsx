@@ -12,7 +12,8 @@ import { getProfileBadgeCount } from "@/lib/gamification";
 export default function StatisticsGrid({ profileData, achievementsData = [] }) {
   const totalDates = profileData?.gamificationStock?.dateStock ?? 0;
   const totalXp = profileData?.gamificationStock?.injazStock ?? 0;
-  const tasksCompleted = profileData?.dailyChallengeActivity?.taskCompleted ?? 0;
+  const tasksCompleted =
+    profileData?.dailyChallengeActivity?.tasksCompleted ?? 0;
   const lessonsCompleted =
     profileData?.dailyChallengeActivity?.lessonsCompleted ?? 0;
   const achievementsUnlocked = Array.isArray(achievementsData)
