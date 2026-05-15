@@ -31,6 +31,7 @@ import { getUserKey } from "@/lib/userKey";
 import LessonLoadingView from "./loading/LessonLoadingView";
 
 const LESSON_SESSION_STORAGE_KEY = "activeLessonSessionV1";
+const JOURNEY_REFRESH_FLAG_KEY = "nakhlah:journey-needs-refresh";
 
 function buildLessonSessionKey({ lessonId, taskId, isExamLesson }) {
   return [lessonId || "", taskId || "", isExamLesson ? "exam" : "lesson"].join(
@@ -237,6 +238,8 @@ export default function LessonPage() {
   const [showFullMarksClaimedNotice, setShowFullMarksClaimedNotice] =
     useState(false);
   const [isCompletingFromNotice, setIsCompletingFromNotice] = useState(false);
+  const [isNavigatingToCompletion, setIsNavigatingToCompletion] =
+    useState(false);
   const [fullMarksRewardData, setFullMarksRewardData] = useState(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [totalAnswerAttempts, setTotalAnswerAttempts] = useState(0);
@@ -275,6 +278,7 @@ export default function LessonPage() {
 
   useEffect(() => {
     const fetchLessonQuestions = async () => {
+      if (isNavigatingToCompletion) return;
       if (status === "loading") return;
 
       if (!isSessionValid(session)) {
@@ -430,6 +434,7 @@ export default function LessonPage() {
     status,
     session,
     router,
+    isNavigatingToCompletion,
   ]);
 
   useEffect(() => {
@@ -639,6 +644,8 @@ export default function LessonPage() {
     hasWrongAnswerOverride = null,
     forceDailyQuestRefresh = false,
   } = {}) => {
+    setIsNavigatingToCompletion(true);
+
     const lessonId =
       (storeSelectedLessonId || "").trim() ||
       sessionStorage.getItem("selectedLessonId")?.trim();
@@ -735,6 +742,11 @@ export default function LessonPage() {
 
     if (token && shouldInvalidateDailyQuestCache) {
       useDailyQuestStore.getState().invalidate();
+    }
+
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(JOURNEY_REFRESH_FLAG_KEY, "true");
+      window.dispatchEvent(new Event("nakhlah:journey-updated"));
     }
 
     sessionStorage.removeItem("currentLessonIndex");
@@ -931,7 +943,7 @@ export default function LessonPage() {
 
   const matchedCount = leftState.filter((item) => item.matched).length;
 
-  if (isLoading) {
+  if (isLoading || isNavigatingToCompletion) {
     return <LessonLoadingView progress={65} />;
   }
 

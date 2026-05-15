@@ -18,6 +18,7 @@ import { useJourneyStore } from "@/stores/useJourneyStore";
 import { useProfileStore } from "@/stores/useProfileStore";
 
 const mascots = [];
+const JOURNEY_REFRESH_FLAG_KEY = "nakhlah:journey-needs-refresh";
 
 const sortByOrder = (items, key) =>
   [...(items || [])].sort((a, b) => (a?.[key] || 0) - (b?.[key] || 0));
@@ -192,7 +193,17 @@ export default function LearnPage() {
   );
 
   useEffect(() => {
-    loadJourney();
+    const shouldForceRefresh =
+      typeof window !== "undefined" &&
+      sessionStorage.getItem(JOURNEY_REFRESH_FLAG_KEY) === "true";
+
+    if (shouldForceRefresh && typeof window !== "undefined") {
+      invalidateJourney();
+      invalidateProfile();
+      sessionStorage.removeItem(JOURNEY_REFRESH_FLAG_KEY);
+    }
+
+    loadJourney(shouldForceRefresh);
   }, [loadJourney]);
 
   useEffect(() => {

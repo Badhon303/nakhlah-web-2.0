@@ -2,6 +2,7 @@
 import { Circle } from "./Circle";
 import { Mascot } from "@/components/nakhlah/Mascot";
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { Lock, FileText } from "lucide-react";
 
 export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
