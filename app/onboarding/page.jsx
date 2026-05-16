@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ProgressSteps } from "@/components/nakhlah/ProgressSteps";
 import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
+import { Mascot } from "@/components/nakhlah/Mascot";
 import { ProficiencyStep } from "@/components/nakhlah/onboarding/ProficiencyStep";
 import { GoalStep } from "@/components/nakhlah/onboarding/GoalStep";
 import { PurposeStep } from "@/components/nakhlah/onboarding/PurposeStep";
@@ -22,6 +23,7 @@ import { registerUser } from "@/lib/authUtils";
 import {
   createUserProfile,
   fetchCurrentUser,
+  fetchMyProfile,
   fetchUserOnboardingGlobals,
   refreshAccessToken,
   updateMyProfile,
@@ -175,6 +177,8 @@ const normalizeOnboardingData = (data) => {
 
 export default function Onboarding() {
   const router = useRouter();
+  const [isSocialSignup, setIsSocialSignup] = useState(false);
+  const [isAuthResolved, setIsAuthResolved] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [proficiencyLevel, setProficiencyLevel] = useState("");
   const [dailyGoal, setDailyGoal] = useState("");
@@ -257,6 +261,45 @@ export default function Onboarding() {
     loadOnboardingData();
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const query = new URLSearchParams(window.location.search);
+    setIsSocialSignup(query.get("social") === "1");
+  }, []);
+
+  useEffect(() => {
+    if (!isSocialSignup) {
+      setIsAuthResolved(true);
+      return;
+    }
+
+    let cancelled = false;
+
+    const resolveSocialAccess = async () => {
+      const token = await getActiveAccessToken();
+      if (!token || cancelled) {
+        if (!cancelled) setIsAuthResolved(true);
+        return;
+      }
+
+      const profileResult = await fetchMyProfile(token);
+      if (cancelled) return;
+
+      if (profileResult.success && profileResult.profile) {
+        router.replace("/");
+        return;
+      }
+
+      setIsAuthResolved(true);
+    };
+
+    resolveSocialAccess();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isSocialSignup, router]);
+
   const selectedValues = useMemo(() => {
     const strength = onboardingData?.languageStrength?.strengthsList?.find(
       (item) => item.id === proficiencyLevel,
@@ -320,13 +363,20 @@ export default function Onboarding() {
       case 8:
         return age !== "";
       case 9:
-        return email.trim().includes("@") && password.trim().length >= 6;
+        return isSocialSignup
+          ? true
+          : email.trim().includes("@") && password.trim().length >= 6;
       default:
         return true;
     }
   };
 
   const handleNext = async () => {
+    if (isSocialSignup && currentStep === 8) {
+      setCurrentStep(10);
+      return;
+    }
+
     if (currentStep === 9) {
       await handleRegistration();
       return;
@@ -348,6 +398,11 @@ export default function Onboarding() {
   };
 
   const handleRegistration = async () => {
+    if (isSocialSignup) {
+      setCurrentStep(10);
+      return;
+    }
+
     if (!email || !password) {
       toast.error("Email and password are required");
       return;
@@ -547,6 +602,7 @@ export default function Onboarding() {
           />
         );
       case 9:
+        if (isSocialSignup) return null;
         return (
           <AccountStep
             email={email}
@@ -570,6 +626,19 @@ export default function Onboarding() {
         return null;
     }
   };
+
+  if (!isAuthResolved || isLoadingOnboarding) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center space-y-3 max-w-sm">
+          <Mascot mood="happy" size="xxl" className="w-28 h-28 mx-auto" />
+          <p className="text-muted-foreground font-medium">
+            Preparing your learning path...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

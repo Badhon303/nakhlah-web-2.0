@@ -12,9 +12,11 @@ import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/nakhlah/Toast";
+import { useProfileStore } from "@/stores/useProfileStore";
 
 export default function Login() {
   const router = useRouter();
+  const clearProfile = useProfileStore((state) => state.clear);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,7 +25,7 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       toast.error("Please enter both email and password");
       return;
@@ -46,6 +48,7 @@ export default function Login() {
 
       if (result?.ok) {
         toast.success("Login successful!");
+        clearProfile();
         router.push("/");
         router.refresh();
       }
@@ -217,10 +220,8 @@ export default function Login() {
                 type="button"
                 variant="outline"
                 onClick={() => {
-                  if (typeof window !== "undefined") {
-                    localStorage.setItem("nakhlah_profile_prompt_pending", "true");
-                  }
-                  signIn("google", { callbackUrl: "/" });
+                  clearProfile();
+                  signIn("google", { callbackUrl: "/auth/social-redirect" });
                 }}
                 disabled={isLoading}
                 className="w-full h-12 border-border hover:bg-accent/10 font-semibold text-foreground rounded-xl"

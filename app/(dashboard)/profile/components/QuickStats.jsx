@@ -1,16 +1,19 @@
 "use client";
 import { motion } from "framer-motion";
-import { Flame, Target, Zap, BookOpen, Award } from "lucide-react";
+import { Flame, Target, CalendarDays, Award } from "lucide-react";
 import { getLongestStreak } from "@/lib/gamification";
 
 export default function QuickStats({ profileData }) {
   const currentStreak = profileData?.learnerStreak?.currentStreak ?? 0;
   const longestStreak = getLongestStreak(profileData);
-  const totalXp = profileData?.gamificationStock?.injazStock ?? 0;
-  const lessonsPracticed =
-    profileData?.dailyChallengeActivity?.lessonsPracticed ?? 0;
-  const lessonsCompleted =
-    profileData?.dailyChallengeActivity?.lessonsCompleted ?? 0;
+  const missedDays = Array.isArray(profileData?.learnerStreak?.dates)
+    ? profileData.learnerStreak.dates.filter(
+        (entry) => (entry?.status || "").toLowerCase() === "missed",
+      ).length
+    : 0;
+  const badgesUnlocked = Array.isArray(profileData?.gamificationStock?.badges)
+    ? profileData.gamificationStock.badges.length
+    : 0;
 
   const quickStats = [
     {
@@ -26,20 +29,14 @@ export default function QuickStats({ profileData }) {
       color: "text-palm-green",
     },
     {
-      label: "Total Injaz",
-      value: `${totalXp}`,
-      icon: Zap,
-      color: "text-amber-500",
-    },
-    {
-      label: "Lessons Practiced",
-      value: `${lessonsPracticed}`,
-      icon: BookOpen,
+      label: "Missed Days",
+      value: `${missedDays}`,
+      icon: CalendarDays,
       color: "text-secondary",
     },
     {
-      label: "Lessons Completed",
-      value: `${lessonsCompleted}`,
+      label: "Badges Unlocked",
+      value: `${badgesUnlocked}`,
       icon: Award,
       color: "text-accent",
     },

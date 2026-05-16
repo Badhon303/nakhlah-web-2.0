@@ -6,13 +6,10 @@ import { UserStats } from "./components/UserStats";
 import { DailyQuests } from "./components/DailyQuests";
 import { ProfileSection } from "./components/ProfileSection";
 import { LeaderboardCard } from "./components/LeaderboardCard";
-import { CompleteProfilePrompt } from "./components/CompleteProfilePrompt";
 import { JourneyErrorFallback } from "./components/JourneyErrorFallback";
 import { Trophy } from "@/components/icons/Trophy";
-import { updateMyProfile } from "@/services/api/auth";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
-import { toast } from "@/components/nakhlah/Toast";
 import { getUserKey } from "@/lib/userKey";
 import { useJourneyStore } from "@/stores/useJourneyStore";
 import { useProfileStore } from "@/stores/useProfileStore";
@@ -136,8 +133,6 @@ const buildJourneyView = (journey, currentProgress) => {
 export default function LearnPage() {
   const stickyTopOffset = "top-6";
   const [loadError, setLoadError] = useState("");
-  const [showProfilePrompt, setShowProfilePrompt] = useState(false);
-  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const { data: session, status } = useSession();
   const journeyData = useJourneyStore((state) => state.journeyData);
   const isJourneyLoading = useJourneyStore((state) => state.isLoading);
@@ -149,13 +144,6 @@ export default function LearnPage() {
   const fetchProfile = useProfileStore((state) => state.fetchMyProfile);
   const invalidateProfile = useProfileStore((state) => state.invalidate);
   const clearProfile = useProfileStore((state) => state.clear);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const shouldPrompt =
-      localStorage.getItem("nakhlah_profile_prompt_pending") === "true";
-    setShowProfilePrompt(shouldPrompt);
-  }, []);
 
   const loadJourney = useCallback(
     async (forceRefresh = false) => {
@@ -234,49 +222,8 @@ export default function LearnPage() {
 
   const isLoading = isJourneyLoading || isProfileLoading;
 
-  const handleCompleteProfile = async ({
-    fullName,
-    contactNumber,
-    profilePicture,
-  }) => {
-    if (!isSessionValid(session)) {
-      toast.error("Session not found. Please login again.");
-      return;
-    }
-
-    const token = getSessionToken(session);
-    if (!token) {
-      toast.error("Access token missing. Please login again.");
-      return;
-    }
-
-    setIsUpdatingProfile(true);
-    const result = await updateMyProfile(
-      { fullName, contactNumber },
-      profilePicture,
-      token,
-    );
-    setIsUpdatingProfile(false);
-
-    if (!result.success) {
-      toast.error(result.error || "Failed to update profile");
-      return;
-    }
-
-    localStorage.removeItem("nakhlah_profile_prompt_pending");
-    setShowProfilePrompt(false);
-    toast.success("Profile updated successfully!");
-  };
-
   return (
     <div className="bg-background text-foreground">
-      <CompleteProfilePrompt
-        open={showProfilePrompt}
-        isSubmitting={isUpdatingProfile}
-        onSubmit={handleCompleteProfile}
-        onClose={() => setShowProfilePrompt(false)}
-      />
-
       {/* Mobile sticky header */}
       <div
         className="lg:hidden fixed w-full z-[110] bg-primary shadow-md"

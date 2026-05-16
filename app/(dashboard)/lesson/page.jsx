@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, X, Turtle, Check, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -27,11 +27,13 @@ import { useDailyQuestStore } from "@/stores/useDailyQuestStore";
 import { useLessonStore } from "@/stores/useLessonStore";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { getUserKey } from "@/lib/userKey";
+import { toast } from "@/components/nakhlah/Toast";
 
 import LessonLoadingView from "./loading/LessonLoadingView";
 
 const LESSON_SESSION_STORAGE_KEY = "activeLessonSessionV1";
 const JOURNEY_REFRESH_FLAG_KEY = "nakhlah:journey-needs-refresh";
+const LESSON_SESSION_USER_KEY = "nakhlah:active-lesson-user";
 
 function buildLessonSessionKey({ lessonId, taskId, isExamLesson }) {
   return [lessonId || "", taskId || "", isExamLesson ? "exam" : "lesson"].join(
@@ -47,6 +49,18 @@ function safelyParseLessonSession(rawValue) {
   } catch {
     return null;
   }
+}
+
+function clearPersistedLessonSession() {
+  if (typeof window === "undefined") return;
+
+  sessionStorage.removeItem(LESSON_SESSION_STORAGE_KEY);
+  sessionStorage.removeItem(LESSON_SESSION_USER_KEY);
+  sessionStorage.removeItem("currentLessonIndex");
+  sessionStorage.removeItem("selectedLessonId");
+  sessionStorage.removeItem("selectedNodeId");
+  sessionStorage.removeItem("selectedLessonIsExam");
+  sessionStorage.removeItem("selectedLessonStatus");
 }
 
 function normalizeText(value) {
@@ -102,6 +116,12 @@ function normalizeQuestionFields(question) {
     learn_answer: question.learn_answer || question.learnAnswer,
     true_false_answer: question.true_false_answer ?? question.trueFalseAnswer,
   };
+}
+
+function isScoredQuestion(question) {
+  const questionType = question?.question_type || question?.questionType;
+
+  return questionType && questionType !== "learn";
 }
 
 function normalizeQuestionsPayload(payload) {
@@ -205,6 +225,37 @@ async function claimLessonCompletionDailyQuests(token, rewards) {
   return results;
 }
 
+function syncProfileLives(nextLives) {
+  const livesValue = Number(nextLives);
+  if (!Number.isFinite(livesValue)) return;
+
+  useProfileStore.setState((state) => {
+    const currentProfile = state.profile;
+    if (!currentProfile) return state;
+
+    return {
+      ...state,
+      profile: {
+        ...currentProfile,
+        gamificationStock: {
+          ...(currentProfile.gamificationStock || {}),
+          palm: {
+            ...(currentProfile.gamificationStock?.palm || {}),
+            palmStock: livesValue,
+          },
+        },
+      },
+      stats: {
+        ...(currentProfile.gamificationStock || {}),
+        palm: {
+          ...(currentProfile.gamificationStock?.palm || {}),
+          palmStock: livesValue,
+        },
+      },
+    };
+  });
+}
+
 export default function LessonPage() {
   const router = useRouter();
   const { play } = useAudio();
@@ -257,16 +308,24 @@ export default function LessonPage() {
   const [leftState, setLeftState] = useState([]);
   const [rightState, setRightState] = useState([]);
   const [incorrectPairs, setIncorrectPairs] = useState([]);
+  const [pairPenaltyApplied, setPairPenaltyApplied] = useState(false);
+  const autoplayedAudioQuestionIdRef = useRef(null);
+  const totalAnswerAttemptsRef = useRef(0);
+  const correctAnswerAttemptsRef = useRef(0);
 
   const totalQuestions = questions.length;
+  const totalScoredQuestions = questions.filter(isScoredQuestion).length;
   const currentQuestion = questions[currentIndex];
   const progressPercentage =
     totalQuestions > 0 ? ((currentIndex + 1) / totalQuestions) * 100 : 0;
+  const activeUserKey = getUserKey(session);
 
   const questionType = currentQuestion?.question_type;
+  const hasLives = lives > 0;
 
   const imageUrl = getQuestionMedia(currentQuestion, "image");
   const audioUrl = getQuestionMedia(currentQuestion, "audio");
+  const audioQuestionId = currentQuestion?.id || currentIndex;
 
   useEffect(() => {
     if (status === "loading") return;
@@ -275,6 +334,24 @@ export default function LessonPage() {
       router.push("/auth/login");
     }
   }, [status, session, router]);
+
+  useEffect(() => {
+    if (status !== "authenticated" || !isSessionValid(session)) return;
+
+    const persistedUserKey = sessionStorage.getItem(LESSON_SESSION_USER_KEY);
+    const cachedSession = safelyParseLessonSession(
+      sessionStorage.getItem(LESSON_SESSION_STORAGE_KEY),
+    );
+    const cachedSessionUserKey = cachedSession?.userKey || null;
+
+    if (
+      (persistedUserKey && persistedUserKey !== activeUserKey) ||
+      (cachedSession && cachedSessionUserKey !== activeUserKey)
+    ) {
+      clearPersistedLessonSession();
+      clearLessonSelection();
+    }
+  }, [activeUserKey, clearLessonSelection, session, status]);
 
   useEffect(() => {
     const fetchLessonQuestions = async () => {
@@ -327,12 +404,63 @@ export default function LessonPage() {
         setSelectedLessonStatus(selectedStatus);
         setFullMarksRewardData(null);
 
+        const token = getSessionToken(session);
+        if (!token) {
+          throw new Error("No authentication token available");
+        }
+
+        const profileResult = await fetchProfile(
+          token,
+          true,
+          getUserKey(session),
+        );
+
+        if (!profileResult.success) {
+          throw new Error(
+            profileResult.error || "Unable to verify available lives.",
+          );
+        }
+
+        const resolvedProfile = profileResult?.success
+          ? profileResult.profile
+          : null;
+        if (resolvedProfile) {
+          const palmStock = Number(
+            resolvedProfile?.gamificationStock?.palm?.palmStock,
+          );
+          if (Number.isFinite(palmStock)) {
+            setLives(palmStock);
+            syncProfileLives(palmStock);
+            if (palmStock <= 0) {
+              setLoadError("You need more hearts before opening this lesson.");
+              setIsLoading(false);
+              return;
+            }
+          } else {
+            throw new Error("Unable to verify available lives.");
+          }
+        } else {
+          throw new Error("Unable to verify available lives.");
+        }
+
         const cachedSession = safelyParseLessonSession(
           sessionStorage.getItem(LESSON_SESSION_STORAGE_KEY),
         );
+        const cachedLessonUserKey = sessionStorage.getItem(
+          LESSON_SESSION_USER_KEY,
+        );
+
+        if (
+          cachedLessonUserKey &&
+          activeUserKey &&
+          cachedLessonUserKey !== activeUserKey
+        ) {
+          clearPersistedLessonSession();
+        }
 
         if (
           cachedSession?.key === lessonSessionKey &&
+          cachedSession?.userKey === activeUserKey &&
           Array.isArray(cachedSession.questions) &&
           cachedSession.questions.length > 0
         ) {
@@ -377,34 +505,14 @@ export default function LessonPage() {
           return;
         }
 
-        const token = getSessionToken(session);
-        if (!token) {
-          throw new Error("No authentication token available");
-        }
-
         const questionsRequest = selectedLessonIsExam
           ? fetchTaskExamQuestions(taskId, token)
           : fetchLessonAPI(lessonId, token);
 
-        const [result, profileResult] = await Promise.all([
-          questionsRequest,
-          fetchProfile(token, false, getUserKey(session)),
-        ]);
+        const result = await questionsRequest;
 
         if (!result.success) {
           throw new Error(result.error);
-        }
-
-        const resolvedProfile = profileResult?.success
-          ? profileResult.profile
-          : null;
-        if (resolvedProfile) {
-          const palmStock = Number(
-            resolvedProfile?.gamificationStock?.palm?.palmStock,
-          );
-          if (Number.isFinite(palmStock)) {
-            setLives(palmStock);
-          }
         }
 
         const normalizedQuestions = normalizeQuestionsPayload(result.data);
@@ -426,12 +534,14 @@ export default function LessonPage() {
 
     fetchLessonQuestions();
   }, [
+    activeUserKey,
     fetchProfile,
     storeSelectedLessonId,
     storeSelectedNodeId,
     storeSelectedLessonIsExam,
     storeSelectedLessonStatus,
     status,
+    selectedLessonStatus,
     session,
     router,
     isNavigatingToCompletion,
@@ -442,6 +552,14 @@ export default function LessonPage() {
       setCurrentIndex(0);
     }
   }, [currentIndex, totalQuestions]);
+
+  useEffect(() => {
+    totalAnswerAttemptsRef.current = totalAnswerAttempts;
+  }, [totalAnswerAttempts]);
+
+  useEffect(() => {
+    correctAnswerAttemptsRef.current = correctAnswerAttempts;
+  }, [correctAnswerAttempts]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -459,6 +577,8 @@ export default function LessonPage() {
 
     if (!lessonId) return;
 
+    if (!activeUserKey) return;
+
     sessionStorage.setItem(
       LESSON_SESSION_STORAGE_KEY,
       JSON.stringify({
@@ -470,6 +590,7 @@ export default function LessonPage() {
         lessonId,
         taskId,
         isExamLesson: selectedLessonIsExam,
+        userKey: activeUserKey,
         selectedLessonStatus,
         questions,
         currentIndex,
@@ -481,7 +602,9 @@ export default function LessonPage() {
         correctAnswerAttempts,
       }),
     );
+    sessionStorage.setItem(LESSON_SESSION_USER_KEY, activeUserKey);
   }, [
+    activeUserKey,
     storeSelectedLessonId,
     storeSelectedNodeId,
     storeSelectedLessonIsExam,
@@ -496,6 +619,7 @@ export default function LessonPage() {
     elapsedSeconds,
     totalAnswerAttempts,
     correctAnswerAttempts,
+    session,
   ]);
 
   const mcqOptions = useMemo(() => {
@@ -571,6 +695,7 @@ export default function LessonPage() {
     setSelectedLeft(null);
     setSelectedRight(null);
     setIncorrectPairs([]);
+    setPairPenaltyApplied(false);
 
     if (questionType === "word_making" || questionType === "sentence_making") {
       setAvailableTokens(shuffleArray(orderedTokens));
@@ -613,6 +738,13 @@ export default function LessonPage() {
     play({ url: audioUrl, rate: 0.6 });
   };
 
+  useEffect(() => {
+    if (!audioUrl || !audioQuestionId) return;
+    if (autoplayedAudioQuestionIdRef.current === audioQuestionId) return;
+    autoplayedAudioQuestionIdRef.current = audioQuestionId;
+    play({ url: audioUrl, rate: 1.0 });
+  }, [audioQuestionId, audioUrl, play]);
+
   const applyWrongAnswerPenalty = async () => {
     setHasWrongAnswer(true);
 
@@ -627,14 +759,41 @@ export default function LessonPage() {
     const palmStock = Number(result.data?.palmStock);
     if (Number.isFinite(palmStock)) {
       setLives(palmStock);
+      syncProfileLives(palmStock);
     }
   };
 
   const recordAnswerAttempt = (isAnswerCorrect) => {
-    setTotalAnswerAttempts((prev) => prev + 1);
+    totalAnswerAttemptsRef.current += 1;
+    setTotalAnswerAttempts(totalAnswerAttemptsRef.current);
     if (isAnswerCorrect) {
-      setCorrectAnswerAttempts((prev) => prev + 1);
+      correctAnswerAttemptsRef.current += 1;
+      setCorrectAnswerAttempts(correctAnswerAttemptsRef.current);
     }
+  };
+
+  const calculateAccuracyPercentage = ({
+    questionCount = totalScoredQuestions,
+    correctAttempts = correctAnswerAttemptsRef.current,
+  } = {}) => {
+    const normalizedQuestionCount = Number(questionCount);
+    const normalizedCorrectAttempts = Number(correctAttempts);
+
+    if (
+      !Number.isFinite(normalizedQuestionCount) ||
+      normalizedQuestionCount <= 0 ||
+      !Number.isFinite(normalizedCorrectAttempts)
+    ) {
+      return 0;
+    }
+
+    return Math.max(
+      0,
+      Math.min(
+        100,
+        Math.round((normalizedCorrectAttempts / normalizedQuestionCount) * 100),
+      ),
+    );
   };
 
   const completeLessonAndRedirect = async ({
@@ -664,19 +823,19 @@ export default function LessonPage() {
       }
     }
 
-    if (progressPayload) {
-      const accuracyPercentage = Number.isFinite(
-        Number(accuracyPercentageOverride),
-      )
-        ? Number(accuracyPercentageOverride)
-        : totalAnswerAttempts > 0
-          ? Math.round((correctAnswerAttempts / totalAnswerAttempts) * 100)
-          : 0;
-      const hasWrongAnswerToUse =
-        typeof hasWrongAnswerOverride === "boolean"
-          ? hasWrongAnswerOverride
-          : hasWrongAnswer;
+    const accuracyPercentage = Number.isFinite(
+      Number(accuracyPercentageOverride),
+    )
+      ? Number(accuracyPercentageOverride)
+      : calculateAccuracyPercentage();
+    const hasWrongAnswerToUse =
+      typeof hasWrongAnswerOverride === "boolean"
+        ? hasWrongAnswerOverride
+        : hasWrongAnswer;
 
+    let mergedClaimPayload = progressPayload || {};
+
+    if (token) {
       const dailyQuestClaims = await claimLessonCompletionDailyQuests(token, {
         accuracyPercentage,
         hasWrongAnswer: hasWrongAnswerToUse,
@@ -686,59 +845,54 @@ export default function LessonPage() {
         shouldInvalidateDailyQuestCache = true;
       }
 
-      const mergedClaimPayload = dailyQuestClaims.reduce(
-        (accumulator, item) => {
-          const itemInjaz = Number(
-            item?.injazReceived ??
-              item?.InjazReceived ??
-              item?.injazReward ??
-              item?.reward?.injazReceived ??
-              item?.reward?.InjazReceived ??
-              item?.reward?.injazReward ??
-              0,
-          );
+      mergedClaimPayload = dailyQuestClaims.reduce((accumulator, item) => {
+        const itemInjaz = Number(
+          item?.injazReceived ??
+            item?.InjazReceived ??
+            item?.injazReward ??
+            item?.reward?.injazReceived ??
+            item?.reward?.InjazReceived ??
+            item?.reward?.injazReward ??
+            0,
+        );
 
-          return {
-            ...accumulator,
-            injazReceived:
-              (Number(accumulator?.injazReceived) || 0) +
-              (Number.isFinite(itemInjaz) ? itemInjaz : 0),
-            badges: {
-              added: [
-                ...(Array.isArray(accumulator?.badges?.added)
-                  ? accumulator.badges.added
-                  : []),
-                ...(Array.isArray(item?.badges?.added)
-                  ? item.badges.added
-                  : []),
-              ],
-              total: [
-                ...(Array.isArray(accumulator?.badges?.total)
-                  ? accumulator.badges.total
-                  : []),
-                ...(Array.isArray(item?.badges?.total)
-                  ? item.badges.total
-                  : []),
-              ],
-            },
-          };
-        },
-        progressPayload,
-      );
-
-      sessionStorage.setItem(
-        "lessonProgressData",
-        JSON.stringify({
-          ...mergedClaimPayload,
-          __clientStats: {
-            elapsedSeconds,
-            totalAnswerAttempts,
-            correctAnswerAttempts,
-            accuracyPercentage,
+        return {
+          ...accumulator,
+          injazReceived:
+            (Number(accumulator?.injazReceived) || 0) +
+            (Number.isFinite(itemInjaz) ? itemInjaz : 0),
+          badges: {
+            added: [
+              ...(Array.isArray(accumulator?.badges?.added)
+                ? accumulator.badges.added
+                : []),
+              ...(Array.isArray(item?.badges?.added) ? item.badges.added : []),
+            ],
+            total: [
+              ...(Array.isArray(accumulator?.badges?.total)
+                ? accumulator.badges.total
+                : []),
+              ...(Array.isArray(item?.badges?.total) ? item.badges.total : []),
+            ],
           },
-        }),
-      );
+        };
+      }, mergedClaimPayload);
     }
+
+    sessionStorage.setItem(
+      "lessonProgressData",
+      JSON.stringify({
+        ...mergedClaimPayload,
+        __clientStats: {
+          elapsedSeconds,
+          totalQuestions,
+          scoredQuestionsCount: totalScoredQuestions,
+          totalAnswerAttempts: totalAnswerAttemptsRef.current,
+          correctAnswerAttempts: correctAnswerAttemptsRef.current,
+          accuracyPercentage,
+        },
+      }),
+    );
 
     if (token && shouldInvalidateDailyQuestCache) {
       useDailyQuestStore.getState().invalidate();
@@ -749,19 +903,25 @@ export default function LessonPage() {
       window.dispatchEvent(new Event("nakhlah:journey-updated"));
     }
 
-    sessionStorage.removeItem("currentLessonIndex");
-    sessionStorage.removeItem(LESSON_SESSION_STORAGE_KEY);
-    sessionStorage.removeItem("selectedLessonId");
-    sessionStorage.removeItem("selectedNodeId");
-    sessionStorage.removeItem("selectedLessonIsExam");
-    sessionStorage.removeItem("selectedLessonStatus");
+    clearPersistedLessonSession();
     clearLessonSelection();
     router.push("/lesson/completed");
   };
 
   const goToNext = async () => {
+    if (!hasLives) {
+      toast.error("No lives left. Refill palms to continue this lesson.");
+      return;
+    }
+
     if (currentIndex < totalQuestions - 1) {
       setCurrentIndex((prev) => prev + 1);
+      return;
+    }
+
+    if (totalScoredQuestions > 0 && totalAnswerAttempts === 0) {
+      toast.error("Answer at least one question before completing the lesson.");
+      setCurrentIndex(0);
       return;
     }
 
@@ -784,10 +944,7 @@ export default function LessonPage() {
           skipLearnerProgress: true,
           rewardPayload: rewardData,
           forceDailyQuestRefresh: true,
-          accuracyPercentageOverride:
-            totalAnswerAttempts > 0
-              ? Math.round((correctAnswerAttempts / totalAnswerAttempts) * 100)
-              : 0,
+          accuracyPercentageOverride: calculateAccuracyPercentage(),
           hasWrongAnswerOverride: hasWrongAnswer,
         });
         return;
@@ -816,6 +973,10 @@ export default function LessonPage() {
 
   const handleCheckAnswer = async () => {
     if (!currentQuestion) return;
+    if (!hasLives) {
+      toast.error("No lives left. Refill palms to answer questions.");
+      return;
+    }
 
     if (questionType === "mcq") {
       const selected = mcqOptions.find(
@@ -868,13 +1029,15 @@ export default function LessonPage() {
     }
 
     if (questionType === "pair_matching") {
-      const answerIsCorrect =
+      const allPairsMatched =
         leftState.length > 0 && leftState.every((item) => item.matched);
-      if (!answerIsCorrect) {
-        await applyWrongAnswerPenalty();
+      if (!allPairsMatched) {
+        toast.error("Match all pairs before checking the answer.");
+        return;
       }
-      recordAnswerAttempt(answerIsCorrect);
-      setIsCorrect(answerIsCorrect);
+
+      recordAnswerAttempt(true);
+      setIsCorrect(true);
       return;
     }
 
@@ -911,7 +1074,10 @@ export default function LessonPage() {
         ...prev,
         { leftId: leftItem.id, rightId: rightItem.id },
       ]);
-      void applyWrongAnswerPenalty();
+      if (!pairPenaltyApplied) {
+        setPairPenaltyApplied(true);
+        void applyWrongAnswerPenalty();
+      }
       setTimeout(() => setIncorrectPairs([]), 450);
     }
     setTimeout(() => {
@@ -942,24 +1108,50 @@ export default function LessonPage() {
   }, [currentQuestion, questionType]);
 
   const matchedCount = leftState.filter((item) => item.matched).length;
+  const isPairMatchingReadyToCheck =
+    questionType === "pair_matching" &&
+    leftState.length > 0 &&
+    matchedCount === leftState.length;
 
   if (isLoading || isNavigatingToCompletion) {
     return <LessonLoadingView progress={65} />;
   }
 
   if (loadError) {
+    const isLifeError = /heart|life/i.test(loadError);
+
     return (
       <div className="min-h-screen sm:min-h-[calc(100vh_-_64px)] lg:min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center space-y-4">
-          <p className="text-lg sm:text-xl md:text-2xl font-semibold text-destructive">
-            {loadError}
-          </p>
-          <button
-            onClick={() => router.push("/")}
-            className="px-5 py-2 rounded-xl bg-accent text-accent-foreground font-semibold"
-          >
-            Back to Home
-          </button>
+        <div className="w-full max-w-lg text-center space-y-5 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-lg">
+          <Mascot mood="sad" size="xxl" className="w-32 h-32 mx-auto" />
+          <div className="space-y-2">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground">
+              {isLifeError
+                ? "No hearts left for this lesson"
+                : "Lesson unavailable"}
+            </h2>
+            <p className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto">
+              {isLifeError
+                ? "Take a short break, refill your hearts, and come back ready to continue the journey."
+                : loadError}
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => router.push("/")}
+              className="px-5 py-3 rounded-xl bg-accent text-accent-foreground font-semibold"
+            >
+              Back to Home
+            </button>
+            {isLifeError ? (
+              <button
+                onClick={() => router.push("/store")}
+                className="px-5 py-3 rounded-xl border border-border bg-background text-foreground font-semibold"
+              >
+                Refill Hearts
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
     );
@@ -1588,12 +1780,14 @@ export default function LessonPage() {
             <div className="container max-w-4xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
               <button
                 onClick={goToNext}
+                disabled={!hasLives}
                 className="text-muted-foreground hover:text-foreground font-bold text-lg underline underline-offset-4 order-2 sm:order-1"
               >
                 Skip
               </button>
               <button
                 onClick={goToNext}
+                disabled={!hasLives}
                 className="w-full sm:w-auto sm:min-w-[200px] h-14 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl order-1 sm:order-2"
               >
                 Continue
@@ -1623,16 +1817,19 @@ export default function LessonPage() {
             onContinue={goToNext}
             onSkip={goToNext}
             disabled={
-              questionType === "mcq"
+              !hasLives ||
+              (questionType === "mcq"
                 ? !selectedOptionId
                 : questionType === "true_false"
                   ? selectedTrueFalse === null
                   : questionType === "fill_blank"
                     ? !fillBlankAnswer.trim()
+                    : questionType === "pair_matching"
+                      ? !isPairMatchingReadyToCheck
                     : questionType === "word_making" ||
                         questionType === "sentence_making"
                       ? selectedTokens.length === 0
-                      : false
+                      : false)
             }
           />
         )}

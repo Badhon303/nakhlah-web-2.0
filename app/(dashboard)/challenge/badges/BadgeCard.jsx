@@ -56,11 +56,9 @@ export default function BadgeCard({ badge }) {
         </div>
 
         {/* Hover affordance */}
-        <ChevronRight
-          className={`w-5 h-5 text-muted-foreground mr-2 transition-opacity ${
-            isEarned ? "opacity-0 group-hover:opacity-100" : "opacity-40"
-          }`}
-        />
+        {isEarned ? (
+          <ChevronRight className="w-5 h-5 text-muted-foreground mr-2 transition-opacity opacity-0 group-hover:opacity-100" />
+        ) : null}
       </div>
     </div>
   );

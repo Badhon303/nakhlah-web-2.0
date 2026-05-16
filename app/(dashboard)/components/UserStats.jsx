@@ -9,7 +9,7 @@ import { Flame } from "@/components/icons/Flame";
 import { Heart } from "@/components/icons/Heart";
 import { TreasureChest } from "@/components/icons/TreasureChest";
 import { StreakCalendar } from "@/components/nakhlah/StreakCalendar";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
@@ -31,6 +31,7 @@ const normalizeDateKey = (value) => {
 export function UserStats() {
   const router = useRouter();
   const [mobileOpenCard, setMobileOpenCard] = useState(null);
+  const hasForcedHeartsRefreshRef = useRef(false);
   const { data: session, status } = useSession();
   const profileData = useProfileStore((state) => state.profile);
   const fetchProfile = useProfileStore((state) => state.fetchMyProfile);
@@ -51,10 +52,24 @@ export function UserStats() {
       const token = getSessionToken(session);
       if (!token) return;
 
-      await Promise.all([
-        fetchProfile(token, false, getUserKey(session)),
-        fetchStreak({ token, userKey: getUserKey(session) }),
+      const userKey = getUserKey(session);
+      const [profileResult] = await Promise.all([
+        fetchProfile(token, false, userKey),
+        fetchStreak({ token, userKey }),
       ]);
+
+      const cachedHearts = Number(
+        profileResult?.profile?.gamificationStock?.palm?.palmStock,
+      );
+
+      if (
+        Number.isFinite(cachedHearts) &&
+        cachedHearts === 0 &&
+        !hasForcedHeartsRefreshRef.current
+      ) {
+        hasForcedHeartsRefreshRef.current = true;
+        await fetchProfile(token, true, userKey);
+      }
     };
 
     loadStats();

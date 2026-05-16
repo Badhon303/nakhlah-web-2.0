@@ -8,7 +8,13 @@ import { useTheme } from "next-themes";
 
 export function ThemeToggle({ className, variant = "default" }) {
   const { resolvedTheme, setTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted && resolvedTheme === "dark";
 
   const toggle = () => {
     setTheme(isDark ? "light" : "dark");
@@ -52,7 +58,7 @@ export function ThemeToggle({ className, variant = "default" }) {
       aria-label="Toggle theme"
       className={cn(
         "relative flex h-10 w-20 items-center rounded-full border-2 border-border p-1 transition-colors",
-        className
+        className,
       )}
     >
       <motion.div
@@ -60,7 +66,7 @@ export function ThemeToggle({ className, variant = "default" }) {
         animate={{ x: isDark ? 36 : 0 }}
         className={cn(
           "flex h-7 w-7 items-center justify-center rounded-full",
-          isDark ? "bg-accent" : "bg-primary"
+          isDark ? "bg-accent" : "bg-primary",
         )}
       >
         {isDark ? <Moon /> : <Sun />}

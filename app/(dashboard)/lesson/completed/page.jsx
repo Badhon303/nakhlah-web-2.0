@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Mascot } from "@/components/nakhlah/Mascot";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { GemStone } from "@/components/icons/Gem";
 import { Bullseye } from "@/components/icons/BullsEye";
 import { HighVoltage } from "@/components/icons/High-Voltage";
@@ -19,19 +19,47 @@ function formatTime(totalSeconds) {
   return `${minutes}:${seconds}`;
 }
 
+function calculateAccuracyPercentage({ totalQuestions, correctAnswerAttempts }) {
+  const normalizedQuestionCount = Number(totalQuestions);
+  const normalizedCorrectAttempts = Number(correctAnswerAttempts);
+
+  if (
+    !Number.isFinite(normalizedQuestionCount) ||
+    normalizedQuestionCount <= 0 ||
+    !Number.isFinite(normalizedCorrectAttempts)
+  ) {
+    return 0;
+  }
+
+  return Math.max(
+    0,
+    Math.min(
+      100,
+      Math.round((normalizedCorrectAttempts / normalizedQuestionCount) * 100),
+    ),
+  );
+}
+
 export default function LessonCompleted() {
   const router = useRouter();
-  const [progressData, setProgressData] = useState(null);
+  const [progressData] = useState(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
 
-  useEffect(() => {
     const raw = sessionStorage.getItem("lessonProgressData");
-    if (raw) {
-      try {
-        setProgressData(JSON.parse(raw));
-      } catch {}
+    if (!raw) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    } finally {
       sessionStorage.removeItem("lessonProgressData");
     }
-  }, []);
+  });
 
   const datesReceived =
     progressData?.datesReceived ??
@@ -54,10 +82,19 @@ export default function LessonCompleted() {
     progressData?.__clientStats?.elapsedSeconds ??
     progressData?.elapsedSeconds ??
     0;
-  const accuracyValue =
-    progressData?.__clientStats?.accuracyPercentage ??
-    progressData?.accuracyPercentage ??
+  const totalQuestions =
+    progressData?.__clientStats?.scoredQuestionsCount ??
+    progressData?.__clientStats?.totalQuestions ??
+    progressData?.totalQuestions ??
     0;
+  const correctAnswerAttempts =
+    progressData?.__clientStats?.correctAnswerAttempts ??
+    progressData?.correctAnswerAttempts ??
+    0;
+  const accuracyValue = calculateAccuracyPercentage({
+    totalQuestions,
+    correctAnswerAttempts,
+  });
   const addedBadges = Array.isArray(progressData?.badges?.added)
     ? progressData.badges.added
     : [];
