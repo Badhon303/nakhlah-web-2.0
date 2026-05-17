@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Mascot } from "@/components/nakhlah/Mascot";
 import { useRouter } from "next/navigation";
 
-export default function LeavingDialog({ onCancel }) {
+export default function LeavingDialog({ onCancel, onLeave }) {
   const router = useRouter();
 
   const handleKeepLearning = () => {
@@ -13,6 +13,11 @@ export default function LeavingDialog({ onCancel }) {
   };
 
   const handleLeave = () => {
+    if (typeof onLeave === "function") {
+      onLeave();
+      return;
+    }
+
     router.push("/");
   };
 

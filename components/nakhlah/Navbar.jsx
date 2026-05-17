@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Home, BookOpen, Trophy, User, Crown } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
@@ -51,8 +52,15 @@ export function Navbar() {
       <nav className="hidden md:flex flex-col fixed top-0 left-0 h-full w-64 border-r border-border bg-card/95 backdrop-blur-md p-6 overflow-y-auto">
         <div className="flex flex-col gap-8">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-foreground">Nakhlah</span>
+          <Link href="/" className="flex w-full items-center justify-center">
+            <Image
+              src="/Nakhlah_Logo.webp"
+              alt="Nakhlah logo"
+              width={80}
+              height={80}
+              className="h-20 w-20 rounded-lg object-cover"
+              priority
+            />
           </Link>
 
           {/* Nav Links */}

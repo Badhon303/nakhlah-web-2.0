@@ -971,6 +971,13 @@ export default function LessonPage() {
     await completeLessonAndRedirect();
   };
 
+  const handleLeaveLesson = () => {
+    clearPersistedLessonSession();
+    clearLessonSelection();
+    setShowExitDialog(false);
+    router.push("/");
+  };
+
   const handleCheckAnswer = async () => {
     if (!currentQuestion) return;
     if (!hasLives) {
@@ -1244,7 +1251,10 @@ export default function LessonPage() {
 
       {showExitDialog && (
         <div className="fixed inset-0 z-50">
-          <LeavingDialog onCancel={() => setShowExitDialog(false)} />
+          <LeavingDialog
+            onCancel={() => setShowExitDialog(false)}
+            onLeave={handleLeaveLesson}
+          />
         </div>
       )}
 
@@ -1826,10 +1836,10 @@ export default function LessonPage() {
                     ? !fillBlankAnswer.trim()
                     : questionType === "pair_matching"
                       ? !isPairMatchingReadyToCheck
-                    : questionType === "word_making" ||
-                        questionType === "sentence_making"
-                      ? selectedTokens.length === 0
-                      : false)
+                      : questionType === "word_making" ||
+                          questionType === "sentence_making"
+                        ? selectedTokens.length === 0
+                        : false)
             }
           />
         )}
