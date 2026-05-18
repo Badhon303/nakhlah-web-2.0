@@ -129,16 +129,16 @@ export default function BadgesList() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex gap-4 sm:flex-row sm:items-center justify-center lg:justify-end">
-        <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-center lg:justify-end">
+        <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2 min-w-0">
           {/* Search */}
-          <div className="relative">
+          <div className="relative w-full sm:w-auto min-w-0">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search badges"
-              className="pl-9 pr-3 h-9 rounded-full bg-card border border-border text-sm focus:outline-none"
+              className="w-full sm:w-52 pl-9 pr-3 h-9 rounded-full bg-card border border-border text-sm focus:outline-none"
             />
           </div>
 
@@ -146,7 +146,7 @@ export default function BadgesList() {
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value)}
-            className="h-9 px-4 rounded-full border border-border text-sm bg-card text-muted-foreground focus:outline-none"
+            className="w-full sm:w-auto h-9 px-4 rounded-full border border-border text-sm bg-card text-muted-foreground focus:outline-none"
           >
             <option value="injaz-desc">Injaz (High → Low)</option>
             <option value="injaz-asc">Injaz (Low → High)</option>

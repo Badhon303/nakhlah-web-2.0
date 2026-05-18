@@ -3,23 +3,16 @@ import { motion } from "framer-motion";
 import {
   User,
   Bell,
-  Grid3x3,
-  Eye,
-  Shield,
-  Users,
-  Moon,
-  Sun,
   HelpCircle,
   Info,
+  CreditCard,
   LogOut,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 
 export default function SettingsPage({ onBack, onNavigate }) {
-  const { theme, setTheme, resolvedTheme } = useTheme();
   const router = useRouter();
 
   const settingsItems = [
@@ -37,39 +30,11 @@ export default function SettingsPage({ onBack, onNavigate }) {
       action: "notification",
     },
     {
-      label: "General",
-      icon: Grid3x3,
-      color:
-        "bg-violet-100 text-violet-500 dark:bg-violet-900/30 dark:text-violet-400",
-      action: "general",
-    },
-    {
-      label: "Accessibility",
-      icon: Eye,
-      color:
-        "bg-amber-100 text-amber-500 dark:bg-amber-900/30 dark:text-amber-400",
-      action: "accessibility",
-    },
-    {
-      label: "Security",
-      icon: Shield,
+      label: "Payment",
+      icon: CreditCard,
       color:
         "bg-emerald-100 text-emerald-500 dark:bg-emerald-900/30 dark:text-emerald-400",
-      action: "security",
-    },
-    {
-      label: "Find Friends",
-      icon: Users,
-      color:
-        "bg-orange-100 text-orange-500 dark:bg-orange-900/30 dark:text-orange-400",
-      action: "find-friends",
-    },
-    {
-      label: "Dark Mode",
-      icon: Moon,
-      color: "bg-blue-100 text-blue-500 dark:bg-blue-900/30 dark:text-blue-400",
-      toggle: true,
-      iconDark: Sun,
+      action: "payment",
     },
     {
       label: "Help Center",
@@ -86,18 +51,12 @@ export default function SettingsPage({ onBack, onNavigate }) {
     },
   ];
 
-  const toggleDarkMode = () => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
-  };
-
   const handleLogout = () => {
     router.push("/auth/login");
   };
 
-  const isDark = resolvedTheme === "dark";
-
   return (
-    <div className="container mx-auto px-4 py-6 max-w-3xl">
+    <div className="container mx-auto px-3 sm:px-4 py-6 max-w-3xl">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -130,8 +89,6 @@ export default function SettingsPage({ onBack, onNavigate }) {
         <div className="space-y-1">
           {settingsItems.map((item, index) => {
             const IconComponent = item.icon;
-            const IconDarkComponent = item.iconDark || item.icon;
-
             return (
               <motion.div
                 key={index}
@@ -150,11 +107,7 @@ export default function SettingsPage({ onBack, onNavigate }) {
                   <div
                     className={`w-10 h-10 rounded-full ${item.color} flex items-center justify-center transition-colors`}
                   >
-                    {isDark && item.iconDark ? (
-                      <IconDarkComponent className="w-5 h-5" />
-                    ) : (
-                      <IconComponent className="w-5 h-5" />
-                    )}
+                    <IconComponent className="w-5 h-5" />
                   </div>
                   <span className="font-medium text-foreground">
                     {item.label}
@@ -162,23 +115,7 @@ export default function SettingsPage({ onBack, onNavigate }) {
                 </div>
 
                 {/* Right side - toggle or chevron */}
-                {item.toggle ? (
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent the parent onClick from firing
-                      toggleDarkMode();
-                    }}
-                    className={`relative w-12 h-7 rounded-full transition-colors cursor-pointer ${
-                      isDark ? "bg-primary" : "bg-muted"
-                    }`}
-                  >
-                    <span
-                      className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white transition-transform shadow-sm ${
-                        isDark ? "translate-x-5" : "translate-x-0"
-                      }`}
-                    />
-                  </div>
-                ) : (
+                {!item.toggle && (
                   <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
                 )}
               </motion.div>

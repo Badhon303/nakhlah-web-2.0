@@ -5,37 +5,17 @@ import { useState } from "react";
 
 export default function NotificationSettingsPage({ onBack }) {
   const [notifications, setNotifications] = useState({
-    exerciseReminder: true,
-    smartScheduling: false,
-    weeklyProgress: true,
-    newFollowers: true,
+    notification: true,
     payment: true,
-    friendActivity: true,
-    leaderboard: false,
-    freezerTimeUsed: true,
-    appUpdates: true,
-    newsPromotion: false,
-    newTipsAvailable: false,
-    surveyInvitation: true,
   });
 
   const toggleNotification = (key) => {
-    setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
+    setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const notificationItems = [
-    { key: "exerciseReminder", label: "Exercise Reminder" },
-    { key: "smartScheduling", label: "Smart Scheduling" },
-    { key: "weeklyProgress", label: "Weekly Progress" },
-    { key: "newFollowers", label: "New Followers" },
+    { key: "notification", label: "Notification" },
     { key: "payment", label: "Payment" },
-    { key: "friendActivity", label: "Friend Activity" },
-    { key: "leaderboard", label: "Leaderboard" },
-    { key: "freezerTimeUsed", label: "Freezer Time Used" },
-    { key: "appUpdates", label: "App Updates" },
-    { key: "newsPromotion", label: "News & Promotion" },
-    { key: "newTipsAvailable", label: "New Tips Available" },
-    { key: "surveyInvitation", label: "Survey Invitation" },
   ];
 
   return (

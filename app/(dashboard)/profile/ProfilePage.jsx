@@ -84,8 +84,11 @@ export default function ProfilePage({
       </div>
 
       {/* Mobile Sidebar - appears below main content */}
-      <div className="lg:hidden space-y-6 mt-4">
+      <div className="lg:hidden space-y-6 mt-4 pb-6">
         <QuickStats profileData={profileData} />
+        <ShareProfile onShare={() => onNavigate("share-profile")} />
+        <SubscriptionCard />
+        <RefillLivesCard />
       </div>
     </div>
   );

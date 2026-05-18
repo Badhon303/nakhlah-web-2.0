@@ -16,8 +16,10 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
+import { refillPalmTrees } from "@/services/api";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { useStreakStore } from "@/stores/useStreakStore";
+import { toast } from "@/components/nakhlah/Toast";
 
 const normalizeDateKey = (value) => {
   if (!value) return "";
@@ -35,6 +37,7 @@ const JOURNEY_REFRESH_FLAG_KEY = "nakhlah:journey-needs-refresh";
 export function UserStats() {
   const router = useRouter();
   const [mobileOpenCard, setMobileOpenCard] = useState(null);
+  const [isRefillingPalmTrees, setIsRefillingPalmTrees] = useState(false);
   const hasForcedPalmRefreshRef = useRef(false);
   const { data: session, status } = useSession();
   const profileData = useProfileStore((state) => state.profile);
@@ -152,6 +155,37 @@ export function UserStats() {
 
   const handleCloseAll = () => {
     setMobileOpenCard(null);
+  };
+
+  const handleRefillPalmTrees = async () => {
+    if (isRefillingPalmTrees) return;
+
+    if (!isSessionValid(session)) {
+      toast.error("Please login to refill Palm Trees.");
+      return;
+    }
+
+    const token = getSessionToken(session);
+    if (!token) {
+      toast.error("Session expired. Please login again.");
+      return;
+    }
+
+    setIsRefillingPalmTrees(true);
+    try {
+      const result = await refillPalmTrees(token);
+
+      if (!result.success) {
+        toast.error(result.error || "Unable to refill Palm Trees.");
+        return;
+      }
+
+      await loadStats(true);
+      toast.success(result.message || "Palm Trees refilled successfully.");
+      handleCloseAll();
+    } finally {
+      setIsRefillingPalmTrees(false);
+    }
   };
 
   const getMobilePopupPosition = (stat) => {
@@ -293,6 +327,7 @@ export function UserStats() {
                     onClick={(e) => {
                       e.stopPropagation();
                       handleCloseAll();
+                      router.push("/store");
                     }}
                     className="text-blue-500 hover:underline"
                   >
@@ -350,10 +385,21 @@ export function UserStats() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Button variant="outline" className="text-purple-500">
+                  <Button
+                    variant="outline"
+                    className="text-purple-500"
+                    onClick={() => router.push("/store")}
+                  >
                     UNLIMITED PALM TREES
                   </Button>
-                  <Button>REFILL PALM TREES (350 dates)</Button>
+                  <Button
+                    onClick={handleRefillPalmTrees}
+                    disabled={isRefillingPalmTrees}
+                  >
+                    {isRefillingPalmTrees
+                      ? "REFILLING..."
+                      : "REFILL PALM TREES (350 dates)"}
+                  </Button>
                 </div>
               </HoverCardContent>
             </HoverCard>
@@ -383,11 +429,23 @@ export function UserStats() {
               </div>
 
               <div className="grid gap-2">
-                <button className="w-full py-2 border rounded-md text-purple-500">
+                <button
+                  className="w-full py-2 border rounded-md text-purple-500"
+                  onClick={() => {
+                    handleCloseAll();
+                    router.push("/store");
+                  }}
+                >
                   UNLIMITED PALM TREES
                 </button>
-                <button className="w-full py-2 bg-primary text-primary-foreground rounded-md">
-                  REFILL PALM TREES (350 dates)
+                <button
+                  className="w-full py-2 bg-primary text-primary-foreground rounded-md disabled:opacity-70"
+                  onClick={handleRefillPalmTrees}
+                  disabled={isRefillingPalmTrees}
+                >
+                  {isRefillingPalmTrees
+                    ? "REFILLING..."
+                    : "REFILL PALM TREES (350 dates)"}
                 </button>
               </div>
             </div>

@@ -20,8 +20,10 @@ import ShareProfileDrawer from "./components/ShareProfileDrawer";
 import GeneralSettingsPage from "./components/GeneralSettings";
 import AboutNakhlahPage from "./components/AboutNakhlah";
 import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
+import { getUserKey } from "@/lib/userKey";
+import { useDailyQuestStore } from "@/stores/useDailyQuestStore";
 import {
   fetchCurrentUser,
   fetchMyProfile,
@@ -46,6 +48,7 @@ const VALID_VIEWS = new Set([
   "terms-and-conditions",
   "privacy-policy",
   "learning-tips",
+  "payment",
 ]);
 
 function ProfileAndSettingsContent() {
@@ -56,7 +59,11 @@ function ProfileAndSettingsContent() {
   const [achievementsData, setAchievementsData] = useState([]);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   const { data: session, status } = useSession();
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const claimQuestIfAvailable = useDailyQuestStore(
+    (store) => store.claimQuestIfAvailable,
+  );
 
   useEffect(() => {
     const requestedView = searchParams.get("view");
@@ -109,6 +116,17 @@ function ProfileAndSettingsContent() {
   const handleNavigate = (view) => {
     if (view === "share-profile") {
       setShowShareDrawer(true);
+      const token = getSessionToken(session);
+      if (token && isSessionValid(session)) {
+        void claimQuestIfAvailable({
+          token,
+          userKey: getUserKey(session),
+          questKey: "shareTheApp",
+        });
+      }
+    } else if (view === "payment") {
+      setActiveView("profile");
+      router.push("/store");
     } else {
       setActiveView(view);
     }
@@ -215,13 +233,14 @@ function ProfileAndSettingsContent() {
   };
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <AnimatePresence mode="wait">
         <motion.div
           key={activeView}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          className="px-4 sm:px-5 lg:px-0"
         >
           {renderView()}
         </motion.div>
@@ -237,7 +256,9 @@ function ProfileAndSettingsContent() {
 
 export default function ProfileAndSettings() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-background overflow-hidden" />}>
+    <Suspense
+      fallback={<div className="min-h-screen bg-background overflow-hidden" />}
+    >
       <ProfileAndSettingsContent />
     </Suspense>
   );

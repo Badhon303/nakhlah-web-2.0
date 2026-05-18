@@ -352,6 +352,41 @@ export async function fetchMyProfile(token) {
     }
 }
 
+export async function refillPalmTrees(token) {
+    try {
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        const { response } = await fetchWithAuthRetry("/api/user-profile/palm-refill", {
+            method: "GET",
+            token,
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to refill Palm Trees"));
+        }
+
+        return {
+            success: true,
+            data,
+            profile: Array.isArray(data?.docs) ? data.docs[0] || null : data?.doc || null,
+            message: data?.message || "Palm Trees refilled successfully",
+        };
+    } catch (error) {
+        console.error("Refill palm trees error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to refill Palm Trees",
+        };
+    }
+}
+
 export async function fetchLearnerStreak(token) {
     try {
         const { response } = await fetchWithAuthRetry("/api/user-profile/learner-streak", {

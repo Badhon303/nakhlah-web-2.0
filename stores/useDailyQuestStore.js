@@ -3,8 +3,10 @@ import { createCachedSlice } from "./_utils/createCachedSlice";
 import {
     fetchGamificationDailyQuest,
     fetchUserDailyQuest,
+    claimUserDailyQuest,
 } from "@/services/api";
 import { buildApiUrl } from "@/lib/api-config";
+import { resolveDailyQuestClaimParam } from "@/lib/gamification";
 
 /**
  * Daily Quest Store
@@ -36,6 +38,7 @@ const questAliases = {
     lessonWithNoMistake: ["lessonWithNoMistake", "noMistakes"],
     scoreHighPoints: ["scoreHighPoints", "highScore", "scoreEightyPlus"],
     shareTheApp: ["shareTheApp", "shareApp"],
+    spendMinutes: ["spendMinutes", "practiceTime"],
     spendDatesForLives: ["spendDatesForLives", "spendDates"],
     completeLessonsToday: ["completeLessonsToday", "completeLessons"],
     earnInjazToday: ["earnInjazToday", "earnInjaz"],
@@ -216,6 +219,75 @@ export const useDailyQuestStore = create((set, get) => ({
 
     getHomeDailyQuests: () => get().homeDailyQuests,
     getChallengeDailyMissions: () => get().challengeDailyMissions,
+
+    claimQuestIfAvailable: async ({
+        token,
+        userKey = "guest",
+        questKey,
+    } = {}) => {
+        if (!token || !questKey) {
+            return {
+                success: false,
+                error: "Missing token or quest key",
+            };
+        }
+
+        const state = get();
+        let challengeStatuses = Array.isArray(state.challengeStatuses)
+            ? state.challengeStatuses
+            : [];
+
+        if (!challengeStatuses.length) {
+            const fetched = await state.fetchDailyQuests({
+                token,
+                userKey,
+                forceRefresh: true,
+            });
+
+            if (!fetched?.success) {
+                return {
+                    success: false,
+                    error: fetched?.error || "Failed to load daily quests",
+                };
+            }
+
+            challengeStatuses = Array.isArray(get().challengeStatuses)
+                ? get().challengeStatuses
+                : [];
+        }
+
+        const aliases = resolveQuestAliases(questKey);
+        const pendingQuest = challengeStatuses.find((item) => {
+            const challengeId = item?.challengeId || "";
+            const status = (item?.status || "pending").toLowerCase();
+            return aliases.includes(challengeId) && status !== "completed";
+        });
+
+        if (!pendingQuest) {
+            return {
+                success: true,
+                skipped: true,
+                reason: "Quest is not present or already completed",
+            };
+        }
+
+        const claimParam = resolveDailyQuestClaimParam(questKey) || questKey;
+        const claimResult = await claimUserDailyQuest(token, claimParam);
+
+        if (!claimResult?.success) {
+            return {
+                success: false,
+                error: claimResult?.error || "Failed to claim quest",
+            };
+        }
+
+        await get().fetchDailyQuests({ token, userKey, forceRefresh: true });
+
+        return {
+            success: true,
+            skipped: false,
+        };
+    },
 
     invalidate: () => {
         set({ lastFetchedAt: null, error: null });

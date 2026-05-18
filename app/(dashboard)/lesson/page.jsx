@@ -21,6 +21,7 @@ import {
   makeLearnerProgress,
   reportFullMarks,
   reportWrongAnswer,
+  refillPalmTrees,
 } from "@/services/api";
 import { resolveLessonCompletionDailyQuestParams } from "@/lib/gamification";
 import { useDailyQuestStore } from "@/stores/useDailyQuestStore";
@@ -34,6 +35,7 @@ import LessonLoadingView from "./loading/LessonLoadingView";
 const LESSON_SESSION_STORAGE_KEY = "activeLessonSessionV1";
 const JOURNEY_REFRESH_FLAG_KEY = "nakhlah:journey-needs-refresh";
 const LESSON_SESSION_USER_KEY = "nakhlah:active-lesson-user";
+const LESSON_AUTH_SESSION_KEY = "nakhlah:active-auth-session";
 
 function buildLessonSessionKey({ lessonId, taskId, isExamLesson }) {
   return [lessonId || "", taskId || "", isExamLesson ? "exam" : "lesson"].join(
@@ -61,6 +63,13 @@ function clearPersistedLessonSession() {
   sessionStorage.removeItem("selectedNodeId");
   sessionStorage.removeItem("selectedLessonIsExam");
   sessionStorage.removeItem("selectedLessonStatus");
+}
+
+function buildAuthSessionKey(session) {
+  const email = session?.user?.email || "";
+  const id = session?.user?.id || session?.user?._id || "";
+  const expires = session?.expires || "";
+  return [email, id, expires].join("::");
 }
 
 function normalizeText(value) {
@@ -288,6 +297,7 @@ export default function LessonPage() {
   const [selectedLessonStatus, setSelectedLessonStatus] = useState("");
   const [showFullMarksClaimedNotice, setShowFullMarksClaimedNotice] =
     useState(false);
+  const [isRefillingFromError, setIsRefillingFromError] = useState(false);
   const [isCompletingFromNotice, setIsCompletingFromNotice] = useState(false);
   const [isNavigatingToCompletion, setIsNavigatingToCompletion] =
     useState(false);
@@ -320,6 +330,7 @@ export default function LessonPage() {
   const progressPercentage =
     totalQuestions > 0 ? ((currentIndex + 1) / totalQuestions) * 100 : 0;
   const activeUserKey = getUserKey(session);
+  const authSessionKey = buildAuthSessionKey(session);
 
   const questionType = currentQuestion?.question_type;
   const hasPalmTrees = palmTrees > 0;
@@ -332,27 +343,35 @@ export default function LessonPage() {
     if (status === "loading") return;
 
     if (status === "unauthenticated" || !isSessionValid(session)) {
+      clearPersistedLessonSession();
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem(LESSON_AUTH_SESSION_KEY);
+      }
       router.push("/auth/login");
+      return;
     }
-  }, [status, session, router]);
+
+    if (typeof window !== "undefined" && authSessionKey) {
+      sessionStorage.setItem(LESSON_AUTH_SESSION_KEY, authSessionKey);
+    }
+  }, [status, session, router, authSessionKey]);
 
   useEffect(() => {
     if (status !== "authenticated" || !isSessionValid(session)) return;
 
     const persistedUserKey = sessionStorage.getItem(LESSON_SESSION_USER_KEY);
-    const cachedSession = safelyParseLessonSession(
-      sessionStorage.getItem(LESSON_SESSION_STORAGE_KEY),
+    const persistedAuthSessionKey = sessionStorage.getItem(
+      LESSON_AUTH_SESSION_KEY,
     );
-    const cachedSessionUserKey = cachedSession?.userKey || null;
 
     if (
       (persistedUserKey && persistedUserKey !== activeUserKey) ||
-      (cachedSession && cachedSessionUserKey !== activeUserKey)
+      (persistedAuthSessionKey && persistedAuthSessionKey !== authSessionKey)
     ) {
       clearPersistedLessonSession();
       clearLessonSelection();
     }
-  }, [activeUserKey, clearLessonSelection, session, status]);
+  }, [activeUserKey, clearLessonSelection, session, status, authSessionKey]);
 
   useEffect(() => {
     const fetchLessonQuestions = async () => {
@@ -384,6 +403,9 @@ export default function LessonPage() {
         taskId,
         isExamLesson: selectedLessonIsExam,
       });
+
+      // Always start a lesson from a clean state instead of resuming stale cached progress.
+      clearPersistedLessonSession();
 
       if (!lessonId) {
         setLoadError("No lesson selected.");
@@ -446,83 +468,6 @@ export default function LessonPage() {
           throw new Error("Unable to verify available Palm Trees.");
         }
 
-        const cachedSession = safelyParseLessonSession(
-          sessionStorage.getItem(LESSON_SESSION_STORAGE_KEY),
-        );
-        const cachedLessonUserKey = sessionStorage.getItem(
-          LESSON_SESSION_USER_KEY,
-        );
-
-        if (
-          cachedLessonUserKey &&
-          activeUserKey &&
-          cachedLessonUserKey !== activeUserKey
-        ) {
-          clearPersistedLessonSession();
-        }
-
-        if (
-          cachedSession?.key === lessonSessionKey &&
-          cachedSession?.userKey === activeUserKey &&
-          Array.isArray(cachedSession.questions) &&
-          cachedSession.questions.length > 0
-        ) {
-          const cachedIndex = Number(cachedSession.currentIndex);
-          const maxIndex = cachedSession.questions.length - 1;
-
-          setQuestions(cachedSession.questions);
-          setCurrentIndex(
-            Number.isFinite(cachedIndex)
-              ? Math.max(0, Math.min(cachedIndex, maxIndex))
-              : 0,
-          );
-
-          const cachedPalmTrees = Number(
-            cachedSession.palmTrees ?? cachedSession.lives,
-          );
-          if (Number.isFinite(cachedPalmTrees)) {
-            setPalmTrees(cachedPalmTrees);
-          }
-
-          setHasWrongAnswer(Boolean(cachedSession.hasWrongAnswer));
-          setFullMarksRewardData(cachedSession.fullMarksRewardData || null);
-
-          const cachedElapsedSeconds = Number(cachedSession.elapsedSeconds);
-          if (Number.isFinite(cachedElapsedSeconds)) {
-            setElapsedSeconds(cachedElapsedSeconds);
-          }
-
-          const cachedTimerStartedAtMs = Number(cachedSession.timerStartedAtMs);
-          if (
-            Number.isFinite(cachedTimerStartedAtMs) &&
-            cachedTimerStartedAtMs > 0
-          ) {
-            setTimerStartedAtMs(cachedTimerStartedAtMs);
-          } else if (
-            Number.isFinite(cachedElapsedSeconds) &&
-            cachedElapsedSeconds >= 0
-          ) {
-            setTimerStartedAtMs(Date.now() - cachedElapsedSeconds * 1000);
-          }
-
-          const cachedTotalAnswerAttempts = Number(
-            cachedSession.totalAnswerAttempts,
-          );
-          if (Number.isFinite(cachedTotalAnswerAttempts)) {
-            setTotalAnswerAttempts(cachedTotalAnswerAttempts);
-          }
-
-          const cachedCorrectAnswerAttempts = Number(
-            cachedSession.correctAnswerAttempts,
-          );
-          if (Number.isFinite(cachedCorrectAnswerAttempts)) {
-            setCorrectAnswerAttempts(cachedCorrectAnswerAttempts);
-          }
-
-          setIsLoading(false);
-          return;
-        }
-
         const questionsRequest = selectedLessonIsExam
           ? fetchTaskExamQuestions(taskId, token)
           : fetchLessonAPI(lessonId, token);
@@ -559,6 +504,7 @@ export default function LessonPage() {
     fetchLessonQuestions();
   }, [
     activeUserKey,
+    authSessionKey,
     fetchProfile,
     storeSelectedLessonId,
     storeSelectedNodeId,
@@ -650,6 +596,7 @@ export default function LessonPage() {
         taskId,
         isExamLesson: selectedLessonIsExam,
         userKey: activeUserKey,
+        authSessionKey,
         selectedLessonStatus,
         questions,
         currentIndex,
@@ -664,8 +611,10 @@ export default function LessonPage() {
       }),
     );
     sessionStorage.setItem(LESSON_SESSION_USER_KEY, activeUserKey);
+    sessionStorage.setItem(LESSON_AUTH_SESSION_KEY, authSessionKey);
   }, [
     activeUserKey,
+    authSessionKey,
     storeSelectedLessonId,
     storeSelectedNodeId,
     storeSelectedLessonIsExam,
@@ -1184,6 +1133,40 @@ export default function LessonPage() {
     leftState.length > 0 &&
     matchedCount === leftState.length;
 
+  const handleRefillFromErrorState = async () => {
+    if (isRefillingFromError) return;
+
+    if (!isSessionValid(session)) {
+      router.push("/auth/login");
+      return;
+    }
+
+    const token = getSessionToken(session);
+    if (!token) {
+      toast.error("Session expired. Please login again.");
+      router.push("/auth/login");
+      return;
+    }
+
+    setIsRefillingFromError(true);
+    try {
+      const refillResult = await refillPalmTrees(token);
+
+      if (!refillResult.success) {
+        toast.error(refillResult.error || "Unable to refill Palm Trees.");
+        return;
+      }
+
+      await fetchProfile(token, true, getUserKey(session));
+      toast.success(
+        refillResult.message || "Palm Trees refilled successfully.",
+      );
+      router.refresh();
+    } finally {
+      setIsRefillingFromError(false);
+    }
+  };
+
   if (isLoading || isNavigatingToCompletion) {
     return <LessonLoadingView progress={65} />;
   }
@@ -1216,10 +1199,11 @@ export default function LessonPage() {
             </button>
             {isLifeError ? (
               <button
-                onClick={() => router.push("/store")}
+                onClick={handleRefillFromErrorState}
+                disabled={isRefillingFromError}
                 className="px-5 py-3 rounded-xl border border-border bg-background text-foreground font-semibold"
               >
-                Refill Palm Trees
+                {isRefillingFromError ? "Refilling..." : "Refill Palm Trees"}
               </button>
             ) : null}
           </div>

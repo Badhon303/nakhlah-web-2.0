@@ -137,8 +137,40 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
 
   return (
     <div className="relative lg:max-w-lg mx-auto">
-      {/* Sticky unit header */}
-      <div className="sticky top-[calc(env(safe-area-inset-top)+72px)] lg:top-0 z-50 bg-background/80 backdrop-blur-sm py-2 lg:py-0">
+      {/* Fixed unit header on mobile to avoid sticky jitter while scrolling */}
+      <div className="fixed top-[72px] left-0 right-0 z-[100] bg-background border-b border-border/60 py-2 lg:hidden">
+        <div className="mx-auto w-full max-w-lg px-4">
+          <div
+            className={`flex items-center justify-between px-4 py-3 rounded-lg shadow-lg transition-all duration-500 ease-in-out bg-gradient-to-r ${getLevelColor(
+              currentLevel?.colorIndex || 1,
+            )} text-white`}
+          >
+            <div>
+              <div className="text-sm text-white/90 mb-1 font-semibold uppercase tracking-wider">
+                {currentLevel?.levelName ? `${currentLevel.levelName}, ` : ""}
+                {currentLevel?.name || ""}
+              </div>
+              {currentTask?.title ? (
+                <div className="text-2xl font-bold leading-tight">
+                  {currentTask.title}
+                </div>
+              ) : null}
+            </div>
+            <button className="text-white hover:bg-white/20 p-2 rounded-full">
+              <FileText className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile mask: keep area above unit header visually clean */}
+      <div className="fixed top-0 left-0 right-0 h-[72px] z-[99] bg-background lg:hidden pointer-events-none" />
+
+      {/* Desktop mask to keep whitespace above sticky header clean */}
+      <div className="hidden lg:block sticky top-0 z-[55] h-6 bg-background" />
+
+      {/* Sticky unit header on desktop */}
+      <div className="hidden lg:block sticky top-6 z-50 bg-background py-2 lg:py-0">
         <div
           className={`flex items-center justify-between px-4 py-3 rounded-lg shadow-lg transition-all duration-500 ease-in-out bg-gradient-to-r ${getLevelColor(
             currentLevel?.colorIndex || 1,
@@ -161,8 +193,10 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
         </div>
       </div>
 
+      <div className="h-[88px] lg:hidden" />
+
       {/* Lessons grouped by level */}
-      <div className="relative mt-6">
+      <div className="relative mt-6 lg:mt-10">
         {levels.map((level, levelIndex) => {
           const levelLessons = groupedLessons[level.id] || [];
           const isFirstLessonCurrent = levelLessons[0]?.isCurrent;

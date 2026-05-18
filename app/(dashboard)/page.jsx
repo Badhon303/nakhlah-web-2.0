@@ -225,23 +225,14 @@ export default function LearnPage() {
   return (
     <div className="bg-background text-foreground">
       {/* Mobile sticky header */}
-      <div
-        className="lg:hidden fixed w-full z-[110] bg-primary shadow-md"
-        style={{ top: "env(safe-area-inset-top, 0px)" }}
-      >
+      <div className="lg:hidden fixed top-0 w-full z-[110] bg-primary shadow-md">
         <UserStats />
       </div>
 
-      <main
-        className="container mx-auto lg:px-4 lg:py-6 max-w-7xl"
-        style={{ top: "env(safe-area-inset-top, 0px)" }}
-      >
+      <main className="container mx-auto pt-[84px] lg:pt-0 lg:px-4 lg:py-6 max-w-7xl">
         <div className="flex flex-col lg:flex-row gap-12">
           {/* Left side: Scrollable pathway */}
-          <div
-            className="lg:w-2/3 lg:h-[calc(100vh_-_64px)] lg:overflow-y-auto no-scrollbar"
-            style={{ top: "env(safe-area-inset-top, 0px)" }}
-          >
+          <div className="lg:w-2/3 lg:h-[calc(100vh_-_64px)] lg:overflow-y-auto no-scrollbar">
             {loadError ? (
               <JourneyErrorFallback
                 error={loadError}
