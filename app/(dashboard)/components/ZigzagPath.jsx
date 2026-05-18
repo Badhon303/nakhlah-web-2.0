@@ -5,6 +5,16 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Lock, FileText } from "lucide-react";
 
+const PATH_CENTER = 50;
+const PATH_AMPLITUDE = 25;
+const PATH_FREQUENCY = 0.8;
+const LESSON_ROW_HEIGHT = 112;
+const MASCOT_VERTICAL_OFFSET = -150;
+const MASCOT_SIDE_POSITIONS = {
+  left: "22%",
+  right: "78%",
+};
+
 export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
   const [currentLevelId, setCurrentLevelId] = useState("");
 
@@ -26,67 +36,97 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
     currentSectionLessons[0];
 
   const getPosition = (index) => {
-    const amplitude = 25;
-    const center = 50;
-    const frequency = 0.8;
-    const x = center + Math.sin(index * frequency) * amplitude;
+    const x = PATH_CENTER + Math.sin(index * PATH_FREQUENCY) * PATH_AMPLITUDE;
     return { left: `${x}%`, transform: "translateX(-50%)" };
   };
 
-  const getMascotPosition = (index) => {
-    const lessonPos = getPosition(index);
-    const leftPercent = parseInt(lessonPos.left);
-    return leftPercent > 50
-      ? { left: "20%", transform: "translateX(-50%)" }
-      : { left: "80%", transform: "translateX(-50%) translateY(-20%)" };
-  };
+  const lessonIndexById = useMemo(
+    () => new Map(lessons.map((lesson, index) => [lesson.id, index])),
+    [lessons],
+  );
 
-  const autoMascotPlacements = useMemo(() => {
-    if (!Array.isArray(lessons) || lessons.length === 0) return [];
+  const mascotPlacementsByAnchorId = useMemo(() => {
+    if (!Array.isArray(lessons) || lessons.length < 4) return new Map();
 
     const moods = ["proud", "encouraging", "happy", "cool"];
     const sizes = ["xxl", "xxl", "xxl", "xxl"];
-    const desiredCount = Math.min(
-      4,
-      Math.max(2, Math.floor(lessons.length / 3)),
-    );
-    const step = Math.max(1, Math.floor(lessons.length / (desiredCount + 1)));
+    const halfWave = Math.PI / PATH_FREQUENCY;
+    const firstTurningPoint = Math.PI / (2 * PATH_FREQUENCY);
+    const slotCandidates = [];
 
-    const selectedIndices = new Set();
-    for (let i = 1; i <= desiredCount; i += 1) {
-      const idx = Math.min(lessons.length - 1, i * step);
-      selectedIndices.add(idx);
+    for (
+      let turningPoint = firstTurningPoint, slotIndex = 0;
+      turningPoint + halfWave <= lessons.length;
+      turningPoint += halfWave, slotIndex += 1
+    ) {
+      const midpoint = turningPoint + halfWave / 2;
+      const anchorIndex = Math.min(
+        lessons.length - 1,
+        Math.max(0, Math.floor(midpoint)),
+      );
+
+      slotCandidates.push({
+        anchorLessonId: lessons[anchorIndex]?.id,
+        midpoint,
+        side: slotIndex % 2 === 0 ? "left" : "right",
+        slotIndex,
+      });
     }
 
-    if (selectedIndices.size === 0 && lessons[0]) {
-      selectedIndices.add(0);
-    }
+    if (slotCandidates.length === 0) return new Map();
 
-    return Array.from(selectedIndices)
-      .sort((a, b) => a - b)
-      .map((index, idx) => ({
-        position: lessons[index]?.id,
-        mood: moods[idx % moods.length],
-        size: sizes[idx % sizes.length],
-        placementIndex: idx,
-      }))
-      .filter((item) => Boolean(item.position));
-  }, [lessons]);
+    const requestedMascots =
+      Array.isArray(mascots) && mascots.length > 0
+        ? mascots
+        : slotCandidates.map((_, index) => ({
+            mood: moods[index % moods.length],
+            size: sizes[index % sizes.length],
+          }));
 
-  const activeMascots =
-    Array.isArray(mascots) && mascots.length > 0
-      ? mascots
-      : autoMascotPlacements;
+    const availableSlots = [...slotCandidates];
+    const placementsByAnchor = new Map();
 
-  const mascotByLessonId = useMemo(() => {
-    const placementMap = new Map();
-    activeMascots.forEach((mascot) => {
-      if (mascot?.position) {
-        placementMap.set(mascot.position, mascot);
-      }
-    });
-    return placementMap;
-  }, [activeMascots]);
+    requestedMascots
+      .slice(0, slotCandidates.length)
+      .forEach((mascot, index) => {
+        if (availableSlots.length === 0) return;
+
+        const requestedIndex = mascot?.position
+          ? lessonIndexById.get(mascot.position)
+          : null;
+
+        let slotChoiceIndex = Math.min(index, availableSlots.length - 1);
+
+        if (Number.isInteger(requestedIndex)) {
+          slotChoiceIndex = availableSlots.reduce(
+            (bestIndex, slot, currentIndex) =>
+              Math.abs(slot.midpoint - requestedIndex) <
+              Math.abs(availableSlots[bestIndex].midpoint - requestedIndex)
+                ? currentIndex
+                : bestIndex,
+            0,
+          );
+        }
+
+        const [slot] = availableSlots.splice(slotChoiceIndex, 1);
+
+        if (!slot?.anchorLessonId) return;
+
+        const placement = {
+          ...slot,
+          mood: mascot?.mood || moods[slot.slotIndex % moods.length],
+          size: mascot?.size || sizes[slot.slotIndex % sizes.length],
+          message: mascot?.message,
+        };
+
+        const anchoredPlacements =
+          placementsByAnchor.get(slot.anchorLessonId) || [];
+        anchoredPlacements.push(placement);
+        placementsByAnchor.set(slot.anchorLessonId, anchoredPlacements);
+      });
+
+    return placementsByAnchor;
+  }, [lessonIndexById, lessons, mascots]);
 
   const getLevelColor = (level) => {
     const colors = [
@@ -200,6 +240,10 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
         {levels.map((level, levelIndex) => {
           const levelLessons = groupedLessons[level.id] || [];
           const isFirstLessonCurrent = levelLessons[0]?.isCurrent;
+          const levelStartIndex = lessonIndexById.get(levelLessons[0]?.id) ?? 0;
+          const levelMascots = levelLessons.flatMap(
+            (lesson) => mascotPlacementsByAnchorId.get(lesson.id) || [],
+          );
 
           return (
             <div
@@ -230,18 +274,8 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
               {/* Zigzag path for this level */}
               <div className="relative">
                 {levelLessons.map((lesson, index) => {
-                  const globalIndex = lessons.findIndex(
-                    (l) => l.id === lesson.id,
-                  );
-                  const position = getPosition(
-                    globalIndex >= 0 ? globalIndex : index,
-                  );
-                  const mascotPosition = getMascotPosition(
-                    globalIndex >= 0 ? globalIndex : index,
-                  );
-                  const mascot = mascotByLessonId.get(lesson.id);
-                  const baseTop = mascotPosition.left === "20%" ? 72 : 200;
-                  const topOffset = mascot?.placementIndex === 1 ? 8 : 0;
+                  const globalIndex = lessonIndexById.get(lesson.id);
+                  const position = getPosition(globalIndex ?? index);
 
                   return (
                     <div key={lesson.id} className="relative h-28 w-full">
@@ -317,29 +351,32 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
                           </div>
                         </div>
                       )}
-
-                      {/* Mascot */}
-                      {mascot && (
-                        <div
-                          key={`${lesson.id}-${mascot.mood || "helper"}`}
-                          className="absolute"
-                          style={{
-                            left: mascotPosition.left,
-                            top: `${baseTop + topOffset}%`,
-                            transform: `${mascotPosition.transform} translateY(-50%)`,
-                          }}
-                        >
-                          <Mascot
-                            mood={mascot.mood || "happy"}
-                            size={mascot.size || "md"}
-                            message={mascot.message}
-                            className=""
-                          />
-                        </div>
-                      )}
                     </div>
                   );
                 })}
+
+                {levelMascots.map((mascot) => (
+                  <div
+                    key={`${level.id}-${mascot.slotIndex}-${mascot.mood || "helper"}`}
+                    className="absolute z-10 pointer-events-none"
+                    style={{
+                      left: MASCOT_SIDE_POSITIONS[mascot.side],
+                      top: `${
+                        (mascot.midpoint - levelStartIndex) *
+                          LESSON_ROW_HEIGHT +
+                        LESSON_ROW_HEIGHT / 2 +
+                        MASCOT_VERTICAL_OFFSET
+                      }px`,
+                      transform: "translate(-50%, -50%)",
+                    }}
+                  >
+                    <Mascot
+                      mood={mascot.mood || "happy"}
+                      size={mascot.size || "md"}
+                      message={mascot.message}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           );
