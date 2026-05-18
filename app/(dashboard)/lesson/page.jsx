@@ -68,8 +68,8 @@ function clearPersistedLessonSession() {
 function buildAuthSessionKey(session) {
   const email = session?.user?.email || "";
   const id = session?.user?.id || session?.user?._id || "";
-  const expires = session?.expires || "";
-  return [email, id, expires].join("::");
+  // Use stable identity only so focus-based session refreshes do not reset lesson state.
+  return [email, id].join("::");
 }
 
 function normalizeText(value) {
@@ -320,6 +320,7 @@ export default function LessonPage() {
   const [rightState, setRightState] = useState([]);
   const [incorrectPairs, setIncorrectPairs] = useState([]);
   const [pairPenaltyApplied, setPairPenaltyApplied] = useState(false);
+  const sessionRef = useRef(session);
   const autoplayedAudioQuestionIdRef = useRef(null);
   const totalAnswerAttemptsRef = useRef(0);
   const correctAnswerAttemptsRef = useRef(0);
@@ -338,6 +339,10 @@ export default function LessonPage() {
   const imageUrl = getQuestionMedia(currentQuestion, "image");
   const audioUrl = getQuestionMedia(currentQuestion, "audio");
   const audioQuestionId = currentQuestion?.id || currentIndex;
+
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -378,7 +383,9 @@ export default function LessonPage() {
       if (isNavigatingToCompletion) return;
       if (status === "loading") return;
 
-      if (!isSessionValid(session)) {
+      const currentSession = sessionRef.current;
+
+      if (!isSessionValid(currentSession)) {
         setLoadError("Please login to access lessons.");
         setIsLoading(false);
         router.push("/auth/login");
@@ -395,7 +402,7 @@ export default function LessonPage() {
         Boolean(storeSelectedLessonIsExam) ||
         sessionStorage.getItem("selectedLessonIsExam") === "true";
       const selectedStatus =
-        (selectedLessonStatus || "").trim() ||
+        (storeSelectedLessonStatus || "").trim() ||
         sessionStorage.getItem("selectedLessonStatus")?.trim() ||
         "";
       const lessonSessionKey = buildLessonSessionKey({
@@ -427,7 +434,7 @@ export default function LessonPage() {
         setSelectedLessonStatus(selectedStatus);
         setFullMarksRewardData(null);
 
-        const token = getSessionToken(session);
+        const token = getSessionToken(currentSession);
         if (!token) {
           throw new Error("No authentication token available");
         }
@@ -435,7 +442,7 @@ export default function LessonPage() {
         const profileResult = await fetchProfile(
           token,
           true,
-          getUserKey(session),
+          getUserKey(currentSession),
         );
 
         if (!profileResult.success) {
@@ -511,8 +518,6 @@ export default function LessonPage() {
     storeSelectedLessonIsExam,
     storeSelectedLessonStatus,
     status,
-    selectedLessonStatus,
-    session,
     router,
     isNavigatingToCompletion,
   ]);
@@ -1507,7 +1512,7 @@ export default function LessonPage() {
                             : isCorrect === false
                               ? "bg-red-500 text-white"
                               : "bg-accent text-white"
-                          : "bg-muted text-muted-foreground"
+                          : "bg-muted text-foreground dark:bg-muted/80 dark:text-foreground"
                       }`}
                     >
                       <Check className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -1539,7 +1544,7 @@ export default function LessonPage() {
                             : isCorrect === false
                               ? "bg-red-500 text-white"
                               : "bg-accent text-white"
-                          : "bg-muted text-muted-foreground"
+                          : "bg-muted text-foreground dark:bg-muted/80 dark:text-foreground"
                       }`}
                     >
                       <XIcon className="w-5 h-5 sm:w-6 sm:h-6" />
