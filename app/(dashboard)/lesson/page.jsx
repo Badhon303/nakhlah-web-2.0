@@ -309,6 +309,8 @@ export default function LessonPage() {
 
   const [selectedOptionId, setSelectedOptionId] = useState(null);
   const [selectedTrueFalse, setSelectedTrueFalse] = useState(null);
+  const [selectedFillBlankOptionId, setSelectedFillBlankOptionId] =
+    useState(null);
   const [fillBlankAnswer, setFillBlankAnswer] = useState("");
 
   const [selectedTokens, setSelectedTokens] = useState([]);
@@ -656,6 +658,15 @@ export default function LessonPage() {
     );
   }, [currentQuestion, questionType]);
 
+  const fillBlankCorrectOptionId = useMemo(() => {
+    if (questionType !== "fill_blank") return "";
+    return (
+      (currentQuestion.answers || []).find((answer) =>
+        Boolean(answer.is_correct),
+      )?.id || ""
+    );
+  }, [currentQuestion, questionType]);
+
   const fillBlankOptions = useMemo(() => {
     if (questionType !== "fill_blank") return [];
     return (currentQuestion.answers || []).map((answer) => ({
@@ -706,6 +717,7 @@ export default function LessonPage() {
     setIsCorrect(null);
     setSelectedOptionId(null);
     setSelectedTrueFalse(null);
+    setSelectedFillBlankOptionId(null);
     setFillBlankAnswer("");
     setSelectedTokens([]);
     setSelectedLeft(null);
@@ -1029,10 +1041,11 @@ export default function LessonPage() {
     }
 
     if (questionType === "fill_blank") {
-      if (!fillBlankAnswer.trim()) return;
-      const answerIsCorrect =
-        normalizeText(fillBlankAnswer) ===
-        normalizeText(fillBlankCorrectAnswer);
+      if (!selectedFillBlankOptionId && !fillBlankAnswer.trim()) return;
+      const answerIsCorrect = selectedFillBlankOptionId
+        ? selectedFillBlankOptionId === fillBlankCorrectOptionId
+        : normalizeText(fillBlankAnswer) ===
+          normalizeText(fillBlankCorrectAnswer);
       if (!answerIsCorrect) {
         await applyWrongAnswerPenalty();
       }
@@ -1656,8 +1669,7 @@ export default function LessonPage() {
                   <div className="mt-4 sm:mt-6 grid grid-cols-2 gap-3 sm:gap-4">
                     {fillBlankOptions.map((option, index) => {
                       const isSelected =
-                        normalizeText(fillBlankAnswer) ===
-                        normalizeText(option.text);
+                        selectedFillBlankOptionId === option.id;
 
                       return (
                         <motion.button
@@ -1665,7 +1677,10 @@ export default function LessonPage() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.1 }}
-                          onClick={() => setFillBlankAnswer(option.text)}
+                          onClick={() => {
+                            setSelectedFillBlankOptionId(option.id);
+                            setFillBlankAnswer(option.text);
+                          }}
                           disabled={isCorrect !== null}
                           className={`p-3 sm:p-4 md:p-6 w-full min-h-[80px] sm:min-h-[100px] rounded-lg sm:rounded-xl border-2 text-left transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${
                             isSelected
@@ -1885,7 +1900,7 @@ export default function LessonPage() {
                 : questionType === "true_false"
                   ? selectedTrueFalse === null
                   : questionType === "fill_blank"
-                    ? !fillBlankAnswer.trim()
+                    ? !selectedFillBlankOptionId
                     : questionType === "pair_matching"
                       ? !isPairMatchingReadyToCheck
                       : questionType === "word_making" ||
