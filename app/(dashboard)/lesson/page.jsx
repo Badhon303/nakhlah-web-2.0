@@ -81,6 +81,101 @@ function normalizeText(value) {
     .replace(/\s+/g, " ");
 }
 
+function stripArabicDiacritics(value) {
+  return (value || "").toString().replace(/[\u064B-\u065F\u0670]/g, "");
+}
+
+function hasArabicDiacritics(value) {
+  return /[\u064B-\u065F\u0670]/.test((value || "").toString());
+}
+
+function looksArabic(value) {
+  return /[\u0600-\u06FF]/.test((value || "").toString());
+}
+
+function resolveCanonicalArabicFromLearnAnswer(learnAnswer) {
+  if (!learnAnswer) return "";
+
+  if (typeof learnAnswer === "string") {
+    return looksArabic(learnAnswer) ? learnAnswer : "";
+  }
+
+  if (typeof learnAnswer !== "object") {
+    return "";
+  }
+
+  const entries = Object.entries(learnAnswer);
+  for (const [key, value] of entries) {
+    if (typeof value === "string" && looksArabic(value)) {
+      return value;
+    }
+    if (typeof key === "string" && looksArabic(key)) {
+      return key;
+    }
+  }
+
+  return "";
+}
+
+// Last-resort display mapping for common undiacritized starter words.
+const DIACRITIC_FALLBACK_BY_BASE_WORD = {
+  اسمي: "اِسْمِي",
+};
+
+function applyDiacriticsFallback(value) {
+  const normalized = (value || "").toString();
+  const base = stripArabicDiacritics(normalized).replace(/\s+/g, "").trim();
+  return DIACRITIC_FALLBACK_BY_BASE_WORD[base] || normalized;
+}
+
+function buildDiacritizedPreview(targetWord, selectedWord) {
+  const safeTarget = (targetWord || "").toString();
+  const safeSelected = (selectedWord || "").toString();
+
+  if (!safeTarget || !safeSelected) return safeSelected;
+
+  const targetBase = stripArabicDiacritics(safeTarget).replace(/\s+/g, "");
+  const selectedBase = stripArabicDiacritics(safeSelected).replace(/\s+/g, "");
+
+  // Only project diacritics when user build matches target prefix.
+  if (!targetBase.startsWith(selectedBase)) {
+    return safeSelected;
+  }
+
+  let consumedBaseChars = 0;
+  let preview = "";
+  const selectedBaseLength = selectedBase.length;
+
+  for (const char of safeTarget) {
+    const isDiacritic = /[\u064B-\u065F\u0670]/.test(char);
+    const isWhitespace = /\s/.test(char);
+
+    if (isDiacritic) {
+      // Keep harakat tied to the last consumed base character.
+      if (consumedBaseChars > 0 && consumedBaseChars <= selectedBaseLength) {
+        preview += char;
+      }
+      continue;
+    }
+
+    if (isWhitespace) {
+      if (consumedBaseChars > 0 && consumedBaseChars < selectedBaseLength) {
+        preview += char;
+      }
+      continue;
+    }
+
+    if (consumedBaseChars >= selectedBaseLength) {
+      break;
+    }
+
+    preview += char;
+    consumedBaseChars += 1;
+  }
+
+  return preview || safeSelected;
+}
+
 function getQuestionMedia(question, mediaType) {
   const mediaList = Array.isArray(question?.question_media)
     ? question.question_media
@@ -682,7 +777,8 @@ export default function LessonPage() {
     }
 
     const title = (currentQuestion?.question_title || "").toString();
-    const match = title.match(/_{2,}|-{3,}|\.{3,}/);
+    // Support single underscore placeholders (e.g. "'_'") in addition to older multi-char markers.
+    const match = title.match(/_{1,}|-{3,}|\.{3,}/);
 
     if (!match || match.index === undefined) {
       return {
@@ -708,10 +804,70 @@ export default function LessonPage() {
     if (questionType !== "word_making" && questionType !== "sentence_making") {
       return [];
     }
-    return sortByOrder(currentQuestion.answers || []).map(
-      (answer) => answer.title,
+
+    const answers = Array.isArray(currentQuestion?.answers)
+      ? currentQuestion.answers
+      : [];
+
+    // Prefer explicitly correct tokens when backend provides them.
+    const correctAnswers = answers.filter((answer) =>
+      Boolean(answer?.is_correct),
     );
+    const sourceAnswers = correctAnswers.length > 0 ? correctAnswers : answers;
+
+    return sortByOrder(sourceAnswers).map((answer) => answer.title);
   }, [currentQuestion, questionType]);
+
+  const selectedConstructedAnswer = useMemo(() => {
+    if (questionType !== "word_making" && questionType !== "sentence_making") {
+      return "";
+    }
+
+    return selectedTokens.join(questionType === "sentence_making" ? " " : "");
+  }, [questionType, selectedTokens]);
+
+  const diacritizedWordPreview = useMemo(() => {
+    if (questionType !== "word_making") return selectedConstructedAnswer;
+
+    const canonicalFromLearnAnswer = resolveCanonicalArabicFromLearnAnswer(
+      currentQuestion?.learn_answer,
+    );
+
+    const explicitAnswerCandidates = [
+      canonicalFromLearnAnswer,
+      currentQuestion?.correct_answer,
+      currentQuestion?.correctAnswer,
+      currentQuestion?.correct_word,
+      currentQuestion?.correctWord,
+      currentQuestion?.answer,
+      currentQuestion?.finalAnswer,
+      currentQuestion?.wordAnswer,
+    ];
+
+    const targetWord = explicitAnswerCandidates.find(
+      (candidate) => typeof candidate === "string" && candidate.trim(),
+    );
+
+    const fallbackTargetWord = applyDiacriticsFallback(
+      targetWord || orderedTokens.join(""),
+    );
+
+    if (!targetWord) {
+      return buildDiacritizedPreview(
+        fallbackTargetWord,
+        selectedConstructedAnswer,
+      );
+    }
+
+    if (!hasArabicDiacritics(targetWord)) {
+      return buildDiacritizedPreview(
+        fallbackTargetWord,
+        selectedConstructedAnswer,
+      );
+    }
+
+    return buildDiacritizedPreview(targetWord, selectedConstructedAnswer);
+  }, [currentQuestion, orderedTokens, questionType, selectedConstructedAnswer]);
 
   useEffect(() => {
     setIsCorrect(null);
@@ -1712,24 +1868,64 @@ export default function LessonPage() {
                   </h2>
                 </div>
 
-                <div className="min-h-[90px] bg-card rounded-2xl border-2 border-border p-4">
-                  <div
-                    dir="rtl"
-                    className="flex flex-wrap gap-2 justify-center items-center min-h-[58px]"
-                  >
-                    {selectedTokens.map((token, index) => (
-                      <motion.button
-                        key={`${token}-${index}`}
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        onClick={() => handleRemoveToken(index)}
-                        disabled={isCorrect !== null}
-                        className="px-5 py-3 bg-accent text-accent-foreground rounded-xl font-bold text-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {token}
-                      </motion.button>
-                    ))}
-                  </div>
+                <div className="h-[136px] bg-card rounded-2xl border-2 border-border p-4 overflow-hidden">
+                  {questionType === "word_making" ? (
+                    selectedTokens.length === 0 ? (
+                      <div className="h-full flex items-center justify-center">
+                        <div
+                          dir="rtl"
+                          className="text-4xl sm:text-5xl font-bold text-foreground leading-tight tracking-normal"
+                        >
+                          ...
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-full flex flex-col items-center justify-between gap-3">
+                        <div
+                          dir="rtl"
+                          className="h-14 flex items-center justify-center text-4xl sm:text-5xl font-bold text-foreground leading-tight tracking-normal"
+                        >
+                          {diacritizedWordPreview}
+                        </div>
+
+                        <div
+                          dir="rtl"
+                          className="w-full h-10 flex flex-nowrap gap-2 justify-center items-center overflow-x-auto overflow-y-hidden"
+                        >
+                          {selectedTokens.map((token, index) => (
+                            <motion.button
+                              key={`${token}-${index}`}
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              onClick={() => handleRemoveToken(index)}
+                              disabled={isCorrect !== null}
+                              className="px-3 py-2 shrink-0 bg-accent/15 text-foreground border border-accent/30 rounded-lg font-semibold text-base hover:bg-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {token}
+                            </motion.button>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  ) : (
+                    <div
+                      dir="rtl"
+                      className="h-full flex flex-wrap content-start gap-2 justify-center items-center overflow-y-auto"
+                    >
+                      {selectedTokens.map((token, index) => (
+                        <motion.button
+                          key={`${token}-${index}`}
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          onClick={() => handleRemoveToken(index)}
+                          disabled={isCorrect !== null}
+                          className="px-5 py-3 bg-accent text-accent-foreground rounded-xl font-bold text-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {token}
+                        </motion.button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap gap-3 justify-center">
