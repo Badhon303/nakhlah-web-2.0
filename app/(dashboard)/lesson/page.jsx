@@ -1592,9 +1592,6 @@ export default function LessonPage() {
                       </button>
                     </>
                   ) : null}
-                  <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground">
-                    Question
-                  </p>
                 </div>
 
                 <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-4 sm:mb-6 text-center sm:text-start">
@@ -1969,9 +1966,6 @@ export default function LessonPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
                   <div className="w-full">
                     <div className="bg-card border border-border rounded-xl sm:rounded-2xl p-3 sm:p-4 flex flex-col overflow-hidden">
-                      <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-2 sm:mb-3 text-center">
-                        Arabic
-                      </h3>
                       <div className="space-y-2.5 sm:space-y-4 pr-1">
                         {leftState.map((item, index) => {
                           const isSelected = selectedLeft?.id === item.id;
@@ -2010,9 +2004,6 @@ export default function LessonPage() {
 
                   <div className="w-full">
                     <div className="bg-card border border-border rounded-xl sm:rounded-2xl p-3 sm:p-4 flex flex-col overflow-hidden">
-                      <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-2 sm:mb-3 text-center">
-                        English
-                      </h3>
                       <div className="space-y-2.5 sm:space-y-4 pr-1">
                         {rightState.map((item, index) => {
                           const isSelected = selectedRight?.id === item.id;
