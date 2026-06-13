@@ -149,7 +149,8 @@ Content-Type: application/json
           "alt": "description",
           "filename": "filename.webp",
           "mimeType": "image/webp|audio/mpeg"
-        }
+        },
+        "mediaUrl": "https://external-cdn.com/path/filename.webp"
       }
     ],
     "answers": [
@@ -171,9 +172,10 @@ Content-Type: application/json
 
 ### URL Construction
 
-- API returns relative URLs: `/api/questionnaires-media/file/filename.ext`
-- Full URLs constructed as: `https://nakhlah-api.nakhlah.net/api/questionnaires-media/file/filename.ext`
-- Utility function: `getMediaUrl(url)` in `utils/mediaUtils.js`
+- API can return full external URLs in `mediaUrl` or relative URLs in `media.url`.
+- If `mediaUrl` is present, it is used directly.
+- If only `media.url` is present, full URLs are constructed as: `https://nakhlah-api.nakhlah.net/api/questionnaires-media/file/filename.ext`
+- Utility function: `getMediaUrl(url)` in `utils/mediaUtils.js` handles both cases (absolute and relative).
 
 ### Supported Media Types
 

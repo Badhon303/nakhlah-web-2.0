@@ -183,7 +183,7 @@ function getQuestionMedia(question, mediaType) {
       ? question.questionMedia
       : [];
   const mediaItem = mediaList.find((item) => item?.mediaType === mediaType);
-  const mediaUrl = mediaItem?.media?.url;
+  const mediaUrl = mediaItem?.mediaUrl || mediaItem?.media?.url;
 
   return mediaUrl ? getMediaUrl(mediaUrl) : "";
 }
