@@ -175,6 +175,37 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
     return () => observers.forEach((o) => o.disconnect());
   }, [levels, isLoading, currentLevelId]);
 
+  useEffect(() => {
+    if (isLoading || lessons.length === 0) return undefined;
+
+    const lastInteractedId = sessionStorage.getItem("lastInteractedNodeId");
+    const selectedId = sessionStorage.getItem("selectedNodeId");
+
+    let targetEl = null;
+    if (lastInteractedId) {
+      targetEl = document.getElementById(`node-${lastInteractedId}`);
+    }
+    if (!targetEl && selectedId) {
+      targetEl = document.getElementById(`node-${selectedId}`);
+    }
+    if (!targetEl) {
+      const currentLesson = lessons.find((l) => l.isCurrent);
+      if (currentLesson) {
+        targetEl = document.getElementById(`node-${currentLesson.apiId}`);
+      }
+    }
+    if (!targetEl) {
+      const firstUnlockedLesson = lessons.find((l) => !l.isLocked);
+      if (firstUnlockedLesson) {
+        targetEl = document.getElementById(`node-${firstUnlockedLesson.apiId}`);
+      }
+    }
+
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: "auto", block: "center" });
+    }
+  }, [lessons, isLoading]);
+
   return (
     <div className="relative lg:max-w-lg mx-auto">
       {/* Fixed unit header on mobile to avoid sticky jitter while scrolling */}
@@ -278,7 +309,11 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
                   const position = getPosition(globalIndex ?? index);
 
                   return (
-                    <div key={lesson.id} className="relative h-28 w-full">
+                    <div
+                      key={lesson.id}
+                      id={`node-${lesson.apiId}`}
+                      className="relative h-28 w-full"
+                    >
                       {/* Lesson circle */}
                       <div
                         className="absolute"

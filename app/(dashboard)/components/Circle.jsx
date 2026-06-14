@@ -104,6 +104,9 @@ export function Circle({
 
   const handleClick = () => {
     if ((isCompleted || isCurrent) && !isLocked) {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("lastInteractedNodeId", nodeId);
+      }
       setActivePopup(nodeId);
       setShowPopup(true);
     }

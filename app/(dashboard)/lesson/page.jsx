@@ -775,14 +775,20 @@ export default function LessonPage() {
 
   const fillBlankQuestionParts = useMemo(() => {
     if (questionType !== "fill_blank") {
-      return { englishInstruction: "", before: "", blank: "", after: "", hasBlank: false };
+      return {
+        englishInstruction: "",
+        before: "",
+        blank: "",
+        after: "",
+        hasBlank: false,
+      };
     }
 
     const title = (currentQuestion?.question_title || "").toString();
-    
+
     let englishInstruction = "";
     let arabicSentence = title;
-    
+
     // Find the colon separating English instruction and Arabic sentence
     const colonIndex = title.indexOf(":");
     if (colonIndex !== -1) {
@@ -817,11 +823,27 @@ export default function LessonPage() {
     // Do not render literal underscores or surrounding quotes in the UI — show a normalized blank
     const displayBlank = /^_+$/.test(raw) ? "" : raw;
 
+    let before = arabicSentence.slice(0, startIndex);
+    let after = arabicSentence.slice(endIndex);
+
+    // Bidi correction for content entered in LTR editors:
+    // If the blank is at the start of the Arabic text in memory, the author physically typed it first
+    // so it would appear on the left (end of RTL sentence).
+    // If the blank is at the end of the Arabic text in memory, the author physically typed it last
+    // so it would appear on the right (start of RTL sentence).
+    if (before.trim() === "") {
+      before = after;
+      after = "";
+    } else if (after.trim() === "") {
+      after = before;
+      before = "";
+    }
+
     return {
       englishInstruction,
-      before: arabicSentence.slice(0, startIndex),
+      before,
       blank: displayBlank,
-      after: arabicSentence.slice(endIndex),
+      after,
       hasBlank: true,
     };
   }, [currentQuestion, questionType]);
@@ -1126,6 +1148,64 @@ export default function LessonPage() {
       return;
     }
 
+    const isScored = isScoredQuestion(currentQuestion);
+    const isSkipped = isCorrect === null && isScored;
+
+    if (isSkipped) {
+      setQuestions((prev) => {
+        const nextList = [...prev];
+        const skippedQuestion = nextList[currentIndex];
+        nextList.splice(currentIndex, 1);
+        nextList.push(skippedQuestion);
+        return nextList;
+      });
+
+      // Reset selection and correctness states
+      setIsCorrect(null);
+      setSelectedOptionId(null);
+      setSelectedTrueFalse(null);
+      setSelectedFillBlankOptionId(null);
+      setFillBlankAnswer("");
+      setSelectedTokens([]);
+      setSelectedLeft(null);
+      setSelectedRight(null);
+      setIncorrectPairs([]);
+      setPairPenaltyApplied(false);
+
+      const nextQuestion = currentQuestion;
+      const nextQuestionType = nextQuestion?.question_type;
+
+      if (
+        nextQuestionType === "word_making" ||
+        nextQuestionType === "sentence_making"
+      ) {
+        setAvailableTokens(shuffleArray(orderedTokens));
+      } else if (nextQuestionType === "pair_matching") {
+        const pairs = nextQuestion.answers || [];
+        const leftItems = pairs.map((pair, index) => ({
+          id: `left-${index}-${pair.id}`,
+          text: pair.left_title,
+          matchKey: pair.id,
+          matched: false,
+        }));
+        const rightItems = shuffleArray(
+          pairs.map((pair, index) => ({
+            id: `right-${index}-${pair.id}`,
+            text: pair.right_title,
+            matchKey: pair.id,
+            matched: false,
+          })),
+        );
+        setLeftState(leftItems);
+        setRightState(rightItems);
+      } else {
+        setAvailableTokens([]);
+        setLeftState([]);
+        setRightState([]);
+      }
+      return;
+    }
+
     if (currentIndex < totalQuestions - 1) {
       setCurrentIndex((prev) => prev + 1);
       return;
@@ -1373,6 +1453,13 @@ export default function LessonPage() {
 
   if (loadError) {
     const isLifeError = /heart|life|palm/i.test(loadError);
+    const isNavigationError = /no lesson selected|no task selected/i.test(
+      loadError,
+    );
+
+    if (isNavigationError) {
+      return null;
+    }
 
     return (
       <div className="min-h-screen sm:min-h-[calc(100vh_-_64px)] lg:min-h-screen bg-background flex items-center justify-center p-4">
