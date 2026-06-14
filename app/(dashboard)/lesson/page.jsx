@@ -775,17 +775,35 @@ export default function LessonPage() {
 
   const fillBlankQuestionParts = useMemo(() => {
     if (questionType !== "fill_blank") {
-      return { before: "", blank: "", after: "", hasBlank: false };
+      return { englishInstruction: "", before: "", blank: "", after: "", hasBlank: false };
     }
 
     const title = (currentQuestion?.question_title || "").toString();
+    
+    let englishInstruction = "";
+    let arabicSentence = title;
+    
+    // Find the colon separating English instruction and Arabic sentence
+    const colonIndex = title.indexOf(":");
+    if (colonIndex !== -1) {
+      englishInstruction = title.slice(0, colonIndex + 1).trim();
+      arabicSentence = title.slice(colonIndex + 1).trim();
+    } else {
+      const hasArabic = /[\u0600-\u06FF]/.test(title);
+      if (!hasArabic) {
+        englishInstruction = title;
+        arabicSentence = "";
+      }
+    }
+
     // Support single underscore placeholders possibly wrapped in quotes (e.g. "'_'"),
     // and older multi-char markers. Strip surrounding quotes and normalize display.
-    const match = title.match(/(?:['"]?_+['"]?)|-{3,}|\.{3,}/);
+    const match = arabicSentence.match(/(?:['"]?_+['"]?)|-{3,}|\.{3,}/);
 
     if (!match || match.index === undefined) {
       return {
-        before: title,
+        englishInstruction,
+        before: arabicSentence,
         blank: "",
         after: "",
         hasBlank: false,
@@ -800,9 +818,10 @@ export default function LessonPage() {
     const displayBlank = /^_+$/.test(raw) ? "" : raw;
 
     return {
-      before: title.slice(0, startIndex),
+      englishInstruction,
+      before: arabicSentence.slice(0, startIndex),
       blank: displayBlank,
-      after: title.slice(endIndex),
+      after: arabicSentence.slice(endIndex),
       hasBlank: true,
     };
   }, [currentQuestion, questionType]);
@@ -1760,11 +1779,20 @@ export default function LessonPage() {
                 </div>
 
                 <div className="bg-card border border-border rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8">
-                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-4 sm:mb-6 text-center leading-none flex items-center justify-center gap-3">
+                  {fillBlankQuestionParts.englishInstruction && (
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-4 sm:mb-6 text-center leading-normal">
+                      {fillBlankQuestionParts.englishInstruction}
+                    </div>
+                  )}
+
+                  <div
+                    dir="rtl"
+                    className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-4 sm:mb-6 text-center leading-relaxed flex flex-wrap items-center justify-center gap-x-3 gap-y-2"
+                  >
                     {fillBlankQuestionParts.hasBlank ? (
                       <>
-                        {fillBlankQuestionParts.before}
-                        <span className="inline-flex w-[140px] sm:w-[180px] h-[1.35em] mx-1 align-middle justify-center items-center border-b-2 border-foreground/40 overflow-hidden leading-none flex-shrink-0">
+                        <span>{fillBlankQuestionParts.before}</span>
+                        <span className="inline-flex w-[140px] sm:w-[180px] h-[1.35em] align-middle justify-center items-center border-b-2 border-foreground/40 overflow-hidden leading-none flex-shrink-0">
                           <AnimatePresence mode="wait">
                             {fillBlankAnswer ? (
                               <motion.span
@@ -1797,12 +1825,12 @@ export default function LessonPage() {
                             )}
                           </AnimatePresence>
                         </span>
-                        {fillBlankQuestionParts.after}
+                        <span>{fillBlankQuestionParts.after}</span>
                       </>
                     ) : (
                       <>
-                        {fillBlankQuestionParts.before}
-                        <span className="inline-flex w-[140px] sm:w-[180px] h-[1.35em] mx-1 align-middle justify-center items-center border-b-2 border-foreground/40 overflow-hidden leading-none flex-shrink-0">
+                        <span>{fillBlankQuestionParts.before}</span>
+                        <span className="inline-flex w-[140px] sm:w-[180px] h-[1.35em] align-middle justify-center items-center border-b-2 border-foreground/40 overflow-hidden leading-none flex-shrink-0">
                           <AnimatePresence mode="wait">
                             {fillBlankAnswer ? (
                               <motion.span
@@ -1837,7 +1865,7 @@ export default function LessonPage() {
                         </span>
                       </>
                     )}
-                  </h2>
+                  </div>
                   <div className="mt-4 sm:mt-6 grid grid-cols-2 gap-3 sm:gap-4">
                     {fillBlankOptions.map((option, index) => {
                       const isSelected =
