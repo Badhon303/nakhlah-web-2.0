@@ -11,6 +11,8 @@ import LessonHeader from "../components/LessonHeader";
 import { useAudio } from "@/hooks/use-audio";
 import { ArabicTooltip } from "@/components/nakhlah/ArabicTooltip";
 import { Mascot } from "@/components/nakhlah/Mascot";
+import Image from "next/image";
+import cloudinaryLoader from "./utils/cloudinaryLoader";
 import { getMediaUrl, shuffleArray, sortByOrder } from "./utils/mediaUtils";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
@@ -1528,9 +1530,12 @@ export default function LessonPage() {
                     <div className="relative w-full max-w-[280px] sm:max-w-sm">
                       <div className="aspect-square bg-gradient-to-br from-accent/20 to-primary/10 rounded-xl sm:rounded-2xl p-2">
                         {imageUrl ? (
-                          <img
+                          <Image
+                            loader={cloudinaryLoader}
                             src={imageUrl}
                             alt="Learning illustration"
+                            width={400}
+                            height={400}
                             className="w-full h-full object-cover rounded-lg sm:rounded-xl"
                           />
                         ) : null}
@@ -1603,9 +1608,12 @@ export default function LessonPage() {
                     <div className="relative w-full max-w-[280px] sm:max-w-sm">
                       <div className="aspect-square bg-gradient-to-br from-accent/20 to-primary/10 rounded-xl sm:rounded-2xl p-2">
                         {imageUrl ? (
-                          <img
+                          <Image
+                            loader={cloudinaryLoader}
                             src={imageUrl}
                             alt="Question illustration"
+                            width={400}
+                            height={400}
                             className="w-full h-full object-cover rounded-lg sm:rounded-xl"
                           />
                         ) : null}
