@@ -13,15 +13,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
-import {
-  fetchGamificationBadges,
-  fetchQuestionnaireAchievements,
-} from "@/services/api";
+import { fetchGamificationBadges } from "@/services/api";
 import { Medal } from "@/components/icons/Medal";
 import { getUserKey } from "@/lib/userKey";
 import { useProfileStore } from "@/stores/useProfileStore";
+import { useAchievementsStore } from "@/stores/useAchievementsStore";
 
 const DEFAULT_PROFILE_IMAGE = "https://github.com/shadcn.png";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
@@ -57,41 +55,66 @@ export function ProfileSection() {
   const isSignedIn = status === "authenticated";
   const router = useRouter();
   const [badgeDictionary, setBadgeDictionary] = useState([]);
-  const [achievements, setAchievements] = useState([]);
   const profileData = useProfileStore((state) => state.profile);
   const fetchProfile = useProfileStore((state) => state.fetchMyProfile);
   const clearProfile = useProfileStore((state) => state.clear);
+  const achievements = useAchievementsStore((state) => state.achievements);
+  const fetchAchievements = useAchievementsStore(
+    (state) => state.fetchAchievements,
+  );
+  const clearAchievements = useAchievementsStore((state) => state.clear);
+  const lastUserKeyRef = useRef(null);
+  const badgesUserKeyRef = useRef(null);
 
   useEffect(() => {
     const loadProfileData = async () => {
       if (status === "loading") return;
       if (!isSessionValid(session)) {
         clearProfile();
+        clearAchievements();
         setBadgeDictionary([]);
-        setAchievements([]);
+        lastUserKeyRef.current = null;
+        badgesUserKeyRef.current = null;
         return;
       }
 
       const token = getSessionToken(session);
       if (!token) return;
 
-      const [_, badgesResult, achievementsResult] = await Promise.all([
-        fetchProfile(token, false, getUserKey(session)),
-        fetchGamificationBadges(token),
-        fetchQuestionnaireAchievements(token),
-      ]);
+      const userKey = getUserKey(session);
 
-      if (badgesResult.success) {
-        setBadgeDictionary(badgesResult.badges || []);
+      const promises = [];
+
+      if (lastUserKeyRef.current !== userKey || !profileData) {
+        lastUserKeyRef.current = userKey;
+        promises.push(fetchProfile(token, false, userKey));
+        promises.push(fetchAchievements({ token, userKey }));
       }
 
-      if (achievementsResult.success) {
-        setAchievements(achievementsResult.achievements || []);
+      if (
+        badgesUserKeyRef.current !== userKey ||
+        badgeDictionary.length === 0
+      ) {
+        badgesUserKeyRef.current = userKey;
+        promises.push(
+          fetchGamificationBadges(token).then((result) => {
+            if (result.success) setBadgeDictionary(result.badges || []);
+          }),
+        );
       }
+
+      await Promise.all(promises);
     };
 
     loadProfileData();
-  }, [clearProfile, fetchProfile, session, status]);
+  }, [
+    clearProfile,
+    clearAchievements,
+    fetchProfile,
+    fetchAchievements,
+    session,
+    status,
+  ]);
 
   const profileImage =
     getMediaUrl(profileData?.profilePicture?.url || session?.user?.image) ||
@@ -157,18 +180,20 @@ export function ProfileSection() {
   ];
 
   return (
-    <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+    <div className="p-4 rounded-xl bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 shadow-sm space-y-4">
       {isSignedIn ? (
         <div>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Avatar>
+              <Avatar className="ring-2 ring-primary ring-offset-2">
                 <AvatarImage src={profileImage} />
-                <AvatarFallback>{fallbackInitial || "U"}</AvatarFallback>
+                <AvatarFallback className="bg-slate-200 text-slate-800">
+                  {fallbackInitial || "U"}
+                </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <p className="font-semibold">{displayName}</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="font-bold text-slate-900">{displayName}</p>
+                <p className="text-sm text-slate-700">
                   {joinedLabel ? `Joined ${joinedLabel}` : "Your profile"}
                 </p>
               </div>
@@ -182,7 +207,7 @@ export function ProfileSection() {
                   earnedIcons.map((item) => (
                     <Tooltip key={item.key}>
                       <TooltipTrigger asChild>
-                        <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center overflow-hidden border border-border/50 cursor-help transition-colors hover:border-foreground/30">
+                        <div className="w-9 h-9 rounded-full bg-white/40 flex items-center justify-center overflow-hidden border border-white/30 cursor-help transition-colors hover:border-primary/50">
                           {item.iconUrl ? (
                             <img
                               src={item.iconUrl}
@@ -190,7 +215,7 @@ export function ProfileSection() {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="flex items-center justify-center w-full h-full text-xs font-bold text-muted-foreground">
+                            <div className="flex items-center justify-center w-full h-full text-xs font-bold text-slate-700">
                               {item.fallback === "badge" ? (
                                 <Medal size="sm" />
                               ) : (
@@ -209,7 +234,7 @@ export function ProfileSection() {
                     </Tooltip>
                   ))
                 ) : (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-slate-700">
                     No earned badges yet.
                   </p>
                 )}
@@ -222,7 +247,7 @@ export function ProfileSection() {
             <Button
               onClick={handleLogout}
               variant="outline"
-              className="w-full flex items-center justify-center gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 hover:border-destructive/50"
+              className="w-full flex items-center justify-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 border-red-200 dark:border-red-800"
             >
               <LogOut className="w-4 h-4" />
               Logout
@@ -231,7 +256,7 @@ export function ProfileSection() {
         </div>
       ) : (
         <div className="text-center space-y-4">
-          <h3 className="text-lg font-bold">
+          <h3 className="text-lg font-bold text-slate-900">
             Create a profile to save your progress!
           </h3>
           <div className="flex flex-col gap-2">
@@ -249,7 +274,7 @@ export function ProfileSection() {
           <Link
             key={link.href}
             href={link.href}
-            className="text-xs font-bold uppercase text-muted-foreground hover:text-foreground"
+            className="text-xs font-bold uppercase text-slate-700 hover:text-primary"
           >
             {link.label}
           </Link>

@@ -26,7 +26,7 @@ export function StreakCalendar({ activities = {} }) {
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
           <div
             key={day}
-            className="text-center text-xs font-semibold text-muted-foreground"
+            className="text-center text-xs font-semibold text-slate-700"
           >
             {day}
           </div>
@@ -51,8 +51,8 @@ export function StreakCalendar({ activities = {} }) {
                   hasActivity
                     ? "bg-gradient-to-r from-orange-400 to-orange-600 text-white shadow-md"
                     : isToday
-                      ? "bg-muted border-2 border-orange-500 text-foreground"
-                      : "bg-muted text-muted-foreground"
+                      ? "bg-white/60 border-2 border-orange-500 text-slate-900"
+                      : "bg-white/40 text-slate-700"
                 }
               `}
               title={date.toLocaleDateString()}
@@ -63,8 +63,8 @@ export function StreakCalendar({ activities = {} }) {
         })}
       </div>
 
-      <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2">
-        <div className="w-3 h-3 rounded bg-muted"></div>
+      <div className="flex items-center gap-2 text-xs text-slate-700 pt-2">
+        <div className="w-3 h-3 rounded bg-white/40"></div>
         <span>No activity</span>
         <div className="w-3 h-3 rounded bg-gradient-to-r from-orange-400 to-orange-600"></div>
         <span>Activity</span>

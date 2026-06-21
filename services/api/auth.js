@@ -24,7 +24,12 @@ export async function refreshAccessToken(currentToken) {
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-            throw new Error(toErrorMessage(data, "Failed to refresh token"));
+            console.error("Token refresh failed:", response.status, data);
+            return {
+                success: false,
+                error: toErrorMessage(data, "Failed to refresh token"),
+                status: response.status,
+            };
         }
 
         return {

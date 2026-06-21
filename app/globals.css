@@ -167,15 +167,27 @@
 
   html {
     font-family: Inter, sans-serif;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html::-webkit-scrollbar {
+    display: none;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     /* This adds padding to the top of your app equal to the status bar height */
     padding-top: env(safe-area-inset-top);
 
     /* You may also want to handle the bottom for home indicators on iPhone/Android */
     padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  body::-webkit-scrollbar {
+    display: none;
   }
 }
 

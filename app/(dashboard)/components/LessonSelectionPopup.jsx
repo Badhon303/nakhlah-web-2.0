@@ -1,8 +1,5 @@
 "use client";
 
-import { BookOpen } from "@/components/icons/BookOpen";
-import { Lock } from "@/components/icons/Lock";
-import { Trophy } from "@/components/icons/Trophy";
 import { TreasureChest } from "@/components/icons/TreasureChest";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
@@ -529,9 +526,17 @@ export function LessonSelectionPopup({
             <div className="grid grid-cols-2 gap-4">
               {lessons.map((lesson) => {
                 const lessonIcon = lesson.isExam ? (
-                  <Trophy size="xxl" />
+                  <img
+                    src="/icons/Quiz1.svg"
+                    alt="Quiz"
+                    className="w-20 h-20 object-contain"
+                  />
                 ) : (
-                  <BookOpen size="xxl" />
+                  <img
+                    src="/icons/Lesson.svg"
+                    alt="Lesson"
+                    className="w-20 h-20 object-contain"
+                  />
                 );
 
                 return (
@@ -555,7 +560,11 @@ export function LessonSelectionPopup({
                     {/* Small Status Overlays */}
                     {lesson.isLocked && (
                       <div className="absolute top-2 right-2">
-                        <Lock size="sm" variant="silver" />
+                        <img
+                          src="/icons/Task_locked.svg"
+                          alt="Locked"
+                          className="w-6 h-6 object-contain"
+                        />
                       </div>
                     )}
                     {lesson.isCompleted && !lesson.isLocked && (

@@ -12,6 +12,7 @@ import {
 import { TreasureChest } from "@/components/icons/TreasureChest";
 import { StreakCalendar } from "@/components/nakhlah/StreakCalendar";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
@@ -24,6 +25,9 @@ import {
   buildStreakActivities,
   getCurrentStreakCount,
 } from "@/lib/streakUtils";
+
+const POPOVER_BASE =
+  "w-80 rounded-xl bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 shadow-sm p-4 text-slate-900";
 
 const JOURNEY_REFRESH_FLAG_KEY = "nakhlah:journey-needs-refresh";
 
@@ -166,30 +170,17 @@ export function UserStats() {
     }
   };
 
-  const getMobilePopupPosition = (stat) => {
-    switch (stat) {
-      case "streak":
-        return "left-0 -translate-x-0"; // Streak: align to left
-      case "dates":
-        return "left-1/2 -translate-x-1/2"; // Dates: center
-      case "palms":
-        return "right-0 translate-x-0"; // Palm Trees: align to right
-      default:
-        return "left-1/2 -translate-x-1/2";
-    }
-  };
-
   return (
     <>
       {/* Mobile Overlay */}
       {mobileOpenCard && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          className="lg:hidden fixed inset-0 bg-black/50 z-[9998]"
           onClick={handleCloseAll}
         />
       )}
 
-      <div className="flex items-center bg-accent lg:bg-card p-4 rounded-none lg:rounded-lg shadow-sm justify-around lg:shadow-sm">
+      <div className="flex items-center bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 shadow-sm p-4 rounded-xl justify-around">
         {/* Streak */}
         <div className="relative">
           <div
@@ -212,14 +203,15 @@ export function UserStats() {
                   <span className="text-foreground">{streakCount}</span>
                 </Button>
               </HoverCardTrigger>
-              <HoverCardContent className="w-80 space-y-4" align="start">
+              <HoverCardContent
+                className={`${POPOVER_BASE} space-y-4`}
+                align="start"
+              >
                 <div className="space-y-2">
                   <h4 className="font-medium leading-none text-lg">
                     {streakCount} day{streakCount === 1 ? "" : "s"} streak
                   </h4>
-                  <p className="text-sm text-muted-foreground">
-                    {streakMessage}
-                  </p>
+                  <p className="text-sm text-slate-700">{streakMessage}</p>
                 </div>
                 <StreakCalendar activities={streakActivities} />
               </HoverCardContent>
@@ -227,19 +219,22 @@ export function UserStats() {
           </div>
 
           {/* Mobile Popup for Streak - positioned to the right */}
-          {mobileOpenCard === "streak" && (
-            <div
-              className={`lg:hidden absolute top-full mt-2 w-80 bg-card border rounded-lg shadow-lg z-50 p-4 space-y-4 ${getMobilePopupPosition("streak")}`}
-            >
-              <div className="space-y-2">
-                <h4 className="font-medium leading-none text-lg">
-                  {streakCount} day{streakCount === 1 ? "" : "s"} streak
-                </h4>
-                <p className="text-sm text-muted-foreground">{streakMessage}</p>
-              </div>
-              <StreakCalendar activities={streakActivities} />
-            </div>
-          )}
+          {mobileOpenCard === "streak" &&
+            typeof document !== "undefined" &&
+            createPortal(
+              <div
+                className={`lg:hidden fixed top-20 left-4 z-[9999] space-y-4 ${POPOVER_BASE}`}
+              >
+                <div className="space-y-2">
+                  <h4 className="font-medium leading-none text-lg">
+                    {streakCount} day{streakCount === 1 ? "" : "s"} streak
+                  </h4>
+                  <p className="text-sm text-slate-700">{streakMessage}</p>
+                </div>
+                <StreakCalendar activities={streakActivities} />
+              </div>,
+              document.body,
+            )}
         </div>
 
         {/* Dates */}
@@ -264,25 +259,29 @@ export function UserStats() {
                   <span className="text-foreground">{datesCount}</span>
                 </Button>
               </HoverCardTrigger>
-              <HoverCardContent className="w-80 space-y-4" align="center">
+              <HoverCardContent
+                className={`${POPOVER_BASE} space-y-4`}
+                align="center"
+              >
                 <div className="flex space-x-4 items-center">
                   <TreasureChest size="xxl" />
                   <div className="space-y-1">
                     <h4 className="font-medium">Dates</h4>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-slate-700">
                       You have {datesCount} dates
                     </p>
                     <Button
-                      variant="link"
-                      className="p-0 text-blue-500"
+                      variant="primary"
+                      size="sm"
+                      className="h-8 px-3 text-sm"
                       onClick={() => router.push("/store")}
                     >
                       Go To Shop
                     </Button>
                   </div>
                 </div>
-                <div className="p-3 bg-muted rounded-lg border border-muted-foreground/50 text-sm">
-                  <h5 className="font-medium">Daily Reward</h5>
+                <div className="p-3 rounded-lg border border-white/30 bg-white/40 text-sm text-slate-700">
+                  <h5 className="font-medium text-slate-900">Daily Reward</h5>
                   <p>Complete a lesson today to earn extra dates!</p>
                 </div>
               </HoverCardContent>
@@ -290,35 +289,38 @@ export function UserStats() {
           </div>
 
           {/* Mobile Popup for Dates - centered */}
-          {mobileOpenCard === "dates" && (
-            <div
-              className={`lg:hidden absolute top-full mt-2 w-80 bg-card border rounded-lg shadow-lg z-50 p-4 space-y-4 ${getMobilePopupPosition("dates")}`}
-            >
-              <div className="flex space-x-4 items-center">
-                <TreasureChest size="xxl" />
-                <div className="space-y-1">
-                  <h4 className="font-medium">Dates</h4>
-                  <p className="text-sm text-muted-foreground">
-                    You have {datesCount} dates
-                  </p>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCloseAll();
-                      router.push("/store");
-                    }}
-                    className="text-blue-500 hover:underline"
-                  >
-                    Go To Shop
-                  </button>
+          {mobileOpenCard === "dates" &&
+            typeof document !== "undefined" &&
+            createPortal(
+              <div
+                className={`lg:hidden fixed top-20 left-1/2 -translate-x-1/2 z-[9999] space-y-4 ${POPOVER_BASE}`}
+              >
+                <div className="flex space-x-4 items-center">
+                  <TreasureChest size="xxl" />
+                  <div className="space-y-1">
+                    <h4 className="font-medium">Dates</h4>
+                    <p className="text-sm text-slate-700">
+                      You have {datesCount} dates
+                    </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCloseAll();
+                        router.push("/store");
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90"
+                    >
+                      Go To Shop
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="p-3 bg-muted rounded-lg border border-muted-foreground/50 text-sm">
-                <h5 className="font-medium">Daily Reward</h5>
-                <p>Complete a lesson today to earn extra dates!</p>
-              </div>
-            </div>
-          )}
+                <div className="p-3 rounded-lg border border-white/30 bg-white/40 text-sm text-slate-700">
+                  <h5 className="font-medium text-slate-900">Daily Reward</h5>
+                  <p>Complete a lesson today to earn extra dates!</p>
+                </div>
+              </div>,
+              document.body,
+            )}
         </div>
 
         {/* Palm Trees */}
@@ -343,7 +345,10 @@ export function UserStats() {
                   <span className="text-foreground">{palmTreesCount}</span>
                 </Button>
               </HoverCardTrigger>
-              <HoverCardContent className="w-80 space-y-4" align="end">
+              <HoverCardContent
+                className={`${POPOVER_BASE} space-y-4`}
+                align="end"
+              >
                 <div className="space-y-2">
                   <h4 className="font-medium leading-none">Palm Trees</h4>
                   <div className="flex space-x-1">
@@ -357,20 +362,22 @@ export function UserStats() {
                     ))}
                   </div>
                   <p className="text-sm font-semibold">{palmTreesMessage}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Keep on learning
-                  </p>
+                  <p className="text-sm text-slate-700">Keep on learning</p>
                 </div>
 
                 <div className="grid gap-2">
                   <Button
-                    variant="outline"
-                    className="text-purple-500"
+                    variant="primary"
+                    size="sm"
+                    className="w-full"
                     onClick={() => router.push("/store")}
                   >
                     UNLIMITED PALM TREES
                   </Button>
                   <Button
+                    variant="default"
+                    size="sm"
+                    className="w-full"
                     onClick={handleRefillPalmTrees}
                     disabled={isRefillingPalmTrees || palmTreesCount >= 5}
                   >
@@ -384,48 +391,51 @@ export function UserStats() {
           </div>
 
           {/* Mobile Popup for Palm Trees - positioned to the left */}
-          {mobileOpenCard === "palms" && (
-            <div
-              className={`lg:hidden absolute top-full mt-2 w-80 bg-card border rounded-lg shadow-lg z-50 p-4 space-y-4 ${getMobilePopupPosition("palms")}`}
-            >
-              <div className="space-y-2">
-                <h4 className="font-medium leading-none">Palm Trees</h4>
-                <div className="flex space-x-1">
-                  {[...Array(5)].map((_, i) => (
-                    <PalmIcon
-                      key={i}
-                      className={
-                        i < palmTreesCount ? "opacity-100" : "opacity-30"
-                      }
-                    />
-                  ))}
+          {mobileOpenCard === "palms" &&
+            typeof document !== "undefined" &&
+            createPortal(
+              <div
+                className={`lg:hidden fixed top-20 right-4 z-[9999] space-y-4 ${POPOVER_BASE}`}
+              >
+                <div className="space-y-2">
+                  <h4 className="font-medium leading-none">Palm Trees</h4>
+                  <div className="flex space-x-1">
+                    {[...Array(5)].map((_, i) => (
+                      <PalmIcon
+                        key={i}
+                        className={
+                          i < palmTreesCount ? "opacity-100" : "opacity-30"
+                        }
+                      />
+                    ))}
+                  </div>
+                  <p className="text-sm font-semibold">{palmTreesMessage}</p>
+                  <p className="text-sm text-slate-700">Keep on learning</p>
                 </div>
-                <p className="text-sm font-semibold">{palmTreesMessage}</p>
-                <p className="text-sm text-muted-foreground">
-                  Keep on learning
-                </p>
-              </div>
 
-              <div className="grid gap-2">
-                <button
-                  className="w-full py-2 border rounded-md text-purple-500"
-                  onClick={() => {
-                    handleCloseAll();
-                    router.push("/store");
-                  }}
-                >
-                  UNLIMITED PALM TREES
-                </button>
-                <button
-                  className="w-full py-2 bg-primary text-primary-foreground rounded-md disabled:opacity-70"
-                  onClick={handleRefillPalmTrees}
-                  disabled={isRefillingPalmTrees || palmTreesCount >= 5}
-                >
-                  {isRefillingPalmTrees ? "REFILLING..." : "REFILL PALM TREES"}
-                </button>
-              </div>
-            </div>
-          )}
+                <div className="grid gap-2">
+                  <button
+                    className="w-full py-2 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90"
+                    onClick={() => {
+                      handleCloseAll();
+                      router.push("/store");
+                    }}
+                  >
+                    UNLIMITED PALM TREES
+                  </button>
+                  <button
+                    className="w-full py-2 rounded-lg bg-accent text-accent-foreground font-semibold hover:bg-accent/90 disabled:opacity-70"
+                    onClick={handleRefillPalmTrees}
+                    disabled={isRefillingPalmTrees || palmTreesCount >= 5}
+                  >
+                    {isRefillingPalmTrees
+                      ? "REFILLING..."
+                      : "REFILL PALM TREES"}
+                  </button>
+                </div>
+              </div>,
+              document.body,
+            )}
         </div>
       </div>
     </>

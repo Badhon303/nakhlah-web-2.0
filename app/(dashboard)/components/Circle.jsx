@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Lock } from "@/components/icons/Lock";
-import { Star } from "@/components/icons/Star";
 import { LessonSelectionPopup } from "./LessonSelectionPopup";
 
 // Shared state to ensure only one popup is open at a time
@@ -37,69 +35,69 @@ export function Circle({
     type === "trophy" || type === "crown" || type === "checkpoint";
   const isTrophy = type === "trophy";
 
-  const sizeClasses = {
-    sm: "w-12 h-12",
-    md: "w-16 h-16",
-    lg: "w-20 h-20",
-  };
-
   const iconSizeClasses = {
-    sm: "w-6 h-6",
-    md: "w-8 h-8",
-    lg: "w-10 h-10",
+    sm: "w-16 h-16",
+    md: "w-24 h-24",
+    lg: "w-28 h-28",
   };
 
   const trophyIconSizeClasses = {
-    sm: "w-16 h-16",
-    md: "w-20 h-20",
-    lg: "w-24 h-24",
+    sm: "w-24 h-24",
+    md: "w-28 h-28",
+    lg: "w-32 h-32",
   };
 
-  const sizeClass = sizeClasses[size] || sizeClasses.md;
-  const iconSizeClass = isTrophy 
-    ? (trophyIconSizeClasses[size] || trophyIconSizeClasses.md)
-    : (iconSizeClasses[size] || iconSizeClasses.md);
+  const iconSizeClass = isTrophy
+    ? trophyIconSizeClasses[size] || trophyIconSizeClasses.md
+    : iconSizeClasses[size] || iconSizeClasses.md;
 
   const getIcon = () => {
+    // Gift box / Mystery box
+    if (isTrophy) {
+      return (
+        <img
+          src="/icons/mystery_box_locked.svg"
+          alt="Mystery Box"
+          className={`${iconSizeClass} object-contain`}
+        />
+      );
+    }
+
+    // Locked task
     if (isLocked) {
-      if (isTrophy && icon) {
-        return React.cloneElement(icon, {
-          variant: "silver",
-          className: `${icon.props.className || ""} ${iconSizeClass}`,
-        });
-      }
-      return <Lock size="lg" variant="silver" />;
+      return (
+        <img
+          src="/icons/Task_locked.svg"
+          alt="Locked"
+          className={`${iconSizeClass} object-contain`}
+        />
+      );
     }
 
-    if (
-      (isCurrent || isCompleted) &&
-      !isTrophy &&
-      type !== "checkpoint" &&
-      type !== "crown"
-    ) {
-      return <Star size="lg" />;
+    // Unlocked or current task
+    if (isCurrent || isCompleted) {
+      return (
+        <img
+          src="/icons/Task_unlocked.svg"
+          alt="Unlocked"
+          className={`${iconSizeClass} object-contain`}
+        />
+      );
     }
 
-    if (icon) {
-      return React.cloneElement(icon, {
-        className: `${icon.props.className || ""} ${iconSizeClass}`,
-      });
-    }
-
-    return null;
+    // Default to unlocked
+    return (
+      <img
+        src="/icons/Task_unlocked.svg"
+        alt="Task"
+        className={`${iconSizeClass} object-contain`}
+      />
+    );
   };
 
   const getCircleStyles = () => {
-    if (isTrophy) {
-      return "";
-    }
-    if (isLocked) {
-      return "bg-[hsl(var(--node-locked))] border-[hsl(var(--node-locked-border))] pathway-node-shadow-locked";
-    }
-    if (isCurrent) {
-      return "bg-accent border-accent shadow-lg pathway-node-shadow-locked";
-    }
-    return "bg-[hsl(var(--node-yellow))] border-[hsl(var(--node-yellow-border))] pathway-node-shadow";
+    // No background, borders, or shadows - just the icon
+    return "";
   };
 
   const handleClick = () => {
@@ -121,7 +119,7 @@ export function Circle({
     <>
       <div
         onClick={handleClick}
-        className={`${!isTrophy ? `rounded-full border-4 ${sizeClass}` : ""} flex items-center justify-center ${getCircleStyles()} transition-transform ${
+        className={`flex items-center justify-center ${getCircleStyles()} transition-transform ${
           (isCompleted || isCurrent) && !isLocked
             ? "cursor-pointer hover:scale-110"
             : isLocked
@@ -129,7 +127,7 @@ export function Circle({
               : "cursor-pointer hover:scale-105"
         }`}
       >
-        <div className="flex items-center justify-center">{getIcon()}</div>
+        {getIcon()}
       </div>
 
       {/* Lesson Selection Popup */}

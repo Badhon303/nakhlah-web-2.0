@@ -4,53 +4,35 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Home, BookOpen, Trophy, User, Crown } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
-import { StreakCounter } from "./StreakCounter";
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import { fetchLearnerStreak } from "@/services/api";
-import { getSessionToken, isSessionValid } from "@/lib/authUtils";
-import { getCurrentStreakCount } from "@/lib/streakUtils";
 
 const navItems = [
-  { path: "/", label: "Home", icon: Home },
-  { path: "/challenge", label: "Challenges", icon: BookOpen },
-  { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
-  { path: "/store", label: "Store", icon: Crown },
-  { path: "/profile", label: "Profile", icon: User },
+  { path: "/", label: "Home", icon: "/icons/Home-Icon.127e8555.svg" },
+  { path: "/challenge", label: "Challenges", icon: "/icons/Lesson.svg" },
+  {
+    path: "/leaderboard",
+    label: "Leaderboard",
+    icon: "/icons/LEADERBOARD.b7e283d4.svg",
+  },
+  { path: "/store", label: "Store", icon: "/icons/STORE.9b24d09f.svg" },
+  { path: "/profile", label: "Profile", icon: "/icons/Profile.f8f9b305.svg" },
 ];
 
 export function Navbar() {
   const pathname = usePathname();
-  const { data: session, status } = useSession();
-  const [streakCount, setStreakCount] = useState(0);
-
-  useEffect(() => {
-    const loadStreak = async () => {
-      if (status === "loading") return;
-      if (!isSessionValid(session)) {
-        setStreakCount(0);
-        return;
-      }
-
-      const token = getSessionToken(session);
-      if (!token) return;
-
-      const result = await fetchLearnerStreak(token);
-      if (result.success) {
-        setStreakCount(getCurrentStreakCount(result.streak));
-      }
-    };
-
-    loadStreak();
-  }, [session, status]);
+  const isHomePage = pathname === "/";
 
   return (
     <>
       {/* Desktop Sidebar */}
-      <nav className="hidden lg:flex flex-col fixed top-0 left-0 h-full w-64 border-r border-border bg-card/95 backdrop-blur-md p-6 overflow-y-auto">
+      <nav
+        className={cn(
+          "hidden lg:flex flex-col fixed top-0 left-0 h-full w-64 border-r border-border/50 p-6 overflow-y-auto",
+          isHomePage
+            ? "bg-transparent backdrop-blur-sm"
+            : "bg-card/95 backdrop-blur-md",
+        )}
+      >
         <div className="flex flex-col gap-8">
           {/* Logo */}
           <Link href="/" className="flex w-full items-center justify-center">
@@ -73,40 +55,43 @@ export function Navbar() {
                   key={item.path}
                   href={item.path}
                   className={cn(
-                    "relative flex items-center gap-3 rounded-lg px-4 py-3 text-base font-semibold transition-colors",
-                    isActive
-                      ? "text-accent"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                    "relative flex items-center gap-3 rounded-xl px-4 py-3 text-base font-semibold transition-all text-slate-900",
+                    isHomePage
+                      ? "bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 shadow-sm hover:bg-white/40 dark:hover:bg-white/20"
+                      : "",
+                    isActive && "bg-white/60 ring-1 ring-white/80",
                   )}
                 >
-                  <item.icon className="h-6 w-6" />
+                  <Image
+                    src={item.icon}
+                    alt={item.label}
+                    width={24}
+                    height={24}
+                    className="h-6 w-6"
+                  />
                   <span>{item.label}</span>
-                  {isActive && (
-                    <motion.div
-                      layoutId="navbar-indicator"
-                      className="absolute inset-0 rounded-lg bg-accent/10 -z-10"
-                      transition={{
-                        type: "spring",
-                        bounce: 0.2,
-                        duration: 0.6,
-                      }}
-                    />
-                  )}
                 </Link>
               );
             })}
           </div>
         </div>
 
-        <div className="mt-auto flex flex-col sm:flex-row lg:mx-auto gap-4">
-          <StreakCounter count={streakCount} />
-          <ThemeToggle />
+        {/* Theme Toggle - Desktop */}
+        <div className="mt-auto lg:mx-auto">
+          <ThemeToggle size="lg" />
         </div>
       </nav>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-md">
-        <div className="flex items-center justify-evenly py-2">
+      <nav
+        className={cn(
+          "lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 px-2",
+          isHomePage
+            ? "bg-transparent/50 backdrop-blur-sm"
+            : "bg-card/95 backdrop-blur-md",
+        )}
+      >
+        <div className="flex items-center justify-between py-2 gap-1">
           {navItems.map((item) => {
             const isActive = pathname === item.path;
             return (
@@ -114,17 +99,35 @@ export function Navbar() {
                 key={item.path}
                 href={item.path}
                 className={cn(
-                  "relative flex flex-col items-center gap-1 rounded-xl px-4 py-2 transition-colors",
-                  isActive ? "text-accent" : "text-muted-foreground",
+                  "flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all text-slate-900 min-w-0",
+                  isHomePage
+                    ? "bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20"
+                    : "",
+                  isActive && "bg-white/60 ring-1 ring-white/80",
                 )}
               >
-                <item.icon className="h-6 w-6" />
-                <span className="text-xs font-medium">{item.label}</span>
+                <Image
+                  src={item.icon}
+                  alt={item.label}
+                  width={24}
+                  height={24}
+                  className="h-5 w-5"
+                />
+                <span className="text-[10px] font-medium truncate w-full text-center">
+                  {item.label}
+                </span>
               </Link>
             );
           })}
         </div>
       </nav>
+
+      {/* Floating Theme Toggle - Mobile Only */}
+      <div className="lg:hidden fixed top-4 left-4 z-50">
+        <div className="bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-full p-2 shadow-lg">
+          <ThemeToggle size="lg" />
+        </div>
+      </div>
     </>
   );
 }
