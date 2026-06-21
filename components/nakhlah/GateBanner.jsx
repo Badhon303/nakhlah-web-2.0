@@ -1,13 +1,13 @@
 "use client";
 
 /**
- * GateBanner - Uses x2.svg image with text overlay
+ * GateBanner - Uses gate.svg image with text overlay
  */
 export function GateBanner({ title, className = "" }) {
   return (
     <div className={`relative mx-auto w-[200px] md:w-[280px] ${className}`}>
       {/* Gate image */}
-      <img src="/x2.svg" alt="Gate" className="w-full h-auto block" />
+      <img src="/gate.svg" alt="Gate" className="w-full h-auto block" />
 
       {/* Text positioned on banner fabric */}
       <div className="absolute top-[32%] left-[20%] right-[20%] flex items-center justify-center">
