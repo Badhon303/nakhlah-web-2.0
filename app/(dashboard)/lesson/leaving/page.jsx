@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Mascot } from "@/components/nakhlah/Mascot";
 import { useRouter } from "next/navigation";
 
 export default function LeavingDialog({ onCancel, onLeave }) {
@@ -31,14 +30,21 @@ export default function LeavingDialog({ onCancel, onLeave }) {
         className="w-full max-w-md mx-auto"
       >
         <div className="bg-card rounded-3xl shadow-2xl border border-border p-8 text-center">
-          {/* Mascot */}
+          {/* Sad character animation */}
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.1, duration: 0.3 }}
-            className="mb-6"
+            className="flex justify-center -mb-4"
           >
-            <Mascot mood="sad" size="xl" className="w-32 h-32 mx-auto" />
+            <video
+              src="/animations/new_sad_boy_2_pics.webm"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-72 h-72"
+            />
           </motion.div>
 
           {/* Title */}

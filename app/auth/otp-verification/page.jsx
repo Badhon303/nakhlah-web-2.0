@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Mascot } from "@/components/nakhlah/Mascot";
 import Link from "next/link";
 import { ArrowLeft, Delete } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -116,7 +115,14 @@ export default function OTPVerificationPage() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="hidden lg:flex flex-col items-center justify-center"
         >
-          <Mascot mood="thinking" size="xxxl" className="mb-6" />
+          <video
+            src="/animations/new_sad_boy_2_pics.webm"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-72 h-72 mb-6"
+          />
           <h2 className="text-2xl font-bold text-foreground text-center max-w-md">
             Check your inbox for the verification code!
           </h2>

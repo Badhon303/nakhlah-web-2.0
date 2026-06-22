@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Mascot } from "@/components/nakhlah/Mascot";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { resetPassword } from "@/services/api/auth";
@@ -77,7 +76,14 @@ function CreatePasswordContent() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="hidden lg:flex flex-col items-center justify-center"
         >
-          <Mascot mood="happy" size="xxxl" className="mb-6" />
+          <video
+            src="/animations/new_happy_girl_2_pics.webm"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-72 h-72 mb-6"
+          />
           <h2 className="text-2xl font-bold text-foreground text-center max-w-md">
             Create a strong password to keep your account secure!
           </h2>

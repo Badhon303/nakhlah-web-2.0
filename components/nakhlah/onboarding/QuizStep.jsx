@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle } from "lucide-react";
-import { Mascot } from "../Mascot";
 
 const quizQuestions = [
   {
@@ -80,7 +79,14 @@ export function QuizStep({ onComplete }) {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8 flex items-center gap-8 justify-center"
       >
-        <Mascot mood="thinking" size="md" className="w-20 h-20" />
+        <video
+          src="/animations/new_sad_boy_2_pics.webm"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-32 h-32 shrink-0"
+        />
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">
             Quick Assessment
@@ -103,8 +109,8 @@ export function QuizStep({ onComplete }) {
                   ? "bg-secondary"
                   : "bg-destructive"
                 : index === currentQuestion
-                ? "bg-accent w-8"
-                : "bg-muted"
+                  ? "bg-accent w-8"
+                  : "bg-muted",
             )}
           />
         ))}
@@ -137,9 +143,9 @@ export function QuizStep({ onComplete }) {
                     ? index === question.correct
                       ? "border-secondary bg-secondary/10"
                       : index === selectedAnswer
-                      ? "border-destructive bg-destructive/10"
-                      : "border-border bg-card opacity-50"
-                    : "border-border bg-card hover:border-primary hover:bg-primary/5"
+                        ? "border-destructive bg-destructive/10"
+                        : "border-border bg-card opacity-50"
+                    : "border-border bg-card hover:border-primary hover:bg-primary/5",
                 )}
               >
                 <span
@@ -148,8 +154,8 @@ export function QuizStep({ onComplete }) {
                     showResult && index === question.correct
                       ? "bg-secondary text-secondary-foreground"
                       : showResult && index === selectedAnswer
-                      ? "bg-destructive text-destructive-foreground"
-                      : "bg-muted text-muted-foreground"
+                        ? "bg-destructive text-destructive-foreground"
+                        : "bg-muted text-muted-foreground",
                   )}
                 >
                   {String.fromCharCode(65 + index)}
@@ -176,7 +182,7 @@ export function QuizStep({ onComplete }) {
                 animate={{ opacity: 1, y: 0 }}
                 className={cn(
                   "mt-6 p-4 rounded-xl",
-                  isCorrect ? "bg-secondary/10" : "bg-primary/10"
+                  isCorrect ? "bg-secondary/10" : "bg-primary/10",
                 )}
               >
                 <div className="flex items-center gap-2 mb-2">

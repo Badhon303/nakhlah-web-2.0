@@ -17,9 +17,9 @@ export function LanguageStep({ selectedLanguage, onSelect }) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-10 flex items-center gap-8 justify-center"
+        className="mb-10 flex items-center gap-6 justify-center"
       >
-        <Mascot mood="proud" size="md" className="w-20 h-20" />
+        <Mascot mood="proud" size="md" className="w-32 h-32" />
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">
             What you want to learn?

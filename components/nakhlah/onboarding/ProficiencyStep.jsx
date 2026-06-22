@@ -1,16 +1,28 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Mascot } from "../Mascot";
 
-export function ProficiencyStep({ title, levels = [], selectedLevel, onSelect, getMediaUrl }) {
+export function ProficiencyStep({
+  title,
+  levels = [],
+  selectedLevel,
+  onSelect,
+  getMediaUrl,
+}) {
   return (
     <div className="w-full max-w-xl mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-10 flex items-center gap-8 justify-center"
+        className="mb-10 flex items-center gap-6 justify-center"
       >
-        <Mascot mood="excited" size="md" className="w-20 h-20" />
+        <video
+          src="/animations/new_happy_girl_2_pics.webm"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-32 h-32 shrink-0"
+        />
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">
             {title}
@@ -35,7 +47,7 @@ export function ProficiencyStep({ title, levels = [], selectedLevel, onSelect, g
                 "hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
                 selectedLevel === level.id
                   ? "border-accent bg-accent/10 shadow-accent-glow"
-                  : "border-border bg-card hover:border-primary"
+                  : "border-border bg-card hover:border-primary",
               )}
             >
               <div
@@ -43,7 +55,7 @@ export function ProficiencyStep({ title, levels = [], selectedLevel, onSelect, g
                   "w-12 h-12 rounded-xl flex items-center justify-center",
                   selectedLevel === level.id
                     ? "bg-accent text-accent-foreground"
-                    : "bg-muted"
+                    : "bg-muted",
                 )}
               >
                 {level?.strengthsMedia?.url ? (
@@ -53,7 +65,9 @@ export function ProficiencyStep({ title, levels = [], selectedLevel, onSelect, g
                     className="w-6 h-6 object-contain"
                   />
                 ) : (
-                  <span className="text-xs font-bold text-muted-foreground">AR</span>
+                  <span className="text-xs font-bold text-muted-foreground">
+                    AR
+                  </span>
                 )}
               </div>
               <div className="text-left flex-1">

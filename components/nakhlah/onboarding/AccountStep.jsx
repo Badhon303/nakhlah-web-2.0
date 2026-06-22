@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Mascot } from "../Mascot";
 
 export function AccountStep({ email, password = "", onChange }) {
   const [localEmail, setLocalEmail] = useState(email || "");
@@ -19,9 +18,16 @@ export function AccountStep({ email, password = "", onChange }) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-10 flex items-center gap-8 justify-center"
+        className="mb-10 flex items-center gap-6 justify-center"
       >
-        <Mascot mood="happy" size="md" className="" />
+        <video
+          src="/animations/new_happy_girl_2_pics.webm"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-32 h-32 shrink-0"
+        />
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">
             Just a few details
@@ -39,7 +45,9 @@ export function AccountStep({ email, password = "", onChange }) {
         className="space-y-4"
       >
         <div className="bg-card border border-border p-4 rounded-2xl">
-          <label className="block text-sm text-muted-foreground mb-1">Email</label>
+          <label className="block text-sm text-muted-foreground mb-1">
+            Email
+          </label>
           <input
             value={localEmail}
             onChange={(e) => setLocalEmail(e.target.value)}

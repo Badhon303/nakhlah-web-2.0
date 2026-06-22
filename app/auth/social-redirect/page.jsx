@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Mascot } from "@/components/nakhlah/Mascot";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { fetchMyProfile } from "@/services/api/auth";
 
@@ -48,7 +47,14 @@ export default function SocialRedirectPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="text-center space-y-4 max-w-sm">
-        <Mascot mood="happy" size="xxl" className="w-28 h-28 mx-auto" />
+        <video
+          src="/animations/new_happy_girl_2_pics.webm"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-40 h-40 mx-auto"
+        />
         <div className="space-y-1">
           <h1 className="text-2xl font-extrabold text-foreground">
             Checking your profile

@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Mascot } from "@/components/nakhlah/Mascot";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { DatesIcon, InjazStarIcon } from "@/components/icons/PublicAssetIcons";
@@ -139,14 +138,21 @@ export default function LessonCompleted() {
           transition={{ duration: 0.5 }}
           className="bg-transparent lg:bg-card rounded-none lg:rounded-3xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-8"
         >
-          {/* Mascot */}
+          {/* Celebration animation */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="mb-6"
+            className="flex justify-center -mb-4"
           >
-            <Mascot mood="surprised" size="xxl" className="w-32 h-32 mx-auto" />
+            <video
+              src="/animations/new_happy_girl_2_pics.webm"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-80 h-80"
+            />
           </motion.div>
 
           {/* Title */}

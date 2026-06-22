@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Mascot } from "@/components/nakhlah/Mascot";
 import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 
@@ -29,7 +28,14 @@ export default function WelcomeBackPage() {
             transition={{ delay: 0.3, duration: 0.5 }}
             className="mb-6"
           >
-            <Mascot mood="happy" size="xxxl" className="mx-auto" />
+            <video
+              src="/animations/new_happy_girl_2_pics.webm"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-72 h-72 mx-auto"
+            />
           </motion.div>
 
           {/* Message */}

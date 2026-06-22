@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Mascot } from "../Mascot";
 import { Input } from "@/components/ui/input";
 import { Camera, CheckCircle2 } from "lucide-react";
 
@@ -74,9 +73,16 @@ export function ProfileInfoStep({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-10 flex items-center gap-8 justify-center"
+        className="mb-10 flex items-center gap-6 justify-center"
       >
-        <Mascot mood="happy" size="md" className="" />
+        <video
+          src="/animations/new_happy_girl_2_pics.webm"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-32 h-32 shrink-0"
+        />
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">
             Tell us about you

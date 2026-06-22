@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mascot } from "@/components/nakhlah/Mascot";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -16,7 +15,7 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  
+
   const handleContinue = async () => {
     if (!email || !email.includes("@")) {
       toast.error("Please enter a valid email address");
@@ -54,7 +53,14 @@ export default function ForgotPasswordPage() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="hidden lg:flex flex-col items-center justify-center"
         >
-          <Mascot mood="thinking" size="xxxl" className="mb-6" />
+          <video
+            src="/animations/new_sad_boy_2_pics.webm"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-72 h-72 mb-6"
+          />
           <h2 className="text-2xl font-bold text-foreground text-center max-w-md">
             Don&apos;t worry, we&apos;ll help you reset your password!
           </h2>

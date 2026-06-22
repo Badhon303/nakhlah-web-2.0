@@ -55,11 +55,16 @@ export function Navbar() {
                   key={item.path}
                   href={item.path}
                   className={cn(
-                    "relative flex items-center gap-3 rounded-xl px-4 py-3 text-base font-semibold transition-all text-slate-900",
+                    "relative flex items-center gap-3 rounded-xl px-4 py-3 text-base font-semibold transition-all",
                     isHomePage
-                      ? "bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 shadow-sm hover:bg-white/40 dark:hover:bg-white/20"
-                      : "",
-                    isActive && "bg-white/60 ring-1 ring-white/80",
+                      ? "text-slate-900 bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 shadow-sm hover:bg-white/40 dark:hover:bg-white/20"
+                      : "text-foreground hover:bg-muted/50 dark:hover:bg-muted/20",
+                    isActive &&
+                      isHomePage &&
+                      "bg-white/60 ring-1 ring-white/80",
+                    isActive &&
+                      !isHomePage &&
+                      "bg-muted/60 dark:bg-muted/30 ring-1 ring-border",
                   )}
                 >
                   <Image
@@ -99,11 +104,14 @@ export function Navbar() {
                 key={item.path}
                 href={item.path}
                 className={cn(
-                  "flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all text-slate-900 min-w-0",
+                  "flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0",
                   isHomePage
-                    ? "bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20"
-                    : "",
-                  isActive && "bg-white/60 ring-1 ring-white/80",
+                    ? "text-slate-900 bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20"
+                    : "text-foreground",
+                  isActive && isHomePage && "bg-white/60 ring-1 ring-white/80",
+                  isActive &&
+                    !isHomePage &&
+                    "bg-muted/60 dark:bg-muted/30 ring-1 ring-border",
                 )}
               >
                 <Image

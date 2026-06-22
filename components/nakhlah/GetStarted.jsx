@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Mascot } from "@/components/nakhlah/Mascot";
 import Link from "next/link";
 
 export default function GetStartedPage() {
@@ -37,9 +36,16 @@ export default function GetStartedPage() {
             stiffness: 200,
             damping: 15,
           }}
-          className="mb-12 flex justify-center"
+          className="flex justify-center"
         >
-          <Mascot mood="happy" size="xxl" className="w-48 h-48" />
+          <video
+            src="/animations/new_happy_girl_2_pics.webm"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-48 h-48"
+          />
         </motion.div>
 
         {/* Brand Name */}

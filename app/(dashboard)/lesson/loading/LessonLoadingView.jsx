@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Mascot } from "@/components/nakhlah/Mascot";
 
 export default function LessonLoadingView({ progress = 0, error = null }) {
   return (
@@ -11,9 +10,21 @@ export default function LessonLoadingView({ progress = 0, error = null }) {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="mb-8"
+          className="flex justify-center -mb-4"
         >
-          <Mascot mood={error ? "sad" : "proud"} size="xxxl" />
+          <video
+            key={error ? "sad" : "happy"}
+            src={
+              error
+                ? "/animations/new_sad_boy_2_pics.webm"
+                : "/animations/new_happy_girl_2_pics.webm"
+            }
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-80 h-80"
+          />
         </motion.div>
 
         <motion.h2

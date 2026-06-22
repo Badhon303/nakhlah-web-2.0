@@ -1,16 +1,28 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Mascot } from "../Mascot";
 
-export function CountryStep({ title, countries = [], selectedCountry, onSelect, getMediaUrl }) {
+export function CountryStep({
+  title,
+  countries = [],
+  selectedCountry,
+  onSelect,
+  getMediaUrl,
+}) {
   return (
     <div className="w-full max-w-xl mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-10 flex items-center gap-8 justify-center"
+        className="mb-10 flex items-center gap-6 justify-center"
       >
-        <Mascot mood="happy" size="md" className="" />
+        <video
+          src="/animations/new_happy_girl_2_pics.webm"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-32 h-32 shrink-0"
+        />
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">
             {title}
@@ -32,7 +44,7 @@ export function CountryStep({ title, countries = [], selectedCountry, onSelect, 
               "hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
               selectedCountry === country.id
                 ? "border-accent bg-accent/10 shadow-accent-glow"
-                : "border-border bg-card hover:border-primary"
+                : "border-border bg-card hover:border-primary",
             )}
           >
             <div className="w-12 h-12 rounded-full overflow-hidden bg-muted shrink-0">

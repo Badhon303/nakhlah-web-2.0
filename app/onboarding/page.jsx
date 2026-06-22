@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ProgressSteps } from "@/components/nakhlah/ProgressSteps";
 import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
-import { Mascot } from "@/components/nakhlah/Mascot";
 import { ProficiencyStep } from "@/components/nakhlah/onboarding/ProficiencyStep";
 import { GoalStep } from "@/components/nakhlah/onboarding/GoalStep";
 import { PurposeStep } from "@/components/nakhlah/onboarding/PurposeStep";
@@ -631,7 +630,14 @@ export default function Onboarding() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center space-y-3 max-w-sm">
-          <Mascot mood="happy" size="xxl" className="w-28 h-28 mx-auto" />
+          <video
+            src="/animations/new_happy_girl_2_pics.webm"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-32 h-32 mx-auto"
+          />
           <p className="text-muted-foreground font-medium">
             Preparing your learning path...
           </p>

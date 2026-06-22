@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Mascot } from "../Mascot";
 
 export function AgeStep({ title, ages = [], selectedAge, onSelect }) {
   return (
@@ -8,9 +7,16 @@ export function AgeStep({ title, ages = [], selectedAge, onSelect }) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-10 flex items-center gap-8 justify-center"
+        className="mb-10 flex items-center gap-6 justify-center"
       >
-        <Mascot mood="happy" size="md" className="" />
+        <video
+          src="/animations/new_happy_girl_2_pics.webm"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-32 h-32 shrink-0"
+        />
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">
             {title}
@@ -32,10 +38,12 @@ export function AgeStep({ title, ages = [], selectedAge, onSelect }) {
               "hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
               selectedAge === ageOption.id
                 ? "border-accent bg-accent/10 shadow-accent-glow"
-                : "border-border bg-card hover:border-primary"
+                : "border-border bg-card hover:border-primary",
             )}
           >
-            <p className="font-bold text-foreground text-lg text-left flex-1">{ageOption.ageTitle}</p>
+            <p className="font-bold text-foreground text-lg text-left flex-1">
+              {ageOption.ageTitle}
+            </p>
             {selectedAge === ageOption.id && (
               <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center">
                 <svg

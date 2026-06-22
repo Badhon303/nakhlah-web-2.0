@@ -16,7 +16,7 @@ export function UserSourceStep({ title, sources = [], userSource, onSelect, getM
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-10 flex items-center gap-8 justify-center"
+        className="mb-10 flex items-center gap-6 justify-center"
       >
         <Mascot mood="curious" size="md" className="" />
         <div>

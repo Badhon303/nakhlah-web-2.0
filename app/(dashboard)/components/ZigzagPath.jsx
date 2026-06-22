@@ -13,6 +13,7 @@ const LESSON_ROW_HEIGHT = 112;
 export function ZigzagPath({ lessons, levels, isLoading = false }) {
   const [currentLevelId, setCurrentLevelId] = useState("");
   const hasScrolledRef = useRef(false);
+  const prevLessonsRef = useRef(lessons);
 
   const currentLevel = levels.find((l) => l.id === currentLevelId);
 
@@ -88,38 +89,51 @@ export function ZigzagPath({ lessons, levels, isLoading = false }) {
     return () => observers.forEach((o) => o.disconnect());
   }, [levels, isLoading, currentLevelId]);
 
-  // Scroll to current lesson on load
+  // Reset scroll guard whenever lessons data changes identity (e.g. after journey refresh)
+  useEffect(() => {
+    if (prevLessonsRef.current !== lessons) {
+      hasScrolledRef.current = false;
+      prevLessonsRef.current = lessons;
+    }
+  }, [lessons]);
+
+  // Scroll to current lesson on load / after refresh
   useEffect(() => {
     if (isLoading || lessons.length === 0) return undefined;
     if (hasScrolledRef.current) return undefined;
 
-    const lastInteractedId = sessionStorage.getItem("lastInteractedNodeId");
-    const selectedId = sessionStorage.getItem("selectedNodeId");
-
-    let targetEl = null;
-    if (lastInteractedId) {
-      targetEl = document.getElementById(`node-${lastInteractedId}`);
-    }
-    if (!targetEl && selectedId) {
-      targetEl = document.getElementById(`node-${selectedId}`);
-    }
-    if (!targetEl) {
+    const doScroll = () => {
+      // 1. Always prefer the API's isCurrent node — source of truth
       const currentLesson = lessons.find((l) => l.isCurrent);
-      if (currentLesson) {
-        targetEl = document.getElementById(`node-${currentLesson.apiId}`);
-      }
-    }
-    if (!targetEl) {
-      const firstUnlockedLesson = lessons.find((l) => !l.isLocked);
-      if (firstUnlockedLesson) {
-        targetEl = document.getElementById(`node-${firstUnlockedLesson.apiId}`);
-      }
-    }
+      let targetEl = currentLesson
+        ? document.getElementById(`node-${currentLesson.apiId}`)
+        : null;
 
-    if (targetEl) {
-      targetEl.scrollIntoView({ behavior: "auto", block: "center" });
-      hasScrolledRef.current = true;
-    }
+      // 2. Fallback: last node the user explicitly clicked
+      if (!targetEl) {
+        const lastInteractedId = localStorage.getItem("lastInteractedNodeId");
+        if (lastInteractedId) {
+          targetEl = document.getElementById(`node-${lastInteractedId}`);
+        }
+      }
+
+      // 3. Fallback: first unlocked node
+      if (!targetEl) {
+        const firstUnlocked = lessons.find((l) => !l.isLocked);
+        if (firstUnlocked) {
+          targetEl = document.getElementById(`node-${firstUnlocked.apiId}`);
+        }
+      }
+
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: "instant", block: "center" });
+        hasScrolledRef.current = true;
+      }
+    };
+
+    // Defer one frame so DOM nodes are guaranteed to be painted
+    const raf = requestAnimationFrame(doScroll);
+    return () => cancelAnimationFrame(raf);
   }, [lessons, isLoading]);
 
   return (
