@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import LogoAnimation from "@/components/icons/Logo";
 
 export default function LessonLoadingView({ progress = 0, error = null }) {
   return (
@@ -10,21 +11,9 @@ export default function LessonLoadingView({ progress = 0, error = null }) {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="flex justify-center -mb-4"
+          className="flex justify-center mb-4"
         >
-          <video
-            key={error ? "sad" : "happy"}
-            src={
-              error
-                ? "/animations/new_sad_boy_2_pics.webm"
-                : "/animations/new_happy_girl_2_pics.webm"
-            }
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-80 h-80"
-          />
+          <LogoAnimation className="w-40" />
         </motion.div>
 
         <motion.h2

@@ -10,7 +10,7 @@ import { LessonResultHandler } from "../components/ResultHandler";
 import LessonHeader from "../components/LessonHeader";
 import { useAudio } from "@/hooks/use-audio";
 import { ArabicTooltip } from "@/components/nakhlah/ArabicTooltip";
-import { Mascot } from "@/components/nakhlah/Mascot";
+import LogoAnimation from "@/components/icons/Logo";
 import Image from "next/image";
 import cloudinaryLoader from "./utils/cloudinaryLoader";
 import { getMediaUrl, shuffleArray, sortByOrder } from "./utils/mediaUtils";
@@ -1465,7 +1465,9 @@ export default function LessonPage() {
     return (
       <div className="min-h-screen sm:min-h-[calc(100vh_-_64px)] lg:min-h-screen bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-lg text-center space-y-5 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-lg">
-          <Mascot mood="sad" size="xxl" className="w-32 h-32 mx-auto" />
+          <div className="flex justify-center mb-4">
+            <LogoAnimation className="w-48" />
+          </div>
           <div className="space-y-2">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground">
               {isLifeError
@@ -1523,7 +1525,9 @@ export default function LessonPage() {
                 transition={{ delay: 0.1, duration: 0.35 }}
                 className="mb-6"
               >
-                <Mascot mood="sad" size="xxl" className="w-32 h-32 mx-auto" />
+                <div className="flex justify-center mb-4">
+                  <LogoAnimation className="w-48" />
+                </div>
               </motion.div>
 
               <motion.h1
