@@ -1,10 +1,8 @@
 "use client";
 
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
-
-const CAMEL_SRC = "/animations/Camel.json";
+import LogoAnimation from "@/components/icons/Logo";
 
 const MESSAGES = [
   "Getting your journey ready...",
@@ -13,38 +11,6 @@ const MESSAGES = [
   "Almost there...",
   "Fetching your quests...",
 ];
-
-/**
- * Lightweight CSS-only camel placeholder shown instantly before WASM loads.
- * No canvas, no WASM, no heavy deps — just a pulsing violet drop shape.
- */
-function CamelPlaceholder() {
-  return (
-    <div
-      style={{ width: 220, height: 220 }}
-      className="flex items-center justify-center"
-    >
-      <motion.div
-        className="rounded-full bg-accent/20 flex items-center justify-center"
-        style={{ width: 140, height: 140 }}
-        animate={{ scale: [1, 1.06, 1], opacity: [0.7, 1, 0.7] }}
-        transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
-      >
-        <motion.div
-          className="rounded-full bg-accent/40"
-          style={{ width: 80, height: 80 }}
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{
-            repeat: Infinity,
-            duration: 1.6,
-            ease: "easeInOut",
-            delay: 0.2,
-          }}
-        />
-      </motion.div>
-    </div>
-  );
-}
 
 /**
  * PageLoader
@@ -65,21 +31,6 @@ function CamelPlaceholder() {
  */
 export function PageLoader({ isLoading = true, message, onDone }) {
   const [msgIndex, setMsgIndex] = useState(0);
-  const [lottieReady, setLottieReady] = useState(false);
-
-  useEffect(() => {
-    if (!isLoading) return;
-    let raf1, raf2;
-    raf1 = requestAnimationFrame(() => {
-      raf2 = requestAnimationFrame(() => {
-        setTimeout(() => setLottieReady(true), 300);
-      });
-    });
-    return () => {
-      cancelAnimationFrame(raf1);
-      cancelAnimationFrame(raf2);
-    };
-  }, [isLoading]);
 
   useEffect(() => {
     if (!isLoading) return;
@@ -99,36 +50,7 @@ export function PageLoader({ isLoading = true, message, onDone }) {
           transition={{ duration: 0.4, ease: "easeOut" }}
           className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-background"
         >
-          {/* Mascot: CSS placeholder first, Lottie after hydration */}
-          <div style={{ width: 220, height: 220 }}>
-            <AnimatePresence mode="wait">
-              {lottieReady ? (
-                <motion.div
-                  key="lottie"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <DotLottieReact
-                    src={CAMEL_SRC}
-                    loop
-                    autoplay
-                    style={{ width: 220, height: 220 }}
-                  />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="placeholder"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <CamelPlaceholder />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          <LogoAnimation className="w-44 mb-2" />
 
           {/* App name */}
           <motion.p

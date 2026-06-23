@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { signIn } from "next-auth/react";
+import LogoAnimation from "@/components/icons/Logo";
 import { useRouter } from "next/navigation";
 import { queueToastAfterNavigation, toast } from "@/components/nakhlah/Toast";
 import { useProfileStore } from "@/stores/useProfileStore";
@@ -69,14 +70,7 @@ export default function Login() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="hidden lg:flex flex-col items-center justify-center"
         >
-          <video
-            src="/animations/new_happy_girl_2_pics.webm"
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-72 h-72 mb-6"
-          />
+          <LogoAnimation className="w-56" />
           <h2 className="text-4xl font-black text-accent mb-2">Nakhlah</h2>
           <p className="text-xl text-muted-foreground text-center max-w-md">
             Learn languages whenever and wherever you want

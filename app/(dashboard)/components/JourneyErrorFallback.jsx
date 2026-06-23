@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Mascot } from "@/components/nakhlah/Mascot";
+import LogoAnimation from "@/components/icons/Logo";
 import Link from "next/link";
 
 const ERROR_CONFIGS = {
@@ -117,7 +117,7 @@ export function JourneyErrorFallback({ error = "", onRetry }) {
           }}
           className="mb-6 flex justify-center"
         >
-          <Mascot mood={config.mood} size="xxl" />
+          <LogoAnimation className="w-44" />
         </motion.div>
 
         {/* Subtext */}
