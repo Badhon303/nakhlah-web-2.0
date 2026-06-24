@@ -98,7 +98,7 @@ export function LessonResultHandler({
   }, [playClick, onContinue]);
 
   return (
-    <div className="border-t-2 border-border bg-background h-[120px] flex flex-col overflow-hidden shrink-0">
+    <div className="border-t-2 border-border bg-background shrink-0">
       <AnimatePresence mode="wait" initial={false}>
         {isCorrect === null ? (
           <motion.div
@@ -107,21 +107,23 @@ export function LessonResultHandler({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="h-[120px] w-full flex flex-col sm:flex-row items-center justify-between px-4 gap-4 container max-w-4xl mx-auto"
+            className="w-full px-4 py-4 sm:py-5"
           >
-            <button
-              onClick={onSkip}
-              className="text-muted-foreground hover:text-foreground font-bold text-lg underline underline-offset-4 order-2 sm:order-1"
-            >
-              Skip
-            </button>
-            <Button
-              onClick={onCheck}
-              disabled={disabled}
-              className="w-full sm:w-auto sm:min-w-[200px] h-14 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl order-1 sm:order-2"
-            >
-              Check Answer
-            </Button>
+            <div className="container max-w-4xl mx-auto flex flex-row items-center gap-4">
+              <button
+                onClick={onSkip}
+                className="text-muted-foreground hover:text-foreground font-bold text-base sm:text-lg underline underline-offset-4 shrink-0"
+              >
+                Skip
+              </button>
+              <Button
+                onClick={onCheck}
+                disabled={disabled}
+                className="w-auto min-w-[120px] sm:min-w-[200px] h-12 sm:h-14 bg-accent hover:opacity-90 text-accent-foreground font-bold text-base sm:text-lg rounded-xl ml-auto"
+              >
+                Check Answer
+              </Button>
+            </div>
           </motion.div>
         ) : (
           <motion.div
@@ -130,35 +132,41 @@ export function LessonResultHandler({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className={`w-full h-[120px] flex items-center px-4 ${
+            className={`w-full px-4 py-4 sm:py-5 overflow-hidden ${
               isCorrect
                 ? "bg-green-100 dark:bg-green-900/40"
                 : "bg-red-100 dark:bg-red-900/40"
             }`}
           >
-            <div className="container max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-4 min-w-0">
+            <div className="container max-w-4xl mx-auto flex flex-row items-center justify-between gap-3">
+              {/* Icon + text — always left, single row */}
+              <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
                 <img
                   src={isCorrect ? ICONS.correct : ICONS.wrong}
                   alt={isCorrect ? "Correct" : "Wrong"}
-                  className="w-16 h-16 shrink-0 object-contain drop-shadow-sm"
+                  className="w-10 h-10 sm:w-14 sm:h-14 shrink-0 object-contain drop-shadow-sm"
                 />
                 <div className="min-w-0">
                   <h3
-                    className={`text-xl font-black ${isCorrect ? "text-green-800 dark:text-green-400" : "text-red-800 dark:text-red-400"}`}
+                    className={`text-base sm:text-xl font-black leading-tight ${
+                      isCorrect
+                        ? "text-green-800 dark:text-green-400"
+                        : "text-red-800 dark:text-red-400"
+                    }`}
                   >
                     {message}
                   </h3>
                   {!isCorrect && correctAnswer && (
-                    <p className="text-red-700 dark:text-red-300 font-bold text-base truncate">
-                      Correct answer: {correctAnswer}
+                    <p className="text-red-700 dark:text-red-300 font-bold text-md sm:text-lg leading-snug break-words">
+                      Correct: {correctAnswer}
                     </p>
                   )}
                 </div>
               </div>
+              {/* Continue button — always right */}
               <Button
                 onClick={handleContinue}
-                className={`w-full sm:w-auto sm:min-w-[200px] h-14 font-bold text-lg rounded-xl shadow-lg transform active:scale-95 transition-transform shrink-0 ${
+                className={`h-11 sm:h-14 px-4 sm:min-w-[200px] font-bold text-sm sm:text-lg rounded-xl shadow-lg transform active:scale-95 transition-transform shrink-0 ${
                   isCorrect
                     ? "bg-green-600 hover:bg-green-700 text-white"
                     : "bg-red-600 hover:bg-red-700 text-white"

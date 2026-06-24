@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { X, Clock3 } from "lucide-react";
+import { X } from "lucide-react";
 import { PalmIcon } from "@/components/icons/PublicAssetIcons";
 import { NotoStopwatch } from "@/components/icons/NotoStopwatch";
 
@@ -28,31 +28,61 @@ export default function LessonHeader({
 
   return (
     <div className="border-b border-border">
-      <div className="container max-w-4xl mx-auto px-4 py-4 sm:py-6">
-        <div className="flex items-center gap-3 sm:gap-4">
+      <div className="container max-w-4xl mx-auto px-4 py-3 sm:py-5">
+        {/* Mobile only: two-row layout */}
+        <div className="flex sm:hidden flex-col gap-2.5 pt-1">
+          {/* Mobile row 1: palm trees left, timer right */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-card border border-border">
+              {Array.from({ length: maxPalmTrees }).map((_, index) => (
+                <PalmIcon
+                  key={index}
+                  size="sm"
+                  className={index < palmTrees ? "opacity-100" : "opacity-30"}
+                />
+              ))}
+            </div>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-card border border-border">
+              <NotoStopwatch size="xs" />
+              <span className="text-xs font-bold text-foreground">
+                {formatTime(elapsedSeconds)}
+              </span>
+            </div>
+          </div>
+          {/* Mobile row 2: X + progress bar */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onExit}
+              className="text-muted-foreground hover:text-foreground shrink-0"
+              aria-label="Exit lesson"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-accent transition-all duration-300"
+                style={{ width: `${normalizedProgress}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop (sm+): original single-row layout */}
+        <div className="hidden sm:flex items-center gap-4">
           <button
             onClick={onExit}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground shrink-0"
             aria-label="Exit lesson"
           >
-            <X className="w-5 h-5 sm:w-6 sm:h-6" />
+            <X className="w-6 h-6" />
           </button>
-
-          <div className="flex-1 h-2 sm:h-3 bg-muted rounded-full overflow-hidden">
+          <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full bg-accent transition-all duration-300"
               style={{ width: `${normalizedProgress}%` }}
             />
           </div>
-
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-card border border-border">
-            <NotoStopwatch size="xs" />
-            <span className="text-sm font-bold text-foreground">
-              {formatTime(elapsedSeconds)}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1 px-2 sm:px-3 py-1 rounded-full bg-card border border-border">
+          <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-card border border-border">
             {Array.from({ length: maxPalmTrees }).map((_, index) => (
               <PalmIcon
                 key={index}
@@ -61,11 +91,8 @@ export default function LessonHeader({
               />
             ))}
           </div>
-        </div>
-
-        <div className="sm:hidden mt-3 flex items-center justify-end">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-card border border-border">
-            <Clock3 className="w-4 h-4 text-accent" />
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-card border border-border">
+            <NotoStopwatch size="xs" />
             <span className="text-sm font-bold text-foreground">
               {formatTime(elapsedSeconds)}
             </span>

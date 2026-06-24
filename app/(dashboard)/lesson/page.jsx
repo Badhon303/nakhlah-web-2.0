@@ -1613,25 +1613,25 @@ export default function LessonPage() {
           >
             {questionType === "learn" && (
               <>
-                <div className="flex flex-row items-center gap-3 sm:gap-4">
+                <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-4">
                   {audioUrl ? (
-                    <>
+                    <div className="flex justify-center sm:justify-start items-center gap-3">
                       <button
                         onClick={handlePlayAudio}
-                        className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-accent flex items-center justify-center text-accent-foreground hover:opacity-90 self-start"
+                        className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-accent flex items-center justify-center text-accent-foreground hover:opacity-90"
                       >
                         <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />
                       </button>
                       <button
                         onClick={handlePlayAudioSlow}
-                        className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-muted flex items-center justify-center text-foreground hover:opacity-90 self-start"
+                        className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-muted flex items-center justify-center text-foreground hover:opacity-90"
                         aria-label="Play slow audio"
                       >
                         <Turtle className="w-5 h-5 sm:w-6 sm:h-6" />
                       </button>
-                    </>
+                    </div>
                   ) : null}
-                  <div className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground">
+                  <div className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground text-center sm:text-left">
                     Learn
                   </div>
                 </div>
@@ -1691,25 +1691,23 @@ export default function LessonPage() {
 
             {questionType === "mcq" && (
               <>
-                <div className="flex flex-row items-center gap-3 sm:gap-4">
-                  {audioUrl ? (
-                    <>
-                      <button
-                        onClick={handlePlayAudio}
-                        className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-accent flex items-center justify-center text-accent-foreground hover:opacity-90 self-start"
-                      >
-                        <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />
-                      </button>
-                      <button
-                        onClick={handlePlayAudioSlow}
-                        className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-muted flex items-center justify-center text-foreground hover:opacity-90 self-start"
-                        aria-label="Play slow audio"
-                      >
-                        <Turtle className="w-5 h-5 sm:w-6 sm:h-6" />
-                      </button>
-                    </>
-                  ) : null}
-                </div>
+                {audioUrl ? (
+                  <div className="flex justify-center sm:justify-start items-center gap-3">
+                    <button
+                      onClick={handlePlayAudio}
+                      className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-accent flex items-center justify-center text-accent-foreground hover:opacity-90"
+                    >
+                      <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                    <button
+                      onClick={handlePlayAudioSlow}
+                      className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-muted flex items-center justify-center text-foreground hover:opacity-90"
+                      aria-label="Play slow audio"
+                    >
+                      <Turtle className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                  </div>
+                ) : null}
 
                 <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-4 sm:mb-6 text-center sm:text-start">
                   {currentQuestion.question_title}
@@ -1849,25 +1847,25 @@ export default function LessonPage() {
 
             {questionType === "fill_blank" && (
               <>
-                <div className="flex flex-row items-center gap-3 sm:gap-4">
+                <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-4">
                   {audioUrl ? (
-                    <>
+                    <div className="flex justify-center sm:justify-start items-center gap-3">
                       <button
                         onClick={handlePlayAudio}
-                        className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-accent flex items-center justify-center text-accent-foreground hover:opacity-90 self-start"
+                        className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-accent flex items-center justify-center text-accent-foreground hover:opacity-90"
                       >
                         <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />
                       </button>
                       <button
                         onClick={handlePlayAudioSlow}
-                        className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-muted flex items-center justify-center text-foreground hover:opacity-90 self-start"
+                        className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-muted flex items-center justify-center text-foreground hover:opacity-90"
                         aria-label="Play slow audio"
                       >
                         <Turtle className="w-5 h-5 sm:w-6 sm:h-6" />
                       </button>
-                    </>
+                    </div>
                   ) : null}
-                  <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground">
+                  <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground text-center sm:text-left">
                     Fill in the blank
                   </p>
                 </div>
@@ -2182,19 +2180,19 @@ export default function LessonPage() {
 
       <div className="shrink-0">
         {questionType === "learn" ? (
-          <div className="border-t-2 border-border bg-background min-h-[120px] flex flex-col justify-center">
-            <div className="container max-w-4xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="border-t-2 border-border bg-background px-4 py-4 sm:py-5">
+            <div className="container max-w-4xl mx-auto flex flex-row items-center gap-4">
               <button
                 onClick={goToNext}
                 disabled={!hasPalmTrees}
-                className="text-muted-foreground hover:text-foreground font-bold text-lg underline underline-offset-4 order-2 sm:order-1"
+                className="text-muted-foreground hover:text-foreground font-bold text-base sm:text-lg underline underline-offset-4 shrink-0"
               >
                 Skip
               </button>
               <button
                 onClick={goToNext}
                 disabled={!hasPalmTrees}
-                className="w-full sm:w-auto sm:min-w-[200px] h-14 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl order-1 sm:order-2"
+                className="w-auto min-w-[120px] sm:min-w-[200px] h-12 sm:h-14 bg-accent hover:opacity-90 text-accent-foreground font-bold text-base sm:text-lg rounded-xl ml-auto"
               >
                 Continue
               </button>
