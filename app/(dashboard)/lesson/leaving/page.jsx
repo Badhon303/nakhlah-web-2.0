@@ -3,10 +3,11 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { getCharacterVideo } from "@/lib/characterVideos";
+import { useCharacterVideo } from "@/lib/characterVideos";
 
 export default function LeavingDialog({ onCancel, onLeave }) {
   const router = useRouter();
+  const sadVideoSrc = useCharacterVideo("sad");
 
   const handleKeepLearning = () => {
     router.back();
@@ -39,7 +40,7 @@ export default function LeavingDialog({ onCancel, onLeave }) {
             className="flex justify-center -mb-4"
           >
             <video
-              src={getCharacterVideo("sad")}
+              src={sadVideoSrc}
               autoPlay
               loop
               muted

@@ -1,6 +1,6 @@
 "use client";
 
-import { getCharacterVideo } from "@/lib/characterVideos";
+import { useCharacterVideo } from "@/lib/characterVideos";
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -177,6 +177,7 @@ const normalizeOnboardingData = (data) => {
 
 export default function Onboarding() {
   const router = useRouter();
+  const happyVideoSrc = useCharacterVideo("happy");
   const [isSocialSignup, setIsSocialSignup] = useState(false);
   const [isAuthResolved, setIsAuthResolved] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -632,7 +633,7 @@ export default function Onboarding() {
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center space-y-3 max-w-sm">
           <video
-            src={getCharacterVideo("happy")}
+            src={happyVideoSrc}
             autoPlay
             loop
             muted

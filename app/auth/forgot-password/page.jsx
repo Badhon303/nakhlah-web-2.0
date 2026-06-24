@@ -1,6 +1,6 @@
 "use client";
 
-import { getCharacterVideo } from "@/lib/characterVideos";
+import { useCharacterVideo } from "@/lib/characterVideos";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const sadVideoSrc = useCharacterVideo("sad");
 
   const handleContinue = async () => {
     if (!email || !email.includes("@")) {
@@ -55,7 +56,7 @@ export default function ForgotPasswordPage() {
           className="hidden lg:flex flex-col items-center justify-center"
         >
           <video
-            src={getCharacterVideo("sad")}
+            src={sadVideoSrc}
             autoPlay
             loop
             muted

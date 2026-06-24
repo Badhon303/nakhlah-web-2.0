@@ -1,6 +1,6 @@
 "use client";
 
-import { getCharacterVideo } from "@/lib/characterVideos";
+import { useCharacterVideo } from "@/lib/characterVideos";
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 
 export default function OTPVerificationPage() {
   const router = useRouter();
+  const sadVideoSrc = useCharacterVideo("sad");
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [timeLeft, setTimeLeft] = useState(120);
   const [canResend, setCanResend] = useState(false);
@@ -117,7 +118,7 @@ export default function OTPVerificationPage() {
           className="hidden lg:flex flex-col items-center justify-center"
         >
           <video
-            src={getCharacterVideo("sad")}
+            src={sadVideoSrc}
             autoPlay
             loop
             muted

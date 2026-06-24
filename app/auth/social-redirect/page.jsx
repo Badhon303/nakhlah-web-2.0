@@ -1,6 +1,6 @@
 "use client";
 
-import { getCharacterVideo } from "@/lib/characterVideos";
+import { useCharacterVideo } from "@/lib/characterVideos";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -11,6 +11,7 @@ export default function SocialRedirectPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const resolvedRef = useRef(false);
+  const happyVideoSrc = useCharacterVideo("happy");
 
   useEffect(() => {
     if (resolvedRef.current) return;
@@ -49,7 +50,7 @@ export default function SocialRedirectPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="text-center space-y-4 max-w-sm">
         <video
-          src={getCharacterVideo("happy")}
+          src={happyVideoSrc}
           autoPlay
           loop
           muted

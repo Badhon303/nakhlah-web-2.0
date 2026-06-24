@@ -1,6 +1,6 @@
 "use client";
 
-import { getCharacterVideo } from "@/lib/characterVideos";
+import { useCharacterVideo } from "@/lib/characterVideos";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -8,6 +8,7 @@ import { CheckCircle2 } from "lucide-react";
 
 export default function WelcomeBackPage() {
   const router = useRouter();
+  const happyVideoSrc = useCharacterVideo("happy");
 
   const handleContinue = () => {
     router.push("/");
@@ -30,7 +31,7 @@ export default function WelcomeBackPage() {
             className="mb-6"
           >
             <video
-              src={getCharacterVideo("happy")}
+              src={happyVideoSrc}
               autoPlay
               loop
               muted

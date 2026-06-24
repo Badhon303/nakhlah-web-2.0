@@ -8,7 +8,7 @@ import { Lock, FileText } from "lucide-react";
 const PATH_CENTER = 50;
 const PATH_AMPLITUDE = 25;
 const PATH_FREQUENCY = 0.8;
-const LESSON_ROW_HEIGHT = 112;
+// const LESSON_ROW_HEIGHT = 112;
 
 export function ZigzagPath({ lessons, levels, isLoading = false }) {
   const [currentLevelId, setCurrentLevelId] = useState("");

@@ -1,10 +1,11 @@
 "use client";
 
-import { getCharacterVideo } from "@/lib/characterVideos";
+import { useCharacterVideo } from "@/lib/characterVideos";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
 export default function GetStartedPage() {
+  const happyVideoSrc = useCharacterVideo("happy");
   return (
     <div className="min-h-screen w-full bg-background flex items-center justify-center p-8">
       <motion.div
@@ -49,7 +50,7 @@ export default function GetStartedPage() {
           className="flex justify-center"
         >
           <video
-            src={getCharacterVideo("happy")}
+            src={happyVideoSrc}
             autoPlay
             loop
             muted

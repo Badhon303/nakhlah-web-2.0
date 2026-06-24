@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Camera, CheckCircle2 } from "lucide-react";
-import { getCharacterVideo } from "@/lib/characterVideos";
+import { useCharacterVideo } from "@/lib/characterVideos";
 
 const MAX_FILE_SIZE = 300 * 1024;
 
@@ -14,6 +14,7 @@ export function ProfileInfoStep({
   profilePicture,
   onChange,
 }) {
+  const happyVideoSrc = useCharacterVideo("happy");
   const [localName, setLocalName] = useState(fullName || "");
   const [localContact, setLocalContact] = useState(contactNumber || "");
   const [localPicture, setLocalPicture] = useState(profilePicture || null);
@@ -77,7 +78,7 @@ export function ProfileInfoStep({
         className="mb-10 flex items-center gap-6 justify-center"
       >
         <video
-          src={getCharacterVideo("happy")}
+          src={happyVideoSrc}
           autoPlay
           loop
           muted

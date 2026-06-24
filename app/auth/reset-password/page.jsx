@@ -1,6 +1,6 @@
 "use client";
 
-import { getCharacterVideo } from "@/lib/characterVideos";
+import { useCharacterVideo } from "@/lib/characterVideos";
 import { Suspense, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { toast } from "@/components/nakhlah/Toast";
 function CreatePasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const happyVideoSrc = useCharacterVideo("happy");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [password, setPassword] = useState("");
@@ -78,7 +79,7 @@ function CreatePasswordContent() {
           className="hidden lg:flex flex-col items-center justify-center"
         >
           <video
-            src={getCharacterVideo("happy")}
+            src={happyVideoSrc}
             autoPlay
             loop
             muted

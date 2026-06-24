@@ -1,8 +1,10 @@
+"use client";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { getCharacterVideo } from "@/lib/characterVideos";
+import { useCharacterVideo } from "@/lib/characterVideos";
 
 export function AgeStep({ title, ages = [], selectedAge, onSelect }) {
+  const happyVideoSrc = useCharacterVideo("happy");
   return (
     <div className="w-full max-w-xl mx-auto">
       <motion.div
@@ -11,7 +13,7 @@ export function AgeStep({ title, ages = [], selectedAge, onSelect }) {
         className="mb-10 flex items-center gap-6 justify-center"
       >
         <video
-          src={getCharacterVideo("happy")}
+          src={happyVideoSrc}
           autoPlay
           loop
           muted

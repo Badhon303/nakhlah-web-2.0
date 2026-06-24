@@ -1,9 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { getCharacterVideo } from "@/lib/characterVideos";
+import { useCharacterVideo } from "@/lib/characterVideos";
 
 export function AccountStep({ email, password = "", onChange }) {
+  const happyVideoSrc = useCharacterVideo("happy");
   const [localEmail, setLocalEmail] = useState(email || "");
   const [localPassword, setLocalPassword] = useState(password || "");
 
@@ -22,7 +23,7 @@ export function AccountStep({ email, password = "", onChange }) {
         className="mb-10 flex items-center gap-6 justify-center"
       >
         <video
-          src={getCharacterVideo("happy")}
+          src={happyVideoSrc}
           autoPlay
           loop
           muted

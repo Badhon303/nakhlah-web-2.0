@@ -11,6 +11,7 @@ import { Navbar } from "@/components/nakhlah/Navbar";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
 import { useDailyQuestStore } from "@/stores/useDailyQuestStore";
+import { useCharacterVideoStore } from "@/stores/useCharacterVideoStore";
 
 const ACTIVE_SECONDS_STORAGE_PREFIX = "nakhlah:active-seconds";
 const CLAIMED_SPEND_MINUTES_PREFIX = "nakhlah:daily-quest:spend-minutes";
@@ -35,6 +36,11 @@ const getSpendMinutesQuest = (challengeStatuses = []) => {
 export default function ClientWrapper({ children }) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  const prefetchAll = useCharacterVideoStore((s) => s.prefetchAll);
+
+  useEffect(() => {
+    prefetchAll();
+  }, [prefetchAll]);
   const fetchDailyQuests = useDailyQuestStore((store) => store.fetchDailyQuests);
   const claimQuestIfAvailable = useDailyQuestStore((store) => store.claimQuestIfAvailable);
   const challengeStatuses = useDailyQuestStore((store) => store.challengeStatuses);

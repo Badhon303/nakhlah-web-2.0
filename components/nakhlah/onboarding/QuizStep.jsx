@@ -1,9 +1,10 @@
+"use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle } from "lucide-react";
-import { getCharacterVideo } from "@/lib/characterVideos";
+import { useCharacterVideo } from "@/lib/characterVideos";
 
 const quizQuestions = [
   {
@@ -36,6 +37,7 @@ const quizQuestions = [
 ];
 
 export function QuizStep({ onComplete }) {
+  const sadVideoSrc = useCharacterVideo("sad");
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [showResult, setShowResult] = useState(false);
@@ -81,7 +83,7 @@ export function QuizStep({ onComplete }) {
         className="mb-8 flex items-center gap-8 justify-center"
       >
         <video
-          src={getCharacterVideo("sad")}
+          src={sadVideoSrc}
           autoPlay
           loop
           muted
