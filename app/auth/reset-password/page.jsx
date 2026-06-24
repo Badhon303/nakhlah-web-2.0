@@ -1,5 +1,6 @@
 "use client";
 
+import { getCharacterVideo } from "@/lib/characterVideos";
 import { Suspense, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -77,7 +78,7 @@ function CreatePasswordContent() {
           className="hidden lg:flex flex-col items-center justify-center"
         >
           <video
-            src="/animations/new_happy_girl_2_pics.webm"
+            src={getCharacterVideo("happy")}
             autoPlay
             loop
             muted

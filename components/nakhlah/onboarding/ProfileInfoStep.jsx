@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Camera, CheckCircle2 } from "lucide-react";
+import { getCharacterVideo } from "@/lib/characterVideos";
 
 const MAX_FILE_SIZE = 300 * 1024;
 
@@ -76,7 +77,7 @@ export function ProfileInfoStep({
         className="mb-10 flex items-center gap-6 justify-center"
       >
         <video
-          src="/animations/new_happy_girl_2_pics.webm"
+          src={getCharacterVideo("happy")}
           autoPlay
           loop
           muted

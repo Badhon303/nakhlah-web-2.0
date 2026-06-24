@@ -1,5 +1,6 @@
 "use client";
 
+import { getCharacterVideo } from "@/lib/characterVideos";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -29,7 +30,7 @@ export default function WelcomeBackPage() {
             className="mb-6"
           >
             <video
-              src="/animations/new_happy_girl_2_pics.webm"
+              src={getCharacterVideo("happy")}
               autoPlay
               loop
               muted

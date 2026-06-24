@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { getCharacterVideo } from "@/lib/characterVideos";
 
 export default function GetStartedPage() {
   return (
@@ -39,7 +40,7 @@ export default function GetStartedPage() {
           className="flex justify-center"
         >
           <video
-            src="/animations/new_happy_girl_2_pics.webm"
+            src={getCharacterVideo("happy")}
             autoPlay
             loop
             muted

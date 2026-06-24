@@ -1,5 +1,6 @@
 "use client";
 
+import { getCharacterVideo } from "@/lib/characterVideos";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -54,7 +55,7 @@ export default function ForgotPasswordPage() {
           className="hidden lg:flex flex-col items-center justify-center"
         >
           <video
-            src="/animations/new_sad_boy_2_pics.webm"
+            src={getCharacterVideo("sad")}
             autoPlay
             loop
             muted

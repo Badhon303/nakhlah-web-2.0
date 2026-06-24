@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle } from "lucide-react";
+import { getCharacterVideo } from "@/lib/characterVideos";
 
 const quizQuestions = [
   {
@@ -80,7 +81,7 @@ export function QuizStep({ onComplete }) {
         className="mb-8 flex items-center gap-8 justify-center"
       >
         <video
-          src="/animations/new_sad_boy_2_pics.webm"
+          src={getCharacterVideo("sad")}
           autoPlay
           loop
           muted

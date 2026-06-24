@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { getCharacterVideo } from "@/lib/characterVideos";
 
 export function AgeStep({ title, ages = [], selectedAge, onSelect }) {
   return (
@@ -10,7 +11,7 @@ export function AgeStep({ title, ages = [], selectedAge, onSelect }) {
         className="mb-10 flex items-center gap-6 justify-center"
       >
         <video
-          src="/animations/new_happy_girl_2_pics.webm"
+          src={getCharacterVideo("happy")}
           autoPlay
           loop
           muted

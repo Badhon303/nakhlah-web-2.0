@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { getCharacterVideo } from "@/lib/characterVideos";
 
 export function AccountStep({ email, password = "", onChange }) {
   const [localEmail, setLocalEmail] = useState(email || "");
@@ -21,7 +22,7 @@ export function AccountStep({ email, password = "", onChange }) {
         className="mb-10 flex items-center gap-6 justify-center"
       >
         <video
-          src="/animations/new_happy_girl_2_pics.webm"
+          src={getCharacterVideo("happy")}
           autoPlay
           loop
           muted

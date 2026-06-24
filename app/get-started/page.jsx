@@ -1,5 +1,6 @@
 "use client";
 
+import { getCharacterVideo } from "@/lib/characterVideos";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
@@ -48,7 +49,7 @@ export default function GetStartedPage() {
           className="flex justify-center"
         >
           <video
-            src="/animations/new_happy_girl_2_pics.webm"
+            src={getCharacterVideo("happy")}
             autoPlay
             loop
             muted

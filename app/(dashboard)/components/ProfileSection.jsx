@@ -13,13 +13,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
-import { fetchGamificationBadges } from "@/services/api";
 import { Medal } from "@/components/icons/Medal";
 import { getUserKey } from "@/lib/userKey";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { useAchievementsStore } from "@/stores/useAchievementsStore";
+import { useBadgesStore } from "@/stores/useBadgesStore";
 
 const DEFAULT_PROFILE_IMAGE = "https://github.com/shadcn.png";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
@@ -54,7 +54,9 @@ export function ProfileSection() {
   const { data: session, status } = useSession();
   const isSignedIn = status === "authenticated";
   const router = useRouter();
-  const [badgeDictionary, setBadgeDictionary] = useState([]);
+  const badgeDictionary = useBadgesStore((state) => state.badges);
+  const fetchBadges = useBadgesStore((state) => state.fetchBadges);
+  const clearBadges = useBadgesStore((state) => state.clear);
   const profileData = useProfileStore((state) => state.profile);
   const fetchProfile = useProfileStore((state) => state.fetchMyProfile);
   const clearProfile = useProfileStore((state) => state.clear);
@@ -64,7 +66,6 @@ export function ProfileSection() {
   );
   const clearAchievements = useAchievementsStore((state) => state.clear);
   const lastUserKeyRef = useRef(null);
-  const badgesUserKeyRef = useRef(null);
 
   useEffect(() => {
     const loadProfileData = async () => {
@@ -72,9 +73,8 @@ export function ProfileSection() {
       if (!isSessionValid(session)) {
         clearProfile();
         clearAchievements();
-        setBadgeDictionary([]);
+        clearBadges();
         lastUserKeyRef.current = null;
-        badgesUserKeyRef.current = null;
         return;
       }
 
@@ -91,17 +91,7 @@ export function ProfileSection() {
         promises.push(fetchAchievements({ token, userKey }));
       }
 
-      if (
-        badgesUserKeyRef.current !== userKey ||
-        badgeDictionary.length === 0
-      ) {
-        badgesUserKeyRef.current = userKey;
-        promises.push(
-          fetchGamificationBadges(token).then((result) => {
-            if (result.success) setBadgeDictionary(result.badges || []);
-          }),
-        );
-      }
+      promises.push(fetchBadges({ token, userKey }));
 
       await Promise.all(promises);
     };
@@ -110,8 +100,10 @@ export function ProfileSection() {
   }, [
     clearProfile,
     clearAchievements,
+    clearBadges,
     fetchProfile,
     fetchAchievements,
+    fetchBadges,
     session,
     status,
   ]);
@@ -226,8 +218,12 @@ export function ProfileSection() {
                         </div>
                       </TooltipTrigger>
                       <TooltipContent
-                        side="top"
-                        className="bg-foreground text-background"
+                        side="bottom"
+                        sideOffset={6}
+                        collisionPadding={24}
+                        align="center"
+                        avoidCollisions
+                        className="bg-foreground text-background max-w-[200px] break-words"
                       >
                         <p className="text-sm font-medium">{item.label}</p>
                       </TooltipContent>

@@ -1,5 +1,6 @@
 "use client";
 
+import { getCharacterVideo } from "@/lib/characterVideos";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -48,7 +49,7 @@ export default function SocialRedirectPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="text-center space-y-4 max-w-sm">
         <video
-          src="/animations/new_happy_girl_2_pics.webm"
+          src={getCharacterVideo("happy")}
           autoPlay
           loop
           muted

@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { getCharacterVideo } from "@/lib/characterVideos";
 
 export default function LeavingDialog({ onCancel, onLeave }) {
   const router = useRouter();
@@ -38,7 +39,7 @@ export default function LeavingDialog({ onCancel, onLeave }) {
             className="flex justify-center -mb-4"
           >
             <video
-              src="/animations/new_sad_boy_2_pics.webm"
+              src={getCharacterVideo("sad")}
               autoPlay
               loop
               muted

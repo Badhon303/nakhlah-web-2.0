@@ -1637,17 +1637,18 @@ export default function LessonPage() {
                 </div>
 
                 <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 sm:gap-6 lg:gap-8">
-                  <div className="lg:w-2/5 flex justify-center">
+                  <div className="w-full lg:w-2/5 flex justify-center">
                     <div className="relative w-full max-w-[280px] sm:max-w-sm">
-                      <div className="aspect-square bg-gradient-to-br from-accent/20 to-primary/10 rounded-xl sm:rounded-2xl p-2">
+                      <div className="relative aspect-square bg-gradient-to-br from-accent/20 to-primary/10 rounded-xl sm:rounded-2xl p-2">
                         {imageUrl ? (
                           <Image
                             loader={cloudinaryLoader}
                             src={imageUrl}
                             alt="Learning illustration"
-                            width={400}
-                            height={400}
-                            className="w-full h-full object-cover rounded-lg sm:rounded-xl"
+                            fill
+                            sizes="(max-width: 1024px) 280px, 384px"
+                            priority
+                            className="object-cover rounded-lg sm:rounded-xl"
                           />
                         ) : null}
                       </div>
@@ -1715,17 +1716,18 @@ export default function LessonPage() {
                 </h2>
 
                 <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 sm:gap-6 lg:gap-8">
-                  <div className="lg:w-2/5 flex justify-center">
+                  <div className="w-full lg:w-2/5 flex justify-center">
                     <div className="relative w-full max-w-[280px] sm:max-w-sm">
-                      <div className="aspect-square bg-gradient-to-br from-accent/20 to-primary/10 rounded-xl sm:rounded-2xl p-2">
+                      <div className="relative aspect-square bg-gradient-to-br from-accent/20 to-primary/10 rounded-xl sm:rounded-2xl p-2">
                         {imageUrl ? (
                           <Image
                             loader={cloudinaryLoader}
                             src={imageUrl}
                             alt="Question illustration"
-                            width={400}
-                            height={400}
-                            className="w-full h-full object-cover rounded-lg sm:rounded-xl"
+                            fill
+                            sizes="(max-width: 1024px) 280px, 384px"
+                            priority
+                            className="object-cover rounded-lg sm:rounded-xl"
                           />
                         ) : null}
                       </div>

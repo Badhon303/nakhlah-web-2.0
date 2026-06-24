@@ -1,5 +1,6 @@
 "use client";
 
+import { getCharacterVideo } from "@/lib/characterVideos";
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -631,7 +632,7 @@ export default function Onboarding() {
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center space-y-3 max-w-sm">
           <video
-            src="/animations/new_happy_girl_2_pics.webm"
+            src={getCharacterVideo("happy")}
             autoPlay
             loop
             muted

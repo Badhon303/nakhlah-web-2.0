@@ -1,5 +1,6 @@
 "use client";
 
+import { getCharacterVideo } from "@/lib/characterVideos";
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -116,7 +117,7 @@ export default function OTPVerificationPage() {
           className="hidden lg:flex flex-col items-center justify-center"
         >
           <video
-            src="/animations/new_sad_boy_2_pics.webm"
+            src={getCharacterVideo("sad")}
             autoPlay
             loop
             muted

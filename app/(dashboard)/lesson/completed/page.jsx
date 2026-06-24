@@ -7,6 +7,7 @@ import { useState } from "react";
 import { DatesIcon, InjazStarIcon } from "@/components/icons/PublicAssetIcons";
 import { Bullseye } from "@/components/icons/BullsEye";
 import { NotoStopwatch } from "@/components/icons/NotoStopwatch";
+import { getCharacterVideo } from "@/lib/characterVideos";
 
 function formatTime(totalSeconds) {
   const clamped = Math.max(0, Number(totalSeconds) || 0);
@@ -146,7 +147,7 @@ export default function LessonCompleted() {
             className="flex justify-center -mb-4"
           >
             <video
-              src="/animations/new_happy_girl_2_pics.webm"
+              src={getCharacterVideo("happy")}
               autoPlay
               loop
               muted
