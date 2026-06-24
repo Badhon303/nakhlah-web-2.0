@@ -90,10 +90,10 @@ export function Navbar() {
       {/* Mobile Bottom Navigation */}
       <nav
         className={cn(
-          "lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 px-2",
+          "lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 px-2",
           isHomePage
             ? "bg-transparent/50 backdrop-blur-sm"
-            : "bg-card/95 backdrop-blur-md",
+            : "bg-white/95 backdrop-blur-md",
         )}
       >
         <div className="flex items-center justify-between py-2 gap-1">
@@ -104,14 +104,14 @@ export function Navbar() {
                 key={item.path}
                 href={item.path}
                 className={cn(
-                  "flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0",
+                  "flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0 text-slate-900",
                   isHomePage
-                    ? "text-slate-900 bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20"
-                    : "text-foreground",
-                  isActive && isHomePage && "bg-white/60 ring-1 ring-white/80",
+                    ? "bg-white/30 backdrop-blur-md border border-white/40"
+                    : "",
+                  isActive && isHomePage && "bg-white/60 ring-1 ring-slate-300",
                   isActive &&
                     !isHomePage &&
-                    "bg-muted/60 dark:bg-muted/30 ring-1 ring-border",
+                    "bg-slate-200 ring-1 ring-slate-300",
                 )}
               >
                 <Image

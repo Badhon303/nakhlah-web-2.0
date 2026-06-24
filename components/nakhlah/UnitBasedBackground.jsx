@@ -4,6 +4,93 @@ import { useEffect, useRef, useMemo, useState } from "react";
 import { gsap } from "gsap";
 import { motion, AnimatePresence } from "framer-motion";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import cloudinaryLoader from "@/app/(dashboard)/lesson/utils/cloudinaryLoader";
+
+// Preload an image URL without rendering it
+function preloadImage(src) {
+  if (typeof window === "undefined" || !src) return;
+  const img = new window.Image();
+  img.src = src;
+}
+
+// Cloudinary asset config: base URL + target responsive width
+const ASSET_CONFIG = {
+  palmTrees: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782284436/palm-tree-collection_wptg2e.png",
+    width: 400,
+  },
+  dallah: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782284436/dallah_lt29my.png",
+    width: 300,
+  },
+  coral: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782284436/coral_abech2.png",
+    width: 800,
+  },
+  floatingMosque: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782284437/floating-mosque_wkdjk7.png",
+    width: 600,
+  },
+  madainSalihTombs: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782284437/Madain-Salih-Tombs_jni765.png",
+    width: 400,
+  },
+  masmakhFortress: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782284436/mesmakh-fortress_b44m32.png",
+    width: 400,
+  },
+  desertTent: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782284437/desert-tent_kjhy13.png",
+    width: 500,
+  },
+  desertBirds: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782284437/desert-birds_qcpi2s.png",
+    width: 500,
+  },
+  camel: { src: "/animations/Camel.json", width: null },
+  alFaisaliahTower: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782284436/Al-Faisaliah-Tower_zgai4u.png",
+    width: 600,
+  },
+  kingdomCenter: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782284437/kindom-center_ayywzs.png",
+    width: 600,
+  },
+  makkahClock: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782284438/makka-clock_deyvw5.png",
+    width: 600,
+  },
+};
+
+// Apply Cloudinary auto-format/quality/width optimizations
+function getAssetSrc(key) {
+  const config = ASSET_CONFIG[key];
+  if (!config) return "";
+  if (config.width && config.src.includes("res.cloudinary.com")) {
+    return cloudinaryLoader({ src: config.src, width: config.width });
+  }
+  return config.src;
+}
+
+// Extract all image sources from a theme's asset config
+function getThemeImageSources(theme) {
+  if (!theme?.assets) return [];
+  const { assets } = theme;
+  const sources = [];
+  if (assets.palmTrees) sources.push(getAssetSrc("palmTrees"));
+  if (assets.dallah) sources.push(getAssetSrc("dallah"));
+  if (assets.coral) sources.push(getAssetSrc("coral"));
+  if (assets.floatingMosque) sources.push(getAssetSrc("floatingMosque"));
+  if (assets.madainSalihTombs) sources.push(getAssetSrc("madainSalihTombs"));
+  if (assets.masmakhFortress) sources.push(getAssetSrc("masmakhFortress"));
+  if (assets.desertTent) sources.push(getAssetSrc("desertTent"));
+  if (assets.desertBirds) sources.push(getAssetSrc("desertBirds"));
+  if (assets.camel) sources.push(getAssetSrc("camel"));
+  if (assets.alFaisaliahTower) sources.push(getAssetSrc("alFaisaliahTower"));
+  if (assets.kingdomCenter) sources.push(getAssetSrc("kingdomCenter"));
+  if (assets.makkahClock) sources.push(getAssetSrc("makkahClock"));
+  return sources;
+}
 
 // 5 rotating themes - each level gets one theme in rotation
 // Journey: Desert → Oasis → Coastal (transition) → Urban Twilight → Midnight City
@@ -140,6 +227,26 @@ export function UnitBasedBackground({ children, levels = [], className = "" }) {
     });
   }, [currentTheme]);
 
+  // Prefetch current + adjacent scene images so they load before entering viewport
+  useEffect(() => {
+    if (typeof window === "undefined" || !levels.length) return;
+
+    const prefetch = () => {
+      getThemeImageSources(currentTheme).forEach(preloadImage);
+
+      const nextIndex = (activeLevelIndex + 1) % levels.length;
+      const prevIndex = (activeLevelIndex - 1 + levels.length) % levels.length;
+      getThemeImageSources(getLevelTheme(nextIndex)).forEach(preloadImage);
+      getThemeImageSources(getLevelTheme(prevIndex)).forEach(preloadImage);
+    };
+
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(prefetch, { timeout: 2000 });
+    } else {
+      prefetch();
+    }
+  }, [activeLevelIndex, currentTheme, levels.length]);
+
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       {/* Animated background layer with smooth transition */}
@@ -275,10 +382,10 @@ function UnitAssets({ theme }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
-            className="absolute left-[65%] -translate-x-1/2 bottom-16 w-40 lg:w-56 h-auto"
+            className="absolute left-[80%] md:left-[65%] -translate-x-1/2 bottom-16 w-40 lg:w-56 h-auto"
           >
             <img
-              src="/bg-home/palm-tree-collection.png"
+              src={getAssetSrc("palmTrees")}
               alt="Palm Trees"
               className="w-full h-auto object-contain drop-shadow-lg"
             />
@@ -286,20 +393,40 @@ function UnitAssets({ theme }) {
         )}
 
       {/* Scene 2: Palm Trees - Middle area, NORMAL size */}
-      {assets.palmTrees && assets.palmTrees.position === "middle-area" && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
-          className="absolute left-[68%] -translate-x-1/2 bottom-20 w-44 lg:w-60 h-auto"
-        >
-          <img
-            src="/bg-home/palm-tree-collection.png"
-            alt="Palm Trees"
-            className="w-full h-auto object-contain drop-shadow-lg"
-          />
-        </motion.div>
-      )}
+      {assets.palmTrees &&
+        assets.palmTrees.position === "middle-area" &&
+        theme.id === "desert-oasis" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+            className="absolute left-[75%] md:left-[68%] -translate-x-1/2 bottom-20 w-44 lg:w-60 h-auto"
+          >
+            <img
+              src={getAssetSrc("palmTrees")}
+              alt="Palm Trees"
+              className="w-full h-auto object-contain drop-shadow-lg"
+            />
+          </motion.div>
+        )}
+
+      {/* Scene 3: Palm Trees - Middle area, HIGHER on mobile */}
+      {assets.palmTrees &&
+        assets.palmTrees.position === "middle-area" &&
+        theme.id === "coastal-breeze" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+            className="absolute left-[75%] md:left-[68%] -translate-x-1/2 bottom-52 md:bottom-20 w-44 lg:w-60 h-auto"
+          >
+            <img
+              src={getAssetSrc("palmTrees")}
+              alt="Palm Trees"
+              className="w-full h-auto object-contain drop-shadow-lg"
+            />
+          </motion.div>
+        )}
 
       {/* Desert Birds - Far right */}
       {assets.desertBirds && (
@@ -310,7 +437,7 @@ function UnitAssets({ theme }) {
           className={`absolute top-[15%] left-[20%] ${assets.desertBirds.size === "xl" ? "w-56 lg:w-72" : "w-24 lg:w-40"}`}
         >
           <img
-            src="/bg-home/desert-birds.png"
+            src={getAssetSrc("desertBirds")}
             alt="Desert Birds"
             className="w-full h-auto drop-shadow-md"
           />
@@ -326,7 +453,7 @@ function UnitAssets({ theme }) {
           className="absolute left-[28%] -translate-x-1/2 bottom-12 w-52 lg:w-80"
         >
           <img
-            src="/bg-home/desert-tent.png"
+            src={getAssetSrc("desertTent")}
             alt="Desert Tent"
             className="w-full h-auto object-contain drop-shadow-xl"
           />
@@ -339,10 +466,10 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className={`absolute left-[72%] -translate-x-1/2 bottom-24 w-24 lg:w-32`}
+          className={`absolute left-[85%] md:left-[72%] -translate-x-1/2 bottom-24 w-24 lg:w-32`}
         >
           <img
-            src="/bg-home/dallah.png"
+            src={getAssetSrc("dallah")}
             alt="Arabic Coffee Pot"
             className="w-full h-auto object-contain drop-shadow-xl"
           />
@@ -355,10 +482,10 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.8 }}
           transition={{ duration: 0.2 }}
-          className="absolute left-[30%] -translate-x-1/2 top-[5%] w-80 lg:w-[30rem]"
+          className="absolute left-[30%] -translate-x-1/2 top-[10%] md:top-[2%] w-80 lg:w-[28rem]"
         >
           <img
-            src="/bg-home/coral.png"
+            src={getAssetSrc("coral")}
             alt="Coral"
             className="w-full h-auto object-contain drop-shadow-lg"
           />
@@ -375,7 +502,7 @@ function UnitAssets({ theme }) {
             className="absolute bottom-[50%] left-[20%] w-72 lg:w-[22rem]"
           >
             <img
-              src="/bg-home/Al-Faisaliah-Tower.png"
+              src={getAssetSrc("alFaisaliahTower")}
               alt="Al Faisaliah Tower"
               className="w-full h-auto object-contain drop-shadow-2xl"
             />
@@ -387,10 +514,10 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="absolute top-[30%] left-[12%] w-72 lg:w-[22rem]"
+          className="absolute top-[40%] md:top-[30%] right-[40%] md:left-[15%] w-72 lg:w-[22rem]"
         >
           <img
-            src="/bg-home/kindom-center.png"
+            src={getAssetSrc("kingdomCenter")}
             alt="Kingdom Center"
             className="w-full h-auto object-contain drop-shadow-2xl"
           />
@@ -402,10 +529,10 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="absolute top-[8%] left-[55%] w-72 lg:w-[24rem]"
+          className="absolute top-[15%] md:top-[8%] left-[40%] md:left-[55%] w-72 lg:w-[24rem]"
         >
           <img
-            src="/bg-home/makka-clock.png"
+            src={getAssetSrc("makkahClock")}
             alt="Makkah Royal Clock Tower"
             className="w-full h-auto object-contain drop-shadow-2xl"
           />
@@ -419,10 +546,10 @@ function UnitAssets({ theme }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-[18%] left-[15%] w-72 lg:w-[28rem]"
+            className="absolute top-[10%] md:top-[5%] right-[45%] md:left-[10%] w-72 lg:w-[28rem]"
           >
             <img
-              src="/bg-home/Al-Faisaliah-Tower.png"
+              src={getAssetSrc("alFaisaliahTower")}
               alt="Al Faisaliah Tower"
               className="w-full h-auto object-contain drop-shadow-2xl"
             />
@@ -435,10 +562,10 @@ function UnitAssets({ theme }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-[12%] right-[18%] w-80 lg:w-[28rem]"
+            className="absolute top-[30%] md:top-[12%] right-[-15%] md:right-[18%] w-80 lg:w-[26rem]"
           >
             <img
-              src="/bg-home/kindom-center.png"
+              src={getAssetSrc("kingdomCenter")}
               alt="Kingdom Center"
               className="w-full h-auto object-contain drop-shadow-2xl"
             />
@@ -454,7 +581,7 @@ function UnitAssets({ theme }) {
             className="absolute top-[22%] left-[50%] w-88 lg:w-[30rem]"
           >
             <img
-              src="/bg-home/makka-clock.png"
+              src={getAssetSrc("makkahClock")}
               alt="Makkah Royal Clock Tower"
               className="w-full h-auto object-contain drop-shadow-2xl"
             />
@@ -467,10 +594,10 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="absolute bottom-4 left-[22%] -translate-x-1/2 w-72 lg:w-[26rem]"
+          className="absolute bottom-8 md:bottom-0 left-[25%] -translate-x-1/2 w-72 lg:w-[26rem]"
         >
           <img
-            src="/bg-home/floating-mosque.png"
+            src={getAssetSrc("floatingMosque")}
             alt="Floating Mosque"
             className="w-full h-auto object-contain drop-shadow-2xl"
           />
@@ -484,10 +611,10 @@ function UnitAssets({ theme }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="absolute left-[30%] -translate-x-1/2 top-[5%] w-40 lg:w-64"
+            className="absolute left-[30%] -translate-x-1/2 top-[20%] md:top-[5%] w-40 lg:w-64"
           >
             <img
-              src="/bg-home/Madain-Salih-Tombs.png"
+              src={getAssetSrc("madainSalihTombs")}
               alt="Madain Salih Tombs"
               className="w-full h-auto object-contain drop-shadow-2xl"
             />
@@ -501,10 +628,10 @@ function UnitAssets({ theme }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-[55%] left-[20%] -translate-x-1/2 bottom-16 w-40 lg:w-64"
+            className="absolute top-[65%] md:top-[50%] left-[20%] md:left-[25%] -translate-x-1/2 bottom-16 w-40 lg:w-64"
           >
             <img
-              src="/bg-home/mesmakh-fortress.png"
+              src={getAssetSrc("masmakhFortress")}
               alt="Masmakh Fortress"
               className="w-full h-auto object-contain drop-shadow-2xl"
             />
@@ -540,7 +667,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
-          className="absolute bottom-12 left-[73%] -translate-x-1/2 w-48 lg:w-60 h-48 lg:h-60 opacity-90"
+          className="absolute bottom-12 left-[85%] md:left-[73%] -translate-x-1/2 w-48 lg:w-60 h-48 lg:h-60 opacity-90"
         >
           <DotLottieReact
             src="/animations/Camel.json"

@@ -68,13 +68,13 @@ export function ThemeToggle({ className, size = "md" }) {
         transition={{ duration: 0.5, ease: "easeInOut" }}
       >
         {isDark ? (
+          <SunIcon className={iconSize} />
+        ) : (
           <img
             src="https://img.icons8.com/plasticine/100/crescent-moon.png"
             alt="Moon"
             className={cn(iconSize, "object-contain")}
           />
-        ) : (
-          <SunIcon className={iconSize} />
         )}
       </motion.div>
     </button>
