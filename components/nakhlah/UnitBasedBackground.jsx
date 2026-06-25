@@ -287,7 +287,7 @@ function UnitAssets({ theme }) {
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.6 }}
-          className={`absolute top-16 right-16 w-24 h-24 rounded-full bg-gradient-to-br ${assets.sun.color} shadow-2xl`}
+          className={`absolute top-16 right-16 w-24 h-24 md:w-28 md:h-28 rounded-full bg-gradient-to-br ${assets.sun.color} shadow-2xl`}
           style={{ filter: "blur(1px)" }}
         />
       )}
@@ -297,7 +297,7 @@ function UnitAssets({ theme }) {
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.6 }}
-          className={`absolute top-16 right-16 w-20 h-20 ${
+          className={`absolute top-16 right-16 w-20 h-20 md:w-24 md:h-24 ${
             assets.moon.crescent
               ? "bg-transparent"
               : `rounded-full bg-gradient-to-br ${assets.moon.color} shadow-xl`
@@ -382,7 +382,7 @@ function UnitAssets({ theme }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
-            className="absolute left-[80%] md:left-[65%] -translate-x-1/2 bottom-16 w-40 lg:w-56 h-auto"
+            className="absolute left-[80%] md:left-[65%] -translate-x-1/2 bottom-16 w-40 md:w-48 lg:w-56 h-auto"
           >
             <img
               src={getAssetSrc("palmTrees")}
@@ -400,7 +400,7 @@ function UnitAssets({ theme }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
-            className="absolute left-[75%] md:left-[68%] -translate-x-1/2 bottom-20 w-44 lg:w-60 h-auto"
+            className="absolute left-[75%] md:left-[68%] -translate-x-1/2 bottom-20 w-44 md:w-52 lg:w-60 h-auto"
           >
             <img
               src={getAssetSrc("palmTrees")}
@@ -418,7 +418,7 @@ function UnitAssets({ theme }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
-            className="absolute left-[75%] md:left-[68%] -translate-x-1/2 bottom-52 md:bottom-20 w-44 lg:w-60 h-auto"
+            className="absolute left-[75%] md:left-[68%] -translate-x-1/2 bottom-52 md:bottom-20 w-44 md:w-52 lg:w-60 h-auto"
           >
             <img
               src={getAssetSrc("palmTrees")}
@@ -434,7 +434,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.8 }}
           transition={{ duration: 0.2 }}
-          className={`absolute top-[15%] left-[20%] ${assets.desertBirds.size === "xl" ? "w-56 lg:w-72" : "w-24 lg:w-40"}`}
+          className={`absolute top-[15%] left-[20%] ${assets.desertBirds.size === "xl" ? "w-56 md:w-64 lg:w-72" : "w-24 md:w-32 lg:w-40"}`}
         >
           <img
             src={getAssetSrc("desertBirds")}
@@ -450,7 +450,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="absolute left-[28%] -translate-x-1/2 bottom-12 w-52 lg:w-80"
+          className="absolute left-[28%] -translate-x-1/2 bottom-12 w-52 md:w-64 lg:w-80"
         >
           <img
             src={getAssetSrc("desertTent")}
@@ -466,7 +466,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className={`absolute left-[85%] md:left-[72%] -translate-x-1/2 bottom-24 w-24 lg:w-32`}
+          className={`absolute left-[85%] md:left-[72%] -translate-x-1/2 bottom-24 w-24 md:w-28 lg:w-32`}
         >
           <img
             src={getAssetSrc("dallah")}
@@ -482,7 +482,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.8 }}
           transition={{ duration: 0.2 }}
-          className="absolute left-[30%] -translate-x-1/2 top-[10%] md:top-[2%] w-80 lg:w-[28rem]"
+          className="absolute left-[30%] -translate-x-1/2 top-[10%] md:top-[2%] w-80 md:w-96 lg:w-[28rem]"
         >
           <img
             src={getAssetSrc("coral")}
@@ -514,7 +514,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="absolute top-[40%] md:top-[30%] right-[40%] md:left-[15%] w-72 lg:w-[22rem]"
+          className="absolute top-[40%] md:top-[30%] right-[40%] md:left-[15%] w-72 md:w-80 lg:w-[22rem]"
         >
           <img
             src={getAssetSrc("kingdomCenter")}
@@ -529,7 +529,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="absolute top-[15%] md:top-[8%] left-[40%] md:left-[55%] w-72 lg:w-[24rem]"
+          className="absolute top-[15%] md:top-[8%] left-[40%] md:left-[55%] w-72 md:w-80 lg:w-[24rem]"
         >
           <img
             src={getAssetSrc("makkahClock")}
@@ -546,7 +546,7 @@ function UnitAssets({ theme }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-[10%] md:top-[5%] right-[45%] md:left-[10%] w-72 lg:w-[28rem]"
+            className="absolute top-[10%] md:top-[5%] right-[45%] md:left-[10%] w-72 md:w-80 lg:w-[28rem]"
           >
             <img
               src={getAssetSrc("alFaisaliahTower")}
@@ -562,7 +562,7 @@ function UnitAssets({ theme }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-[30%] md:top-[12%] right-[-15%] md:right-[18%] w-80 lg:w-[26rem]"
+            className="absolute top-[30%] md:top-[35%] xl:top-[12%] right-[-15%] md:right-[15%] xl:right-[18%] w-80 md:w-96 lg:w-[25rem]"
           >
             <img
               src={getAssetSrc("kingdomCenter")}
@@ -594,7 +594,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="absolute bottom-8 md:bottom-0 left-[25%] -translate-x-1/2 w-72 lg:w-[26rem]"
+          className="absolute bottom-8 md:bottom-0 left-[25%] -translate-x-1/2 w-72 md:w-80 lg:w-[26rem]"
         >
           <img
             src={getAssetSrc("floatingMosque")}
@@ -611,7 +611,7 @@ function UnitAssets({ theme }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="absolute left-[30%] -translate-x-1/2 top-[20%] md:top-[5%] w-40 lg:w-64"
+            className="absolute left-[30%] -translate-x-1/2 top-[20%] md:top-[5%] w-40 md:w-52 lg:w-64"
           >
             <img
               src={getAssetSrc("madainSalihTombs")}
@@ -628,7 +628,7 @@ function UnitAssets({ theme }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-[65%] md:top-[50%] left-[20%] md:left-[25%] -translate-x-1/2 bottom-16 w-40 lg:w-64"
+            className="absolute top-[65%] md:top-[50%] left-[20%] md:left-[25%] -translate-x-1/2 bottom-16 w-40 md:w-52 lg:w-64"
           >
             <img
               src={getAssetSrc("masmakhFortress")}
@@ -667,7 +667,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
-          className="absolute bottom-12 left-[85%] md:left-[73%] -translate-x-1/2 w-48 lg:w-60 h-48 lg:h-60 opacity-90"
+          className="absolute bottom-12 left-[85%] md:left-[73%] -translate-x-1/2 w-48 md:w-56 lg:w-60 h-48 md:h-56 lg:h-60 opacity-90"
         >
           <DotLottieReact
             src="/animations/Camel.json"

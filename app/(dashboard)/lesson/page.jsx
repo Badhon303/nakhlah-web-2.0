@@ -739,11 +739,13 @@ export default function LessonPage() {
 
   const mcqOptions = useMemo(() => {
     if (questionType !== "mcq") return [];
-    return (currentQuestion.answers || []).map((answer) => ({
+    const options = (currentQuestion.answers || []).map((answer) => ({
       id: answer.id,
       text: answer.title,
       correct: Boolean(answer.is_correct),
     }));
+    // Shuffle so the user sees a different order each time the question renders
+    return options.sort(() => Math.random() - 0.5);
   }, [currentQuestion, questionType]);
 
   const fillBlankCorrectAnswer = useMemo(() => {
