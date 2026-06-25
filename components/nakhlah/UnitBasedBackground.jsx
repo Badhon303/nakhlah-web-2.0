@@ -40,7 +40,7 @@ const ASSET_CONFIG = {
     width: 400,
   },
   desertTent: {
-    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782284437/desert-tent_kjhy13.png",
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782403240/Arabian_Tent_1_xsidcj.png",
     width: 500,
   },
   desertBirds: {
@@ -450,7 +450,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="absolute left-[28%] -translate-x-1/2 bottom-12 w-52 md:w-64 lg:w-80"
+          className="absolute left-[28%] -translate-x-1/2 bottom-12 md:bottom-10 w-64 md:w-80 xl:w-96"
         >
           <img
             src={getAssetSrc("desertTent")}
