@@ -21,7 +21,6 @@ import { useProfileStore } from "@/stores/useProfileStore";
 import { useAchievementsStore } from "@/stores/useAchievementsStore";
 import { useBadgesStore } from "@/stores/useBadgesStore";
 
-const DEFAULT_PROFILE_IMAGE = "https://github.com/shadcn.png";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 const getMediaUrl = (url) => {
@@ -108,9 +107,13 @@ export function ProfileSection() {
     status,
   ]);
 
-  const profileImage =
-    getMediaUrl(profileData?.profilePicture?.url || session?.user?.image) ||
-    DEFAULT_PROFILE_IMAGE;
+  const rawProfileImage = getMediaUrl(
+    profileData?.profilePicture?.url || session?.user?.image || "",
+  );
+  // Ignore the old GitHub placeholder so it never shows as the user's avatar
+  const profileImage = rawProfileImage?.includes("github.com/shadcn.png")
+    ? ""
+    : rawProfileImage;
   const fallbackInitial = (
     profileData?.fullName ||
     session?.user?.name ||

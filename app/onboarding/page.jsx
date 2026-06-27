@@ -45,8 +45,6 @@ const steps = [
   { id: 10, label: "Ready!" },
 ];
 
-const DEFAULT_PROFILE_IMAGE = "https://github.com/shadcn.png";
-
 const mediaCandidates = [
   "strengthsMedia",
   "strengthMedia",
@@ -468,7 +466,7 @@ export default function Onboarding() {
       },
       fullName: fullName.trim(),
       contactNumber: contactNumber.trim(),
-      profilePictureUrl: DEFAULT_PROFILE_IMAGE,
+      profilePictureUrl: "",
     };
 
     const profileResult = await createUserProfile(profileData, token);

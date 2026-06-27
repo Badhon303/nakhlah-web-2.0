@@ -236,7 +236,7 @@ export default function LearnPage() {
         <main className="w-full px-4 lg:px-6 lg:py-6 no-scrollbar">
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 no-scrollbar">
             {/* Left side: Pathway */}
-            <div className="lg:flex-1 lg:min-w-0 2xl:w-3/4 2xl:flex-none relative">
+            <div className="lg:flex-1 lg:min-w-0 relative">
               {loadError ? (
                 <JourneyErrorFallback
                   error={loadError}
@@ -252,7 +252,7 @@ export default function LearnPage() {
             </div>
 
             {/* Right side: Sticky sidebar */}
-            <div className="hidden lg:block lg:w-[250px] xl:w-[280px] 2xl:w-1/4 lg:shrink-0 lg:sticky lg:top-6 lg:self-start lg:h-[calc(100vh-48px)] lg:overflow-y-auto no-scrollbar space-y-6 !bg-none">
+            <div className="hidden lg:block lg:w-[300px] xl:w-[320px] 2xl:w-[350px] lg:shrink-0 lg:mr-6 xl:mr-8 lg:sticky lg:top-6 lg:self-start lg:h-[calc(100vh-48px)] lg:overflow-y-auto no-scrollbar space-y-6 !bg-none">
               <UserStats />
               <DailyQuests />
               <LeaderboardCard />
