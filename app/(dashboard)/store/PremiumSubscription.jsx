@@ -97,38 +97,28 @@ const premiumFeatures = [
 const subscriptionPlans = [
   {
     id: "1month",
-    duration: "1 Month",
-    price: "$10.00",
+    duration: "Monthly",
+    price: "$9.99/mo",
     savePercent: null,
   },
   {
-    id: "3months",
-    duration: "3 Months",
-    price: "Save over 40%",
-    originalPrice: "$30.00",
-    actualPrice: "$25.00",
-    savePercent: "40%",
-  },
-  {
-    id: "6months",
-    duration: "6 Months",
-    price: "Save over 45%",
-    originalPrice: "$60.00",
-    actualPrice: "$45.00",
-    savePercent: "45%",
-    popular: true,
-  },
-  {
     id: "12months",
-    duration: "12 Months",
-    price: "Save over 50%",
-    originalPrice: "$120.00",
-    actualPrice: "$80.00",
-    savePercent: "50%",
+    duration: "Yearly",
+    price: "Save over 25%",
+    originalPrice: "$119.88/yr",
+    actualPrice: "$89.99/yr",
+    savePercent: "25%",
+    popular: true,
   },
 ];
 
 const paymentMethods = [
+  {
+    id: "googlepay",
+    name: "Google Pay",
+    logo: "https://developers.google.com/static/pay/api/images/brand-guidelines/google-pay-mark.png",
+    fields: ["email"],
+  },
   {
     id: "paypal",
     name: "PayPal",
@@ -136,41 +126,42 @@ const paymentMethods = [
     fields: ["email"],
   },
   {
-    id: "googlepay",
-    name: "Google Pay",
-    logo: "https://www.gstatic.com/instantbuy/svg/dark_gpay.svg",
-    fields: ["email"],
-  },
-  {
     id: "applepay",
     name: "Apple Pay",
-    logo: "https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/b/b0/Apple_Pay_logo.svg",
     fields: ["email"],
-  },
-  {
-    id: "mastercard",
-    name: "Mastercard",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg",
-    fields: ["cardNumber", "cardName", "expiry", "cvv"],
   },
   {
     id: "visa",
     name: "Visa",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg",
+    logo: "https://cdn.jsdelivr.net/npm/payment-icons@1.1.0/min/flat/visa.svg",
+    fields: ["cardNumber", "cardName", "expiry", "cvv"],
+  },
+  {
+    id: "mastercard",
+    name: "Mastercard",
+    logo: "https://cdn.jsdelivr.net/npm/payment-icons@1.1.0/min/flat/mastercard.svg",
     fields: ["cardNumber", "cardName", "expiry", "cvv"],
   },
   {
     id: "amex",
-    name: "American Express",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/3/30/American_Express_logo.svg",
+    name: "Amex",
+    logo: "https://cdn.jsdelivr.net/npm/payment-icons@1.1.0/min/flat/amex.svg",
     fields: ["cardNumber", "cardName", "expiry", "cvv"],
   },
 ];
 
-export default function PremiumSubscription({ onBack }) {
+export default function PremiumSubscription({ onBack, initialPlan }) {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [selectedPlan, setSelectedPlan] = useState("6months");
+  // If an initialPlan is passed from StorePage, map it to a subscription plan id and skip to step 2
+  const resolvedPlan =
+    initialPlan === "monthly"
+      ? "1month"
+      : initialPlan === "yearly"
+        ? "12months"
+        : "1month";
+  const [currentStep, setCurrentStep] = useState(initialPlan ? 3 : 1);
+  const [selectedPlan, setSelectedPlan] = useState(resolvedPlan);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [paymentData, setPaymentData] = useState({
     email: "",
@@ -207,8 +198,12 @@ export default function PremiumSubscription({ onBack }) {
   };
 
   const handleBack = () => {
-    if (currentStep > 1) {
+    if (currentStep === 3 && initialPlan && onBack) {
+      onBack();
+    } else if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    } else if (onBack) {
+      onBack();
     }
   };
 
@@ -373,7 +368,7 @@ export default function PremiumSubscription({ onBack }) {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-lg mx-auto">
             {subscriptionPlans.map((plan) => (
               <button
                 key={plan.id}
@@ -496,15 +491,15 @@ export default function PremiumSubscription({ onBack }) {
                   </div>
                 )}
 
-                <div className="w-full flex items-center justify-center">
+                <div className="w-full h-14 flex items-center justify-center px-2">
                   <img
                     src={method.logo}
                     alt={method.name}
-                    className="max-w-[50px] max-h-[50px] sm:max-w-[80px] sm:max-h-[80px] object-contain"
+                    className="max-w-full max-h-full object-contain"
                   />
                 </div>
 
-                <span className="font-semibold text-foreground text-xs sm:text-sm text-center leading-tight">
+                <span className="font-semibold text-foreground text-xs text-center leading-tight">
                   {method.name}
                 </span>
               </button>

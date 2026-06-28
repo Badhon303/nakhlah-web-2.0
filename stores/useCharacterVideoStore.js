@@ -26,20 +26,21 @@ export const useCharacterVideoStore = create((set, get) => ({
     prefetchAll: async () => {
         if (get().prefetched) return;
 
+        // Prefetch gate first so it renders immediately
+        const gateUrl = await fetchBlobUrl(GATE_IMAGE_SRC, GATE_IMAGE_SRC);
+        set({ gateBlobUrl: gateUrl });
+
+        // Then fetch videos in the background
         const keys = ["happy", "sad"];
-        const [videoEntries, gateUrl] = await Promise.all([
-            Promise.all(
-                keys.map(async (key) => [
-                    key,
-                    await fetchBlobUrl(getCharacterVideo(key), getCharacterVideo(key)),
-                ]),
-            ),
-            fetchBlobUrl(GATE_IMAGE_SRC, GATE_IMAGE_SRC),
-        ]);
+        const videoEntries = await Promise.all(
+            keys.map(async (key) => [
+                key,
+                await fetchBlobUrl(getCharacterVideo(key), getCharacterVideo(key)),
+            ]),
+        );
 
         set({
             blobUrls: Object.fromEntries(videoEntries),
-            gateBlobUrl: gateUrl,
             prefetched: true,
         });
     },

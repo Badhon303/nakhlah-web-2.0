@@ -65,7 +65,7 @@ export function WelcomeStep({ onStart, onLogin }) {
       <h1 className="text-3xl font-bold text-violet-600 mb-2">Nakhlah</h1>
 
       <p className="text-muted-foreground mb-10">
-        Learn languages whenever and wherever you want. It’s free and forever.
+        Learn Arabic whenever and wherever you want. It’s free and forever.
       </p>
 
       {/* buttons */}

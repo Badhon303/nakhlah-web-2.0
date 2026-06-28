@@ -59,7 +59,7 @@ export default function GetStartedPage() {
         >
           <h1 className="text-6xl font-black text-accent mb-4">Nakhlah</h1>
           <p className="text-xl text-muted-foreground max-w-md mx-auto leading-relaxed">
-            Learn languages whenever and wherever you want. It&apos;s free and
+            Learn Arabic whenever and wherever you want. It&apos;s free and
             forever.
           </p>
         </motion.div>

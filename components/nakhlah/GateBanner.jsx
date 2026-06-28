@@ -1,8 +1,6 @@
 "use client";
 
-import Image from "next/image";
 import { useGateImage } from "@/stores/useCharacterVideoStore";
-import { useState } from "react";
 
 /**
  * GateBanner - Gate banner with prefetched blob URL for instant rendering.
@@ -10,25 +8,16 @@ import { useState } from "react";
  */
 export function GateBanner({ title, className = "" }) {
   const gateSrc = useGateImage();
-  const [loaded, setLoaded] = useState(false);
 
   return (
     <div className={`relative mx-auto w-[200px] md:w-[280px] ${className}`}>
-      {/* Skeleton placeholder shown until SVG decodes */}
-      {!loaded && (
-        <div className="w-full aspect-[3/2] rounded-lg bg-muted/60 animate-pulse" />
-      )}
-
-      {/* Gate image — width/height reflect SVG intrinsic ratio */}
-      <Image
+      {/* Gate image — renders instantly from prefetched blob URL */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
         src={gateSrc}
         alt="Gate"
-        width={1264}
-        height={848}
-        className={`w-full h-auto block transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
-        priority
-        unoptimized
-        onLoad={() => setLoaded(true)}
+        className="w-full h-auto block"
+        draggable={false}
       />
 
       {/* Text positioned on banner fabric */}

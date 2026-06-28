@@ -55,47 +55,49 @@ const gemPackages = [
 
 const paymentMethods = [
   {
+    id: "googlepay",
+    name: "Google Pay",
+    logo: "https://developers.google.com/static/pay/api/images/brand-guidelines/google-pay-mark.png",
+    fields: ["email"],
+  },
+  {
     id: "paypal",
     name: "PayPal",
     logo: "https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_111x69.jpg",
     fields: ["email"],
   },
   {
-    id: "googlepay",
-    name: "Google Pay",
-    logo: "https://www.gstatic.com/instantbuy/svg/dark_gpay.svg",
-    fields: ["email"],
-  },
-  {
     id: "applepay",
     name: "Apple Pay",
-    logo: "https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/b/b0/Apple_Pay_logo.svg",
     fields: ["email"],
-  },
-  {
-    id: "mastercard",
-    name: "Mastercard",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg",
-    fields: ["cardNumber", "cardName", "expiry", "cvv"],
   },
   {
     id: "visa",
     name: "Visa",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg",
+    logo: "https://cdn.jsdelivr.net/npm/payment-icons@1.1.0/min/flat/visa.svg",
+    fields: ["cardNumber", "cardName", "expiry", "cvv"],
+  },
+  {
+    id: "mastercard",
+    name: "Mastercard",
+    logo: "https://cdn.jsdelivr.net/npm/payment-icons@1.1.0/min/flat/mastercard.svg",
     fields: ["cardNumber", "cardName", "expiry", "cvv"],
   },
   {
     id: "amex",
-    name: "American Express",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/3/30/American_Express_logo.svg",
+    name: "Amex",
+    logo: "https://cdn.jsdelivr.net/npm/payment-icons@1.1.0/min/flat/amex.svg",
     fields: ["cardNumber", "cardName", "expiry", "cvv"],
   },
 ];
 
-export default function GemsPurchase() {
+export default function GemsPurchase({ onBack, initialPackage }) {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(1); // 1: select package, 2: payment, 3: success
-  const [selectedPackage, setSelectedPackage] = useState(null);
+  const [currentStep, setCurrentStep] = useState(initialPackage ? 2 : 1);
+  const [selectedPackage, setSelectedPackage] = useState(
+    initialPackage || null,
+  );
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [paymentData, setPaymentData] = useState({
     email: "",
@@ -158,7 +160,7 @@ export default function GemsPurchase() {
           {/* Back Button */}
           <Button
             variant="ghost"
-            onClick={() => router.push("/store")}
+            onClick={() => (onBack ? onBack() : router.push("/store"))}
             className="gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -261,7 +263,9 @@ export default function GemsPurchase() {
           {/* Back Button */}
           <Button
             variant="ghost"
-            onClick={() => setCurrentStep(1)}
+            onClick={() =>
+              initialPackage && onBack ? onBack() : setCurrentStep(1)
+            }
             className="gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -313,15 +317,15 @@ export default function GemsPurchase() {
                   </div>
                 )}
 
-                <div className="w-full flex items-center justify-center">
+                <div className="w-full h-14 flex items-center justify-center px-2">
                   <img
                     src={method.logo}
                     alt={method.name}
-                    className="max-w-[50px] max-h-[50px] sm:max-w-[80px] sm:max-h-[80px] object-contain"
+                    className="max-w-full max-h-full object-contain"
                   />
                 </div>
 
-                <span className="font-semibold text-foreground text-xs sm:text-sm text-center leading-tight">
+                <span className="font-semibold text-foreground text-xs text-center leading-tight">
                   {method.name}
                 </span>
               </button>
