@@ -42,9 +42,9 @@ export function Circle({
   };
 
   const trophyIconSizeClasses = {
-    sm: "w-24 h-24",
-    md: "w-28 h-28",
-    lg: "w-32 h-32",
+    sm: "w-12 h-12",
+    md: "w-18 h-18",
+    lg: "w-20 h-20",
   };
 
   const iconSizeClass = isTrophy

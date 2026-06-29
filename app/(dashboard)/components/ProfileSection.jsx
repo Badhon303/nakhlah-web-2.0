@@ -240,18 +240,6 @@ export function ProfileSection() {
               </div>
             </TooltipProvider>
           </div>
-
-          {/* Logout Button */}
-          <div className="mt-4 pt-4 border-t border-border">
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="w-full flex items-center justify-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 border-red-200 dark:border-red-800"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </Button>
-          </div>
         </div>
       ) : (
         <div className="text-center space-y-4">

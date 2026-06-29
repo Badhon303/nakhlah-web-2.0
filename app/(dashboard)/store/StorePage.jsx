@@ -68,7 +68,7 @@ export default function StorePage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.08 }}
-                className={`relative rounded-2xl border-2 p-6 flex flex-col items-center gap-4 bg-background text-center ${
+                className={`relative rounded-2xl border-2 p-6 pb-8 flex flex-col items-center gap-5 bg-background text-center ${
                   pkg.popular
                     ? "border-accent shadow-xl pt-10"
                     : "border-border shadow-sm"
@@ -130,12 +130,18 @@ export default function StorePage() {
           >
             {/* Section header banner */}
             <div className="flex justify-center -mt-5 mb-0">
-              <div className="bg-accent text-accent-foreground text-xl font-black px-10 py-2 rounded-xl shadow-lg">
-                Get Unlimited Lives
+              <div className="relative">
+                <div className="bg-accent text-accent-foreground text-xl font-black px-10 py-2 rounded-xl shadow-lg">
+                  Get Unlimited Lives
+                </div>
+                {/* GO PREMIUM tag - bottom-right like BEST VALUE */}
+                <div className="absolute -top-2 -right-5 bg-secondary text-secondary-foreground text-[10px] font-black tracking-wider px-2 py-0.5 rounded-full rotate-12 shadow whitespace-nowrap">
+                  GO PREMIUM
+                </div>
               </div>
             </div>
 
-            <div className="p-6 sm:p-8 grid grid-cols-1 sm:grid-cols-3 gap-8 items-center">
+            <div className="pt-8 pb-6 px-6 sm:px-8 grid grid-cols-1 sm:grid-cols-3 gap-8 items-center">
               {/* Feature list */}
               <ul className="space-y-2 text-base text-foreground font-medium">
                 {[
@@ -158,7 +164,7 @@ export default function StorePage() {
                 <img
                   src="https://res.cloudinary.com/dqdeoobeb/image/upload/v1782640272/palm_tree_for_store_t59245.png"
                   alt="palm trees"
-                  className="w-44 h-44 object-contain select-none"
+                  className="w-52 h-52 object-contain select-none"
                 />
               </div>
 
@@ -170,19 +176,15 @@ export default function StorePage() {
                     onClick={() =>
                       setSelectedOption({ type: "premium", plan: "monthly" })
                     }
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl p-4 w-[135px] text-center transition-colors"
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl p-4 w-[155px] text-center transition-colors"
                   >
                     <p className="text-[10px] font-extrabold tracking-widest uppercase mb-1.5">
                       Monthly
                     </p>
-                    <p className="text-xl font-black leading-tight">
-                      $9.99<span className="text-xs font-semibold">/mo</span>
+                    <p className="text-2xl font-black leading-tight">
+                      $9.99<span className="text-sm font-semibold">/mo</span>
                     </p>
                   </button>
-                  {/* Go Premium badge */}
-                  <div className="absolute -top-3 -right-5 bg-secondary text-secondary-foreground text-[9px] font-black tracking-wider px-2 py-0.5 rounded-full rotate-12 shadow whitespace-nowrap">
-                    GO PREMIUM
-                  </div>
                 </div>
 
                 {/* Yearly */}
@@ -191,17 +193,16 @@ export default function StorePage() {
                     onClick={() =>
                       setSelectedOption({ type: "premium", plan: "yearly" })
                     }
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl p-4 w-[135px] text-center transition-colors"
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl p-4 w-[155px] text-center transition-colors"
                   >
                     <p className="text-[10px] font-extrabold tracking-widest uppercase mb-1.5">
                       Yearly
                     </p>
-                    <p className="text-xl font-black leading-tight">
-                      $89.99<span className="text-xs font-semibold">/yr</span>
+                    <p className="text-2xl font-black leading-tight">
+                      $89.99<span className="text-sm font-semibold">/yr</span>
                     </p>
                   </button>
-                  {/* Best Value badge */}
-                  <div className="absolute -bottom-3 -right-5 bg-secondary text-secondary-foreground text-[9px] font-black tracking-wider px-2 py-0.5 rounded-full -rotate-12 shadow whitespace-nowrap">
+                  <div className="absolute -bottom-3 -right-5 bg-secondary text-secondary-foreground text-[10px] font-black tracking-wider px-2 py-0.5 rounded-full -rotate-12 shadow whitespace-nowrap">
                     BEST VALUE
                   </div>
                 </div>

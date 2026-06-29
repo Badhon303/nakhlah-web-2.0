@@ -5,10 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "./ThemeToggle";
+import { signOut } from "next-auth/react";
 
 const navItems = [
   { path: "/", label: "Home", icon: "/icons/Home-Icon.127e8555.svg" },
-  { path: "/challenge", label: "Challenges", icon: "/icons/Lesson.svg" },
+  // { path: "/challenge", label: "Challenges", icon: "/icons/Lesson.svg" },
   {
     path: "/leaderboard",
     label: "Leaderboard",
@@ -21,6 +22,10 @@ const navItems = [
 export function Navbar() {
   const pathname = usePathname();
   const isHomePage = pathname === "/";
+
+  const handleLogout = () => {
+    signOut({ callbackUrl: "/auth/login" });
+  };
 
   return (
     <>
@@ -78,6 +83,25 @@ export function Navbar() {
                 </Link>
               );
             })}
+            {/* Logout - right after Profile with no gap */}
+            <button
+              onClick={handleLogout}
+              className={cn(
+                "relative flex items-center gap-3 rounded-xl px-4 py-3 text-base font-semibold transition-all w-full",
+                isHomePage
+                  ? "text-slate-900 bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 shadow-sm hover:bg-white/40 dark:hover:bg-white/20"
+                  : "text-foreground hover:bg-muted/50 dark:hover:bg-muted/20",
+              )}
+            >
+              <Image
+                src="/icons/logout.125f3808.svg"
+                alt="Logout"
+                width={24}
+                height={24}
+                className="h-6 w-6"
+              />
+              <span>Logout</span>
+            </button>
           </div>
         </div>
 
@@ -127,6 +151,27 @@ export function Navbar() {
               </Link>
             );
           })}
+          {/* Logout - Mobile */}
+          <button
+            onClick={handleLogout}
+            className={cn(
+              "flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0 text-slate-900",
+              isHomePage
+                ? "bg-white/30 backdrop-blur-md border border-white/40"
+                : "",
+            )}
+          >
+            <Image
+              src="/icons/logout.125f3808.svg"
+              alt="Logout"
+              width={24}
+              height={24}
+              className="h-5 w-5"
+            />
+            <span className="text-[10px] font-medium truncate w-full text-center">
+              Logout
+            </span>
+          </button>
         </div>
       </nav>
 

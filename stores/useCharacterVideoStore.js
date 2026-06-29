@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { getCharacterVideo } from "@/lib/characterVideos";
 
-const GATE_IMAGE_SRC = "/gate.svg";
+const GATE_IMAGE_SRC = "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782722031/gate_2_pocgmn.png";
 
 async function fetchBlobUrl(url, fallback) {
     try {

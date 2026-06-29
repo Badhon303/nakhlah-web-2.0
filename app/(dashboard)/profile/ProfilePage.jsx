@@ -1,6 +1,5 @@
 import HeaderSection from "./components/HeaderSection";
 import StatisticsGrid from "./components/StatisticsGrid";
-import XPChart from "./components/XPChart";
 import AchievementsList from "./components/AchievementsList";
 import MotivationCard from "./components/MotivationCard";
 import QuickStats from "./components/QuickStats";
@@ -65,7 +64,6 @@ export default function ProfilePage({
             profileData={profileData}
             achievementsData={achievementsData}
           />
-          <XPChart />
           <AchievementsList
             onViewAll={() => onNavigate("all-achievements")}
             achievements={achievementsData}

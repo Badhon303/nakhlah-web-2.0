@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Search } from "lucide-react";
 import { Trophy } from "@/components/icons/Trophy";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
@@ -83,9 +82,7 @@ export default function Leaderboard({ onViewProfile }) {
               <Trophy />
             </div>
           </div>
-          <button className="w-10 h-10 rounded-xl hover:bg-muted flex items-center justify-center transition-colors">
-            <Search className="w-5 h-5 text-muted-foreground" />
-          </button>
+          {/* Search removed */}
         </motion.div>
 
         {/* Top 3 Podium */}

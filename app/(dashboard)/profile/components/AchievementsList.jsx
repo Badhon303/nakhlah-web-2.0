@@ -21,7 +21,7 @@ export default function AchievementsList({
   achievements = [],
   isLoading = false,
 }) {
-  const compactAchievements = achievements.slice(0, 3);
+  const compactAchievements = achievements.slice(0, 6);
 
   return (
     <motion.div
