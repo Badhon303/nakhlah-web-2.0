@@ -169,14 +169,14 @@ export default function StorePage() {
               </div>
 
               {/* Plan cards */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-end">
+              <div className="flex flex-row gap-3 justify-center sm:justify-end pb-4">
                 {/* Monthly */}
-                <div className="relative">
+                <div className="relative flex-1">
                   <button
                     onClick={() =>
                       setSelectedOption({ type: "premium", plan: "monthly" })
                     }
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl p-4 w-[155px] text-center transition-colors"
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl p-4 w-full text-center transition-colors"
                   >
                     <p className="text-[10px] font-extrabold tracking-widest uppercase mb-1.5">
                       Monthly
@@ -188,12 +188,12 @@ export default function StorePage() {
                 </div>
 
                 {/* Yearly */}
-                <div className="relative">
+                <div className="relative flex-1">
                   <button
                     onClick={() =>
                       setSelectedOption({ type: "premium", plan: "yearly" })
                     }
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl p-4 w-[155px] text-center transition-colors"
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl p-4 w-full text-center transition-colors"
                   >
                     <p className="text-[10px] font-extrabold tracking-widest uppercase mb-1.5">
                       Yearly

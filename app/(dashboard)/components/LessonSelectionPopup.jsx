@@ -47,9 +47,13 @@ export function LessonSelectionPopup({
   const [lessons, setLessons] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
-  const [isGiftAlreadyOpened, setIsGiftAlreadyOpened] = useState(false);
+  const [isGiftAlreadyOpened, setIsGiftAlreadyOpened] = useState(
+    Boolean(isTaskGiftBox && isCompleted),
+  );
   const [isClaiming, setIsClaiming] = useState(false);
-  const [hasClaimed, setHasClaimed] = useState(false);
+  const [hasClaimed, setHasClaimed] = useState(
+    Boolean(isTaskGiftBox && isCompleted),
+  );
   const [giftRewards, setGiftRewards] = useState(null);
   const { data: session, status } = useSession();
 
@@ -60,8 +64,8 @@ export function LessonSelectionPopup({
       try {
         setIsLoading(true);
         setLoadError("");
-        setIsGiftAlreadyOpened(false);
-        setHasClaimed(false);
+        setIsGiftAlreadyOpened(Boolean(isTaskGiftBox && isCompleted));
+        setHasClaimed(Boolean(isTaskGiftBox && isCompleted));
         setGiftRewards(null);
 
         if (status === "loading") return;

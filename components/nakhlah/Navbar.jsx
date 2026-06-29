@@ -114,10 +114,10 @@ export function Navbar() {
       {/* Mobile Bottom Navigation */}
       <nav
         className={cn(
-          "lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 px-2",
+          "lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t px-2",
           isHomePage
-            ? "bg-transparent/50 backdrop-blur-sm"
-            : "bg-white/95 backdrop-blur-md",
+            ? "bg-white/30 dark:bg-white/10 backdrop-blur-md border-white/40 dark:border-white/20"
+            : "bg-card/95 backdrop-blur-md border-border",
         )}
       >
         <div className="flex items-center justify-between py-2 gap-1">
@@ -128,14 +128,14 @@ export function Navbar() {
                 key={item.path}
                 href={item.path}
                 className={cn(
-                  "flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0 text-slate-900",
+                  "flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0",
                   isHomePage
-                    ? "bg-white/30 backdrop-blur-md border border-white/40"
-                    : "",
-                  isActive && isHomePage && "bg-white/60 ring-1 ring-slate-300",
+                    ? "text-slate-900 dark:text-white bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20"
+                    : "text-foreground hover:bg-muted/50",
                   isActive &&
-                    !isHomePage &&
-                    "bg-slate-200 ring-1 ring-slate-300",
+                    isHomePage &&
+                    "bg-white/60 dark:bg-white/20 ring-1 ring-white/60 dark:ring-white/30",
+                  isActive && !isHomePage && "bg-muted/60 ring-1 ring-border",
                 )}
               >
                 <Image
@@ -155,10 +155,10 @@ export function Navbar() {
           <button
             onClick={handleLogout}
             className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0 text-slate-900",
+              "flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0",
               isHomePage
-                ? "bg-white/30 backdrop-blur-md border border-white/40"
-                : "",
+                ? "text-slate-900 dark:text-white bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20"
+                : "text-foreground hover:bg-muted/50",
             )}
           >
             <Image
