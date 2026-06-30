@@ -102,7 +102,7 @@ export function ZigzagPath({ lessons, levels, isLoading = false }) {
     if (isLoading || lessons.length === 0) return undefined;
     if (hasScrolledRef.current) return undefined;
 
-    const doScroll = () => {
+    const getTargetEl = () => {
       // 1. Always prefer the API's isCurrent node — source of truth
       const currentLesson = lessons.find((l) => l.isCurrent);
       let targetEl = currentLesson
@@ -125,15 +125,37 @@ export function ZigzagPath({ lessons, levels, isLoading = false }) {
         }
       }
 
+      return targetEl;
+    };
+
+    const doScroll = () => {
+      const targetEl = getTargetEl();
       if (targetEl) {
         targetEl.scrollIntoView({ behavior: "instant", block: "center" });
         hasScrolledRef.current = true;
+        return true;
       }
+      return false;
     };
 
-    // Defer one frame so DOM nodes are guaranteed to be painted
-    const raf = requestAnimationFrame(doScroll);
-    return () => cancelAnimationFrame(raf);
+    // Try immediately after paint, then retry at 400ms and 900ms
+    // for slow layouts (backgrounds, images not yet sized)
+    let t1, t2;
+    const raf = requestAnimationFrame(() => {
+      if (!doScroll()) {
+        t1 = setTimeout(() => {
+          if (!doScroll()) {
+            t2 = setTimeout(doScroll, 500);
+          }
+        }, 400);
+      }
+    });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, [lessons, isLoading]);
 
   return (

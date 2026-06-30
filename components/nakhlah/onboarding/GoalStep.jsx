@@ -1,8 +1,15 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Mascot } from "../Mascot";
+import { useCharacterVideo } from "@/lib/characterVideos";
 
-export function GoalStep({ title, goals = [], selectedGoal, onSelect, getMediaUrl }) {
+export function GoalStep({
+  title,
+  goals = [],
+  selectedGoal,
+  onSelect,
+  getMediaUrl,
+}) {
+  const happyVideoSrc = useCharacterVideo("happy");
   return (
     <div className="w-full max-w-xl mx-auto">
       <motion.div
@@ -10,7 +17,14 @@ export function GoalStep({ title, goals = [], selectedGoal, onSelect, getMediaUr
         animate={{ opacity: 1, y: 0 }}
         className="mb-10 flex items-center gap-6 justify-center"
       >
-        <Mascot mood="sleeping" size="md" className="" />
+        <video
+          src={happyVideoSrc}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-32 h-32 shrink-0"
+        />
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">
             {title}
@@ -36,7 +50,7 @@ export function GoalStep({ title, goals = [], selectedGoal, onSelect, getMediaUr
                 "hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
                 selectedGoal === value
                   ? "border-accent bg-accent/10 shadow-accent-glow"
-                  : "border-border bg-card hover:border-primary"
+                  : "border-border bg-card hover:border-primary",
               )}
             >
               <div
@@ -44,7 +58,7 @@ export function GoalStep({ title, goals = [], selectedGoal, onSelect, getMediaUr
                   "w-14 h-14 rounded-2xl flex items-center justify-center transition-colors",
                   selectedGoal === value
                     ? "bg-accent text-accent-foreground"
-                    : "bg-gradient-accent text-accent-foreground"
+                    : "bg-gradient-accent text-accent-foreground",
                 )}
               >
                 {goal?.goalMedia?.url ? (

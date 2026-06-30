@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { Mascot } from "@/components/nakhlah/Mascot";
+import { useCharacterVideo } from "@/lib/characterVideos";
 
 export function CompletionStep({ onComplete }) {
+  const happyVideoSrc = useCharacterVideo("happy");
   return (
     <div className="w-full max-w-[520px] mx-auto text-center">
       <motion.div
@@ -15,12 +16,23 @@ export function CompletionStep({ onComplete }) {
           transition={{ repeat: Infinity, duration: 2.4 }}
           className="flex justify-center"
         >
-          <Mascot mood="proud" size="xxxl" className="mx-auto" />
+          <video
+            src={happyVideoSrc}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-72 h-72 mx-auto"
+          />
         </motion.div>
 
         <div className="mt-6 space-y-2">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-foreground">You&apos;re ready</h1>
-          <p className="text-muted-foreground">Start your first lesson now ✨</p>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-foreground">
+            You&apos;re ready
+          </h1>
+          <p className="text-muted-foreground">
+            Start your first lesson now ✨
+          </p>
         </div>
 
         <button

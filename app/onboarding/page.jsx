@@ -503,6 +503,10 @@ export default function Onboarding() {
     );
     localStorage.removeItem("nakhlah_profile_prompt_pending");
 
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("nakhlah:journey-needs-refresh", "true");
+    }
+
     // toast.success("Profile created successfully!");
     router.push("/");
     router.refresh();

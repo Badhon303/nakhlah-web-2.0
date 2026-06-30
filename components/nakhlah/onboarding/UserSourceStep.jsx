@@ -1,10 +1,17 @@
 "use client";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Mascot } from "../Mascot";
+import { useCharacterVideo } from "@/lib/characterVideos";
 
-export function UserSourceStep({ title, sources = [], userSource, onSelect, getMediaUrl }) {
+export function UserSourceStep({
+  title,
+  sources = [],
+  userSource,
+  onSelect,
+  getMediaUrl,
+}) {
   const [selectedSource, setSelectedSource] = useState(userSource || "");
+  const happyVideoSrc = useCharacterVideo("happy");
 
   const handleSourceSelect = (value) => {
     setSelectedSource(value);
@@ -18,7 +25,14 @@ export function UserSourceStep({ title, sources = [], userSource, onSelect, getM
         animate={{ opacity: 1, y: 0 }}
         className="mb-10 flex items-center gap-6 justify-center"
       >
-        <Mascot mood="curious" size="md" className="" />
+        <video
+          src={happyVideoSrc}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-32 h-32 shrink-0"
+        />
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">
             {title}

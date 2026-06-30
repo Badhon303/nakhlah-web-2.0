@@ -1,8 +1,15 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Mascot } from "../Mascot";
+import { useCharacterVideo } from "@/lib/characterVideos";
 
-export function PurposeStep({ title, purposes = [], selectedPurpose, onSelect, getMediaUrl }) {
+export function PurposeStep({
+  title,
+  purposes = [],
+  selectedPurpose,
+  onSelect,
+  getMediaUrl,
+}) {
+  const happyVideoSrc = useCharacterVideo("happy");
   return (
     <div className="w-full max-w-xl mx-auto">
       <motion.div
@@ -10,7 +17,14 @@ export function PurposeStep({ title, purposes = [], selectedPurpose, onSelect, g
         animate={{ opacity: 1, y: 0 }}
         className="mb-10 flex items-center gap-6 justify-center"
       >
-        <Mascot mood="thinking" size="md" className="" />
+        <video
+          src={happyVideoSrc}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-32 h-32 shrink-0"
+        />
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">
             {title}
@@ -34,7 +48,7 @@ export function PurposeStep({ title, purposes = [], selectedPurpose, onSelect, g
               "hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
               selectedPurpose === purpose.id
                 ? "border-accent bg-accent/10 shadow-accent-glow"
-                : "border-border bg-card hover:border-primary"
+                : "border-border bg-card hover:border-primary",
             )}
           >
             <div
@@ -42,7 +56,7 @@ export function PurposeStep({ title, purposes = [], selectedPurpose, onSelect, g
                 "w-12 h-12 rounded-xl flex items-center justify-center",
                 selectedPurpose === purpose.id
                   ? "bg-accent text-accent-foreground"
-                  : "bg-muted"
+                  : "bg-muted",
               )}
             >
               {purpose?.purposeMedia?.url ? (
@@ -52,7 +66,9 @@ export function PurposeStep({ title, purposes = [], selectedPurpose, onSelect, g
                   className="w-7 h-7 object-contain"
                 />
               ) : (
-                <span className="text-xs font-bold text-muted-foreground">🎯</span>
+                <span className="text-xs font-bold text-muted-foreground">
+                  🎯
+                </span>
               )}
             </div>
             <p className="font-bold text-foreground text-lg text-left flex-1">
