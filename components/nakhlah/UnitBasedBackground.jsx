@@ -24,7 +24,7 @@ const ASSET_CONFIG = {
     width: 300,
   },
   coral: {
-    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782284436/coral_abech2.png",
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782906703/Gemini_Generated_Image_96a6rt96a6rt96a6-removebg-preview_onecha.png",
     width: 800,
   },
   floatingMosque: {
@@ -49,16 +49,52 @@ const ASSET_CONFIG = {
   },
   camel: { src: "/animations/Camel.json", width: null },
   alFaisaliahTower: {
-    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782284436/Al-Faisaliah-Tower_zgai4u.png",
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782893620/All-Faisaliah_v1_rbsyaq.png",
     width: 600,
   },
   kingdomCenter: {
-    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782284437/kindom-center_ayywzs.png",
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782893622/Centre_Tower_v1_tesii9.png",
     width: 600,
   },
   makkahClock: {
-    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782284438/makka-clock_deyvw5.png",
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782893626/Clock_tower_v1_i6akzk.png",
     width: 600,
+  },
+  burjAssila: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782893622/Burj_Assila_v2_sjjdbr.png",
+    width: 600,
+  },
+  university1: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782893701/university_1_wg0fic.png",
+    width: 500,
+  },
+  university2: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782893700/university_2_emc5ce.png",
+    width: 500,
+  },
+  stadium: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782893700/Stadium_v1-removebg-preview_jkmwup.png",
+    width: 600,
+  },
+  museum: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782893684/museum_v1-removebg-preview_xbr8uj.png",
+    width: 500,
+  },
+  mosque: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782893636/Moshjid_v1_tj5ywk.png",
+    width: 500,
+  },
+  hospital: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782893627/hospital_i4hhwe.png",
+    width: 500,
+  },
+  glassGate: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782893626/Glass_House_v1-removebg-preview_hb5xlc.png",
+    width: 500,
+  },
+  kacrc: {
+    src: "https://res.cloudinary.com/dqdeoobeb/image/upload/v1782893627/KAC-RC_v1-removebg-preview_mfdwvh.png",
+    width: 500,
   },
 };
 
@@ -88,12 +124,21 @@ function getThemeImageSources(theme) {
   if (assets.camel) sources.push(getAssetSrc("camel"));
   if (assets.alFaisaliahTower) sources.push(getAssetSrc("alFaisaliahTower"));
   if (assets.kingdomCenter) sources.push(getAssetSrc("kingdomCenter"));
+  if (assets.burjAssila) sources.push(getAssetSrc("burjAssila"));
   if (assets.makkahClock) sources.push(getAssetSrc("makkahClock"));
+  if (assets.university1) sources.push(getAssetSrc("university1"));
+  if (assets.university2) sources.push(getAssetSrc("university2"));
+  if (assets.stadium) sources.push(getAssetSrc("stadium"));
+  if (assets.museum) sources.push(getAssetSrc("museum"));
+  if (assets.mosque) sources.push(getAssetSrc("mosque"));
+  if (assets.hospital) sources.push(getAssetSrc("hospital"));
+  if (assets.glassGate) sources.push(getAssetSrc("glassGate"));
+  if (assets.kacrc) sources.push(getAssetSrc("kacrc"));
   return sources;
 }
 
-// 5 rotating themes - each level gets one theme in rotation
-// Journey: Desert → Oasis → Coastal (transition) → Urban Twilight → Midnight City
+// 8 rotating themes - each level gets one theme in rotation
+// Journey: Desert → Oasis → Coastal → Sandy Civic → Desert Modern → Golden Dusk → Urban Twilight → Midnight City
 // All assets positioned around center (50%) to align with zigzag path
 const THEMES = [
   {
@@ -136,10 +181,52 @@ const THEMES = [
     assets: {
       sun: { color: "from-amber-200 to-orange-300", size: "sm" },
       wave1: { color: "rgba(255,255,255,0.2)" },
-      wave2: { color: "rgba(255,255,255,0.15)" },
       floatingMosque: { position: "far-left", inWaves: true },
-      coral: { position: "upper-area", size: "2xl" },
+      desertBirds: { position: "upper-area", size: "xl" },
       palmTrees: { position: "middle-area", count: 1, size: "xl" },
+    },
+  },
+  {
+    id: "sandy-civic",
+    name: "Sandy Civic",
+    bgFrom: "#F2C94C",
+    bgVia: "#E8A838",
+    bgTo: "#D4872A",
+    assets: {
+      sun: { color: "from-yellow-300 to-orange-400", size: "lg" },
+      mosque: { position: "upper-left", size: "2xl" },
+      kacrc: { position: "mid-right", size: "2xl" },
+      palmTrees: { position: "beside-mosque", size: "lg" },
+      desertBirds: { position: "upper-sky", size: "md" },
+      dune1: { color: "#C97B1E", opacity: 0.35 },
+    },
+  },
+  {
+    id: "desert-modern",
+    name: "Desert Modern",
+    bgFrom: "#E76F51",
+    bgVia: "#D45A3A",
+    bgTo: "#B84428",
+    assets: {
+      sun: { color: "from-orange-300 to-red-400", size: "md" },
+      glassGate: { position: "upper-left", size: "2xl" },
+      stadium: { position: "mid-right", size: "2xl" },
+      desertBirds: { position: "above-stadium", size: "sm" },
+      dune2: { color: "#8B3420", opacity: 0.6 },
+    },
+  },
+  {
+    id: "golden-dusk",
+    name: "Golden Dusk",
+    bgFrom: "#FF7E5F",
+    bgVia: "#E85D4A",
+    bgTo: "#8B2F3A",
+    assets: {
+      sun: { color: "from-rose-300 to-orange-500", size: "sm" },
+      hospital: { position: "upper-left", size: "2xl" },
+      university1: { position: "mid-right", size: "2xl" },
+      palmTrees: { position: "beside-university", size: "lg" },
+      dune3: { color: "#5C1A2A", opacity: 0.8 },
     },
   },
   {
@@ -165,7 +252,7 @@ const THEMES = [
     assets: {
       stars: { count: 50 },
       alFaisaliahTower: { position: "upper-mid-left", size: "2xl" },
-      kingdomCenter: { position: "upper-mid-right", size: "2xl" },
+      burjAssila: { position: "upper-mid-right", size: "2xl" },
       makkahClock: { position: "upper-mid-area", size: "2xl" },
       moon: { color: "from-slate-100 to-slate-300", size: "lg" },
     },
@@ -324,7 +411,7 @@ function UnitAssets({ theme }) {
       {/* Dunes - Full width */}
       {assets.dune1 && (
         <svg
-          className="absolute bottom-0 left-0 w-full h-48"
+          className="absolute bottom-0 left-0 w-full h-[30vh] md:h-[25vh]"
           viewBox="0 0 1920 160"
           preserveAspectRatio="none"
         >
@@ -338,7 +425,7 @@ function UnitAssets({ theme }) {
 
       {assets.dune2 && (
         <svg
-          className="absolute bottom-0 left-0 w-full h-40"
+          className="absolute bottom-0 left-0 w-full h-[25vh] md:h-[20vh]"
           viewBox="0 0 1920 128"
           preserveAspectRatio="none"
         >
@@ -350,7 +437,21 @@ function UnitAssets({ theme }) {
         </svg>
       )}
 
-      {/* Waves - Full width */}
+      {assets.dune3 && (
+        <svg
+          className="absolute bottom-0 left-0 w-full h-[30vh] md:h-[25vh]"
+          viewBox="0 0 1920 144"
+          preserveAspectRatio="none"
+        >
+          <path
+            fill={assets.dune3.color}
+            opacity={assets.dune3.opacity}
+            d="M-100,144 L-100,90 C150,60 400,110 650,75 C900,40 1050,100 1300,70 C1550,40 1750,95 1920,60 L2100,80 L2100,144 Z"
+          />
+        </svg>
+      )}
+
+      {/* Waves - Static, full width */}
       {assets.wave1 && (
         <svg
           className="absolute bottom-0 left-0 w-full h-56"
@@ -360,18 +461,7 @@ function UnitAssets({ theme }) {
           <path
             fill={assets.wave1.color}
             d="M-100,192 L-100,96 C300,48 600,144 900,96 C1200,48 1500,144 1800,96 C1950,72 2020,120 2100,96 L2100,192 Z"
-          >
-            <animate
-              attributeName="d"
-              dur="4s"
-              repeatCount="indefinite"
-              values="
-                M-100,192 L-100,96 C300,48 600,144 900,96 C1200,48 1500,144 1800,96 C1950,72 2020,120 2100,96 L2100,192 Z;
-                M-100,192 L-100,96 C300,144 600,48 900,96 C1200,144 1500,48 1800,96 C1950,120 2020,72 2100,96 L2100,192 Z;
-                M-100,192 L-100,96 C300,48 600,144 900,96 C1200,48 1500,144 1800,96 C1950,72 2020,120 2100,96 L2100,192 Z
-              "
-            />
-          </path>
+          />
         </svg>
       )}
 
@@ -428,13 +518,13 @@ function UnitAssets({ theme }) {
           </motion.div>
         )}
 
-      {/* Desert Birds - Far right */}
-      {assets.desertBirds && (
+      {/* Desert Birds - position-based */}
+      {assets.desertBirds && assets.desertBirds.position === "far-right" && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.8 }}
           transition={{ duration: 0.2 }}
-          className={`absolute top-[15%] left-[20%] ${assets.desertBirds.size === "xl" ? "w-56 md:w-64 lg:w-72" : "w-24 md:w-32 lg:w-40"}`}
+          className="absolute top-[15%] left-[20%] w-56 md:w-64 lg:w-72"
         >
           <img
             src={getAssetSrc("desertBirds")}
@@ -443,6 +533,72 @@ function UnitAssets({ theme }) {
           />
         </motion.div>
       )}
+
+      {/* Desert Birds - upper sky (Sandy Civic) */}
+      {assets.desertBirds && assets.desertBirds.position === "upper-sky" && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.7 }}
+          transition={{ duration: 0.2 }}
+          className="absolute top-[6%] md:top-[4%] right-[15%] md:right-[20%] w-32 md:w-40 lg:w-48"
+        >
+          <img
+            src={getAssetSrc("desertBirds")}
+            alt="Desert Birds"
+            className="w-full h-auto drop-shadow-md"
+          />
+        </motion.div>
+      )}
+
+      {/* Desert Birds - above stadium (Desert Modern) */}
+      {assets.desertBirds &&
+        assets.desertBirds.position === "above-stadium" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.7 }}
+            transition={{ duration: 0.2 }}
+            className="absolute top-[5%] md:top-[4%] right-[5%] md:left-[10%] lg:left-[15%] w-36 md:w-44 lg:w-56"
+          >
+            <img
+              src={getAssetSrc("desertBirds")}
+              alt="Desert Birds"
+              className="w-full h-auto drop-shadow-md"
+            />
+          </motion.div>
+        )}
+
+      {/* Palm Trees - beside mosque (Sandy Civic), side-by-side at ground */}
+      {assets.palmTrees && assets.palmTrees.position === "beside-mosque" && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.9 }}
+          transition={{ duration: 0.2 }}
+          className="absolute bottom-[8%] md:bottom-[14%] lg:bottom-[10%] left-[28%] md:left-[30%] w-24 md:w-32 lg:w-36 h-auto"
+        >
+          <img
+            src={getAssetSrc("palmTrees")}
+            alt="Palm Trees"
+            className="w-full h-auto object-contain drop-shadow-lg"
+          />
+        </motion.div>
+      )}
+
+      {/* Palm Trees - beside university (Golden Dusk), side-by-side at ground */}
+      {assets.palmTrees &&
+        assets.palmTrees.position === "beside-university" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.9 }}
+            transition={{ duration: 0.2 }}
+            className="absolute bottom-[10%] md:bottom-[14%] lg:bottom-[10%] left-[58%] md:left-[70%] w-24 md:w-32 lg:w-36 h-auto"
+          >
+            <img
+              src={getAssetSrc("palmTrees")}
+              alt="Palm Trees"
+              className="w-full h-auto object-contain drop-shadow-lg"
+            />
+          </motion.div>
+        )}
 
       {/* Scene 1: Desert Tent - Center area, LARGE size */}
       {assets.desertTent && assets.desertTent.position === "center-area" && (
@@ -466,7 +622,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className={`absolute left-[85%] md:left-[72%] -translate-x-1/2 bottom-24 w-24 md:w-28 lg:w-32`}
+          className={`absolute left-[85%] md:left-[72%] -translate-x-1/2 bottom-24 w-20 md:w-24 lg:w-28`}
         >
           <img
             src={getAssetSrc("dallah")}
@@ -476,17 +632,17 @@ function UnitAssets({ theme }) {
         </motion.div>
       )}
 
-      {/* Scene 3: Coral - Upper area, VERY LARGE */}
-      {assets.coral && assets.coral.position === "upper-area" && (
+      {/* Scene 3: Birds - Upper area */}
+      {assets.desertBirds && assets.desertBirds.position === "upper-area" && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.8 }}
           transition={{ duration: 0.2 }}
-          className="absolute left-[30%] -translate-x-1/2 top-[10%] md:top-[2%] w-80 md:w-96 lg:w-[28rem]"
+          className="absolute left-[30%] -translate-x-1/2 top-[10%] md:top-[2%] w-56 md:w-64 lg:w-72"
         >
           <img
-            src={getAssetSrc("coral")}
-            alt="Coral"
+            src={getAssetSrc("desertBirds")}
+            alt="Desert Birds"
             className="w-full h-auto object-contain drop-shadow-lg"
           />
         </motion.div>
@@ -514,7 +670,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="absolute top-[40%] md:top-[30%] right-[40%] md:left-[15%] w-72 md:w-80 lg:w-[22rem]"
+          className="absolute top-[45%] md:top-[45%] lg:top-[40%] left-[10%] md:left-[15%] w-36 md:w-44 lg:w-48"
         >
           <img
             src={getAssetSrc("kingdomCenter")}
@@ -529,7 +685,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="absolute top-[15%] md:top-[8%] left-[40%] md:left-[55%] w-72 md:w-80 lg:w-[24rem]"
+          className="absolute top-[15%] md:top-[8%] left-[60%] sm:left-[65%] md:left-[55%] w-44 md:w-56 lg:w-72"
         >
           <img
             src={getAssetSrc("makkahClock")}
@@ -546,7 +702,7 @@ function UnitAssets({ theme }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-[10%] md:top-[5%] right-[45%] md:left-[10%] w-72 md:w-80 lg:w-[28rem]"
+            className="absolute top-[5%] md:top-[5%] left-[10%] md:left-[18%] w-36 md:w-44 lg:w-48"
           >
             <img
               src={getAssetSrc("alFaisaliahTower")}
@@ -556,17 +712,17 @@ function UnitAssets({ theme }) {
           </motion.div>
         )}
 
-      {assets.kingdomCenter &&
-        assets.kingdomCenter.position === "upper-mid-right" && (
+      {assets.burjAssila &&
+        assets.burjAssila.position === "upper-mid-right" && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-[30%] md:top-[35%] xl:top-[12%] right-[-15%] md:right-[15%] xl:right-[18%] w-80 md:w-96 lg:w-[25rem]"
+            className="absolute top-[50%] md:top-[45%] left-[50%] md:left-[60%] w-56 md:w-64 lg:w-72"
           >
             <img
-              src={getAssetSrc("kingdomCenter")}
-              alt="Kingdom Center"
+              src={getAssetSrc("burjAssila")}
+              alt="Burj Assila"
               className="w-full h-auto object-contain drop-shadow-2xl"
             />
           </motion.div>
@@ -628,7 +784,7 @@ function UnitAssets({ theme }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-[65%] md:top-[50%] left-[20%] md:left-[25%] -translate-x-1/2 bottom-16 w-40 md:w-52 lg:w-64"
+            className="absolute bottom-[12%] md:bottom-[8%] lg:bottom-[5%] left-[20%] md:left-[25%] -translate-x-1/2 bottom-16 w-40 md:w-52 lg:w-64"
           >
             <img
               src={getAssetSrc("masmakhFortress")}
@@ -637,6 +793,102 @@ function UnitAssets({ theme }) {
             />
           </motion.div>
         )}
+
+      {/* Scene 4: Sandy Civic - Mosque upper-left */}
+      {assets.mosque && assets.mosque.position === "upper-left" && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.9 }}
+          transition={{ duration: 0.2 }}
+          className="absolute bottom-[8%] md:bottom-[15%] lg:bottom-[10%] left-[8%] md:left-[15%] w-48 md:w-56 lg:w-64"
+        >
+          <img
+            src={getAssetSrc("mosque")}
+            alt="Mosque"
+            className="w-full h-auto object-contain drop-shadow-2xl"
+          />
+        </motion.div>
+      )}
+
+      {/* Scene 4: Sandy Civic - KAC-RC mid-right */}
+      {assets.kacrc && assets.kacrc.position === "mid-right" && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.9 }}
+          transition={{ duration: 0.2 }}
+          className="absolute top-[20%] md:top-[25%] left-[50%] md:left-[60%] w-56 md:w-64 lg:w-72"
+        >
+          <img
+            src={getAssetSrc("kacrc")}
+            alt="KAC-RC"
+            className="w-full h-auto object-contain drop-shadow-2xl"
+          />
+        </motion.div>
+      )}
+
+      {/* Scene 5: Desert Modern - Glass Gate upper-left */}
+      {assets.glassGate && assets.glassGate.position === "upper-left" && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.9 }}
+          transition={{ duration: 0.2 }}
+          className="absolute top-[20%] md:top-[15%] left-[5%] md:left-[60%] w-44 md:w-52 lg:w-64"
+        >
+          <img
+            src={getAssetSrc("glassGate")}
+            alt="Glass Gate Complex"
+            className="w-full h-auto object-contain drop-shadow-2xl"
+          />
+        </motion.div>
+      )}
+
+      {/* Scene 5: Desert Modern - Stadium mid-right */}
+      {assets.stadium && assets.stadium.position === "mid-right" && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.9 }}
+          transition={{ duration: 0.2 }}
+          className="absolute bottom-[10%] md:bottom-[20%] lg:bottom-[15%] right-[5%] md:left-[10%] lg:left-[15%] w-56 md:w-64 lg:w-72"
+        >
+          <img
+            src={getAssetSrc("stadium")}
+            alt="Stadium"
+            className="w-full h-auto object-contain drop-shadow-2xl"
+          />
+        </motion.div>
+      )}
+
+      {/* Scene 6: Golden Dusk - Hospital upper-left */}
+      {assets.hospital && assets.hospital.position === "upper-left" && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.9 }}
+          transition={{ duration: 0.2 }}
+          className="absolute top-[18%] md:top-[15%] lg:top-[10%] left-[8%] md:left-[12%] w-48 md:w-60 lg:w-72"
+        >
+          <img
+            src={getAssetSrc("hospital")}
+            alt="Hospital"
+            className="w-full h-auto object-contain drop-shadow-2xl"
+          />
+        </motion.div>
+      )}
+
+      {/* Scene 6: Golden Dusk - University mid-right */}
+      {assets.university1 && assets.university1.position === "mid-right" && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.9 }}
+          transition={{ duration: 0.2 }}
+          className="absolute bottom-[10%] md:bottom-[15%] lg:bottom-[8%] left-[40%] md:left-[55%] w-60 md:w-72 lg:w-80"
+        >
+          <img
+            src={getAssetSrc("university1")}
+            alt="University"
+            className="w-full h-auto object-contain drop-shadow-2xl"
+          />
+        </motion.div>
+      )}
 
       {/* Stars */}
       {assets.stars && (
