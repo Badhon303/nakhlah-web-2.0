@@ -590,7 +590,7 @@ function UnitAssets({ theme }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="absolute bottom-[10%] md:bottom-[14%] lg:bottom-[10%] left-[58%] md:left-[70%] w-24 md:w-32 lg:w-36 h-auto"
+            className="absolute bottom-[10%] md:bottom-[14%] lg:bottom-[10%] left-[10%] md:left-[70%] w-24 md:w-32 lg:w-36 h-auto"
           >
             <img
               src={getAssetSrc("palmTrees")}
