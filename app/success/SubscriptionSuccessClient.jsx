@@ -64,7 +64,7 @@ export default function SubscriptionSuccessClient() {
 
             <p className="text-muted-foreground text-base md:text-lg leading-relaxed max-w-xl mx-auto">
               Your premium subscription is now active. Enjoy unlimited palms,
-              ad-free learning, and all premium features.
+              advanced analytics and all premium features.
             </p>
 
             {(subscriptionId || baToken || token) && (

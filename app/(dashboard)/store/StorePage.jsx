@@ -266,7 +266,6 @@ export default function StorePage() {
               <ul className="space-y-2 text-base text-foreground font-medium">
                 {[
                   "Unlimited palms",
-                  "Ad-free learning",
                   "Progress Tracking",
                   "Advanced Analytics",
                   "Personalized dashboard",
