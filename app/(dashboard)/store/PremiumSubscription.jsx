@@ -1,7 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -10,22 +9,20 @@ import {
   Calendar,
   TrendingUp,
   Check,
-  Lock,
   Clock,
   Flame,
   ArrowLeft,
-  Home,
   Star,
-  Mail,
-  User,
-  CreditCard,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Crown } from "@/components/icons/Crown";
 import { DatesIcon } from "@/components/icons/PublicAssetIcons";
-import { Mascot } from "@/components/nakhlah/Mascot";
+import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { useSubscriptionPlansStore } from "@/stores/useSubscriptionPlansStore";
+import { createSubscriptionPayment } from "@/services/api";
+import { toast } from "@/components/nakhlah/Toast";
 
 const premiumFeatures = [
   {
@@ -95,49 +92,14 @@ const premiumFeatures = [
   },
 ];
 
-const paymentMethods = [
-  {
-    id: "googlepay",
-    name: "Google Pay",
-    logo: "https://developers.google.com/static/pay/api/images/brand-guidelines/google-pay-mark.png",
-    fields: ["email"],
-  },
-  {
-    id: "paypal",
-    name: "PayPal",
-    logo: "https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_111x69.jpg",
-    fields: ["email"],
-  },
-  {
-    id: "applepay",
-    name: "Apple Pay",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/b/b0/Apple_Pay_logo.svg",
-    fields: ["email"],
-  },
-  {
-    id: "visa",
-    name: "Visa",
-    logo: "https://cdn.jsdelivr.net/npm/payment-icons@1.1.0/min/flat/visa.svg",
-    fields: ["cardNumber", "cardName", "expiry", "cvv"],
-  },
-  {
-    id: "mastercard",
-    name: "Mastercard",
-    logo: "https://cdn.jsdelivr.net/npm/payment-icons@1.1.0/min/flat/mastercard.svg",
-    fields: ["cardNumber", "cardName", "expiry", "cvv"],
-  },
-  {
-    id: "amex",
-    name: "Amex",
-    logo: "https://cdn.jsdelivr.net/npm/payment-icons@1.1.0/min/flat/amex.svg",
-    fields: ["cardNumber", "cardName", "expiry", "cvv"],
-  },
-];
-
 export default function PremiumSubscription({ onBack, initialPlan }) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const [currentStep, setCurrentStep] = useState(initialPlan ? 2 : 1);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [checkoutPlanId, setCheckoutPlanId] = useState(null);
 
-  const apiPlans = useSubscriptionPlansStore((state) => state.plans);
+  const subscriptionPlans = useSubscriptionPlansStore((state) => state.plans);
   const fetchSubscriptionPlans = useSubscriptionPlansStore(
     (state) => state.fetchSubscriptionPlans,
   );
@@ -147,24 +109,23 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
     fetchSubscriptionPlans();
   }, [fetchSubscriptionPlans]);
 
-  const subscriptionPlans = apiPlans;
+  const requireAuth = () => {
+    if (!isSessionValid(session)) {
+      toast.error("Please login to continue.");
+      return false;
+    }
+    return true;
+  };
 
-  // If an initialPlan is passed from StorePage, map it to a subscription plan id and skip to step 2
-  const resolvedPlan = initialPlan
-    ? subscriptionPlans.find(
-        (p) => p.interval === (initialPlan === "monthly" ? "month" : "year"),
-      )?.id || subscriptionPlans[0]?.id
-    : subscriptionPlans[0]?.id;
-  const [currentStep, setCurrentStep] = useState(initialPlan ? 3 : 1);
-  const [selectedPlan, setSelectedPlan] = useState(resolvedPlan);
-  const [selectedPayment, setSelectedPayment] = useState(null);
-  const [paymentData, setPaymentData] = useState({
-    email: "",
-    cardNumber: "",
-    cardName: "",
-    expiry: "",
-    cvv: "",
-  });
+  const initialPlanInterval = initialPlan === "monthly" ? "month" : "year";
+  const defaultSelectedPlan =
+    (initialPlan
+      ? subscriptionPlans.find((plan) => plan.interval === initialPlanInterval)
+      : subscriptionPlans[0]) || subscriptionPlans[0];
+  const selectedPlanId = selectedPlan || defaultSelectedPlan?.id || null;
+  const selectedPlanDetails = subscriptionPlans.find(
+    (plan) => plan.id === selectedPlanId,
+  );
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -186,48 +147,52 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
     },
   };
 
-  const handleNext = () => {
-    if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
   const handleBack = () => {
-    if (currentStep === 3 && initialPlan && onBack) {
-      onBack();
-    } else if (currentStep > 1) {
+    if (currentStep > 1 && !initialPlan) {
       setCurrentStep(currentStep - 1);
     } else if (onBack) {
       onBack();
+    } else {
+      router.push("/store");
     }
   };
 
-  const handlePaymentSubmit = (e) => {
-    e.preventDefault();
-    setCurrentStep(4);
-  };
+  const handleSubscriptionCheckout = async () => {
+    if (!requireAuth()) return;
 
-  const handleInputChange = (field, value) => {
-    setPaymentData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const formatCardNumber = (value) => {
-    const cleaned = value.replace(/\s/g, "");
-    const formatted = cleaned.match(/.{1,4}/g);
-    return formatted ? formatted.join(" ") : cleaned;
-  };
-
-  const formatExpiry = (value) => {
-    const cleaned = value.replace(/\D/g, "");
-    if (cleaned.length >= 2) {
-      return cleaned.slice(0, 2) + "/" + cleaned.slice(2, 4);
+    if (!selectedPlanDetails) {
+      toast.error("Please select a subscription plan.");
+      return;
     }
-    return cleaned;
+
+    setCheckoutPlanId(selectedPlanDetails.id);
+    const result = await createSubscriptionPayment(
+      selectedPlanDetails,
+      getSessionToken(session),
+    );
+
+    if (!result.success) {
+      setCheckoutPlanId(null);
+      toast.error(result.error || "Unable to start PayPal subscription.");
+      return;
+    }
+
+    window.location.assign(result.approvalUrl);
+  };
+
+  const handleNext = () => {
+    if (!requireAuth()) return;
+
+    if (currentStep === 1) {
+      setCurrentStep(2);
+      return;
+    }
+
+    handleSubscriptionCheckout();
   };
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
-      {/* Step 1: Features Overview */}
       {currentStep === 1 && (
         <motion.div
           key="premium-step1"
@@ -236,7 +201,6 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
           animate="visible"
           className="space-y-8"
         >
-          {/* Header */}
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground">
               Store
@@ -244,15 +208,12 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
             <Crown className="text-accent" />
           </div>
 
-          {/* Hero Card */}
           <div className="relative overflow-hidden rounded-3xl bg-accent p-6 text-center shadow-lg">
             <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
-              {/* Mascot */}
               <div className="flex-shrink-0">
                 <Mascot mood="excited" size="xxl" />
               </div>
 
-              {/* Text Content */}
               <div className="flex-1 max-w-2xl">
                 <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
                   Get a better & super fast learning up to 5x
@@ -265,7 +226,6 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
             </div>
           </div>
 
-          {/* Features Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
             {premiumFeatures.map((feature) => (
               <div
@@ -291,11 +251,10 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
             ))}
           </div>
 
-          {/* Dates CTA Card */}
           <motion.div
             variants={itemVariants}
             className="relative rounded-xl border border-border p-6 bg-accent/10 hover:border-accent/50 transition-all cursor-pointer group"
-            onClick={() => router.push("/store/dates")}
+            onClick={() => router.push("/store")}
           >
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg transition-colors">
@@ -327,7 +286,6 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
             </div>
           </motion.div>
 
-          {/* Action Button */}
           <div className="flex justify-center pt-4">
             <Button
               className="w-full max-w-md bg-accent hover:bg-accent/90 text-accent-foreground"
@@ -339,7 +297,6 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
         </motion.div>
       )}
 
-      {/* Step 2: Subscription Plans */}
       {currentStep === 2 && (
         <motion.div
           key="premium-step2"
@@ -358,8 +315,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
               Choose a subscription plan
             </h2>
             <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
-              Select the perfect plan for your learning journey and save more
-              with longer subscriptions
+              Select a plan and we’ll open PayPal checkout directly.
             </p>
           </motion.div>
 
@@ -375,8 +331,9 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
                   <button
                     key={plan.id}
                     onClick={() => setSelectedPlan(plan.id)}
+                    disabled={checkoutPlanId !== null}
                     className={`relative p-6 rounded-2xl border-2 transition-all text-center shadow-md hover:shadow-2xl ${
-                      selectedPlan === plan.id
+                      selectedPlanId === plan.id
                         ? "border-accent bg-gradient-to-br from-accent/10 via-accent/5 to-accent/10 shadow-xl"
                         : "border-border bg-card hover:border-accent/30"
                     } ${plan.popular ? "lg:scale-110" : ""}`}
@@ -390,20 +347,18 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
                     <div className="space-y-4 pt-2">
                       <div
                         className={`w-16 h-16 mx-auto rounded-full border-3 flex items-center justify-center transition-all ${
-                          selectedPlan === plan.id
+                          selectedPlanId === plan.id
                             ? "border-accent bg-accent scale-110"
                             : "border-border bg-muted"
                         }`}
                       >
-                        {selectedPlan === plan.id ? (
+                        {selectedPlanId === plan.id ? (
                           <Check
                             className="w-8 h-8 text-white"
                             strokeWidth={3}
                           />
                         ) : (
-                          <Crown
-                            className={`w-8 h-8 ${selectedPlan === plan.id ? "text-white" : "text-muted-foreground"}`}
-                          />
+                          <Crown className="w-8 h-8 text-muted-foreground" />
                         )}
                       </div>
 
@@ -445,254 +400,10 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
           <div className="flex justify-center pt-4">
             <Button
               className="w-full max-w-md bg-accent hover:bg-accent/90 text-accent-foreground"
-              onClick={handleNext}
+              onClick={handleSubscriptionCheckout}
+              disabled={!selectedPlanDetails || checkoutPlanId !== null}
             >
-              Continue to Payment
-            </Button>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Step 3: Payment Method */}
-      {currentStep === 3 && (
-        <motion.div
-          key="premium-step3"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="space-y-8"
-        >
-          <Button variant="ghost" onClick={handleBack} className="gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Button>
-
-          <motion.div variants={itemVariants} className="text-center">
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
-              Select payment method
-            </h2>
-            <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
-              Choose your preferred payment option to complete your subscription
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-2xl mx-auto">
-            {paymentMethods.map((method) => (
-              <button
-                key={method.id}
-                onClick={() => setSelectedPayment(method.id)}
-                className={`relative p-3 sm:p-6 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-2 shadow-sm hover:shadow-lg min-h-[110px] sm:min-h-[140px] ${
-                  selectedPayment === method.id
-                    ? "border-accent bg-gradient-to-br from-accent/10 via-accent/5 to-accent/10 shadow-md scale-[1.02] sm:scale-105"
-                    : "border-border bg-card hover:border-accent/30"
-                }`}
-              >
-                {selectedPayment === method.id && (
-                  <div className="absolute top-1 right-1 sm:top-2 sm:right-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-accent flex items-center justify-center shadow-lg">
-                    <Check
-                      className="w-3 h-3 sm:w-4 sm:h-4 text-white"
-                      strokeWidth={3}
-                    />
-                  </div>
-                )}
-
-                <div className="w-full h-14 flex items-center justify-center px-2">
-                  <img
-                    src={method.logo}
-                    alt={method.name}
-                    className="max-w-full max-h-full object-contain"
-                  />
-                </div>
-
-                <span className="font-semibold text-foreground text-xs text-center leading-tight">
-                  {method.name}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          <AnimatePresence mode="wait">
-            {selectedPayment && (
-              <motion.form
-                key={selectedPayment}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                onSubmit={handlePaymentSubmit}
-                className="max-w-2xl mx-auto bg-card border border-border rounded-2xl p-6 md:p-8 shadow-lg"
-              >
-                <h3 className="text-xl font-bold text-foreground mb-6">
-                  Enter{" "}
-                  {paymentMethods.find((m) => m.id === selectedPayment)?.name}{" "}
-                  Details
-                </h3>
-
-                <div className="space-y-5">
-                  {["paypal", "googlepay", "applepay"].includes(
-                    selectedPayment,
-                  ) && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                        <Mail className="w-4 h-4" />
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        required
-                        value={paymentData.email}
-                        onChange={(e) =>
-                          handleInputChange("email", e.target.value)
-                        }
-                        placeholder="your.email@example.com"
-                        className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
-                      />
-                    </div>
-                  )}
-
-                  {["mastercard", "visa", "amex"].includes(selectedPayment) && (
-                    <>
-                      <div className="space-y-2">
-                        <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                          <CreditCard className="w-4 h-4" />
-                          Card Number
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={paymentData.cardNumber}
-                          onChange={(e) => {
-                            const formatted = formatCardNumber(e.target.value);
-                            if (formatted.replace(/\s/g, "").length <= 16) {
-                              handleInputChange("cardNumber", formatted);
-                            }
-                          }}
-                          placeholder="1234 5678 9012 3456"
-                          maxLength={19}
-                          className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all font-mono"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                          <User className="w-4 h-4" />
-                          Cardholder Name
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={paymentData.cardName}
-                          onChange={(e) =>
-                            handleInputChange("cardName", e.target.value)
-                          }
-                          placeholder="John Doe"
-                          className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-sm font-semibold text-foreground">
-                            Expiry Date
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={paymentData.expiry}
-                            onChange={(e) => {
-                              const formatted = formatExpiry(e.target.value);
-                              if (formatted.length <= 5) {
-                                handleInputChange("expiry", formatted);
-                              }
-                            }}
-                            placeholder="MM/YY"
-                            maxLength={5}
-                            className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all font-mono"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                            <Lock className="w-4 h-4" />
-                            CVV
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={paymentData.cvv}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/\D/g, "");
-                              if (value.length <= 4) {
-                                handleInputChange("cvv", value);
-                              }
-                            }}
-                            placeholder="123"
-                            maxLength={4}
-                            className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all font-mono"
-                          />
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full mt-8 bg-accent hover:bg-accent/90 text-accent-foreground py-6 text-lg font-semibold"
-                >
-                  <Check className="w-5 h-5 mr-2" />
-                  Confirm Payment
-                </Button>
-
-                <p className="text-xs text-muted-foreground text-center mt-4 flex items-center justify-center gap-2">
-                  <Lock className="w-3 h-3" />
-                  Your payment information is secure and encrypted
-                </p>
-              </motion.form>
-            )}
-          </AnimatePresence>
-
-          {!selectedPayment && (
-            <div className="flex justify-center pt-4">
-              <p className="text-muted-foreground text-center">
-                Please select a payment method to continue
-              </p>
-            </div>
-          )}
-        </motion.div>
-      )}
-
-      {/* Step 4: Success */}
-      {currentStep === 4 && (
-        <motion.div
-          key="premium-step4"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="space-y-8 text-center py-12 max-w-3xl mx-auto"
-        >
-          <div className="space-y-6">
-            <div className="flex justify-center mb-8">
-              <Mascot mood="proud" size="xxxl" message="You're awesome!" />
-            </div>
-            <div>
-              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-                Payment successful!
-              </h2>
-              <p className="text-muted-foreground text-base md:text-lg max-w-xl mx-auto leading-relaxed">
-                Congratulations on your purchase! Your premium subscription is
-                now live & active. You can use all exclusive features whenever
-                you need. Enjoy your enhanced learning journey!
-              </p>
-            </div>
-          </div>
-
-          <div className="pt-8">
-            <Button
-              className="bg-accent hover:bg-accent/90 text-accent-foreground"
-              onClick={() => router.push("/")}
-            >
-              <Home className="w-4 h-4 mr-2" />
-              Go to Home
+              {checkoutPlanId ? "Opening PayPal..." : "Continue with PayPal"}
             </Button>
           </div>
         </motion.div>

@@ -2,13 +2,31 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { useDatePackagesStore } from "@/stores/useDatePackagesStore";
 import { useSubscriptionPlansStore } from "@/stores/useSubscriptionPlansStore";
-import GemsPurchase from "./GemsPurchase.jsx";
-import PremiumSubscription from "./PremiumSubscription";
+import { toast } from "@/components/nakhlah/Toast";
+import {
+  createDatePaymentOrder,
+  createSubscriptionPayment,
+} from "@/services/api";
 
 export default function StorePage() {
-  const [selectedOption, setSelectedOption] = useState(null);
+  const { data: session } = useSession();
+  const [checkoutId, setCheckoutId] = useState(null);
+
+  const requireAuth = () => {
+    if (!isSessionValid(session)) {
+      toast.error("Please login to continue.");
+      return false;
+    }
+    return true;
+  };
+
+  const redirectToPayPal = (approvalUrl) => {
+    window.location.assign(approvalUrl);
+  };
 
   const datePackages = useDatePackagesStore((state) => state.packages);
   const subscriptionPlans = useSubscriptionPlansStore((state) => state.plans);
@@ -26,23 +44,35 @@ export default function StorePage() {
     fetchSubscriptionPlans();
   }, [fetchDatePackages, fetchSubscriptionPlans]);
 
-  if (selectedOption?.type === "dates") {
-    return (
-      <GemsPurchase
-        initialPackage={selectedOption.pkg}
-        onBack={() => setSelectedOption(null)}
-      />
-    );
-  }
+  const handleDateCheckout = async (pkg) => {
+    if (!requireAuth()) return;
 
-  if (selectedOption?.type === "premium") {
-    return (
-      <PremiumSubscription
-        initialPlan={selectedOption.plan}
-        onBack={() => setSelectedOption(null)}
-      />
-    );
-  }
+    setCheckoutId(`dates:${pkg.id}`);
+    const result = await createDatePaymentOrder(pkg.id, getSessionToken(session));
+
+    if (!result.success) {
+      setCheckoutId(null);
+      toast.error(result.error || "Unable to start PayPal checkout.");
+      return;
+    }
+
+    redirectToPayPal(result.approvalUrl);
+  };
+
+  const handleSubscriptionCheckout = async (plan) => {
+    if (!requireAuth()) return;
+
+    setCheckoutId(`premium:${plan.id}`);
+    const result = await createSubscriptionPayment(plan, getSessionToken(session));
+
+    if (!result.success) {
+      setCheckoutId(null);
+      toast.error(result.error || "Unable to start PayPal subscription.");
+      return;
+    }
+
+    redirectToPayPal(result.approvalUrl);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -105,10 +135,13 @@ export default function StorePage() {
 
                     {/* CTA */}
                     <button
-                      onClick={() => setSelectedOption({ type: "dates", pkg })}
+                      onClick={() => handleDateCheckout(pkg)}
+                      disabled={checkoutId !== null}
                       className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-xs font-extrabold tracking-widest py-2.5 px-4 rounded-lg uppercase transition-colors"
                     >
-                      {pkg.buttonLabel}
+                      {checkoutId === `dates:${pkg.id}`
+                        ? "Opening PayPal..."
+                        : pkg.buttonLabel}
                     </button>
                   </motion.div>
                 ))}
@@ -175,20 +208,17 @@ export default function StorePage() {
                   : subscriptionPlans.map((plan) => (
                       <div key={plan.id} className="relative flex-1">
                         <button
-                          onClick={() =>
-                            setSelectedOption({
-                              type: "premium",
-                              plan:
-                                plan.interval === "year" ? "yearly" : "monthly",
-                            })
-                          }
+                          onClick={() => handleSubscriptionCheckout(plan)}
+                          disabled={checkoutId !== null}
                           className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl p-4 w-full text-center transition-colors"
                         >
                           <p className="text-[10px] font-extrabold tracking-widest uppercase mb-1.5">
                             {plan.duration}
                           </p>
                           <p className="text-2xl font-black leading-tight">
-                            {plan.price}
+                            {checkoutId === `premium:${plan.id}`
+                              ? "PayPal..."
+                              : plan.price}
                           </p>
                         </button>
                         {plan.popular && (
