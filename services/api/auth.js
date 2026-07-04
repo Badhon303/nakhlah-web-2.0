@@ -470,7 +470,13 @@ export async function fetchDatePackages() {
 
         return {
             success: true,
-            packages: Array.isArray(data?.docs) ? data.docs : [],
+            packages: Array.isArray(data?.docs)
+                ? data.docs
+                : Array.isArray(data?.data)
+                    ? data.data
+                    : Array.isArray(data)
+                        ? data
+                        : [],
             data,
         };
     } catch (error) {
@@ -499,7 +505,13 @@ export async function fetchSubscriptionPlans() {
 
         return {
             success: true,
-            plans: Array.isArray(data?.docs) ? data.docs : [],
+            plans: Array.isArray(data?.docs)
+                ? data.docs
+                : Array.isArray(data?.data)
+                    ? data.data
+                    : Array.isArray(data)
+                        ? data
+                        : [],
             data,
         };
     } catch (error) {

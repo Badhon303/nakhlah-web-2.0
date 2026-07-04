@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { useDatePackagesStore } from "@/stores/useDatePackagesStore";
 import { useSubscriptionPlansStore } from "@/stores/useSubscriptionPlansStore";
@@ -14,7 +15,9 @@ import {
 
 export default function StorePage() {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
   const [checkoutId, setCheckoutId] = useState(null);
+  const shouldRefetchDates = searchParams.get("refetch") === "dates";
 
   const requireAuth = () => {
     if (!isSessionValid(session)) {
@@ -38,17 +41,21 @@ export default function StorePage() {
   );
   const isLoadingDates = useDatePackagesStore((state) => state.isLoading);
   const isLoadingPlans = useSubscriptionPlansStore((state) => state.isLoading);
+  const datesError = useDatePackagesStore((state) => state.error);
 
   useEffect(() => {
-    fetchDatePackages();
-    fetchSubscriptionPlans();
-  }, [fetchDatePackages, fetchSubscriptionPlans]);
+    fetchDatePackages({ forceRefresh: shouldRefetchDates });
+    fetchSubscriptionPlans({ forceRefresh: shouldRefetchDates });
+  }, [fetchDatePackages, fetchSubscriptionPlans, shouldRefetchDates]);
 
   const handleDateCheckout = async (pkg) => {
     if (!requireAuth()) return;
 
     setCheckoutId(`dates:${pkg.id}`);
-    const result = await createDatePaymentOrder(pkg.id, getSessionToken(session));
+    const result = await createDatePaymentOrder(
+      pkg.id,
+      getSessionToken(session),
+    );
 
     if (!result.success) {
       setCheckoutId(null);
@@ -63,7 +70,10 @@ export default function StorePage() {
     if (!requireAuth()) return;
 
     setCheckoutId(`premium:${plan.id}`);
-    const result = await createSubscriptionPayment(plan, getSessionToken(session));
+    const result = await createSubscriptionPayment(
+      plan,
+      getSessionToken(session),
+    );
 
     if (!result.success) {
       setCheckoutId(null);
@@ -80,71 +90,87 @@ export default function StorePage() {
         {/* ── Date Packages ── */}
         <section>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 items-end">
-            {isLoadingDates
-              ? [...Array(3)].map((_, i) => (
-                  <div
-                    key={`date-skeleton-${i}`}
-                    className="rounded-2xl border-2 border-border p-6 pb-8 flex flex-col items-center gap-5 bg-background h-72 animate-pulse"
-                  />
-                ))
-              : datePackages.map((pkg, i) => (
-                  <motion.div
-                    key={pkg.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.08 }}
-                    className={`relative rounded-2xl border-2 p-6 pb-8 flex flex-col items-center gap-5 bg-background text-center ${
-                      pkg.popular
-                        ? "border-accent shadow-xl pt-10"
-                        : "border-border shadow-sm"
-                    }`}
-                  >
-                    {pkg.popular && (
-                      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-secondary text-secondary-foreground text-[10px] font-extrabold tracking-widest px-4 py-1 rounded-full uppercase whitespace-nowrap">
-                        Most Popular
-                      </div>
-                    )}
-
-                    {/* Upper section: label + price centered, icon top-right */}
-                    <div className="relative w-full flex flex-col items-center">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src="https://res.cloudinary.com/dqdeoobeb/image/upload/v1782640272/date_for_store_pylv32.png"
-                        alt="dates"
-                        className={`absolute top-0 right-0 object-contain select-none ${pkg.popular ? "w-12 h-12" : "w-10 h-10"}`}
-                      />
-                      <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mb-1">
-                        {pkg.label}
-                      </p>
-                      <p className="text-5xl font-black text-foreground">
-                        {pkg.price}
-                      </p>
+            {isLoadingDates ? (
+              [...Array(3)].map((_, i) => (
+                <div
+                  key={`date-skeleton-${i}`}
+                  className="rounded-2xl border-2 border-border p-6 pb-8 flex flex-col items-center gap-5 bg-background h-72 animate-pulse"
+                />
+              ))
+            ) : datePackages.length === 0 ? (
+              <div className="col-span-full rounded-2xl border-2 border-border p-8 text-center bg-background">
+                <p className="text-muted-foreground mb-4">
+                  {datesError
+                    ? "Unable to load date packages."
+                    : "No date packages available."}
+                </p>
+                <button
+                  onClick={() => fetchDatePackages({ forceRefresh: true })}
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground text-xs font-extrabold tracking-widest py-2.5 px-4 rounded-lg uppercase transition-colors"
+                >
+                  RETRY
+                </button>
+              </div>
+            ) : (
+              datePackages.map((pkg, i) => (
+                <motion.div
+                  key={pkg.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.08 }}
+                  className={`relative rounded-2xl border-2 p-6 pb-8 flex flex-col items-center gap-5 bg-background text-center ${
+                    pkg.popular
+                      ? "border-accent shadow-xl pt-10"
+                      : "border-border shadow-sm"
+                  }`}
+                >
+                  {pkg.popular && (
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-secondary text-secondary-foreground text-[10px] font-extrabold tracking-widest px-4 py-1 rounded-full uppercase whitespace-nowrap">
+                      Most Popular
                     </div>
+                  )}
 
-                    <hr className="w-full border-border" />
-
-                    {/* Amount pill */}
-                    <span className="bg-accent text-accent-foreground text-sm font-bold px-5 rounded-full inline-flex items-center justify-center h-7 pt-[3px]">
-                      {pkg.amount}
-                    </span>
-
-                    {/* Description */}
-                    <p className="text-sm text-muted-foreground leading-snug">
-                      {pkg.description}
+                  {/* Upper section: label + price centered, icon top-right */}
+                  <div className="relative w-full flex flex-col items-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="https://res.cloudinary.com/dqdeoobeb/image/upload/v1782640272/date_for_store_pylv32.png"
+                      alt="dates"
+                      className={`absolute top-0 right-0 object-contain select-none ${pkg.popular ? "w-12 h-12" : "w-10 h-10"}`}
+                    />
+                    <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mb-1">
+                      {pkg.label}
                     </p>
+                    <p className="text-5xl font-black text-foreground">
+                      {pkg.price}
+                    </p>
+                  </div>
 
-                    {/* CTA */}
-                    <button
-                      onClick={() => handleDateCheckout(pkg)}
-                      disabled={checkoutId !== null}
-                      className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-xs font-extrabold tracking-widest py-2.5 px-4 rounded-lg uppercase transition-colors"
-                    >
-                      {checkoutId === `dates:${pkg.id}`
-                        ? "Opening PayPal..."
-                        : pkg.buttonLabel}
-                    </button>
-                  </motion.div>
-                ))}
+                  <hr className="w-full border-border" />
+
+                  {/* Amount pill */}
+                  <span className="bg-accent text-accent-foreground text-sm font-bold px-5 rounded-full inline-flex items-center justify-center h-7 pt-[3px]">
+                    {pkg.amount}
+                  </span>
+
+                  {/* Description */}
+                  <p className="text-sm text-muted-foreground leading-snug">
+                    {pkg.description}
+                  </p>
+
+                  {/* CTA */}
+                  <button
+                    onClick={() => handleDateCheckout(pkg)}
+                    disabled={checkoutId !== null}
+                    className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-xs font-extrabold tracking-widest py-2.5 px-4 rounded-lg uppercase transition-colors"
+                  >
+                    {checkoutId === `dates:${pkg.id}`
+                      ? "Opening PayPal..."
+                      : pkg.buttonLabel}
+                  </button>
+                </motion.div>
+              ))
+            )}
           </div>
         </section>
 

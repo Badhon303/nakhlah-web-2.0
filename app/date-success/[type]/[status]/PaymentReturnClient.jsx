@@ -199,7 +199,12 @@ export default function PaymentReturnClient() {
               Go to Home
             </Button>
 
-            <Button variant="outline" onClick={() => router.push("/store")}>
+            <Button
+              variant="outline"
+              onClick={() =>
+                router.push(isCanceled ? "/store?refetch=dates" : "/store")
+              }
+            >
               <ShoppingBag className="w-4 h-4 mr-2" />
               {isCanceled ? "Choose Another Package" : "Buy More Dates"}
             </Button>
