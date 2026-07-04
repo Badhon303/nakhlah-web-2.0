@@ -1,42 +1,30 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useDatePackagesStore } from "@/stores/useDatePackagesStore";
+import { useSubscriptionPlansStore } from "@/stores/useSubscriptionPlansStore";
 import GemsPurchase from "./GemsPurchase.jsx";
 import PremiumSubscription from "./PremiumSubscription";
 
-const datePackages = [
-  {
-    id: "refill",
-    label: "DATE REFILL",
-    price: "$3",
-    amount: 500,
-    description: "Refill 500 Dates to keep learning without interruption.",
-    buttonLabel: "REFILL DATES",
-    popular: false,
-  },
-  {
-    id: "boost",
-    label: "DATE BOOST",
-    price: "$5",
-    amount: 1000,
-    description: "Boost your progress with 1000 Dates for extended practice.",
-    buttonLabel: "BOOST NOW",
-    popular: true,
-  },
-  {
-    id: "surge",
-    label: "DATE SURGE",
-    price: "$10",
-    amount: 2500,
-    description: "Surge ahead — 2500 Dates to power through every lesson.",
-    buttonLabel: "SURGE AHEAD",
-    popular: false,
-  },
-];
-
 export default function StorePage() {
   const [selectedOption, setSelectedOption] = useState(null);
+
+  const datePackages = useDatePackagesStore((state) => state.packages);
+  const subscriptionPlans = useSubscriptionPlansStore((state) => state.plans);
+  const fetchDatePackages = useDatePackagesStore(
+    (state) => state.fetchDatePackages,
+  );
+  const fetchSubscriptionPlans = useSubscriptionPlansStore(
+    (state) => state.fetchSubscriptionPlans,
+  );
+  const isLoadingDates = useDatePackagesStore((state) => state.isLoading);
+  const isLoadingPlans = useSubscriptionPlansStore((state) => state.isLoading);
+
+  useEffect(() => {
+    fetchDatePackages();
+    fetchSubscriptionPlans();
+  }, [fetchDatePackages, fetchSubscriptionPlans]);
 
   if (selectedOption?.type === "dates") {
     return (
@@ -62,61 +50,68 @@ export default function StorePage() {
         {/* ── Date Packages ── */}
         <section>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 items-end">
-            {datePackages.map((pkg, i) => (
-              <motion.div
-                key={pkg.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08 }}
-                className={`relative rounded-2xl border-2 p-6 pb-8 flex flex-col items-center gap-5 bg-background text-center ${
-                  pkg.popular
-                    ? "border-accent shadow-xl pt-10"
-                    : "border-border shadow-sm"
-                }`}
-              >
-                {pkg.popular && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-secondary text-secondary-foreground text-[10px] font-extrabold tracking-widest px-4 py-1 rounded-full uppercase whitespace-nowrap">
-                    Most Popular
-                  </div>
-                )}
-
-                {/* Upper section: label + price centered, icon top-right */}
-                <div className="relative w-full flex flex-col items-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="https://res.cloudinary.com/dqdeoobeb/image/upload/v1782640272/date_for_store_pylv32.png"
-                    alt="dates"
-                    className={`absolute top-0 right-0 object-contain select-none ${pkg.popular ? "w-12 h-12" : "w-10 h-10"}`}
+            {isLoadingDates
+              ? [...Array(3)].map((_, i) => (
+                  <div
+                    key={`date-skeleton-${i}`}
+                    className="rounded-2xl border-2 border-border p-6 pb-8 flex flex-col items-center gap-5 bg-background h-72 animate-pulse"
                   />
-                  <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mb-1">
-                    {pkg.label}
-                  </p>
-                  <p className="text-5xl font-black text-foreground">
-                    {pkg.price}
-                  </p>
-                </div>
+                ))
+              : datePackages.map((pkg, i) => (
+                  <motion.div
+                    key={pkg.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.08 }}
+                    className={`relative rounded-2xl border-2 p-6 pb-8 flex flex-col items-center gap-5 bg-background text-center ${
+                      pkg.popular
+                        ? "border-accent shadow-xl pt-10"
+                        : "border-border shadow-sm"
+                    }`}
+                  >
+                    {pkg.popular && (
+                      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-secondary text-secondary-foreground text-[10px] font-extrabold tracking-widest px-4 py-1 rounded-full uppercase whitespace-nowrap">
+                        Most Popular
+                      </div>
+                    )}
 
-                <hr className="w-full border-border" />
+                    {/* Upper section: label + price centered, icon top-right */}
+                    <div className="relative w-full flex flex-col items-center">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src="https://res.cloudinary.com/dqdeoobeb/image/upload/v1782640272/date_for_store_pylv32.png"
+                        alt="dates"
+                        className={`absolute top-0 right-0 object-contain select-none ${pkg.popular ? "w-12 h-12" : "w-10 h-10"}`}
+                      />
+                      <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mb-1">
+                        {pkg.label}
+                      </p>
+                      <p className="text-5xl font-black text-foreground">
+                        {pkg.price}
+                      </p>
+                    </div>
 
-                {/* Amount pill */}
-                <span className="bg-accent text-accent-foreground text-sm font-bold px-5 rounded-full inline-flex items-center justify-center h-7 pt-[3px]">
-                  {pkg.amount}
-                </span>
+                    <hr className="w-full border-border" />
 
-                {/* Description */}
-                <p className="text-sm text-muted-foreground leading-snug">
-                  {pkg.description}
-                </p>
+                    {/* Amount pill */}
+                    <span className="bg-accent text-accent-foreground text-sm font-bold px-5 rounded-full inline-flex items-center justify-center h-7 pt-[3px]">
+                      {pkg.amount}
+                    </span>
 
-                {/* CTA */}
-                <button
-                  onClick={() => setSelectedOption({ type: "dates", pkg })}
-                  className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-xs font-extrabold tracking-widest py-2.5 px-4 rounded-lg uppercase transition-colors"
-                >
-                  {pkg.buttonLabel}
-                </button>
-              </motion.div>
-            ))}
+                    {/* Description */}
+                    <p className="text-sm text-muted-foreground leading-snug">
+                      {pkg.description}
+                    </p>
+
+                    {/* CTA */}
+                    <button
+                      onClick={() => setSelectedOption({ type: "dates", pkg })}
+                      className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-xs font-extrabold tracking-widest py-2.5 px-4 rounded-lg uppercase transition-colors"
+                    >
+                      {pkg.buttonLabel}
+                    </button>
+                  </motion.div>
+                ))}
           </div>
         </section>
 
@@ -170,42 +165,39 @@ export default function StorePage() {
 
               {/* Plan cards */}
               <div className="flex flex-row gap-3 justify-center sm:justify-end pb-4">
-                {/* Monthly */}
-                <div className="relative flex-1">
-                  <button
-                    onClick={() =>
-                      setSelectedOption({ type: "premium", plan: "monthly" })
-                    }
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl p-4 w-full text-center transition-colors"
-                  >
-                    <p className="text-[10px] font-extrabold tracking-widest uppercase mb-1.5">
-                      Monthly
-                    </p>
-                    <p className="text-2xl font-black leading-tight">
-                      $9.99<span className="text-sm font-semibold">/mo</span>
-                    </p>
-                  </button>
-                </div>
-
-                {/* Yearly */}
-                <div className="relative flex-1">
-                  <button
-                    onClick={() =>
-                      setSelectedOption({ type: "premium", plan: "yearly" })
-                    }
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl p-4 w-full text-center transition-colors"
-                  >
-                    <p className="text-[10px] font-extrabold tracking-widest uppercase mb-1.5">
-                      Yearly
-                    </p>
-                    <p className="text-2xl font-black leading-tight">
-                      $89.99<span className="text-sm font-semibold">/yr</span>
-                    </p>
-                  </button>
-                  <div className="absolute -bottom-3 -right-5 bg-secondary text-secondary-foreground text-[10px] font-black tracking-wider px-2 py-0.5 rounded-full -rotate-12 shadow whitespace-nowrap">
-                    BEST VALUE
-                  </div>
-                </div>
+                {isLoadingPlans
+                  ? [...Array(2)].map((_, i) => (
+                      <div
+                        key={`plan-skeleton-${i}`}
+                        className="flex-1 bg-accent/20 rounded-xl p-4 h-24 animate-pulse"
+                      />
+                    ))
+                  : subscriptionPlans.map((plan) => (
+                      <div key={plan.id} className="relative flex-1">
+                        <button
+                          onClick={() =>
+                            setSelectedOption({
+                              type: "premium",
+                              plan:
+                                plan.interval === "year" ? "yearly" : "monthly",
+                            })
+                          }
+                          className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl p-4 w-full text-center transition-colors"
+                        >
+                          <p className="text-[10px] font-extrabold tracking-widest uppercase mb-1.5">
+                            {plan.duration}
+                          </p>
+                          <p className="text-2xl font-black leading-tight">
+                            {plan.price}
+                          </p>
+                        </button>
+                        {plan.popular && (
+                          <div className="absolute -bottom-3 -right-5 bg-secondary text-secondary-foreground text-[10px] font-black tracking-wider px-2 py-0.5 rounded-full -rotate-12 shadow whitespace-nowrap">
+                            BEST VALUE
+                          </div>
+                        )}
+                      </div>
+                    ))}
               </div>
             </div>
           </motion.div>

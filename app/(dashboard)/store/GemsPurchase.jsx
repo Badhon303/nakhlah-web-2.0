@@ -3,10 +3,11 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mascot } from "@/components/nakhlah/Mascot";
 import { DatesIcon } from "@/components/icons/PublicAssetIcons";
+import { useDatePackagesStore } from "@/stores/useDatePackagesStore";
 import {
   ArrowLeft,
   Home,
@@ -16,42 +17,6 @@ import {
   CreditCard,
   Lock,
 } from "lucide-react";
-
-const gemPackages = [
-  {
-    id: 1,
-    amount: 500,
-    price: "$2",
-    emoji: "💎",
-    label: "Starter Pack",
-    description: "Perfect for beginners",
-  },
-  {
-    id: 2,
-    amount: 1000,
-    price: "$10",
-    emoji: "💎",
-    label: "Value Pack",
-    description: "Best value for money",
-    popular: true,
-  },
-  {
-    id: 3,
-    amount: 1500,
-    price: "$15",
-    emoji: "💎",
-    label: "Premium Pack",
-    description: "Maximum dates",
-  },
-  {
-    id: 4,
-    amount: 3000,
-    price: "$25",
-    emoji: "💎",
-    label: "Ultimate Pack",
-    description: "Pro player bundle",
-  },
-];
 
 const paymentMethods = [
   {
@@ -98,6 +63,17 @@ export default function GemsPurchase({ onBack, initialPackage }) {
   const [selectedPackage, setSelectedPackage] = useState(
     initialPackage || null,
   );
+
+  const gemPackages = useDatePackagesStore((state) => state.packages);
+  const fetchDatePackages = useDatePackagesStore(
+    (state) => state.fetchDatePackages,
+  );
+  const isLoading = useDatePackagesStore((state) => state.isLoading);
+
+  useEffect(() => {
+    fetchDatePackages();
+  }, [fetchDatePackages]);
+
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [paymentData, setPaymentData] = useState({
     email: "",
@@ -183,70 +159,77 @@ export default function GemsPurchase({ onBack, initialPackage }) {
 
           {/* Date Packages Grid */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto">
-            {gemPackages.map((pkg, index) => (
-              <motion.div
-                key={pkg.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className={`relative rounded-2xl p-6 transition-all cursor-pointer ${
-                  pkg.popular
-                    ? "bg-card border border-border hover:border-accent/50 scale-105 shadow-lg hover:shadow-xl"
-                    : "bg-card border border-border hover:border-accent/50 hover:shadow-md"
-                }`}
-              >
-                {pkg.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
-                    ⭐ POPULAR
-                  </div>
-                )}
-
-                <div className="text-center space-y-4">
-                  {/* Emoji */}
-                  <div className="text-5xl">{pkg.emoji}</div>
-
-                  {/* Amount */}
-                  <div>
-                    <p className="text-3xl font-bold text-accent">
-                      {pkg.amount}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Dates</p>
-                  </div>
-
-                  {/* Package Info */}
-                  <div>
-                    <h3 className="font-bold text-foreground text-base mb-1">
-                      {pkg.label}
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      {pkg.description}
-                    </p>
-                  </div>
-
-                  {/* Divider */}
-                  <div className="h-px bg-border"></div>
-
-                  {/* Price */}
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">
-                      {pkg.price}
-                    </p>
-                  </div>
-
-                  {/* Button */}
-                  <Button
-                    onClick={() => handlePackageSelect(pkg)}
-                    className={`w-full font-semibold h-10 ${
+            {isLoading
+              ? [...Array(4)].map((_, index) => (
+                  <div
+                    key={`gem-skeleton-${index}`}
+                    className="rounded-2xl p-6 bg-card border border-border h-72 animate-pulse"
+                  />
+                ))
+              : gemPackages.map((pkg, index) => (
+                  <motion.div
+                    key={pkg.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className={`relative rounded-2xl p-6 transition-all cursor-pointer ${
                       pkg.popular
-                        ? "bg-accent hover:to-accent/90"
-                        : "bg-accent hover:bg-accent/90"
+                        ? "bg-card border border-border hover:border-accent/50 scale-105 shadow-lg hover:shadow-xl"
+                        : "bg-card border border-border hover:border-accent/50 hover:shadow-md"
                     }`}
                   >
-                    Buy Now
-                  </Button>
-                </div>
-              </motion.div>
-            ))}
+                    {pkg.popular && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                        ⭐ POPULAR
+                      </div>
+                    )}
+
+                    <div className="text-center space-y-4">
+                      {/* Emoji */}
+                      <div className="text-5xl">{pkg.emoji}</div>
+
+                      {/* Amount */}
+                      <div>
+                        <p className="text-3xl font-bold text-accent">
+                          {pkg.amount}
+                        </p>
+                        <p className="text-sm text-muted-foreground">Dates</p>
+                      </div>
+
+                      {/* Package Info */}
+                      <div>
+                        <h3 className="font-bold text-foreground text-base mb-1">
+                          {pkg.label}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {pkg.description}
+                        </p>
+                      </div>
+
+                      {/* Divider */}
+                      <div className="h-px bg-border"></div>
+
+                      {/* Price */}
+                      <div>
+                        <p className="text-2xl font-bold text-foreground">
+                          {pkg.price}
+                        </p>
+                      </div>
+
+                      {/* Button */}
+                      <Button
+                        onClick={() => handlePackageSelect(pkg)}
+                        className={`w-full font-semibold h-10 ${
+                          pkg.popular
+                            ? "bg-accent hover:to-accent/90"
+                            : "bg-accent hover:bg-accent/90"
+                        }`}
+                      >
+                        Buy Now
+                      </Button>
+                    </div>
+                  </motion.div>
+                ))}
           </div>
         </motion.div>
       )}

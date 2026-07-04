@@ -453,6 +453,64 @@ export async function fetchLeaderboard(token) {
     }
 }
 
+export async function fetchDatePackages() {
+    try {
+        const response = await fetch(withApiUrl("/api/date-packages"), {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to load date packages"));
+        }
+
+        return {
+            success: true,
+            packages: Array.isArray(data?.docs) ? data.docs : [],
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch date packages error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to load date packages",
+        };
+    }
+}
+
+export async function fetchSubscriptionPlans() {
+    try {
+        const response = await fetch(withApiUrl("/api/subscription-plans"), {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to load subscription plans"));
+        }
+
+        return {
+            success: true,
+            plans: Array.isArray(data?.docs) ? data.docs : [],
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch subscription plans error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to load subscription plans",
+        };
+    }
+}
+
 export async function forgotPassword(email) {
     try {
         const response = await fetch(withApiUrl("/api/users/forgot-password"), {

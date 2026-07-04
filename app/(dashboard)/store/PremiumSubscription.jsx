@@ -20,11 +20,12 @@ import {
   User,
   CreditCard,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Crown } from "@/components/icons/Crown";
 import { DatesIcon } from "@/components/icons/PublicAssetIcons";
 import { Mascot } from "@/components/nakhlah/Mascot";
+import { useSubscriptionPlansStore } from "@/stores/useSubscriptionPlansStore";
 
 const premiumFeatures = [
   {
@@ -94,24 +95,6 @@ const premiumFeatures = [
   },
 ];
 
-const subscriptionPlans = [
-  {
-    id: "1month",
-    duration: "Monthly",
-    price: "$9.99/mo",
-    savePercent: null,
-  },
-  {
-    id: "12months",
-    duration: "Yearly",
-    price: "Save over 25%",
-    originalPrice: "$119.88/yr",
-    actualPrice: "$89.99/yr",
-    savePercent: "25%",
-    popular: true,
-  },
-];
-
 const paymentMethods = [
   {
     id: "googlepay",
@@ -153,13 +136,25 @@ const paymentMethods = [
 
 export default function PremiumSubscription({ onBack, initialPlan }) {
   const router = useRouter();
+
+  const apiPlans = useSubscriptionPlansStore((state) => state.plans);
+  const fetchSubscriptionPlans = useSubscriptionPlansStore(
+    (state) => state.fetchSubscriptionPlans,
+  );
+  const isLoadingPlans = useSubscriptionPlansStore((state) => state.isLoading);
+
+  useEffect(() => {
+    fetchSubscriptionPlans();
+  }, [fetchSubscriptionPlans]);
+
+  const subscriptionPlans = apiPlans;
+
   // If an initialPlan is passed from StorePage, map it to a subscription plan id and skip to step 2
-  const resolvedPlan =
-    initialPlan === "monthly"
-      ? "1month"
-      : initialPlan === "yearly"
-        ? "12months"
-        : "1month";
+  const resolvedPlan = initialPlan
+    ? subscriptionPlans.find(
+        (p) => p.interval === (initialPlan === "monthly" ? "month" : "year"),
+      )?.id || subscriptionPlans[0]?.id
+    : subscriptionPlans[0]?.id;
   const [currentStep, setCurrentStep] = useState(initialPlan ? 3 : 1);
   const [selectedPlan, setSelectedPlan] = useState(resolvedPlan);
   const [selectedPayment, setSelectedPayment] = useState(null);
@@ -369,72 +364,82 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-lg mx-auto">
-            {subscriptionPlans.map((plan) => (
-              <button
-                key={plan.id}
-                onClick={() => setSelectedPlan(plan.id)}
-                className={`relative p-6 rounded-2xl border-2 transition-all text-center shadow-md hover:shadow-2xl ${
-                  selectedPlan === plan.id
-                    ? "border-accent bg-gradient-to-br from-accent/10 via-accent/5 to-accent/10 shadow-xl"
-                    : "border-border bg-card hover:border-accent/30"
-                } ${plan.popular ? "lg:scale-110" : ""}`}
-              >
-                {plan.popular && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-white border-0 shadow-lg px-4 py-1">
-                    <Star className="w-3 h-3 mr-1 inline" /> Most Popular
-                  </Badge>
-                )}
-
-                <div className="space-y-4 pt-2">
+            {isLoadingPlans
+              ? [...Array(2)].map((_, i) => (
                   <div
-                    className={`w-16 h-16 mx-auto rounded-full border-3 flex items-center justify-center transition-all ${
+                    key={`plan-skeleton-${i}`}
+                    className="rounded-2xl p-6 bg-card border border-border h-80 animate-pulse"
+                  />
+                ))
+              : subscriptionPlans.map((plan) => (
+                  <button
+                    key={plan.id}
+                    onClick={() => setSelectedPlan(plan.id)}
+                    className={`relative p-6 rounded-2xl border-2 transition-all text-center shadow-md hover:shadow-2xl ${
                       selectedPlan === plan.id
-                        ? "border-accent bg-accent scale-110"
-                        : "border-border bg-muted"
-                    }`}
+                        ? "border-accent bg-gradient-to-br from-accent/10 via-accent/5 to-accent/10 shadow-xl"
+                        : "border-border bg-card hover:border-accent/30"
+                    } ${plan.popular ? "lg:scale-110" : ""}`}
                   >
-                    {selectedPlan === plan.id ? (
-                      <Check className="w-8 h-8 text-white" strokeWidth={3} />
-                    ) : (
-                      <Crown
-                        className={`w-8 h-8 ${selectedPlan === plan.id ? "text-white" : "text-muted-foreground"}`}
-                      />
+                    {plan.popular && (
+                      <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-white border-0 shadow-lg px-4 py-1">
+                        <Star className="w-3 h-3 mr-1 inline" /> Most Popular
+                      </Badge>
                     )}
-                  </div>
 
-                  <div>
-                    <p className="font-bold text-foreground text-xl mb-1">
-                      {plan.duration}
-                    </p>
-                    {plan.savePercent && (
-                      <p className="text-sm text-accent font-semibold mb-2">
-                        {plan.price}
-                      </p>
-                    )}
-                  </div>
+                    <div className="space-y-4 pt-2">
+                      <div
+                        className={`w-16 h-16 mx-auto rounded-full border-3 flex items-center justify-center transition-all ${
+                          selectedPlan === plan.id
+                            ? "border-accent bg-accent scale-110"
+                            : "border-border bg-muted"
+                        }`}
+                      >
+                        {selectedPlan === plan.id ? (
+                          <Check
+                            className="w-8 h-8 text-white"
+                            strokeWidth={3}
+                          />
+                        ) : (
+                          <Crown
+                            className={`w-8 h-8 ${selectedPlan === plan.id ? "text-white" : "text-muted-foreground"}`}
+                          />
+                        )}
+                      </div>
 
-                  <div className="py-4 border-t border-border">
-                    {plan.actualPrice ? (
-                      <>
-                        <p className="text-sm text-muted-foreground line-through mb-1">
-                          {plan.originalPrice}
+                      <div>
+                        <p className="font-bold text-foreground text-xl mb-1">
+                          {plan.duration}
                         </p>
-                        <p className="text-3xl md:text-4xl font-bold text-accent">
-                          {plan.actualPrice}
+                        {plan.savePercent && (
+                          <p className="text-sm text-accent font-semibold mb-2">
+                            {plan.price}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="py-4 border-t border-border">
+                        {plan.actualPrice ? (
+                          <>
+                            <p className="text-sm text-muted-foreground line-through mb-1">
+                              {plan.originalPrice}
+                            </p>
+                            <p className="text-3xl md:text-4xl font-bold text-accent">
+                              {plan.actualPrice}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-3xl md:text-4xl font-bold text-foreground">
+                            {plan.price}
+                          </p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          per billing cycle
                         </p>
-                      </>
-                    ) : (
-                      <p className="text-3xl md:text-4xl font-bold text-foreground">
-                        {plan.price}
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground mt-1">
-                      per billing cycle
-                    </p>
-                  </div>
-                </div>
-              </button>
-            ))}
+                      </div>
+                    </div>
+                  </button>
+                ))}
           </div>
 
           <div className="flex justify-center pt-4">
