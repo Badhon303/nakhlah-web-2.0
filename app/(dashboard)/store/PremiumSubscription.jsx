@@ -14,14 +14,19 @@ import {
   ArrowLeft,
   Star,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Crown } from "@/components/icons/Crown";
 import { DatesIcon } from "@/components/icons/PublicAssetIcons";
+import { Mascot } from "@/components/nakhlah/Mascot";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { useSubscriptionPlansStore } from "@/stores/useSubscriptionPlansStore";
-import { createSubscriptionPayment } from "@/services/api";
+import {
+  createSubscriptionPayment,
+  fetchCurrentSubscription,
+  cancelSubscription,
+} from "@/services/api";
 import { toast } from "@/components/nakhlah/Toast";
 
 const premiumFeatures = [
@@ -98,6 +103,11 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
   const [currentStep, setCurrentStep] = useState(initialPlan ? 2 : 1);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [checkoutPlanId, setCheckoutPlanId] = useState(null);
+  const [currentSubscription, setCurrentSubscription] = useState(null);
+  const [isLoadingCurrent, setIsLoadingCurrent] = useState(true);
+  const [isCanceling, setIsCanceling] = useState(false);
+  const [showConfirmSwitch, setShowConfirmSwitch] = useState(false);
+  const [pendingSwitchPlan, setPendingSwitchPlan] = useState(null);
 
   const subscriptionPlans = useSubscriptionPlansStore((state) => state.plans);
   const fetchSubscriptionPlans = useSubscriptionPlansStore(
@@ -105,9 +115,22 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
   );
   const isLoadingPlans = useSubscriptionPlansStore((state) => state.isLoading);
 
+  const loadCurrentSubscription = useCallback(async () => {
+    if (!isSessionValid(session)) {
+      setIsLoadingCurrent(false);
+      return;
+    }
+    const result = await fetchCurrentSubscription(getSessionToken(session));
+    if (result.success) {
+      setCurrentSubscription(result.subscription);
+    }
+    setIsLoadingCurrent(false);
+  }, [session]);
+
   useEffect(() => {
     fetchSubscriptionPlans();
-  }, [fetchSubscriptionPlans]);
+    loadCurrentSubscription();
+  }, [fetchSubscriptionPlans, loadCurrentSubscription]);
 
   const requireAuth = () => {
     if (!isSessionValid(session)) {
@@ -157,17 +180,17 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
     }
   };
 
-  const handleSubscriptionCheckout = async () => {
+  const startSubscriptionCheckout = async (plan) => {
     if (!requireAuth()) return;
 
-    if (!selectedPlanDetails) {
+    if (!plan) {
       toast.error("Please select a subscription plan.");
       return;
     }
 
-    setCheckoutPlanId(selectedPlanDetails.id);
+    setCheckoutPlanId(plan.id);
     const result = await createSubscriptionPayment(
-      selectedPlanDetails,
+      plan,
       getSessionToken(session),
     );
 
@@ -178,6 +201,92 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
     }
 
     window.location.assign(result.approvalUrl);
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!requireAuth()) return;
+
+    const subscriptionId =
+      currentSubscription?.paypalSubscriptionId || currentSubscription?.id;
+    if (!subscriptionId) {
+      toast.error("No active subscription found.");
+      return;
+    }
+
+    setIsCanceling(true);
+    const result = await cancelSubscription(
+      subscriptionId,
+      getSessionToken(session),
+    );
+
+    if (!result.success) {
+      setIsCanceling(false);
+      toast.error(result.error || "Unable to cancel subscription.");
+      return;
+    }
+
+    toast.success(result.message || "Subscription canceled successfully.");
+    await loadCurrentSubscription();
+    setIsCanceling(false);
+  };
+
+  const handlePlanSelect = (plan) => {
+    setSelectedPlan(plan.id);
+  };
+
+  const promptSwitch = (plan) => {
+    setPendingSwitchPlan(plan);
+    setShowConfirmSwitch(true);
+  };
+
+  const handleConfirmSwitch = async () => {
+    if (!pendingSwitchPlan) return;
+
+    setShowConfirmSwitch(false);
+
+    const subscriptionId =
+      currentSubscription?.paypalSubscriptionId || currentSubscription?.id;
+    if (subscriptionId) {
+      setIsCanceling(true);
+      const cancelResult = await cancelSubscription(
+        subscriptionId,
+        getSessionToken(session),
+      );
+      setIsCanceling(false);
+
+      if (!cancelResult.success) {
+        toast.error(cancelResult.error || "Unable to switch plan.");
+        return;
+      }
+
+      toast.success("Previous subscription canceled. Starting new checkout...");
+    }
+
+    await startSubscriptionCheckout(pendingSwitchPlan);
+    setPendingSwitchPlan(null);
+  };
+
+  const handleSubscriptionCheckout = async () => {
+    if (!selectedPlanDetails) {
+      toast.error("Please select a subscription plan.");
+      return;
+    }
+
+    if (
+      currentSubscription &&
+      currentSubscription.status !== "cancelled" &&
+      currentSubscription.plan?.id === selectedPlanDetails.id
+    ) {
+      toast.info("You already have this plan.");
+      return;
+    }
+
+    if (currentSubscription && currentSubscription.status !== "cancelled") {
+      promptSwitch(selectedPlanDetails);
+      return;
+    }
+
+    startSubscriptionCheckout(selectedPlanDetails);
   };
 
   const handleNext = () => {
@@ -319,6 +428,46 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
             </p>
           </motion.div>
 
+          {!isLoadingCurrent && currentSubscription && (
+            <motion.div
+              variants={itemVariants}
+              className={`max-w-lg mx-auto rounded-2xl border-2 p-6 text-center ${
+                currentSubscription.status === "cancelled"
+                  ? "border-muted bg-muted/30"
+                  : "border-accent bg-accent/10"
+              }`}
+            >
+              <p className="text-sm text-muted-foreground mb-1">Current plan</p>
+              <p className="text-2xl font-bold text-foreground mb-2">
+                {currentSubscription.plan?.name || "Premium"}
+              </p>
+              <p className="text-sm text-muted-foreground mb-4">
+                Status:{" "}
+                <span className="font-semibold capitalize">
+                  {currentSubscription.status}
+                </span>
+                {currentSubscription.currentPeriodEnd && (
+                  <span className="block mt-1">
+                    Active until{" "}
+                    {new Date(
+                      currentSubscription.currentPeriodEnd,
+                    ).toLocaleDateString()}
+                  </span>
+                )}
+              </p>
+              {currentSubscription.status !== "cancelled" && (
+                <Button
+                  variant="outline"
+                  onClick={handleCancelSubscription}
+                  disabled={isCanceling}
+                  className="w-full"
+                >
+                  {isCanceling ? "Canceling..." : "Cancel Subscription"}
+                </Button>
+              )}
+            </motion.div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-lg mx-auto">
             {isLoadingPlans
               ? [...Array(2)].map((_, i) => (
@@ -330,8 +479,8 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
               : subscriptionPlans.map((plan) => (
                   <button
                     key={plan.id}
-                    onClick={() => setSelectedPlan(plan.id)}
-                    disabled={checkoutPlanId !== null}
+                    onClick={() => handlePlanSelect(plan)}
+                    disabled={checkoutPlanId !== null || isCanceling}
                     className={`relative p-6 rounded-2xl border-2 transition-all text-center shadow-md hover:shadow-2xl ${
                       selectedPlanId === plan.id
                         ? "border-accent bg-gradient-to-br from-accent/10 via-accent/5 to-accent/10 shadow-xl"
@@ -401,11 +550,59 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
             <Button
               className="w-full max-w-md bg-accent hover:bg-accent/90 text-accent-foreground"
               onClick={handleSubscriptionCheckout}
-              disabled={!selectedPlanDetails || checkoutPlanId !== null}
+              disabled={
+                !selectedPlanDetails || checkoutPlanId !== null || isCanceling
+              }
             >
-              {checkoutPlanId ? "Opening PayPal..." : "Continue with PayPal"}
+              {checkoutPlanId
+                ? "Opening PayPal..."
+                : currentSubscription &&
+                    currentSubscription.status !== "cancelled" &&
+                    currentSubscription.plan?.id !== selectedPlanDetails?.id
+                  ? "Switch Plan"
+                  : "Continue with PayPal"}
             </Button>
           </div>
+
+          {showConfirmSwitch && pendingSwitchPlan && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+              <div className="bg-card border border-border rounded-3xl p-6 max-w-md w-full shadow-xl text-center">
+                <h3 className="text-xl font-bold text-foreground mb-2">
+                  Switch subscription plan?
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  You already have an active{" "}
+                  <span className="font-semibold">
+                    {currentSubscription?.plan?.name || "subscription"}
+                  </span>
+                  . Switching will cancel it and start a new{" "}
+                  <span className="font-semibold">
+                    {pendingSwitchPlan.duration}
+                  </span>{" "}
+                  plan.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setShowConfirmSwitch(false);
+                      setPendingSwitchPlan(null);
+                    }}
+                  >
+                    Keep Current
+                  </Button>
+                  <Button
+                    className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+                    onClick={handleConfirmSwitch}
+                    disabled={isCanceling}
+                  >
+                    {isCanceling ? "Switching..." : "Switch Plan"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </motion.div>
       )}
     </div>

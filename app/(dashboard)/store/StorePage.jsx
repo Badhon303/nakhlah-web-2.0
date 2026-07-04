@@ -7,16 +7,23 @@ import { useSearchParams } from "next/navigation";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { useDatePackagesStore } from "@/stores/useDatePackagesStore";
 import { useSubscriptionPlansStore } from "@/stores/useSubscriptionPlansStore";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/components/nakhlah/Toast";
 import {
   createDatePaymentOrder,
   createSubscriptionPayment,
+  cancelSubscription,
+  fetchCurrentSubscription,
 } from "@/services/api";
 
 export default function StorePage() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const [checkoutId, setCheckoutId] = useState(null);
+  const [currentSubscription, setCurrentSubscription] = useState(null);
+  const [isLoadingCurrent, setIsLoadingCurrent] = useState(true);
+  const [pendingSwitchPlan, setPendingSwitchPlan] = useState(null);
+  const [isCanceling, setIsCanceling] = useState(false);
   const shouldRefetchDates = searchParams.get("refetch") === "dates";
 
   const requireAuth = () => {
@@ -46,7 +53,18 @@ export default function StorePage() {
   useEffect(() => {
     fetchDatePackages({ forceRefresh: shouldRefetchDates });
     fetchSubscriptionPlans({ forceRefresh: shouldRefetchDates });
-  }, [fetchDatePackages, fetchSubscriptionPlans, shouldRefetchDates]);
+
+    if (isSessionValid(session)) {
+      fetchCurrentSubscription(getSessionToken(session)).then((result) => {
+        if (result.success) {
+          setCurrentSubscription(result.subscription);
+        }
+        setIsLoadingCurrent(false);
+      });
+    } else {
+      setIsLoadingCurrent(false);
+    }
+  }, [fetchDatePackages, fetchSubscriptionPlans, shouldRefetchDates, session]);
 
   const handleDateCheckout = async (pkg) => {
     if (!requireAuth()) return;
@@ -69,6 +87,28 @@ export default function StorePage() {
   const handleSubscriptionCheckout = async (plan) => {
     if (!requireAuth()) return;
 
+    if (
+      currentSubscription &&
+      currentSubscription.status !== "cancelled" &&
+      currentSubscription.plan?.id === plan.id
+    ) {
+      toast.info("You already have this plan.");
+      return;
+    }
+
+    if (
+      currentSubscription &&
+      currentSubscription.status !== "cancelled" &&
+      currentSubscription.plan?.id !== plan.id
+    ) {
+      setPendingSwitchPlan(plan);
+      return;
+    }
+
+    await startSubscriptionCheckout(plan);
+  };
+
+  const startSubscriptionCheckout = async (plan) => {
     setCheckoutId(`premium:${plan.id}`);
     const result = await createSubscriptionPayment(
       plan,
@@ -82,6 +122,30 @@ export default function StorePage() {
     }
 
     redirectToPayPal(result.approvalUrl);
+  };
+
+  const handleConfirmSwitch = async () => {
+    if (!pendingSwitchPlan) return;
+
+    const token = getSessionToken(session);
+    setIsCanceling(true);
+    setCheckoutId(`premium:${pendingSwitchPlan.id}`);
+
+    const cancelResult = await cancelSubscription(
+      currentSubscription?.id,
+      token,
+    );
+
+    if (!cancelResult.success) {
+      setIsCanceling(false);
+      setCheckoutId(null);
+      toast.error(cancelResult.error || "Failed to cancel current plan.");
+      return;
+    }
+
+    await startSubscriptionCheckout(pendingSwitchPlan);
+    setIsCanceling(false);
+    setPendingSwitchPlan(null);
   };
 
   return (
@@ -162,11 +226,13 @@ export default function StorePage() {
                   <button
                     onClick={() => handleDateCheckout(pkg)}
                     disabled={checkoutId !== null}
-                    className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-xs font-extrabold tracking-widest py-2.5 px-4 rounded-lg uppercase transition-colors"
+                    className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-xs font-extrabold tracking-widest py-2.5 px-4 rounded-lg uppercase transition-colors flex items-center justify-center"
                   >
-                    {checkoutId === `dates:${pkg.id}`
-                      ? "Opening PayPal..."
-                      : pkg.buttonLabel}
+                    {checkoutId === `dates:${pkg.id}` ? (
+                      <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      pkg.buttonLabel
+                    )}
                   </button>
                 </motion.div>
               ))
@@ -228,36 +294,105 @@ export default function StorePage() {
                   ? [...Array(2)].map((_, i) => (
                       <div
                         key={`plan-skeleton-${i}`}
-                        className="flex-1 bg-accent/20 rounded-xl p-4 h-24 animate-pulse"
+                        className="flex-1 rounded-2xl border-2 border-border bg-card h-24 animate-pulse"
                       />
                     ))
-                  : subscriptionPlans.map((plan) => (
-                      <div key={plan.id} className="relative flex-1">
-                        <button
-                          onClick={() => handleSubscriptionCheckout(plan)}
-                          disabled={checkoutId !== null}
-                          className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl p-4 w-full text-center transition-colors"
-                        >
-                          <p className="text-[10px] font-extrabold tracking-widest uppercase mb-1.5">
-                            {plan.duration}
-                          </p>
-                          <p className="text-2xl font-black leading-tight">
-                            {checkoutId === `premium:${plan.id}`
-                              ? "PayPal..."
-                              : plan.price}
-                          </p>
-                        </button>
-                        {plan.popular && (
-                          <div className="absolute -bottom-3 -right-5 bg-secondary text-secondary-foreground text-[10px] font-black tracking-wider px-2 py-0.5 rounded-full -rotate-12 shadow whitespace-nowrap">
-                            BEST VALUE
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                  : subscriptionPlans.map((plan) => {
+                      const isCurrentPlan =
+                        currentSubscription?.plan?.id === plan.id &&
+                        currentSubscription?.status !== "cancelled";
+                      return (
+                        <div key={plan.id} className="relative flex-1">
+                          <button
+                            onClick={() =>
+                              !isCurrentPlan && handleSubscriptionCheckout(plan)
+                            }
+                            disabled={
+                              isCurrentPlan ||
+                              checkoutId !== null ||
+                              isLoadingCurrent
+                            }
+                            className={`rounded-2xl border-2 p-4 w-full flex flex-col items-center gap-2 transition-colors ${
+                              isCurrentPlan
+                                ? "border-secondary bg-secondary/10 text-foreground cursor-default"
+                                : "border-border bg-card hover:border-accent text-foreground"
+                            }`}
+                          >
+                            <span
+                              className={`rounded-full px-6 py-2 text-[10px] font-extrabold tracking-widest uppercase ${
+                                isCurrentPlan
+                                  ? "bg-secondary text-secondary-foreground"
+                                  : "bg-accent text-accent-foreground"
+                              }`}
+                            >
+                              {isCurrentPlan ? "Current" : "Subscribe"}
+                            </span>
+                            <p className="text-2xl font-black leading-tight flex items-center justify-center min-h-[2rem]">
+                              {checkoutId === `premium:${plan.id}` ? (
+                                <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                plan.price
+                              )}
+                            </p>
+                          </button>
+                          {plan.popular && (
+                            <div className="absolute -bottom-3 -right-5 bg-secondary text-secondary-foreground text-[10px] font-black tracking-wider px-2 py-0.5 rounded-full -rotate-12 shadow whitespace-nowrap">
+                              BEST VALUE
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
               </div>
             </div>
           </motion.div>
         </section>
+
+        {/* Switch plan confirmation modal */}
+        {pendingSwitchPlan && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+            <div className="bg-card border border-border rounded-2xl p-6 max-w-md w-full shadow-xl text-center">
+              <h3 className="text-xl font-bold text-foreground mb-2">
+                Switch plan?
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                You currently have the{" "}
+                <span className="font-semibold text-foreground">
+                  {currentSubscription?.plan?.name || "current"}
+                </span>{" "}
+                plan. We&apos;ll cancel it and start checkout for the{" "}
+                <span className="font-semibold text-foreground">
+                  {pendingSwitchPlan.duration}
+                </span>{" "}
+                plan.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setPendingSwitchPlan(null);
+                    setIsCanceling(false);
+                    setCheckoutId(null);
+                  }}
+                >
+                  Keep Current
+                </Button>
+                <Button
+                  className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+                  onClick={handleConfirmSwitch}
+                  disabled={isCanceling}
+                >
+                  {isCanceling ? (
+                    <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    "Switch Plan"
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

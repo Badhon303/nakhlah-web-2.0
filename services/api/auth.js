@@ -629,7 +629,7 @@ export async function createSubscriptionPayment(plan, token) {
             throw new Error("Authentication required");
         }
 
-        const planId = plan?.paypalPlanId || plan?.id || plan;
+        const planId = plan?.id || plan;
 
         if (!planId) {
             throw new Error("Missing subscription plan");
@@ -667,6 +667,79 @@ export async function createSubscriptionPayment(plan, token) {
         return {
             success: false,
             error: error.message || "Failed to start PayPal subscription",
+        };
+    }
+}
+
+export async function fetchCurrentSubscription(token) {
+    try {
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        const { response } = await fetchWithAuthRetry("/api/payments/me/subscription", {
+            method: "GET",
+            token,
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to load subscription"));
+        }
+
+        return {
+            success: true,
+            subscription: data?.subscription || null,
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch current subscription error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to load subscription",
+        };
+    }
+}
+
+export async function cancelSubscription(subscriptionId, token) {
+    try {
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        if (!subscriptionId) {
+            throw new Error("Missing subscription ID");
+        }
+
+        const { response } = await fetchWithAuthRetry("/api/payments/subscriptions/cancel", {
+            method: "POST",
+            token,
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ subscriptionId }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to cancel subscription"));
+        }
+
+        return {
+            success: true,
+            data,
+            message: data?.message || "Subscription canceled successfully",
+        };
+    } catch (error) {
+        console.error("Cancel subscription error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to cancel subscription",
         };
     }
 }
