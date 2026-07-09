@@ -1,11 +1,18 @@
 import { motion } from "framer-motion";
-import { ChevronLeft, Camera, Calendar, MapPin, Check } from "lucide-react";
+import { Camera, ChevronLeft, CheckCircle2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
-import { updateMyProfile } from "@/services/api/auth";
+import {
+  fetchUserOnboardingGlobals,
+  updateMyProfile,
+} from "@/services/api/auth";
 import { toast } from "@/components/nakhlah/Toast";
+import { buildApiUrl } from "@/lib/api-config";
+import { useProfileStore } from "@/stores/useProfileStore";
+
+const MAX_FILE_SIZE = 300 * 1024;
 
 export default function EditProfilePage({
   onBack,
@@ -13,28 +20,144 @@ export default function EditProfilePage({
   profileData,
   onProfileUpdated,
 }) {
-  const [formData, setFormData] = useState({
-    fullName: "",
-    phoneNumber: "",
-    email: "",
-    dateOfBirth: "",
-    country: "",
-  });
+  const [localChanges, setLocalChanges] = useState({});
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [picturePreview, setPicturePreview] = useState("");
+  const [fileError, setFileError] = useState("");
+  const [contactError, setContactError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingOptions, setIsLoadingOptions] = useState(true);
+  const [onboardingOptions, setOnboardingOptions] = useState(null);
   const { data: session } = useSession();
+  const previousPreviewUrl = useRef("");
 
   useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      fullName: profileData?.fullName || prev.fullName,
-      phoneNumber: profileData?.contactNumber || "",
-      email: currentUser?.email || profileData?.user?.email || prev.email,
-      country: profileData?.onboardInfo?.country || "",
-    }));
-  }, [currentUser, profileData]);
+    const loadOptions = async () => {
+      setIsLoadingOptions(true);
+      const result = await fetchUserOnboardingGlobals();
+      if (result.success) {
+        setOnboardingOptions(result.data);
+      }
+      setIsLoadingOptions(false);
+    };
+    loadOptions();
+  }, []);
+
+  const initialFormData = useMemo(() => {
+    if (!profileData || !onboardingOptions) {
+      return {
+        fullName: "",
+        contactNumber: "",
+        email: currentUser?.email || profileData?.user?.email || "",
+        country: "",
+        age: "",
+        purpose: "",
+        goalTime: 10,
+        userSource: "",
+        languageStrength: "",
+      };
+    }
+
+    const { countryList = [] } = onboardingOptions?.Country || {};
+    const { ageList = [] } = onboardingOptions?.age || {};
+    const { purposeList = [] } = onboardingOptions?.purpose || {};
+    const { goalList = [] } = onboardingOptions?.Goal || {};
+    const { sourceList = [] } = onboardingOptions?.userSource || {};
+    const { strengthsList = [] } = onboardingOptions?.languageStrength || {};
+
+    const onboardInfo = profileData?.onboardInfo || {};
+    const savedUserSource = String(onboardInfo.userSource || "").toLowerCase();
+    const sourceMatch = sourceList.find(
+      (s) => String(s.sourceName || "").toLowerCase() === savedUserSource,
+    );
+
+    const savedGoal = Number(onboardInfo.goalTime) || 10;
+    const goalMatch = goalList.find((g) => Number(g.goalTime) === savedGoal);
+
+    return {
+      fullName: profileData?.fullName || "",
+      contactNumber: profileData?.contactNumber || "",
+      email: currentUser?.email || profileData?.user?.email || "",
+      country: onboardInfo.country || "",
+      age: onboardInfo.age || "",
+      purpose: onboardInfo.purpose || "",
+      goalTime: goalMatch ? Number(goalMatch.goalTime) : savedGoal,
+      userSource: sourceMatch ? sourceMatch.sourceName : savedUserSource,
+      languageStrength: onboardInfo.languageStrength || "",
+    };
+  }, [currentUser, profileData, onboardingOptions]);
+
+  const formData = useMemo(
+    () => ({ ...initialFormData, ...localChanges }),
+    [initialFormData, localChanges],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (previousPreviewUrl.current) {
+        URL.revokeObjectURL(previousPreviewUrl.current);
+      }
+    };
+  }, []);
 
   const handleChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setLocalChanges((prev) => ({ ...prev, [field]: value }));
+    if (field === "contactNumber") {
+      if (value && !String(value).startsWith("0")) {
+        setContactError("Contact number must start with 0");
+      } else {
+        setContactError("");
+      }
+    }
+  };
+
+  const getProfileImageUrl = () => {
+    if (picturePreview) return picturePreview;
+    const url =
+      profileData?.profilePicture?.url || currentUser?.socialMediaPictureUrl;
+    return url ? buildApiUrl(url) : "";
+  };
+
+  const getInitials = () => {
+    const source = formData.fullName?.trim() || formData.email || "User";
+    return source
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() || "")
+      .join("");
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0] || null;
+    if (!file) {
+      setProfilePicture(null);
+      setPicturePreview("");
+      if (previousPreviewUrl.current) {
+        URL.revokeObjectURL(previousPreviewUrl.current);
+        previousPreviewUrl.current = "";
+      }
+      setFileError("");
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      setProfilePicture(null);
+      setPicturePreview("");
+      if (previousPreviewUrl.current) {
+        URL.revokeObjectURL(previousPreviewUrl.current);
+        previousPreviewUrl.current = "";
+      }
+      setFileError("Profile picture must be below 300KB.");
+      return;
+    }
+    if (previousPreviewUrl.current) {
+      URL.revokeObjectURL(previousPreviewUrl.current);
+    }
+    const url = URL.createObjectURL(file);
+    previousPreviewUrl.current = url;
+    setFileError("");
+    setPicturePreview(url);
+    setProfilePicture(file);
   };
 
   const handleUpdate = async () => {
@@ -49,17 +172,37 @@ export default function EditProfilePage({
       return;
     }
 
+    if (
+      !formData.fullName.trim() ||
+      !formData.contactNumber.trim() ||
+      contactError ||
+      fileError
+    ) {
+      toast.error("Please fill in all required fields correctly");
+      return;
+    }
+
+    if (!formData.contactNumber.startsWith("0")) {
+      toast.error("Contact number must start with 0");
+      return;
+    }
+
     setIsSubmitting(true);
+    const sourceName = formData.userSource;
     const result = await updateMyProfile(
       {
-        fullName: formData.fullName,
-        contactNumber: formData.phoneNumber,
+        fullName: formData.fullName.trim(),
+        contactNumber: formData.contactNumber.trim(),
         onboardInfo: {
-          ...(profileData?.onboardInfo || {}),
+          age: formData.age,
           country: formData.country,
+          purpose: formData.purpose,
+          goalTime: formData.goalTime,
+          userSource: sourceName ? sourceName.toLowerCase() : "",
+          languageStrength: formData.languageStrength,
         },
       },
-      null,
+      profilePicture,
       token,
     );
     setIsSubmitting(false);
@@ -72,6 +215,14 @@ export default function EditProfilePage({
     if (onProfileUpdated) {
       onProfileUpdated(result.profile);
     }
+
+    void useProfileStore
+      .getState()
+      .fetchMyProfile(
+        token,
+        true,
+        session?.user?.id || currentUser?.id || "guest",
+      );
 
     toast.success("Profile updated successfully");
     onBack();
@@ -103,17 +254,44 @@ export default function EditProfilePage({
         {/* Profile Picture */}
         <div className="flex justify-center mb-8">
           <div className="relative">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-3xl font-bold text-white">
-              AA
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-3xl font-bold text-white overflow-hidden">
+              {getProfileImageUrl() ? (
+                <img
+                  src={getProfileImageUrl()}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                getInitials()
+              )}
             </div>
-            <button className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center shadow-lg hover:bg-accent/90 transition-all">
+            <label className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center shadow-lg hover:bg-accent/90 transition-all cursor-pointer">
               <Camera className="w-4 h-4" />
-            </button>
-            {/* <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-palm-green border-2 border-card flex items-center justify-center">
-              <Check className="w-3 h-3 text-white" />
-            </div> */}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+            </label>
           </div>
         </div>
+        {profilePicture && (
+          <div className="text-center mb-4">
+            <span className="inline-flex items-center gap-1 text-xs text-emerald-600 font-semibold">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Ready to upload
+            </span>
+            <span className="block text-xs text-muted-foreground truncate mt-1">
+              {profilePicture.name}
+            </span>
+          </div>
+        )}
+        {fileError && (
+          <p className="text-center text-xs text-destructive mb-4">
+            {fileError}
+          </p>
+        )}
 
         {/* Form Fields */}
         <div className="space-y-4">
@@ -135,10 +313,13 @@ export default function EditProfilePage({
             </label>
             <input
               type="tel"
-              value={formData.phoneNumber}
-              onChange={(e) => handleChange("phoneNumber", e.target.value)}
+              value={formData.contactNumber}
+              onChange={(e) => handleChange("contactNumber", e.target.value)}
               className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground"
             />
+            {contactError && (
+              <p className="text-xs text-destructive mt-1">{contactError}</p>
+            )}
           </div>
 
           <div>
@@ -155,33 +336,143 @@ export default function EditProfilePage({
 
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-2">
-              Date of Birth
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={formData.dateOfBirth}
-                onChange={(e) => handleChange("dateOfBirth", e.target.value)}
-                className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground"
-              />
-              <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-2">
               Country
             </label>
             <div className="relative">
               <select
                 value={formData.country}
                 onChange={(e) => handleChange("country", e.target.value)}
+                disabled={isLoadingOptions}
                 className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
               >
-                <option>United States</option>
-                <option>United Kingdom</option>
-                <option>Canada</option>
-                <option>Australia</option>
+                <option value="">Select country</option>
+                {(onboardingOptions?.Country?.countryList || []).map(
+                  (option) => (
+                    <option key={option.id} value={option.countryName}>
+                      {option.countryName}
+                    </option>
+                  ),
+                )}
+              </select>
+              <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
+              Age
+            </label>
+            <div className="relative">
+              <select
+                value={formData.age}
+                onChange={(e) => handleChange("age", e.target.value)}
+                disabled={isLoadingOptions}
+                className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
+              >
+                <option value="">Select age</option>
+                {(onboardingOptions?.age?.ageList || []).map((option) => (
+                  <option key={option.id} value={option.ageTitle}>
+                    {option.ageTitle}
+                  </option>
+                ))}
+              </select>
+              <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
+              Language Strength
+            </label>
+            <div className="relative">
+              <select
+                value={formData.languageStrength}
+                onChange={(e) =>
+                  handleChange("languageStrength", e.target.value)
+                }
+                disabled={isLoadingOptions}
+                className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
+              >
+                <option value="">Select language strength</option>
+                {(onboardingOptions?.languageStrength?.strengthsList || []).map(
+                  (option) => (
+                    <option key={option.id} value={option.strengthsTitle}>
+                      {option.strengthsTitle}
+                    </option>
+                  ),
+                )}
+              </select>
+              <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
+              Daily Study Target
+            </label>
+            <div className="relative">
+              <select
+                value={formData.goalTime}
+                onChange={(e) =>
+                  handleChange("goalTime", Number(e.target.value))
+                }
+                disabled={isLoadingOptions}
+                className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
+              >
+                <option value={0}>Select daily goal</option>
+                {(onboardingOptions?.Goal?.goalList || []).map((option) => (
+                  <option key={option.id} value={Number(option.goalTime)}>
+                    {option.goalTime} minutes
+                  </option>
+                ))}
+              </select>
+              <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
+              Purpose
+            </label>
+            <div className="relative">
+              <select
+                value={formData.purpose}
+                onChange={(e) => handleChange("purpose", e.target.value)}
+                disabled={isLoadingOptions}
+                className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
+              >
+                <option value="">Select purpose</option>
+                {(onboardingOptions?.purpose?.purposeList || []).map(
+                  (option) => (
+                    <option key={option.id} value={option.purposeTitle}>
+                      {option.purposeTitle}
+                    </option>
+                  ),
+                )}
+              </select>
+              <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
+              How did you learn about Nakhlah
+            </label>
+            <div className="relative">
+              <select
+                value={formData.userSource}
+                onChange={(e) => handleChange("userSource", e.target.value)}
+                disabled={isLoadingOptions}
+                className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
+              >
+                <option value="">Select source</option>
+                {(onboardingOptions?.userSource?.sourceList || []).map(
+                  (option) => (
+                    <option key={option.id} value={option.sourceName}>
+                      {option.sourceName}
+                    </option>
+                  ),
+                )}
               </select>
               <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
             </div>
@@ -192,7 +483,14 @@ export default function EditProfilePage({
         <div className="mt-8">
           <Button
             onClick={handleUpdate}
-            disabled={isSubmitting}
+            disabled={
+              isSubmitting ||
+              isLoadingOptions ||
+              !formData.fullName.trim() ||
+              !formData.contactNumber.trim() ||
+              !!contactError ||
+              !!fileError
+            }
             className="w-full bg-gradient-accent hover:bg-gradient-accent/90 text-accent-foreground py-6 text-lg font-semibold"
           >
             {isSubmitting ? "Updating..." : "Update Profile"}

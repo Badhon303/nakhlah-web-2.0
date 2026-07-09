@@ -457,7 +457,7 @@ export default function Onboarding() {
       onboardInfo: {
         age: selectedValues.selectedAge?.ageTitle || age.toString(),
         country: selectedValues.selectedCountry?.countryName || "",
-        purpose: "",
+        purpose: selectedValues.selectedPurpose?.purposeTitle || "",
         goalTime: parseInt(dailyGoal) || 10,
         userSource: (
           selectedValues.selectedSource?.sourceName || ""
