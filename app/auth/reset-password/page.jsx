@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { resetPassword } from "@/services/api/auth";
@@ -20,7 +19,6 @@ function CreatePasswordContent() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [resetToken, setResetToken] = useState("");
 
@@ -140,7 +138,7 @@ function CreatePasswordContent() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="••••••••••••"
+                    placeholder="Enter your new password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="h-12 bg-background border-border text-foreground pr-12"
@@ -172,7 +170,7 @@ function CreatePasswordContent() {
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
-                    placeholder="••••••••••••"
+                    placeholder="Re-type your new password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="h-12 bg-background border-border text-foreground pr-12"
@@ -190,21 +188,6 @@ function CreatePasswordContent() {
                     )}
                   </button>
                 </div>
-              </div>
-
-              {/* Remember Me */}
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="remember"
-                  checked={rememberMe}
-                  onCheckedChange={setRememberMe}
-                />
-                <Label
-                  htmlFor="remember"
-                  className="text-sm text-foreground cursor-pointer"
-                >
-                  Stay logged in
-                </Label>
               </div>
 
               {/* Continue Button */}

@@ -36,7 +36,7 @@ export default function ForgotPasswordPage() {
       }
 
       toast.success(result.message || "Reset link sent to your email");
-      router.push("/auth/reset-password");
+      router.push("/auth/forgot-password-success");
     } catch (error) {
       console.error("Forgot password error:", error);
       toast.error("An error occurred. Please try again.");
@@ -98,7 +98,8 @@ export default function ForgotPasswordPage() {
                   Forgot Password 🔑
                 </h1>
                 <p className="text-muted-foreground">
-                  Enter your email address to receive a password reset link
+                  Enter your account email address to receive a password reset
+                  link
                 </p>
               </motion.div>
             </div>
@@ -116,7 +117,7 @@ export default function ForgotPasswordPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="andrew.ainsley@yourdomain.com"
+                  placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="h-12 bg-background border-border text-foreground"

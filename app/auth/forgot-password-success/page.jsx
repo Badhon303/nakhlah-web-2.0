@@ -2,17 +2,10 @@
 
 import { useCharacterVideo } from "@/lib/characterVideos";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import { Lock } from "lucide-react";
+import { MailCheck } from "lucide-react";
 
-export default function WelcomeBackPage() {
-  const router = useRouter();
+export default function ForgotPasswordSuccessPage() {
   const happyVideoSrc = useCharacterVideo("happy");
-
-  const handleContinue = () => {
-    router.push("/auth/login");
-  };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -40,7 +33,7 @@ export default function WelcomeBackPage() {
             />
           </motion.div>
 
-          {/* Message */}
+          {/* Icon + Message */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -48,29 +41,19 @@ export default function WelcomeBackPage() {
             className="mb-8"
           >
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 mb-4">
-              <Lock className="w-8 h-8 text-accent" />
+              <MailCheck className="w-8 h-8 text-accent" />
             </div>
-            <h1 className="text-4xl font-extrabold text-accent mb-3">
-              Password reset!
+            <h1 className="text-3xl font-extrabold text-foreground mb-3">
+              Check your email
             </h1>
             <p className="text-lg text-muted-foreground">
-              You have successfully created a new password. Please log in to
-              continue.
+              Congratulations! We have sent a password reset link to the email
+              address associated with your account.
             </p>
-          </motion.div>
-
-          {/* Continue Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-          >
-            <Button
-              onClick={handleContinue}
-              className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
-            >
-              CONTINUE TO LOGIN
-            </Button>
+            <p className="text-sm text-muted-foreground mt-3">
+              You can close this page and check your inbox. If you don&apos;t
+              see the email, please check your spam or junk folder.
+            </p>
           </motion.div>
 
           {/* Decorative Elements */}
