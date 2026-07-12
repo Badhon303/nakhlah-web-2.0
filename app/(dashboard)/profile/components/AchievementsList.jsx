@@ -1,5 +1,5 @@
 "use client";
-import { Trophy } from "@/components/icons/Trophy";
+import { Medal } from "@/components/icons/Medal";
 import AchievementTick from "@/components/icons/AchievementTick";
 import { motion } from "framer-motion";
 import { ChevronRight, Lock } from "lucide-react";
@@ -33,7 +33,7 @@ export default function AchievementsList({
       <div className="flex items-center justify-between lg:p-6 mb-4 lg:mb-6">
         <h3 className="flex items-center gap-2 text-xl font-semibold">
           Achievements
-          <Trophy size="sm" />
+          <Medal size="sm" />
         </h3>
         <button
           onClick={onViewAll}
@@ -66,22 +66,18 @@ export default function AchievementsList({
               transition={{ delay: 0.1 * index + 0.4, duration: 0.5 }}
               className="flex items-center gap-3 p-4 bg-muted/30 rounded-xl border border-border/30"
             >
-              <div className="relative">
-                <div
-                  className={`w-12 h-12 rounded-xl ${resolveCardColor(achievement.achieved)} flex items-center justify-center text-sm font-bold`}
-                >
-                  {achievement.unitIcon ? (
-                    <img
-                      src={getMediaUrl(
-                        achievement.unitIcon?.url || achievement.unitIcon,
-                      )}
-                      alt={achievement.title || "Unit icon"}
-                      className="w-10 h-10 rounded-lg object-cover"
-                    />
-                  ) : (
-                    `U${achievement.unitOrder || "-"}`
-                  )}
-                </div>
+              <div className="relative shrink-0">
+                {achievement.unitIcon ? (
+                  <img
+                    src={getMediaUrl(
+                      achievement.unitIcon?.url || achievement.unitIcon,
+                    )}
+                    alt={achievement.title || "Unit icon"}
+                    className="w-12 h-12 rounded-xl object-cover"
+                  />
+                ) : (
+                  <Medal size="md" />
+                )}
               </div>
 
               <div className="flex-1 min-w-0">

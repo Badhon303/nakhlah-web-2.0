@@ -55,19 +55,17 @@ export function InterestsStep({
                   : "border-border bg-card hover:border-primary",
               )}
             >
-              <div className="w-12 h-12 rounded-xl overflow-hidden bg-muted shrink-0 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center">
                 {interest?.interestPicture?.url ? (
                   <img
                     src={getMediaUrl(interest.interestPicture.url)}
                     alt={
                       interest?.interestPicture?.alt || interest.interestTitle
                     }
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                   />
                 ) : (
-                  <span className="text-xs font-bold text-muted-foreground">
-                    ⭐
-                  </span>
+                  <span className="text-2xl">⭐</span>
                 )}
               </div>
               <p className="font-bold text-foreground text-lg text-left flex-1">

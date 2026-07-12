@@ -53,19 +53,12 @@ export function GoalStep({
                   : "border-border bg-card hover:border-primary",
               )}
             >
-              <div
-                className={cn(
-                  "w-14 h-14 rounded-2xl flex items-center justify-center transition-colors",
-                  selectedGoal === value
-                    ? "bg-accent text-accent-foreground"
-                    : "bg-gradient-accent text-accent-foreground",
-                )}
-              >
+              <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center">
                 {goal?.goalMedia?.url ? (
                   <img
                     src={getMediaUrl(goal.goalMedia.url)}
                     alt={goal?.goalMedia?.alt || `${value} minutes`}
-                    className="w-8 h-8 object-contain"
+                    className="w-full h-full object-contain"
                   />
                 ) : (
                   <span className="font-bold">⏱</span>

@@ -71,7 +71,7 @@ export function UserSourceStep({
                     className="w-6 h-6 mx-auto mb-2 object-contain"
                   />
                 ) : (
-                  <div className="w-6 h-6 mx-auto mb-2 rounded-full bg-muted" />
+                  <div className="w-6 h-6 mx-auto mb-2 rounded-full" />
                 )}
                 <p
                   className={`text-sm font-semibold ${

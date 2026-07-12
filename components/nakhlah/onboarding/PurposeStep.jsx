@@ -51,24 +51,15 @@ export function PurposeStep({
                 : "border-border bg-card hover:border-primary",
             )}
           >
-            <div
-              className={cn(
-                "w-12 h-12 rounded-xl flex items-center justify-center",
-                selectedPurpose === purpose.id
-                  ? "bg-accent text-accent-foreground"
-                  : "bg-muted",
-              )}
-            >
+            <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center">
               {purpose?.purposeMedia?.url ? (
                 <img
                   src={getMediaUrl(purpose.purposeMedia.url)}
                   alt={purpose?.purposeMedia?.alt || purpose.purposeTitle}
-                  className="w-7 h-7 object-contain"
+                  className="w-full h-full object-contain"
                 />
               ) : (
-                <span className="text-xs font-bold text-muted-foreground">
-                  🎯
-                </span>
+                <span className="text-2xl">🎯</span>
               )}
             </div>
             <p className="font-bold text-foreground text-lg text-left flex-1">

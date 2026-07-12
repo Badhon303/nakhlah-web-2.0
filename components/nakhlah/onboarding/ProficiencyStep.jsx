@@ -53,22 +53,15 @@ export function ProficiencyStep({
                   : "border-border bg-card hover:border-primary",
               )}
             >
-              <div
-                className={cn(
-                  "w-12 h-12 rounded-xl flex items-center justify-center",
-                  selectedLevel === level.id
-                    ? "bg-accent text-accent-foreground"
-                    : "bg-muted",
-                )}
-              >
+              <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center">
                 {level?.strengthsMedia?.url ? (
                   <img
                     src={getMediaUrl(level.strengthsMedia.url)}
                     alt={level?.strengthsMedia?.alt || level.strengthsTitle}
-                    className="w-6 h-6 object-contain"
+                    className="w-full h-full object-contain"
                   />
                 ) : (
-                  <span className="text-xs font-bold text-muted-foreground">
+                  <span className="text-sm font-bold text-muted-foreground">
                     AR
                   </span>
                 )}

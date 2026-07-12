@@ -1,5 +1,15 @@
 import { motion } from "framer-motion";
-import { Camera, ChevronLeft, CheckCircle2, MapPin } from "lucide-react";
+import {
+  Camera,
+  ChevronLeft,
+  CheckCircle2,
+  MapPin,
+  CalendarDays,
+  Target,
+  BookOpen,
+  Clock,
+  Search,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -103,11 +113,7 @@ export default function EditProfilePage({
   const handleChange = (field, value) => {
     setLocalChanges((prev) => ({ ...prev, [field]: value }));
     if (field === "contactNumber") {
-      if (value && !String(value).startsWith("0")) {
-        setContactError("Contact number must start with 0");
-      } else {
-        setContactError("");
-      }
+      setContactError("");
     }
   };
 
@@ -182,11 +188,6 @@ export default function EditProfilePage({
       return;
     }
 
-    if (!formData.contactNumber.startsWith("0")) {
-      toast.error("Contact number must start with 0");
-      return;
-    }
-
     setIsSubmitting(true);
     const sourceName = formData.userSource;
     const result = await updateMyProfile(
@@ -229,7 +230,7 @@ export default function EditProfilePage({
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto py-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -360,7 +361,7 @@ export default function EditProfilePage({
 
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-2">
-              Age
+              Age Range
             </label>
             <div className="relative">
               <select
@@ -376,7 +377,7 @@ export default function EditProfilePage({
                   </option>
                 ))}
               </select>
-              <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+              <CalendarDays className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
             </div>
           </div>
 
@@ -402,7 +403,7 @@ export default function EditProfilePage({
                   ),
                 )}
               </select>
-              <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+              <BookOpen className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
             </div>
           </div>
 
@@ -426,7 +427,7 @@ export default function EditProfilePage({
                   </option>
                 ))}
               </select>
-              <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+              <Clock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
             </div>
           </div>
 
@@ -450,7 +451,7 @@ export default function EditProfilePage({
                   ),
                 )}
               </select>
-              <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+              <Target className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
             </div>
           </div>
 
@@ -474,7 +475,7 @@ export default function EditProfilePage({
                   ),
                 )}
               </select>
-              <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+              <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
             </div>
           </div>
         </div>
@@ -491,7 +492,7 @@ export default function EditProfilePage({
               !!contactError ||
               !!fileError
             }
-            className="w-full bg-gradient-accent hover:bg-gradient-accent/90 text-accent-foreground py-6 text-lg font-semibold"
+            className="w-full bg-gradient-to-r from-violet-500 to-indigo-500 text-white py-6 text-lg font-semibold"
           >
             {isSubmitting ? "Updating..." : "Update Profile"}
           </Button>

@@ -54,7 +54,7 @@ export function AccountStep({ email, password = "", onChange }) {
             value={localEmail}
             onChange={(e) => setLocalEmail(e.target.value)}
             className="w-full px-4 py-3 rounded-xl border border-border bg-transparent outline-none"
-            placeholder="you@example.com"
+            placeholder="Put your email"
             type="email"
           />
         </div>

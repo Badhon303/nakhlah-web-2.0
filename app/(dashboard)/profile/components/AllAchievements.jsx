@@ -129,25 +129,21 @@ export default function AllAchievementsPage({
                         )}
 
                         <div className="flex items-start gap-4 mb-3">
-                          <div className="relative">
-                            <div
-                              className={`w-14 h-14 rounded-xl ${getLevelChip(group.level)} flex items-center justify-center text-sm font-bold ${
-                                !isUnlocked ? "opacity-60" : ""
-                              }`}
-                            >
-                              {achievement.unitIcon ? (
-                                <img
-                                  src={getMediaUrl(
-                                    achievement.unitIcon?.url ||
-                                      achievement.unitIcon,
-                                  )}
-                                  alt={achievement.title || "Unit icon"}
-                                  className="w-12 h-12 rounded-lg object-cover"
-                                />
-                              ) : (
-                                `U${achievement.unitOrder || "-"}`
-                              )}
-                            </div>
+                          <div
+                            className={`relative shrink-0 ${!isUnlocked ? "opacity-60" : ""}`}
+                          >
+                            {achievement.unitIcon ? (
+                              <img
+                                src={getMediaUrl(
+                                  achievement.unitIcon?.url ||
+                                    achievement.unitIcon,
+                                )}
+                                alt={achievement.title || "Unit icon"}
+                                className="w-14 h-14 rounded-xl object-cover"
+                              />
+                            ) : (
+                              <Medal size="md" />
+                            )}
                             {isUnlocked && (
                               <AchievementTick className="absolute -bottom-1 -right-1" />
                             )}

@@ -1,6 +1,8 @@
 "use client";
 import { motion } from "framer-motion";
-import { Flame, Target, CalendarDays, Award } from "lucide-react";
+import { Calendar } from "@/components/icons/Calendar";
+import { Bullseye } from "@/components/icons/BullsEye";
+import { StreakIcon } from "@/components/icons/PublicAssetIcons";
 import { getLongestStreak } from "@/lib/gamification";
 import { getCurrentStreakCount, getMissedDaysCount } from "@/lib/streakUtils";
 
@@ -16,20 +18,17 @@ export default function QuickStats({ profileData }) {
     {
       label: "Current Streak",
       value: `${currentStreak} day${currentStreak === 1 ? "" : "s"}`,
-      icon: Flame,
-      color: "text-primary",
+      icon: StreakIcon,
     },
     {
       label: "Longest Streak",
       value: `${longestStreak} day${longestStreak === 1 ? "" : "s"}`,
-      icon: Target,
-      color: "text-palm-green",
+      icon: Bullseye,
     },
     {
       label: "Missed Days",
       value: `${missedDays}`,
-      icon: CalendarDays,
-      color: "text-secondary",
+      icon: Calendar,
     },
     // {
     //   label: "Badges Unlocked",
@@ -62,7 +61,7 @@ export default function QuickStats({ profileData }) {
               className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-border/30 hover:bg-muted/50 transition-all cursor-pointer"
             >
               <div className="flex items-center gap-3">
-                <IconComponent className={`w-5 h-5 ${stat.color}`} />
+                <IconComponent size="sm" />
                 <span className="text-muted-foreground font-medium">
                   {stat.label}
                 </span>

@@ -21,7 +21,6 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { registerUser } from "@/lib/authUtils";
 import {
-  createUserProfile,
   fetchCurrentUser,
   fetchMyProfile,
   fetchUserOnboardingGlobals,
@@ -354,8 +353,7 @@ export default function Onboarding() {
       case 7:
         return (
           fullName.trim().length > 1 &&
-          contactNumber.trim().startsWith("0") &&
-          contactNumber.trim().length > 1 &&
+          contactNumber.trim().length > 0 &&
           !profileFileError &&
           !profileContactError
         );
@@ -466,23 +464,17 @@ export default function Onboarding() {
       },
       fullName: fullName.trim(),
       contactNumber: contactNumber.trim(),
-      profilePictureUrl: "",
     };
 
-    const profileResult = await createUserProfile(profileData, token);
+    const profileResult = await updateMyProfile(
+      profileData,
+      profilePicture || null,
+      token,
+    );
 
     if (!profileResult.success) {
       toast.error(profileResult.error || "Failed to create profile");
       return;
-    }
-
-    if (profilePicture) {
-      const pictureResult = await updateMyProfile({}, profilePicture, token);
-      if (!pictureResult.success) {
-        toast.error(
-          pictureResult.error || "Profile created but image upload failed",
-        );
-      }
     }
 
     localStorage.setItem(
@@ -707,6 +699,16 @@ export default function Onboarding() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
+
+          {(currentStep === 7 || currentStep === 8) && (
+            <Button
+              variant="ghost"
+              onClick={() => setCurrentStep((s) => s + 1)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Skip
+            </Button>
+          )}
 
           {currentStep < steps.length ? (
             <Button

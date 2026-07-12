@@ -120,16 +120,11 @@ export function ProfileInfoStep({
           <Input
             value={localContact}
             onChange={(e) => {
-              const value = e.target.value;
-              setLocalContact(value);
-              if (value && !value.startsWith("0")) {
-                setContactError("Contact number must start with 0");
-              } else {
-                setContactError("");
-              }
+              setLocalContact(e.target.value);
+              setContactError("");
             }}
             className="rounded-xl"
-            placeholder="0XXXXXXXXXX"
+            placeholder="Your contact number"
           />
           {contactError ? (
             <p className="text-xs text-destructive mt-1">{contactError}</p>
