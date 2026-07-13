@@ -55,7 +55,7 @@ export default function SettingsPage({ onBack, onNavigate }) {
       label: "Theme",
       icon: Moon,
       color:
-        "bg-indigo-100 text-indigo-500 dark:bg-indigo-900/30 dark:text-indigo-400",
+        "bg-accent/10 text-accent dark:bg-accent/20 dark:text-accent-foreground",
       toggle: true,
     },
   ];

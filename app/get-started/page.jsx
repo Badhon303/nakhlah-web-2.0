@@ -73,7 +73,7 @@ export default function GetStartedPage() {
         >
           <Link
             href="/onboarding"
-            className="w-full bg-accent hover:opacity-90 text-white font-bold text-lg py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-200 flex items-center justify-center"
+            className="w-full bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-200 flex items-center justify-center"
           >
             GET STARTED
           </Link>

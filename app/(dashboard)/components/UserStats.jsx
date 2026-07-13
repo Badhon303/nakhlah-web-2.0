@@ -196,8 +196,8 @@ export function UserStats() {
             onClick={() => handleMobileClick("streak")}
             className="lg:hidden flex items-center space-x-2 text-lg font-semibold cursor-pointer"
           >
-            <StreakIcon className="text-orange-500" />
-            <span className="text-white">{streakCount}</span>
+            <StreakIcon className="text-accent" />
+            <span className="text-accent-foreground">{streakCount}</span>
           </div>
 
           <div className="hidden lg:block">
@@ -208,7 +208,7 @@ export function UserStats() {
                   size="sm"
                   className="flex items-center space-x-2 text-lg font-semibold"
                 >
-                  <StreakIcon className="text-orange-500" />
+                  <StreakIcon className="text-accent" />
                   <span className="text-foreground">{streakCount}</span>
                 </Button>
               </HoverCardTrigger>
@@ -249,7 +249,7 @@ export function UserStats() {
             className="lg:hidden flex items-center space-x-2 text-lg font-semibold cursor-pointer"
           >
             <DatesIcon />
-            <span className="text-white">{datesCount}</span>
+            <span className="text-accent-foreground">{datesCount}</span>
           </div>
 
           <div className="hidden lg:block">
@@ -328,7 +328,7 @@ export function UserStats() {
             className="lg:hidden flex items-center space-x-2 text-lg font-semibold cursor-pointer"
           >
             <PalmIcon className="text-destructive" />
-            <span className="text-white">{palmTreesCount}</span>
+            <span className="text-accent-foreground">{palmTreesCount}</span>
           </div>
 
           <div className="hidden lg:block">
@@ -365,7 +365,7 @@ export function UserStats() {
                 <div className="grid gap-2">
                   <Button
                     variant="outline"
-                    className="text-purple-500"
+                    className="text-accent"
                     onClick={() => router.push("/store")}
                   >
                     UNLIMITED PALM TREES
@@ -408,7 +408,7 @@ export function UserStats() {
 
               <div className="grid gap-2">
                 <button
-                  className="w-full py-2 border rounded-md text-purple-500"
+                  className="w-full py-2 border rounded-md text-accent"
                   onClick={() => {
                     handleCloseAll();
                     router.push("/store");

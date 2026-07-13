@@ -362,7 +362,7 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
                           }}
                         >
                           <div
-                            className="relative mx-auto bg-white text-sm font-semibold px-4 py-2 rounded-2xl shadow-md border-accent w-max min-w-[100px]"
+                            className="relative mx-auto bg-card text-sm font-semibold px-4 py-2 rounded-2xl shadow-md border-accent w-max min-w-[100px]"
                             style={{
                               borderWidth: 4,
                             }}
@@ -387,14 +387,14 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
                                 y="-1"
                                 width="26"
                                 height="5"
-                                fill="white"
+                                fill="hsl(var(--card))"
                               />
                               <path
                                 d="M-1 2 C 8 2, 8 12, 12 12 C 16 12, 16 2, 25 2"
                                 stroke="currentColor"
                                 strokeWidth="4"
                                 strokeLinejoin="round"
-                                fill="white"
+                                fill="hsl(var(--card))"
                               />
                             </svg>
                           </div>
