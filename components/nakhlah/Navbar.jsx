@@ -20,7 +20,6 @@ const navItems = [
 
 export function Navbar() {
   const pathname = usePathname();
-  const isHomePage = pathname === "/";
 
   const handleLogout = () => {
     signOut({ callbackUrl: "/auth/login" });
@@ -29,14 +28,7 @@ export function Navbar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <nav
-        className={cn(
-          "hidden lg:flex flex-col fixed top-0 left-0 h-full w-64 border-r border-border/50 p-6 overflow-y-auto",
-          isHomePage
-            ? "bg-transparent backdrop-blur-sm"
-            : "bg-card/95 backdrop-blur-md",
-        )}
-      >
+      <nav className="hidden lg:flex flex-col fixed top-0 left-0 h-full w-64 border-r border-border/50 bg-background/95 backdrop-blur-md p-6 overflow-y-auto">
         <div className="flex flex-col gap-8">
           {/* Logo */}
           <Link href="/" className="flex w-full items-center justify-center">
@@ -59,16 +51,10 @@ export function Navbar() {
                   key={item.path}
                   href={item.path}
                   className={cn(
-                    "relative flex items-center gap-3 rounded-xl px-4 py-3 text-base font-semibold transition-all",
-                    isHomePage
-                      ? "text-foreground bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 shadow-sm hover:bg-white/40 dark:hover:bg-white/20"
-                      : "text-foreground hover:bg-muted/50 dark:hover:bg-muted/20",
-                    isActive &&
-                      isHomePage &&
-                      "bg-white/60 dark:bg-white/20 ring-1 ring-white/80 dark:ring-white/30",
-                    isActive &&
-                      !isHomePage &&
-                      "bg-muted/60 dark:bg-muted/30 ring-1 ring-border",
+                    "relative flex items-center gap-3 rounded-xl px-4 py-3 text-base font-semibold text-foreground transition-all",
+                    isActive
+                      ? "bg-accent/10 text-accent"
+                      : "hover:bg-muted/50 dark:hover:bg-muted/20",
                   )}
                 >
                   <Image
@@ -85,12 +71,7 @@ export function Navbar() {
             {/* Logout - right after Profile with no gap */}
             <button
               onClick={handleLogout}
-              className={cn(
-                "relative flex items-center gap-3 rounded-xl px-4 py-3 text-base font-semibold transition-all w-full",
-                isHomePage
-                  ? "text-foreground bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 shadow-sm hover:bg-white/40 dark:hover:bg-white/20"
-                  : "text-foreground hover:bg-muted/50 dark:hover:bg-muted/20",
-              )}
+              className="relative flex items-center gap-3 rounded-xl px-4 py-3 text-base font-semibold text-foreground transition-all w-full hover:bg-muted/50 dark:hover:bg-muted/20"
             >
               <Image
                 src="/icons/logout.125f3808.svg"
@@ -106,14 +87,7 @@ export function Navbar() {
       </nav>
 
       {/* Mobile Bottom Navigation */}
-      <nav
-        className={cn(
-          "lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t px-2",
-          isHomePage
-            ? "bg-white/30 dark:bg-white/10 backdrop-blur-md border-white/40 dark:border-white/20"
-            : "bg-card/95 backdrop-blur-md border-border",
-        )}
-      >
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t px-2 bg-background/95 backdrop-blur-md border-border">
         <div className="flex items-center justify-between py-2 gap-1">
           {navItems.map((item) => {
             const isActive = pathname === item.path;
@@ -122,14 +96,8 @@ export function Navbar() {
                 key={item.path}
                 href={item.path}
                 className={cn(
-                  "flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0",
-                  isHomePage
-                    ? "text-foreground bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20"
-                    : "text-foreground hover:bg-muted/50",
-                  isActive &&
-                    isHomePage &&
-                    "bg-white/60 dark:bg-white/20 ring-1 ring-white/60 dark:ring-white/30",
-                  isActive && !isHomePage && "bg-muted/60 ring-1 ring-border",
+                  "flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0 text-foreground",
+                  isActive ? "bg-accent/10 text-accent" : "hover:bg-muted/50",
                 )}
               >
                 <Image
@@ -148,12 +116,7 @@ export function Navbar() {
           {/* Logout - Mobile */}
           <button
             onClick={handleLogout}
-            className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0",
-              isHomePage
-                ? "text-foreground bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20"
-                : "text-foreground hover:bg-muted/50",
-            )}
+            className="flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0 text-foreground hover:bg-muted/50"
           >
             <Image
               src="/icons/logout.125f3808.svg"
