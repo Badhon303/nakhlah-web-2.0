@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
@@ -8,11 +8,6 @@ import { Home, ShoppingBag } from "lucide-react";
 
 export default function SubscriptionSuccessClient() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const subscriptionId = searchParams.get("subscription_id") || "";
-  const baToken = searchParams.get("ba_token") || "";
-  const token = searchParams.get("token") || "";
-
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
@@ -51,14 +46,6 @@ export default function SubscriptionSuccessClient() {
               Your premium subscription is now active. Enjoy unlimited palms,
               advanced analytics and all premium features.
             </p>
-
-            {(subscriptionId || baToken || token) && (
-              <p className="text-xs text-muted-foreground">
-                {subscriptionId && `Subscription: ${subscriptionId}`}
-                {baToken && ` · BA token: ${baToken}`}
-                {token && ` · Token: ${token}`}
-              </p>
-            )}
           </div>
 
           <div className="pt-8 flex flex-col sm:flex-row gap-3 justify-center">

@@ -114,7 +114,7 @@ export default function PaymentReturnClient() {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="hidden lg:flex flex-col items-center justify-center"
+          className="hidden lg:flex flex-col items-center justify-center gap-6"
         >
           <FreshDateMascot mood={mascotMood} size="xxxl" />
           <h2 className="text-2xl font-bold text-foreground text-center max-w-md">
@@ -137,13 +137,13 @@ export default function PaymentReturnClient() {
           </div>
 
           <div className="space-y-4">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 text-accent">
+            {/* <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 text-accent">
               {isLoading ? (
                 <RefreshCw className="w-8 h-8 animate-spin" />
               ) : (
                 <ShoppingBag className="w-8 h-8" />
               )}
-            </div>
+            </div> */}
 
             <h1 className="text-3xl md:text-5xl font-bold text-foreground">
               {title}
@@ -152,13 +152,6 @@ export default function PaymentReturnClient() {
             <p className="text-muted-foreground text-base md:text-lg leading-relaxed max-w-xl mx-auto">
               {captureState.message}
             </p>
-
-            {orderId && (
-              <p className="text-xs text-muted-foreground">
-                PayPal token: {orderId}
-                {payerId ? ` · Payer ID: ${payerId}` : ""}
-              </p>
-            )}
           </div>
 
           <div className="pt-8 flex flex-col sm:flex-row gap-3 justify-center">

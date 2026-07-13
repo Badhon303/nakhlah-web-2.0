@@ -1,18 +1,13 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
-import { Home, RefreshCw, ShoppingBag } from "lucide-react";
+import { Home, ShoppingBag } from "lucide-react";
 
 export default function SubscriptionFailedClient() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const subscriptionId = searchParams.get("subscription_id") || "";
-  const baToken = searchParams.get("ba_token") || "";
-  const token = searchParams.get("token") || "";
-
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
@@ -20,7 +15,7 @@ export default function SubscriptionFailedClient() {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="hidden lg:flex flex-col items-center justify-center"
+          className="hidden lg:flex flex-col items-center justify-center gap-6"
         >
           <FreshDateMascot mood="sad" size="xxxl" />
           <h2 className="text-2xl font-bold text-foreground text-center max-w-md">
@@ -39,9 +34,9 @@ export default function SubscriptionFailedClient() {
           </div>
 
           <div className="space-y-4">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 text-accent">
+            {/* <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 text-accent">
               <RefreshCw className="w-8 h-8" />
-            </div>
+            </div> */}
 
             <h1 className="text-3xl md:text-5xl font-bold text-foreground">
               Payment not completed
@@ -52,14 +47,6 @@ export default function SubscriptionFailedClient() {
               charge was completed. You can choose a plan again whenever
               you&apos;re ready.
             </p>
-
-            {(subscriptionId || baToken || token) && (
-              <p className="text-xs text-muted-foreground">
-                {subscriptionId && `Subscription: ${subscriptionId}`}
-                {baToken && ` · BA token: ${baToken}`}
-                {token && ` · Token: ${token}`}
-              </p>
-            )}
           </div>
 
           <div className="pt-8 flex flex-col sm:flex-row gap-3 justify-center">
