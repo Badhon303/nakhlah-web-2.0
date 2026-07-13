@@ -7,8 +7,6 @@ import { DailyQuests } from "./components/DailyQuests";
 import { ProfileSection } from "./components/ProfileSection";
 import { LeaderboardCard } from "./components/LeaderboardCard";
 import { JourneyErrorFallback } from "./components/JourneyErrorFallback";
-import { PageLoader } from "@/components/nakhlah/PageLoader";
-import { UnitBasedBackground } from "@/components/nakhlah/UnitBasedBackground";
 import { Trophy } from "@/components/icons/Trophy";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
@@ -16,6 +14,7 @@ import { getUserKey } from "@/lib/userKey";
 import { useJourneyStore } from "@/stores/useJourneyStore";
 import { useProfileStore } from "@/stores/useProfileStore";
 
+const mascots = [];
 const JOURNEY_REFRESH_FLAG_KEY = "nakhlah:journey-needs-refresh";
 
 const sortByOrder = (items, key) =>
@@ -132,6 +131,7 @@ const buildJourneyView = (journey, currentProgress) => {
 };
 
 export default function LearnPage() {
+  const stickyTopOffset = "top-6";
   const [loadError, setLoadError] = useState("");
   const { data: session, status } = useSession();
   const journeyData = useJourneyStore((state) => state.journeyData);
@@ -220,47 +220,45 @@ export default function LearnPage() {
     return { levels: sections, lessons: nodes };
   }, [journeyData, profileData]);
 
-  const isLoading =
-    status === "loading" ||
-    ((isJourneyLoading || isProfileLoading) && lessons.length === 0);
+  const isLoading = isJourneyLoading || isProfileLoading;
 
   return (
-    <div className="text-foreground min-h-screen no-scrollbar">
-      <PageLoader isLoading={isLoading} />
+    <div className="bg-background text-foreground">
+      {/* Mobile sticky header */}
+      <div className="lg:hidden fixed top-0 w-full z-[55] bg-primary shadow-md">
+        <UserStats />
+      </div>
 
-      {/* Background that shifts with scroll - Unit based */}
-      <UnitBasedBackground
-        levels={levels}
-        className="min-h-screen no-scrollbar"
-      >
-        <main className="w-full px-4 lg:px-6 lg:py-6 no-scrollbar">
-          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 no-scrollbar">
-            {/* Left side: Pathway */}
-            <div className="lg:flex-1 lg:min-w-0 relative">
-              {loadError ? (
-                <JourneyErrorFallback
-                  error={loadError}
-                  onRetry={() => loadJourney(true)}
-                />
-              ) : (
-                <ZigzagPath
-                  lessons={lessons}
-                  levels={levels}
-                  isLoading={isLoading}
-                />
-              )}
-            </div>
-
-            {/* Right side: Sticky sidebar */}
-            <div className="hidden lg:block lg:w-[300px] xl:w-[320px] 2xl:w-[350px] lg:shrink-0 lg:mr-6 xl:mr-8 lg:sticky lg:top-6 lg:self-start lg:h-[calc(100vh-48px)] lg:overflow-y-auto no-scrollbar space-y-6 !bg-none">
-              <UserStats />
-              <DailyQuests />
-              <LeaderboardCard />
-              <ProfileSection />
-            </div>
+      <main className="container mx-auto pt-[84px] lg:pt-0 lg:px-4 lg:py-6 max-w-7xl">
+        <div className="flex flex-col lg:flex-row gap-12">
+          {/* Left side: Scrollable pathway */}
+          <div className="lg:w-2/3 lg:h-[calc(100vh_-_64px)] lg:overflow-y-auto no-scrollbar">
+            {loadError ? (
+              <JourneyErrorFallback
+                error={loadError}
+                onRetry={() => loadJourney(true)}
+              />
+            ) : (
+              <ZigzagPath
+                lessons={lessons}
+                levels={levels}
+                mascots={mascots}
+                isLoading={isLoading}
+              />
+            )}
           </div>
-        </main>
-      </UnitBasedBackground>
+
+          {/* Right side: Sticky Sidebar */}
+          <div
+            className={`hidden lg:block lg:w-1/3 space-y-6 lg:h-[calc(100vh_-_64px)] lg:overflow-y-auto no-scrollbar lg:sticky ${stickyTopOffset} h-fit max-w-sm ml-auto`}
+          >
+            <UserStats />
+            <DailyQuests />
+            <LeaderboardCard />
+            <ProfileSection />
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
