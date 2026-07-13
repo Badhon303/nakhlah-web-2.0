@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft, Delete } from "lucide-react";
+import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
 import { useRouter } from "next/navigation";
 
 export default function OTPVerificationPage() {
@@ -108,6 +109,19 @@ export default function OTPVerificationPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-start sm:items-center justify-center p-4">
+      {/* Mobile fixed nav */}
+      <Link
+        href="/auth/forgot-password"
+        className="fixed top-4 left-4 z-50 lg:hidden inline-flex items-center gap-1.5 text-foreground hover:text-accent transition-colors bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2"
+      >
+        <ArrowLeft className="h-5 w-5" />
+        <span className="font-semibold text-sm">Back</span>
+      </Link>
+      <div className="fixed top-4 right-4 z-50 lg:hidden">
+        <div className="bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-full p-2 shadow-lg">
+          <ThemeToggle size="lg" />
+        </div>
+      </div>
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
         {/* Left Side - Mascot */}
         <motion.div
@@ -132,13 +146,13 @@ export default function OTPVerificationPage() {
           <div className="bg-transparent lg:bg-card rounded-none lg:rounded-3xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-8">
             {/* Mobile Mascot */}
             <div className="flex justify-center mb-6 lg:hidden">
-              <FreshDateMascot mood="thinking" size="xl" />
+              <FreshDateMascot mood="thinking" size="xxxl" />
             </div>
 
-            {/* Back Button */}
+            {/* Back Button - desktop only */}
             <Link
               href="/auth/forgot-password"
-              className="inline-flex items-center gap-2 text-foreground hover:text-accent mb-6 transition-colors"
+              className="hidden lg:inline-flex items-center gap-2 text-foreground hover:text-accent mb-6 transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
               <span className="font-semibold">Back</span>

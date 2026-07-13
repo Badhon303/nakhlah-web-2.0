@@ -11,6 +11,7 @@ import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { forgotPassword } from "@/services/api/auth";
 import { toast } from "@/components/nakhlah/Toast";
+import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -46,6 +47,20 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-start sm:items-center justify-center p-4">
+      {/* Mobile fixed nav */}
+      <button
+        type="button"
+        onClick={() => window.history.back()}
+        className="fixed top-4 left-4 z-50 lg:hidden inline-flex items-center gap-1.5 text-foreground hover:text-accent transition-colors bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2"
+      >
+        <ArrowLeft className="h-5 w-5" />
+        <span className="font-semibold text-sm">Back</span>
+      </button>
+      <div className="fixed top-4 right-4 z-50 lg:hidden">
+        <div className="bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-full p-2 shadow-lg">
+          <ThemeToggle size="lg" />
+        </div>
+      </div>
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
         {/* Left Side - Mascot */}
         <motion.div
@@ -69,11 +84,11 @@ export default function ForgotPasswordPage() {
           <div className="bg-transparent lg:bg-card rounded-none lg:rounded-3xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-8">
             {/* Mobile Mascot */}
             <div className="flex justify-center mb-6 lg:hidden">
-              <FreshDateMascot mood="sad" size="xl" />
+              <FreshDateMascot mood="sad" size="xxxl" />
             </div>
 
-            {/* Back Button */}
-            <div className="mb-6">
+            {/* Back Button - desktop only */}
+            <div className="mb-6 hidden lg:block">
               <button
                 type="button"
                 onClick={() => window.history.back()}

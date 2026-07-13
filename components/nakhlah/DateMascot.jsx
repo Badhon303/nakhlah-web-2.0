@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useId } from "react";
 
 const petalRingPath = (
   cx,
@@ -69,6 +70,7 @@ export const FreshDateMascot = ({
   };
 
   const dimensions = sizeMap[size] || sizeMap.md;
+  const uid = useId().replace(/:/g, "");
 
   const getBodyAnimation = () => {
     switch (mood) {
@@ -1249,8 +1251,8 @@ export const FreshDateMascot = ({
                C28 81.5 24 81 20 79
                C12 75 7 66 6 56
                C5.5 51 5.5 46 6 42Z"
-              fill="url(#freshDateBottom)"
-              stroke="url(#freshDateOutline)"
+              fill={`url(#${uid}freshDateBottom)`}
+              stroke={`url(#${uid}freshDateOutline)`}
               strokeWidth="1.6"
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
@@ -1265,7 +1267,7 @@ export const FreshDateMascot = ({
                C50 63 42 65 32 65
                C22 65 14 63 6 60
                C5.7 55 5.7 48 6 42Z"
-              fill="url(#freshDateTop)"
+              fill={`url(#${uid}freshDateTop)`}
             />
             <path
               d="M6 60 Q14 64 22 63 Q28 62 32 64 Q38 66 44 63 Q52 61 58 60"
@@ -1323,7 +1325,7 @@ export const FreshDateMascot = ({
                    Q46 25.6 44 24.2 Q42 27.4 40 25.8 Q38 28.7 36 26.8
                    Q34 29.4 32 27.1 Q30 29.4 28 26.8 Q26 28.7 24 25.8
                    Q22 27.4 20 24.2 Q18 25.6 16 22 Z"
-                fill="url(#calyxTop)"
+                fill={`url(#${uid}calyxTop)`}
                 stroke="#8F5F23"
                 strokeWidth="0.8"
                 strokeLinejoin="round"
@@ -1356,7 +1358,7 @@ export const FreshDateMascot = ({
                    L35.3 8.5
                    C34.7 11.2 34.3 14.4 34.2 17.6
                    Z"
-                fill="url(#stemGradient)"
+                fill={`url(#${uid}stemGradient)`}
                 stroke="#8A5E14"
                 strokeWidth="0.5"
                 strokeLinejoin="round"
@@ -1397,7 +1399,7 @@ export const FreshDateMascot = ({
 
             <defs>
               <linearGradient
-                id="freshDateBottom"
+                id={`${uid}freshDateBottom`}
                 x1="32"
                 y1="19"
                 x2="32"
@@ -1409,7 +1411,7 @@ export const FreshDateMascot = ({
                 <stop offset="100%" stopColor="#8A4E1C" />
               </linearGradient>
               <linearGradient
-                id="freshDateTop"
+                id={`${uid}freshDateTop`}
                 x1="32"
                 y1="19"
                 x2="32"
@@ -1421,7 +1423,7 @@ export const FreshDateMascot = ({
                 <stop offset="100%" stopColor="#DFA84E" />
               </linearGradient>
               <linearGradient
-                id="freshDateOutline"
+                id={`${uid}freshDateOutline`}
                 x1="32"
                 y1="19"
                 x2="32"
@@ -1432,7 +1434,7 @@ export const FreshDateMascot = ({
                 <stop offset="100%" stopColor="#6E3D14" />
               </linearGradient>
               <linearGradient
-                id="freshDateArm"
+                id={`${uid}freshDateArm`}
                 x1="0"
                 y1="45"
                 x2="0"
@@ -1443,7 +1445,7 @@ export const FreshDateMascot = ({
                 <stop offset="100%" stopColor="#A9642A" />
               </linearGradient>
               <linearGradient
-                id="calyxTop"
+                id={`${uid}calyxTop`}
                 x1="32"
                 y1="15"
                 x2="32"
@@ -1455,7 +1457,7 @@ export const FreshDateMascot = ({
                 <stop offset="100%" stopColor="#D9A047" />
               </linearGradient>
               <linearGradient
-                id="stemGradient"
+                id={`${uid}stemGradient`}
                 x1="30.6"
                 y1="12"
                 x2="35.3"

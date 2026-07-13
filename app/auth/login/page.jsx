@@ -9,7 +9,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { signIn } from "next-auth/react";
-import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import LogoAnimation from "@/components/icons/Logo";
+import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
 import { useRouter } from "next/navigation";
 import { queueToastAfterNavigation, toast } from "@/components/nakhlah/Toast";
 import { useProfileStore } from "@/stores/useProfileStore";
@@ -62,6 +63,11 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-background flex items-start sm:items-center justify-center p-4">
+      <div className="fixed top-4 right-4 z-50 lg:hidden">
+        <div className="bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-full p-2 shadow-lg">
+          <ThemeToggle size="lg" />
+        </div>
+      </div>
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
         {/* Left Side - Maskot */}
         <motion.div
@@ -70,7 +76,7 @@ export default function Login() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="hidden lg:flex flex-col items-center justify-center gap-6"
         >
-          <FreshDateMascot mood="happy" size="xxxl" />
+          <LogoAnimation className="w-56" />
           <p className="text-xl text-muted-foreground text-center max-w-md">
             Learn languages whenever and wherever you want
           </p>
@@ -84,9 +90,9 @@ export default function Login() {
           className="w-full max-w-md mx-auto pt-6 lg:pt-0"
         >
           <div className="bg-transparent lg:bg-card rounded-none lg:rounded-3xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-8">
-            {/* Mobile Mascot */}
-            <div className="flex justify-center mb-6 lg:hidden">
-              <FreshDateMascot mood="happy" size="xl" />
+            {/* Mobile Logo */}
+            <div className="flex justify-center mb-4 lg:hidden">
+              <LogoAnimation className="w-44" />
             </div>
 
             {/* Header */}

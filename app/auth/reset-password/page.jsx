@@ -10,6 +10,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { resetPassword } from "@/services/api/auth";
 import { toast } from "@/components/nakhlah/Toast";
+import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
 
 function CreatePasswordContent() {
   const router = useRouter();
@@ -67,6 +68,11 @@ function CreatePasswordContent() {
 
   return (
     <div className="min-h-screen bg-background flex items-start sm:items-center justify-center p-4">
+      <div className="fixed top-4 right-4 z-50 lg:hidden">
+        <div className="bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-full p-2 shadow-lg">
+          <ThemeToggle size="lg" />
+        </div>
+      </div>
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
         {/* Left Side - Mascot */}
         <motion.div
@@ -90,7 +96,7 @@ function CreatePasswordContent() {
           <div className="bg-transparent lg:bg-card rounded-none lg:rounded-3xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-8">
             {/* Mobile Mascot */}
             <div className="flex justify-center mb-6 lg:hidden">
-              <FreshDateMascot mood="thinking" size="xl" />
+              <FreshDateMascot mood="thinking" size="xxxl" />
             </div>
 
             {/* Header */}

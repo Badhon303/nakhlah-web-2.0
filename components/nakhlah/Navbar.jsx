@@ -176,7 +176,7 @@ export function Navbar() {
       </nav>
 
       {/* Floating Theme Toggle - Mobile Only */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
+      <div className="lg:hidden fixed top-4 right-4 z-50">
         <div className="bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-full p-2 shadow-lg">
           <ThemeToggle size="lg" />
         </div>
