@@ -681,48 +681,53 @@ export default function Onboarding() {
       </main>
 
       <footer className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border pb-[env(safe-area-inset-bottom)]">
-        <div className="container px-1 py-4 flex items-center justify-between max-w-xl mx-auto">
-          <Button
-            variant="ghost"
-            onClick={handleBack}
-            disabled={currentStep === 1 || isRegistering}
-            className={cn("gap-2", currentStep === 1 && "invisible")}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Button>
-
-          {(currentStep === 7 || currentStep === 8) && (
+        <div className="container px-1 py-4 flex flex-col gap-3 max-w-xl mx-auto">
+          <div className="flex items-center justify-between">
             <Button
               variant="ghost"
-              onClick={() => setCurrentStep((s) => s + 1)}
-              className="text-muted-foreground hover:text-foreground"
+              onClick={handleBack}
+              disabled={currentStep === 1 || isRegistering}
+              className={cn("gap-2", currentStep === 1 && "invisible")}
             >
-              Skip
+              <ArrowLeft className="w-4 h-4" />
+              Back
             </Button>
-          )}
 
-          {currentStep < steps.length ? (
-            <Button
-              onClick={handleNext}
-              disabled={
-                isLoadingOnboarding ||
-                !!loadingError ||
-                !canProceed() ||
-                isRegistering
-              }
-              className="gap-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white"
-            >
-              {isRegistering ? "Creating Account..." : "Continue"}
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          ) : (
-            <Button
-              onClick={handleComplete}
-              className="gap-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white"
-            >
-              Start Learning
-            </Button>
+            {currentStep < steps.length ? (
+              <Button
+                onClick={handleNext}
+                disabled={
+                  isLoadingOnboarding ||
+                  !!loadingError ||
+                  !canProceed() ||
+                  isRegistering
+                }
+                className="gap-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white"
+              >
+                {isRegistering ? "Creating Account..." : "Continue"}
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Button
+                onClick={handleComplete}
+                className="gap-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white"
+              >
+                Start Learning
+              </Button>
+            )}
+          </div>
+
+          {[4, 5, 6, 7, 8].includes(currentStep) && (
+            <div className="relative flex items-center">
+              <div className="flex-1 border-t border-border" />
+              <button
+                onClick={() => setCurrentStep((s) => s + 1)}
+                className="px-4 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                or skip for now
+              </button>
+              <div className="flex-1 border-t border-border" />
+            </div>
           )}
         </div>
       </footer>

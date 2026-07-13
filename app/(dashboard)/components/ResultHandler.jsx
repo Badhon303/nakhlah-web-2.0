@@ -98,7 +98,7 @@ export function LessonResultHandler({
   }, [playClick, onContinue]);
 
   return (
-    <div className="border-t-2 border-border bg-background shrink-0">
+    <div className="border-t-2 border-border bg-background shrink-0 pb-[env(safe-area-inset-bottom)]">
       <AnimatePresence mode="wait" initial={false}>
         {isCorrect === null ? (
           <motion.div
@@ -158,7 +158,10 @@ export function LessonResultHandler({
                   </h3>
                   {!isCorrect && correctAnswer && (
                     <p className="text-red-700 dark:text-red-300 font-bold text-md sm:text-lg leading-snug break-words">
-                      Correct: {correctAnswer}
+                      Correct:{" "}
+                      <span dir="rtl" className="inline-block">
+                        {correctAnswer}
+                      </span>
                     </p>
                   )}
                 </div>

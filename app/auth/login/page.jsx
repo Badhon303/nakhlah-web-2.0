@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { signIn } from "next-auth/react";
-import LogoAnimation from "@/components/icons/Logo";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { useRouter } from "next/navigation";
 import { queueToastAfterNavigation, toast } from "@/components/nakhlah/Toast";
 import { useProfileStore } from "@/stores/useProfileStore";
@@ -70,8 +70,7 @@ export default function Login() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="hidden lg:flex flex-col items-center justify-center gap-6"
         >
-          <LogoAnimation className="w-56" />
-          {/* <h2 className="text-4xl font-black text-accent mb-2">Nakhlah</h2> */}
+          <FreshDateMascot mood="happy" size="xxxl" />
           <p className="text-xl text-muted-foreground text-center max-w-md">
             Learn languages whenever and wherever you want
           </p>
@@ -85,6 +84,11 @@ export default function Login() {
           className="w-full max-w-md mx-auto pt-6 lg:pt-0"
         >
           <div className="bg-transparent lg:bg-card rounded-none lg:rounded-3xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-8">
+            {/* Mobile Mascot */}
+            <div className="flex justify-center mb-6 lg:hidden">
+              <FreshDateMascot mood="happy" size="xl" />
+            </div>
+
             {/* Header */}
             <div className="mb-8">
               <motion.div

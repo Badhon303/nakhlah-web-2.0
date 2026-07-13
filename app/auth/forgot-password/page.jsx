@@ -67,6 +67,11 @@ export default function ForgotPasswordPage() {
           className="w-full max-w-md mx-auto pt-6 lg:pt-0"
         >
           <div className="bg-transparent lg:bg-card rounded-none lg:rounded-3xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-8">
+            {/* Mobile Mascot */}
+            <div className="flex justify-center mb-6 lg:hidden">
+              <FreshDateMascot mood="sad" size="xl" />
+            </div>
+
             {/* Back Button */}
             <div className="mb-6">
               <button

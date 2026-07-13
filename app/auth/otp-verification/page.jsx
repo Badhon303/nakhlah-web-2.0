@@ -114,7 +114,7 @@ export default function OTPVerificationPage() {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="hidden lg:flex flex-col items-center justify-center"
+          className="hidden lg:flex flex-col items-center justify-center gap-6"
         >
           <FreshDateMascot mood="thinking" size="xxxl" />
           <h2 className="text-2xl font-bold text-foreground text-center max-w-md">
@@ -130,6 +130,11 @@ export default function OTPVerificationPage() {
           className="w-full max-w-md mx-auto pt-6 lg:pt-0"
         >
           <div className="bg-transparent lg:bg-card rounded-none lg:rounded-3xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-8">
+            {/* Mobile Mascot */}
+            <div className="flex justify-center mb-6 lg:hidden">
+              <FreshDateMascot mood="thinking" size="xl" />
+            </div>
+
             {/* Back Button */}
             <Link
               href="/auth/forgot-password"

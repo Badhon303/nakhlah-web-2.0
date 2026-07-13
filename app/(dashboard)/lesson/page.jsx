@@ -2219,12 +2219,13 @@ export default function LessonPage() {
                     : "False"
                   : questionType === "fill_blank"
                     ? fillBlankCorrectAnswer
-                    : questionType === "word_making" ||
-                        questionType === "sentence_making"
-                      ? orderedTokens.join(" ")
-                      : !isCorrect && isCorrect !== null
-                        ? "All pairs need to be correctly matched"
-                        : undefined
+                    : questionType === "word_making"
+                      ? orderedTokens.join("")
+                      : questionType === "sentence_making"
+                        ? orderedTokens.join(" ")
+                        : !isCorrect && isCorrect !== null
+                          ? "All pairs need to be correctly matched"
+                          : undefined
             }
             onCheck={handleCheckAnswer}
             onContinue={goToNext}
