@@ -1,6 +1,6 @@
 "use client";
 
-import { useCharacterVideo } from "@/lib/characterVideos";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -8,7 +8,6 @@ import { Lock } from "lucide-react";
 
 export default function WelcomeBackPage() {
   const router = useRouter();
-  const happyVideoSrc = useCharacterVideo("happy");
 
   const handleContinue = () => {
     router.push("/auth/login");
@@ -30,14 +29,7 @@ export default function WelcomeBackPage() {
             transition={{ delay: 0.3, duration: 0.5 }}
             className="mb-6"
           >
-            <video
-              src={happyVideoSrc}
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-72 h-72 mx-auto"
-            />
+            <FreshDateMascot mood="celebrating" size="xxxl" />
           </motion.div>
 
           {/* Message */}
@@ -45,11 +37,11 @@ export default function WelcomeBackPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            className="mb-8"
+            className="mb-6"
           >
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 mb-4">
+            {/* <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 mb-4">
               <Lock className="w-8 h-8 text-accent" />
-            </div>
+            </div> */}
             <h1 className="text-4xl font-extrabold text-accent mb-3">
               Password reset!
             </h1>

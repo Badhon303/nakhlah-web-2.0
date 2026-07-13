@@ -1,11 +1,10 @@
 "use client";
 
-import { useCharacterVideo } from "@/lib/characterVideos";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
 export default function GetStartedPage() {
-  const happyVideoSrc = useCharacterVideo("happy");
   return (
     <div className="min-h-screen w-full bg-background flex items-center justify-center p-8">
       <motion.div
@@ -23,7 +22,7 @@ export default function GetStartedPage() {
         >
           <div className="bg-card px-8 py-4 rounded-3xl shadow-lg border border-border">
             <p className="text-xl font-semibold text-foreground">
-              Hi there! I&apos;m Fatima!
+              Hi there! I&apos;m Tamroor!
             </p>
           </div>
           {/* Fixed triangle with proper CSS values */}
@@ -49,14 +48,7 @@ export default function GetStartedPage() {
           }}
           className="flex justify-center"
         >
-          <video
-            src={happyVideoSrc}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-80 h-80"
-          />
+          <FreshDateMascot mood="celebrating" size="xxxl" />
         </motion.div>
 
         {/* Brand Name */}

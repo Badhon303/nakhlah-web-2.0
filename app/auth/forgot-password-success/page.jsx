@@ -1,12 +1,10 @@
 "use client";
 
-import { useCharacterVideo } from "@/lib/characterVideos";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { motion } from "framer-motion";
 import { MailCheck } from "lucide-react";
 
 export default function ForgotPasswordSuccessPage() {
-  const happyVideoSrc = useCharacterVideo("happy");
-
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <motion.div
@@ -23,14 +21,7 @@ export default function ForgotPasswordSuccessPage() {
             transition={{ delay: 0.3, duration: 0.5 }}
             className="mb-6"
           >
-            <video
-              src={happyVideoSrc}
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-72 h-72 mx-auto"
-            />
+            <FreshDateMascot mood="happy" size="xxxl" />
           </motion.div>
 
           {/* Icon + Message */}
@@ -38,11 +29,11 @@ export default function ForgotPasswordSuccessPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            className="mb-8"
+            className="mb-6"
           >
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 mb-4">
+            {/* <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 mb-4">
               <MailCheck className="w-8 h-8 text-accent" />
-            </div>
+            </div> */}
             <h1 className="text-3xl font-extrabold text-foreground mb-3">
               Check your email
             </h1>

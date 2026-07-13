@@ -7,7 +7,7 @@ import { useState } from "react";
 import { DatesIcon, InjazStarIcon } from "@/components/icons/PublicAssetIcons";
 import { Bullseye } from "@/components/icons/BullsEye";
 import { NotoStopwatch } from "@/components/icons/NotoStopwatch";
-import { useCharacterVideo } from "@/lib/characterVideos";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 
 function formatTime(totalSeconds) {
   const clamped = Math.max(0, Number(totalSeconds) || 0);
@@ -44,7 +44,6 @@ function calculateAccuracyPercentage({
 
 export default function LessonCompleted() {
   const router = useRouter();
-  const happyVideoSrc = useCharacterVideo("happy");
   const [progressData] = useState(() => {
     if (typeof window === "undefined") {
       return null;
@@ -145,16 +144,9 @@ export default function LessonCompleted() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="flex justify-center -mb-4"
+            className="flex justify-center mb-6"
           >
-            <video
-              src={happyVideoSrc}
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-80 h-80"
-            />
+            <FreshDateMascot mood="celebrating" size="xxxl" />
           </motion.div>
 
           {/* Title */}

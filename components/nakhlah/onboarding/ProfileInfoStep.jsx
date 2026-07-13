@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Camera, CheckCircle2 } from "lucide-react";
-import { useCharacterVideo } from "@/lib/characterVideos";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 
 const MAX_FILE_SIZE = 300 * 1024;
 
@@ -14,7 +14,6 @@ export function ProfileInfoStep({
   profilePicture,
   onChange,
 }) {
-  const happyVideoSrc = useCharacterVideo("happy");
   const [localName, setLocalName] = useState(fullName || "");
   const [localContact, setLocalContact] = useState(contactNumber || "");
   const [localPicture, setLocalPicture] = useState(profilePicture || null);
@@ -77,14 +76,7 @@ export function ProfileInfoStep({
         animate={{ opacity: 1, y: 0 }}
         className="mb-10 flex items-center gap-6 justify-center"
       >
-        <video
-          src={happyVideoSrc}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-32 h-32 shrink-0"
-        />
+        <FreshDateMascot mood="proud" size="xl" />
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">
             Tell us about you

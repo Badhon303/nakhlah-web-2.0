@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { useCharacterVideo } from "@/lib/characterVideos";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 
 export function UserSourceStep({
   title,
@@ -11,7 +11,6 @@ export function UserSourceStep({
   getMediaUrl,
 }) {
   const [selectedSource, setSelectedSource] = useState(userSource || "");
-  const happyVideoSrc = useCharacterVideo("happy");
 
   const handleSourceSelect = (value) => {
     setSelectedSource(value);
@@ -25,14 +24,7 @@ export function UserSourceStep({
         animate={{ opacity: 1, y: 0 }}
         className="mb-10 flex items-center gap-6 justify-center"
       >
-        <video
-          src={happyVideoSrc}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-32 h-32 shrink-0"
-        />
+        <FreshDateMascot mood="thinking" size="xl" />
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">
             {title}

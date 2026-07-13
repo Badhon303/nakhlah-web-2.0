@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle } from "lucide-react";
-import { useCharacterVideo } from "@/lib/characterVideos";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 
 const quizQuestions = [
   {
@@ -37,7 +37,6 @@ const quizQuestions = [
 ];
 
 export function QuizStep({ onComplete }) {
-  const sadVideoSrc = useCharacterVideo("sad");
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [showResult, setShowResult] = useState(false);
@@ -82,14 +81,7 @@ export function QuizStep({ onComplete }) {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8 flex items-center gap-8 justify-center"
       >
-        <video
-          src={sadVideoSrc}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-32 h-32 shrink-0"
-        />
+        <FreshDateMascot mood="focused" size="xl" />
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">
             Quick Assessment

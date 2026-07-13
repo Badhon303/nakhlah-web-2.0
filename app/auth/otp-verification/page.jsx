@@ -1,6 +1,6 @@
 "use client";
 
-import { useCharacterVideo } from "@/lib/characterVideos";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation";
 
 export default function OTPVerificationPage() {
   const router = useRouter();
-  const sadVideoSrc = useCharacterVideo("sad");
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [timeLeft, setTimeLeft] = useState(120);
   const [canResend, setCanResend] = useState(false);
@@ -117,14 +116,7 @@ export default function OTPVerificationPage() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="hidden lg:flex flex-col items-center justify-center"
         >
-          <video
-            src={sadVideoSrc}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-72 h-72 mb-6"
-          />
+          <FreshDateMascot mood="thinking" size="xxxl" />
           <h2 className="text-2xl font-bold text-foreground text-center max-w-md">
             Check your inbox for the verification code!
           </h2>

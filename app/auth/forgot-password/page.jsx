@@ -1,6 +1,6 @@
 "use client";
 
-import { useCharacterVideo } from "@/lib/characterVideos";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,6 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const sadVideoSrc = useCharacterVideo("sad");
 
   const handleContinue = async () => {
     if (!email || !email.includes("@")) {
@@ -53,16 +52,9 @@ export default function ForgotPasswordPage() {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="hidden lg:flex flex-col items-center justify-center"
+          className="hidden lg:flex flex-col items-center justify-center gap-6"
         >
-          <video
-            src={sadVideoSrc}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-72 h-72 mb-6"
-          />
+          <FreshDateMascot mood="sad" size="xxxl" />
           <h2 className="text-2xl font-bold text-foreground text-center max-w-md">
             Don&apos;t worry, we&apos;ll help you reset your password!
           </h2>

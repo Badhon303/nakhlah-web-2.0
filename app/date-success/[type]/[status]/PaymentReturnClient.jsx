@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { useCharacterVideo } from "@/lib/characterVideos";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { captureDatePaymentOrder } from "@/services/api";
 import { toast } from "@/components/nakhlah/Toast";
@@ -23,7 +23,7 @@ export default function PaymentReturnClient() {
   const payerId = searchParams.get("PayerID") || "";
   const isDatePayment = type === "dates";
   const isCanceled = status === "payment-canceled";
-  const characterVideo = useCharacterVideo(isCanceled ? "sad" : "happy");
+  const mascotMood = isCanceled ? "sad" : "celebrating";
   const [captureAttempt, setCaptureAttempt] = useState(0);
   const [captureState, setCaptureState] = useState({
     status: isCanceled ? "canceled" : "loading",
@@ -116,14 +116,7 @@ export default function PaymentReturnClient() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="hidden lg:flex flex-col items-center justify-center"
         >
-          <video
-            src={characterVideo}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-72 h-72 mb-6"
-          />
+          <FreshDateMascot mood={mascotMood} size="xxxl" />
           <h2 className="text-2xl font-bold text-foreground text-center max-w-md">
             {isSuccess
               ? "Your dates are on the way!"
@@ -140,14 +133,7 @@ export default function PaymentReturnClient() {
           className="bg-card border border-border rounded-3xl p-8 md:p-12 text-center shadow-sm"
         >
           <div className="lg:hidden flex justify-center mb-6">
-            <video
-              src={characterVideo}
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-48 h-48"
-            />
+            <FreshDateMascot mood={mascotMood} size="xxl" />
           </div>
 
           <div className="space-y-4">

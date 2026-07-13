@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
-import { useCharacterVideo } from "@/lib/characterVideos";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 
 export function CompletionStep({ onComplete }) {
-  const happyVideoSrc = useCharacterVideo("happy");
   return (
     <div className="w-full max-w-[520px] mx-auto text-center">
       <motion.div
@@ -16,14 +15,7 @@ export function CompletionStep({ onComplete }) {
           transition={{ repeat: Infinity, duration: 2.4 }}
           className="flex justify-center"
         >
-          <video
-            src={happyVideoSrc}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-72 h-72 mx-auto"
-          />
+          <FreshDateMascot mood="celebrating" size="xxxl" />
         </motion.div>
 
         <div className="mt-6 space-y-2">

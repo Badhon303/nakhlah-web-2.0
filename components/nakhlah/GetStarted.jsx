@@ -2,10 +2,9 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useCharacterVideo } from "@/lib/characterVideos";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 
 export default function GetStartedPage() {
-  const happyVideoSrc = useCharacterVideo("happy");
   return (
     <div className="min-h-screen w-full bg-background flex items-center justify-center p-8">
       <motion.div
@@ -41,14 +40,7 @@ export default function GetStartedPage() {
           }}
           className="flex justify-center"
         >
-          <video
-            src={happyVideoSrc}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-48 h-48"
-          />
+          <FreshDateMascot mood="celebrating" size="xxl" />
         </motion.div>
 
         {/* Brand Name */}

@@ -1,10 +1,9 @@
 "use client";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useCharacterVideo } from "@/lib/characterVideos";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 
 export function AgeStep({ title, ages = [], selectedAge, onSelect }) {
-  const happyVideoSrc = useCharacterVideo("happy");
   return (
     <div className="w-full max-w-xl mx-auto">
       <motion.div
@@ -12,14 +11,7 @@ export function AgeStep({ title, ages = [], selectedAge, onSelect }) {
         animate={{ opacity: 1, y: 0 }}
         className="mb-10 flex items-center gap-6 justify-center"
       >
-        <video
-          src={happyVideoSrc}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-32 h-32 shrink-0"
-        />
+        <FreshDateMascot mood="happy" size="xl" />
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">
             {title}

@@ -58,7 +58,6 @@ export default function EditProfilePage({
       return {
         fullName: "",
         contactNumber: "",
-        email: currentUser?.email || profileData?.user?.email || "",
         country: "",
         age: "",
         purpose: "",
@@ -87,7 +86,6 @@ export default function EditProfilePage({
     return {
       fullName: profileData?.fullName || "",
       contactNumber: profileData?.contactNumber || "",
-      email: currentUser?.email || profileData?.user?.email || "",
       country: onboardInfo.country || "",
       age: onboardInfo.age || "",
       purpose: onboardInfo.purpose || "",
@@ -213,17 +211,17 @@ export default function EditProfilePage({
       return;
     }
 
-    if (onProfileUpdated) {
-      onProfileUpdated(result.profile);
-    }
-
-    void useProfileStore
+    const refreshResult = await useProfileStore
       .getState()
       .fetchMyProfile(
         token,
         true,
         session?.user?.id || currentUser?.id || "guest",
       );
+
+    if (onProfileUpdated) {
+      onProfileUpdated(refreshResult?.profile || result.profile);
+    }
 
     toast.success("Profile updated successfully");
     onBack();
@@ -321,18 +319,6 @@ export default function EditProfilePage({
             {contactError && (
               <p className="text-xs text-destructive mt-1">{contactError}</p>
             )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              readOnly
-              className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground"
-            />
           </div>
 
           <div>

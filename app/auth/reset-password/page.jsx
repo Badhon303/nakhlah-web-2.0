@@ -1,12 +1,12 @@
 "use client";
 
-import { useCharacterVideo } from "@/lib/characterVideos";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { Suspense, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { resetPassword } from "@/services/api/auth";
 import { toast } from "@/components/nakhlah/Toast";
@@ -14,7 +14,6 @@ import { toast } from "@/components/nakhlah/Toast";
 function CreatePasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const happyVideoSrc = useCharacterVideo("happy");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [password, setPassword] = useState("");
@@ -74,16 +73,9 @@ function CreatePasswordContent() {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="hidden lg:flex flex-col items-center justify-center"
+          className="hidden lg:flex flex-col items-center justify-center gap-6"
         >
-          <video
-            src={happyVideoSrc}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-72 h-72 mb-6"
-          />
+          <FreshDateMascot mood="thinking" size="xxxl" />
           <h2 className="text-2xl font-bold text-foreground text-center max-w-md">
             Create a strong password to keep your account secure!
           </h2>
@@ -96,18 +88,6 @@ function CreatePasswordContent() {
           className="w-full max-w-md mx-auto pt-6 lg:pt-0"
         >
           <div className="bg-transparent lg:bg-card rounded-none lg:rounded-3xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-8">
-            <div className="mb-6">
-              {/* Back button only on mobile */}
-              <button
-                type="button"
-                onClick={() => window.history.back()}
-                className="inline-flex items-center gap-2 text-foreground hover:text-accent transition-colors"
-              >
-                <ArrowLeft className="h-5 w-5" />
-                <span className="font-semibold">Back</span>
-              </button>
-            </div>
-
             {/* Header */}
             <div className="mb-8">
               <motion.div

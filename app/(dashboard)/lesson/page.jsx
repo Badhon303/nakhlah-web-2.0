@@ -412,6 +412,8 @@ export default function LessonPage() {
 
   const [selectedTokens, setSelectedTokens] = useState([]);
   const [availableTokens, setAvailableTokens] = useState([]);
+  const [mcqOptions, setMcqOptions] = useState([]);
+  const [fillBlankOptions, setFillBlankOptions] = useState([]);
 
   const [selectedLeft, setSelectedLeft] = useState(null);
   const [selectedRight, setSelectedRight] = useState(null);
@@ -737,17 +739,6 @@ export default function LessonPage() {
     session,
   ]);
 
-  const mcqOptions = useMemo(() => {
-    if (questionType !== "mcq") return [];
-    const options = (currentQuestion.answers || []).map((answer) => ({
-      id: answer.id,
-      text: answer.title,
-      correct: Boolean(answer.is_correct),
-    }));
-    // Shuffle so the user sees a different order each time the question renders
-    return options.sort(() => Math.random() - 0.5);
-  }, [currentQuestion, questionType]);
-
   const fillBlankCorrectAnswer = useMemo(() => {
     if (questionType !== "fill_blank") return "";
     return (
@@ -764,15 +755,6 @@ export default function LessonPage() {
         Boolean(answer.is_correct),
       )?.id || ""
     );
-  }, [currentQuestion, questionType]);
-
-  const fillBlankOptions = useMemo(() => {
-    if (questionType !== "fill_blank") return [];
-    return (currentQuestion.answers || []).map((answer) => ({
-      id: answer.id,
-      text: answer.title,
-      correct: Boolean(answer.is_correct),
-    }));
   }, [currentQuestion, questionType]);
 
   const fillBlankQuestionParts = useMemo(() => {
@@ -960,6 +942,31 @@ export default function LessonPage() {
     setAvailableTokens([]);
     setLeftState([]);
     setRightState([]);
+
+    if (questionType === "mcq") {
+      const opts = shuffleArray(
+        (currentQuestion.answers || []).map((answer) => ({
+          id: answer.id,
+          text: answer.title,
+          correct: Boolean(answer.is_correct),
+        })),
+      );
+      setMcqOptions(opts);
+    } else {
+      setMcqOptions([]);
+    }
+
+    if (questionType === "fill_blank") {
+      const opts = shuffleArray(
+        (currentQuestion.answers || []).map((answer) => ({
+          id: answer.id,
+          text: answer.title,
+        })),
+      );
+      setFillBlankOptions(opts);
+    } else {
+      setFillBlankOptions([]);
+    }
   }, [currentIndex, currentQuestion, orderedTokens, questionType]);
 
   const handlePlayAudio = () => {

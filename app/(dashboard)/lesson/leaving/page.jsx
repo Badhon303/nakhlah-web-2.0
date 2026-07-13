@@ -3,11 +3,10 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { useCharacterVideo } from "@/lib/characterVideos";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 
 export default function LeavingDialog({ onCancel, onLeave }) {
   const router = useRouter();
-  const sadVideoSrc = useCharacterVideo("sad");
 
   const handleKeepLearning = () => {
     router.back();
@@ -37,16 +36,9 @@ export default function LeavingDialog({ onCancel, onLeave }) {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.1, duration: 0.3 }}
-            className="flex justify-center -mb-4"
+            className="flex justify-center mb-6"
           >
-            <video
-              src={sadVideoSrc}
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-72 h-72"
-            />
+            <FreshDateMascot mood="sad" size="xxxl" />
           </motion.div>
 
           {/* Title */}

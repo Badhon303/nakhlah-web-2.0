@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { useCharacterVideo } from "@/lib/characterVideos";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { Home, ShoppingBag } from "lucide-react";
 
 export default function SubscriptionSuccessClient() {
@@ -12,7 +12,6 @@ export default function SubscriptionSuccessClient() {
   const subscriptionId = searchParams.get("subscription_id") || "";
   const baToken = searchParams.get("ba_token") || "";
   const token = searchParams.get("token") || "";
-  const characterVideo = useCharacterVideo("happy");
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -23,14 +22,7 @@ export default function SubscriptionSuccessClient() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="hidden lg:flex flex-col items-center justify-center"
         >
-          <video
-            src={characterVideo}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-72 h-72 mb-6"
-          />
+          <FreshDateMascot mood="celebrating" size="xxxl" />
           <h2 className="text-2xl font-bold text-foreground text-center max-w-md">
             Welcome to Premium!
           </h2>
@@ -43,14 +35,7 @@ export default function SubscriptionSuccessClient() {
           className="bg-card border border-border rounded-3xl p-8 md:p-12 text-center shadow-sm"
         >
           <div className="lg:hidden flex justify-center mb-6">
-            <video
-              src={characterVideo}
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-48 h-48"
-            />
+            <FreshDateMascot mood="celebrating" size="xxl" />
           </div>
 
           <div className="space-y-4">
@@ -85,10 +70,7 @@ export default function SubscriptionSuccessClient() {
               Go to Home
             </Button>
 
-            <Button
-              variant="outline"
-              onClick={() => router.push("/store")}
-            >
+            <Button variant="outline" onClick={() => router.push("/store")}>
               <ShoppingBag className="w-4 h-4 mr-2" />
               Back to Store
             </Button>

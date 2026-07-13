@@ -1,6 +1,7 @@
 "use client";
 
 import { TreasureChest } from "@/components/icons/TreasureChest";
+import { Lock } from "@/components/icons/Lock";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import { CheckCircle2, X } from "lucide-react";
@@ -564,11 +565,7 @@ export function LessonSelectionPopup({
                     {/* Small Status Overlays */}
                     {lesson.isLocked && (
                       <div className="absolute top-2 right-2">
-                        <img
-                          src="/icons/Task_locked.svg"
-                          alt="Locked"
-                          className="w-6 h-6 object-contain"
-                        />
+                        <Lock size="sm" variant="silver" />
                       </div>
                     )}
                     {lesson.isCompleted && !lesson.isLocked && (

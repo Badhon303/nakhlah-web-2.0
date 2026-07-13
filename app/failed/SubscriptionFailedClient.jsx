@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { useCharacterVideo } from "@/lib/characterVideos";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { Home, RefreshCw, ShoppingBag } from "lucide-react";
 
 export default function SubscriptionFailedClient() {
@@ -12,7 +12,6 @@ export default function SubscriptionFailedClient() {
   const subscriptionId = searchParams.get("subscription_id") || "";
   const baToken = searchParams.get("ba_token") || "";
   const token = searchParams.get("token") || "";
-  const characterVideo = useCharacterVideo("sad");
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -23,14 +22,7 @@ export default function SubscriptionFailedClient() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="hidden lg:flex flex-col items-center justify-center"
         >
-          <video
-            src={characterVideo}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-72 h-72 mb-6"
-          />
+          <FreshDateMascot mood="sad" size="xxxl" />
           <h2 className="text-2xl font-bold text-foreground text-center max-w-md">
             Don&apos;t worry, you can try again anytime.
           </h2>
@@ -43,14 +35,7 @@ export default function SubscriptionFailedClient() {
           className="bg-card border border-border rounded-3xl p-8 md:p-12 text-center shadow-sm"
         >
           <div className="lg:hidden flex justify-center mb-6">
-            <video
-              src={characterVideo}
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-48 h-48"
-            />
+            <FreshDateMascot mood="sad" size="xxl" />
           </div>
 
           <div className="space-y-4">
@@ -78,10 +63,7 @@ export default function SubscriptionFailedClient() {
           </div>
 
           <div className="pt-8 flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              variant="outline"
-              onClick={() => router.push("/")}
-            >
+            <Button variant="outline" onClick={() => router.push("/")}>
               <Home className="w-4 h-4 mr-2" />
               Go to Home
             </Button>
