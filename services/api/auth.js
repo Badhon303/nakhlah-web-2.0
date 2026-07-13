@@ -744,6 +744,45 @@ export async function cancelSubscription(subscriptionId, token) {
     }
 }
 
+export async function switchSubscription(newPlanId, token) {
+    try {
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        if (!newPlanId) {
+            throw new Error("Missing new plan ID");
+        }
+
+        const { response } = await fetchWithAuthRetry("/api/payments/subscriptions/switch", {
+            method: "POST",
+            token,
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ newPlanId }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to switch subscription"));
+        }
+
+        return {
+            success: true,
+            data,
+            message: data?.message || "Subscription switched successfully",
+        };
+    } catch (error) {
+        console.error("Switch subscription error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to switch subscription",
+        };
+    }
+}
+
 export async function forgotPassword(email) {
     try {
         const response = await fetch(withApiUrl("/api/users/forgot-password"), {

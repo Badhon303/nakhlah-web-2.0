@@ -4,6 +4,16 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   BookOpen,
   Zap,
   Calendar,
@@ -107,6 +117,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
   const [isLoadingCurrent, setIsLoadingCurrent] = useState(true);
   const [isCanceling, setIsCanceling] = useState(false);
   const [showConfirmSwitch, setShowConfirmSwitch] = useState(false);
+  const [showConfirmCancel, setShowConfirmCancel] = useState(false);
   const [pendingSwitchPlan, setPendingSwitchPlan] = useState(null);
 
   const subscriptionPlans = useSubscriptionPlansStore((state) => state.plans);
@@ -203,16 +214,35 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
     window.location.assign(result.approvalUrl);
   };
 
-  const handleCancelSubscription = async () => {
+  const isSubscriptionActive =
+    currentSubscription &&
+    currentSubscription.status !== "cancelled" &&
+    !currentSubscription.cancelAtPeriodEnd;
+
+  const isSubscriptionCancelling =
+    currentSubscription &&
+    currentSubscription.status !== "cancelled" &&
+    currentSubscription.cancelAtPeriodEnd;
+
+  const promptCancelSubscription = () => {
+    if (!requireAuth()) return;
+    if (!currentSubscription?.id) {
+      toast.error("No active subscription found.");
+      return;
+    }
+    setShowConfirmCancel(true);
+  };
+
+  const confirmCancelSubscription = async () => {
     if (!requireAuth()) return;
 
-    const subscriptionId =
-      currentSubscription?.paypalSubscriptionId || currentSubscription?.id;
+    const subscriptionId = currentSubscription?.id;
     if (!subscriptionId) {
       toast.error("No active subscription found.");
       return;
     }
 
+    setShowConfirmCancel(false);
     setIsCanceling(true);
     const result = await cancelSubscription(
       subscriptionId,
@@ -244,8 +274,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
 
     setShowConfirmSwitch(false);
 
-    const subscriptionId =
-      currentSubscription?.paypalSubscriptionId || currentSubscription?.id;
+    const subscriptionId = currentSubscription?.id;
     if (subscriptionId) {
       setIsCanceling(true);
       const cancelResult = await cancelSubscription(
@@ -432,7 +461,8 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
             <motion.div
               variants={itemVariants}
               className={`max-w-lg mx-auto rounded-2xl border-2 p-6 text-center ${
-                currentSubscription.status === "cancelled"
+                currentSubscription.status === "cancelled" ||
+                currentSubscription.cancelAtPeriodEnd
                   ? "border-muted bg-muted/30"
                   : "border-accent bg-accent/10"
               }`}
@@ -442,25 +472,45 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
                 {currentSubscription.plan?.name || "Premium"}
               </p>
               <p className="text-sm text-muted-foreground mb-4">
-                Status:{" "}
-                <span className="font-semibold capitalize">
-                  {currentSubscription.status}
-                </span>
-                {currentSubscription.currentPeriodEnd && (
-                  <span className="block mt-1">
-                    Active until{" "}
-                    {new Date(
-                      currentSubscription.currentPeriodEnd,
-                    ).toLocaleDateString()}
+                {currentSubscription.status === "cancelled" ? (
+                  <span className="inline-flex items-center gap-1.5 font-semibold text-muted-foreground">
+                    <Check className="w-4 h-4" />
+                    Cancelled
                   </span>
+                ) : currentSubscription.cancelAtPeriodEnd ? (
+                  <>
+                    <span className="font-semibold text-amber-600 dark:text-amber-400">
+                      Cancels on{" "}
+                      {new Date(
+                        currentSubscription.currentPeriodEnd,
+                      ).toLocaleDateString()}
+                    </span>
+                    <span className="block mt-1">
+                      You&apos;ll keep access until then.
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-semibold capitalize text-emerald-600 dark:text-emerald-400">
+                      Active
+                    </span>
+                    {currentSubscription.currentPeriodEnd && (
+                      <span className="block mt-1">
+                        Renews on{" "}
+                        {new Date(
+                          currentSubscription.currentPeriodEnd,
+                        ).toLocaleDateString()}
+                      </span>
+                    )}
+                  </>
                 )}
               </p>
-              {currentSubscription.status !== "cancelled" && (
+              {isSubscriptionActive && (
                 <Button
                   variant="outline"
-                  onClick={handleCancelSubscription}
+                  onClick={promptCancelSubscription}
                   disabled={isCanceling}
-                  className="w-full"
+                  className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-900 dark:hover:bg-red-950"
                 >
                   {isCanceling ? "Canceling..." : "Cancel Subscription"}
                 </Button>
@@ -603,6 +653,48 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
               </div>
             </div>
           )}
+
+          <AlertDialog
+            open={showConfirmCancel}
+            onOpenChange={setShowConfirmCancel}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Cancel subscription?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Your{" "}
+                  <span className="font-semibold text-foreground">
+                    {currentSubscription?.plan?.name || "Premium"}
+                  </span>{" "}
+                  subscription will be canceled, but you&apos;ll keep full
+                  access until{" "}
+                  <span className="font-semibold text-foreground">
+                    {currentSubscription?.currentPeriodEnd
+                      ? new Date(
+                          currentSubscription.currentPeriodEnd,
+                        ).toLocaleDateString()
+                      : "the end of your current billing period"}
+                  </span>
+                  .
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isCanceling}>
+                  Keep Subscription
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={(e) => {
+                    e.preventDefault();
+                    confirmCancelSubscription();
+                  }}
+                  disabled={isCanceling}
+                  className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+                >
+                  {isCanceling ? "Canceling..." : "Yes, Cancel"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </motion.div>
       )}
     </div>

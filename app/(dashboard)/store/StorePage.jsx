@@ -2,17 +2,46 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { X } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { Calendar } from "@/components/icons/Calendar";
+import { NotoStopwatch } from "@/components/icons/NotoStopwatch";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { useSearchParams } from "next/navigation";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { useDatePackagesStore } from "@/stores/useDatePackagesStore";
 import { useSubscriptionPlansStore } from "@/stores/useSubscriptionPlansStore";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toast } from "@/components/nakhlah/Toast";
 import {
   createDatePaymentOrder,
   createSubscriptionPayment,
   cancelSubscription,
+  switchSubscription,
   fetchCurrentSubscription,
 } from "@/services/api";
 
@@ -24,7 +53,17 @@ export default function StorePage() {
   const [isLoadingCurrent, setIsLoadingCurrent] = useState(true);
   const [pendingSwitchPlan, setPendingSwitchPlan] = useState(null);
   const [isCanceling, setIsCanceling] = useState(false);
+  const [showConfirmCancel, setShowConfirmCancel] = useState(false);
+  const [showSubscriptionDetails, setShowSubscriptionDetails] = useState(false);
   const shouldRefetchDates = searchParams.get("refetch") === "dates";
+
+  const loadCurrentSubscription = async () => {
+    if (!isSessionValid(session)) return;
+    const result = await fetchCurrentSubscription(getSessionToken(session));
+    if (result.success) {
+      setCurrentSubscription(result.subscription);
+    }
+  };
 
   const requireAuth = () => {
     if (!isSessionValid(session)) {
@@ -55,12 +94,7 @@ export default function StorePage() {
     fetchSubscriptionPlans({ forceRefresh: shouldRefetchDates });
 
     if (isSessionValid(session)) {
-      fetchCurrentSubscription(getSessionToken(session)).then((result) => {
-        if (result.success) {
-          setCurrentSubscription(result.subscription);
-        }
-        setIsLoadingCurrent(false);
-      });
+      loadCurrentSubscription().then(() => setIsLoadingCurrent(false));
     } else {
       setIsLoadingCurrent(false);
     }
@@ -87,20 +121,23 @@ export default function StorePage() {
   const handleSubscriptionCheckout = async (plan) => {
     if (!requireAuth()) return;
 
-    if (
-      currentSubscription &&
-      currentSubscription.status !== "cancelled" &&
-      currentSubscription.plan?.id === plan.id
-    ) {
-      toast.info("You already have this plan.");
+    const canSwitch =
+      currentSubscription && currentSubscription.status !== "cancelled";
+
+    if (canSwitch && currentSubscription.plan?.id === plan.id) {
+      if (currentSubscription.cancelAtPeriodEnd) {
+        toast.info(
+          `You can resubscribe to this plan after ${new Date(
+            currentSubscription.currentPeriodEnd,
+          ).toLocaleDateString()}.`,
+        );
+      } else {
+        toast.info("You already have this plan.");
+      }
       return;
     }
 
-    if (
-      currentSubscription &&
-      currentSubscription.status !== "cancelled" &&
-      currentSubscription.plan?.id !== plan.id
-    ) {
+    if (canSwitch && currentSubscription.plan?.id !== plan.id) {
       setPendingSwitchPlan(plan);
       return;
     }
@@ -131,21 +168,95 @@ export default function StorePage() {
     setIsCanceling(true);
     setCheckoutId(`premium:${pendingSwitchPlan.id}`);
 
-    const cancelResult = await cancelSubscription(
-      currentSubscription?.id,
-      token,
-    );
+    const switchResult = await switchSubscription(pendingSwitchPlan.id, token);
 
-    if (!cancelResult.success) {
+    if (!switchResult.success) {
       setIsCanceling(false);
       setCheckoutId(null);
-      toast.error(cancelResult.error || "Failed to cancel current plan.");
+      toast.error(switchResult.error || "Failed to switch plan.");
       return;
     }
 
-    await startSubscriptionCheckout(pendingSwitchPlan);
+    const approvalUrl = switchResult.data?.approvalUrl;
+    if (approvalUrl) {
+      window.location.assign(approvalUrl);
+      return;
+    }
+
+    toast.success(switchResult.message || "Plan switched successfully.");
+    await loadCurrentSubscription();
     setIsCanceling(false);
     setPendingSwitchPlan(null);
+  };
+
+  const isSubscriptionActive =
+    currentSubscription &&
+    currentSubscription.status !== "cancelled" &&
+    !currentSubscription.cancelAtPeriodEnd;
+
+  const isSubscriptionCancelling =
+    currentSubscription &&
+    currentSubscription.status !== "cancelled" &&
+    currentSubscription.cancelAtPeriodEnd;
+
+  const promptCancelSubscription = () => {
+    if (!requireAuth()) return;
+    if (!currentSubscription?.id) {
+      toast.error("No active subscription found.");
+      return;
+    }
+    setShowConfirmCancel(true);
+  };
+
+  const confirmCancelSubscription = async () => {
+    if (!requireAuth()) return;
+    const subscriptionId = currentSubscription?.id;
+    if (!subscriptionId) {
+      toast.error("No active subscription found.");
+      return;
+    }
+
+    setShowConfirmCancel(false);
+    setIsCanceling(true);
+    const result = await cancelSubscription(
+      subscriptionId,
+      getSessionToken(session),
+    );
+
+    if (!result.success) {
+      setIsCanceling(false);
+      toast.error(result.error || "Unable to cancel subscription.");
+      return;
+    }
+
+    toast.success(result.message || "Subscription canceled successfully.");
+    await loadCurrentSubscription();
+    setIsCanceling(false);
+  };
+
+  const handleResubscribe = async (plan) => {
+    if (!requireAuth()) return;
+
+    const newPlanId = plan?.id || currentSubscription?.plan?.id;
+    if (!newPlanId) {
+      toast.error("No plan selected.");
+      return;
+    }
+
+    // Fully cancelled subscriptions need a fresh checkout, not a switch.
+    setCheckoutId(`premium:${newPlanId}`);
+    const result = await createSubscriptionPayment(
+      plan || currentSubscription?.plan,
+      getSessionToken(session),
+    );
+
+    if (!result.success) {
+      setCheckoutId(null);
+      toast.error(result.error || "Unable to resubscribe.");
+      return;
+    }
+
+    window.location.assign(result.approvalUrl);
   };
 
   return (
@@ -299,41 +410,97 @@ export default function StorePage() {
                   : subscriptionPlans.map((plan) => {
                       const isCurrentPlan =
                         currentSubscription?.plan?.id === plan.id &&
-                        currentSubscription?.status !== "cancelled";
-                      return (
-                        <div key={plan.id} className="relative flex-1">
-                          <button
-                            onClick={() =>
-                              !isCurrentPlan && handleSubscriptionCheckout(plan)
-                            }
-                            disabled={
-                              isCurrentPlan ||
-                              checkoutId !== null ||
-                              isLoadingCurrent
-                            }
-                            className={`rounded-2xl border-2 p-4 w-full flex flex-col items-center gap-2 transition-colors ${
-                              isCurrentPlan
-                                ? "border-secondary bg-secondary/10 text-foreground cursor-default"
-                                : "border-border bg-card hover:border-accent text-foreground"
-                            }`}
-                          >
-                            <span
-                              className={`rounded-full px-6 py-2 text-[10px] font-extrabold tracking-widest uppercase ${
-                                isCurrentPlan
-                                  ? "bg-secondary text-secondary-foreground"
-                                  : "bg-accent text-accent-foreground"
-                              }`}
-                            >
-                              {isCurrentPlan ? "Current" : "Subscribe"}
+                        currentSubscription?.status !== "cancelled" &&
+                        !currentSubscription?.cancelAtPeriodEnd;
+                      const isCancelledPlan =
+                        currentSubscription?.plan?.id === plan.id &&
+                        currentSubscription?.status === "cancelled";
+                      const isCancellingPlan =
+                        currentSubscription?.plan?.id === plan.id &&
+                        currentSubscription?.status !== "cancelled" &&
+                        currentSubscription?.cancelAtPeriodEnd;
+                      const isInteractive =
+                        isCurrentPlan || isCancellingPlan || isCancelledPlan;
+                      const tooltipText = isCurrentPlan
+                        ? "Click to manage your current plan"
+                        : isCancellingPlan
+                          ? "Click to view cancellation details"
+                          : isCancelledPlan
+                            ? "Click to view ended subscription"
+                            : "";
+
+                      const planCard = (
+                        <div
+                          onClick={() =>
+                            isInteractive && setShowSubscriptionDetails(true)
+                          }
+                          className={`rounded-2xl border-2 p-4 w-full min-w-0 flex flex-col items-center gap-2 transition-colors ${
+                            isCurrentPlan
+                              ? "border-emerald-600 bg-emerald-600/10 dark:border-emerald-500 dark:bg-emerald-950/30 text-foreground"
+                              : isCancellingPlan
+                                ? "border-amber-600 bg-amber-600/10 dark:border-amber-500 dark:bg-amber-950/30 text-foreground"
+                                : isCancelledPlan
+                                  ? "border-slate-600 bg-slate-600/10 dark:border-slate-500 dark:bg-slate-950/30 text-foreground"
+                                  : "border-border bg-card hover:border-violet-600 text-foreground"
+                          } ${isInteractive ? "cursor-pointer" : ""}`}
+                        >
+                          {isCurrentPlan ? (
+                            <span className="rounded-full px-5 py-2 text-[10px] font-extrabold tracking-widest uppercase bg-emerald-600 text-white dark:bg-emerald-600 dark:text-white min-w-[92px] text-center">
+                              Current
                             </span>
-                            <p className="text-2xl font-black leading-tight flex items-center justify-center min-h-[2rem]">
-                              {checkoutId === `premium:${plan.id}` ? (
-                                <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                              ) : (
-                                plan.price
-                              )}
-                            </p>
-                          </button>
+                          ) : isCancellingPlan ? (
+                            <span className="rounded-full px-5 py-2 text-[10px] font-extrabold tracking-widest uppercase bg-amber-600 text-white dark:bg-amber-600 dark:text-white min-w-[92px] text-center">
+                              Cancels
+                            </span>
+                          ) : isCancelledPlan ? (
+                            <span className="rounded-full px-5 py-2 text-[10px] font-extrabold tracking-widest uppercase bg-slate-600 text-white dark:bg-slate-600 dark:text-white min-w-[92px] text-center">
+                              Cancelled
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleSubscriptionCheckout(plan)}
+                              disabled={checkoutId !== null || isLoadingCurrent}
+                              className="rounded-full px-5 py-2 text-[10px] font-extrabold tracking-widest uppercase bg-accent text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50 min-w-[92px]"
+                            >
+                              Subscribe
+                            </button>
+                          )}
+                          <p className="text-2xl font-black leading-tight flex items-center justify-center min-h-[2rem] w-full text-center truncate">
+                            {checkoutId === `premium:${plan.id}` ? (
+                              <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              plan.price
+                            )}
+                          </p>
+                        </div>
+                      );
+
+                      return (
+                        <div key={plan.id} className="relative flex-1 min-w-0">
+                          {isInteractive ? (
+                            <TooltipProvider delayDuration={200}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  {planCard}
+                                </TooltipTrigger>
+                                <TooltipContent
+                                  side="bottom"
+                                  sideOffset={6}
+                                  collisionPadding={24}
+                                  align="center"
+                                  avoidCollisions
+                                  className="bg-foreground text-background max-w-[200px] break-words"
+                                >
+                                  <p className="text-sm font-medium">
+                                    {tooltipText}
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ) : (
+                            planCard
+                          )}
                           {plan.popular && (
                             <div className="absolute -bottom-3 -right-5 bg-secondary text-secondary-foreground text-[10px] font-black tracking-wider px-2 py-0.5 rounded-full -rotate-12 shadow whitespace-nowrap">
                               BEST VALUE
@@ -347,25 +514,294 @@ export default function StorePage() {
           </motion.div>
         </section>
 
+        <AlertDialog
+          open={showConfirmCancel}
+          onOpenChange={setShowConfirmCancel}
+        >
+          <AlertDialogContent className="relative">
+            <AlertDialogCancel
+              disabled={isCanceling}
+              className="absolute right-4 top-4 h-4 w-4 p-0 border-0 bg-transparent text-foreground opacity-70 hover:opacity-100 hover:bg-transparent focus:ring-0 focus:ring-offset-0 disabled:pointer-events-none"
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </AlertDialogCancel>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Cancel subscription?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Your{" "}
+                <span className="font-semibold text-foreground">
+                  {currentSubscription?.plan?.name || "Premium"}
+                </span>{" "}
+                subscription will be canceled, but you&apos;ll keep full access
+                until{" "}
+                <span className="font-semibold text-foreground">
+                  {currentSubscription?.currentPeriodEnd
+                    ? new Date(
+                        currentSubscription.currentPeriodEnd,
+                      ).toLocaleDateString()
+                    : "the end of your current billing period"}
+                </span>
+                .
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isCanceling}>
+                Keep Subscription
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.preventDefault();
+                  confirmCancelSubscription();
+                }}
+                disabled={isCanceling}
+                className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+              >
+                {isCanceling ? "Canceling..." : "Yes, Cancel"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <Dialog
+          open={showSubscriptionDetails}
+          onOpenChange={setShowSubscriptionDetails}
+        >
+          <DialogContent className="sm:rounded-3xl border-2 border-border p-0 overflow-hidden max-w-2xl">
+            <div
+              className={`p-6 pb-0 ${
+                currentSubscription?.status === "cancelled"
+                  ? "bg-gradient-to-br from-slate-100 via-background to-background dark:from-slate-900 dark:via-background dark:to-background"
+                  : currentSubscription?.cancelAtPeriodEnd
+                    ? "bg-gradient-to-br from-amber-50 via-background to-background dark:from-amber-950/40 dark:via-background dark:to-background"
+                    : "bg-gradient-to-br from-emerald-50 via-background to-background dark:from-emerald-950/30 dark:via-background dark:to-background"
+              }`}
+            >
+              <div>
+                <DialogTitle className="text-2xl font-bold text-foreground">
+                  {currentSubscription?.plan?.name || "Premium"}
+                </DialogTitle>
+                <DialogDescription className="text-muted-foreground mt-1">
+                  Subscription details
+                </DialogDescription>
+              </div>
+
+              <div className="mt-4 flex items-center gap-2">
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider backdrop-blur-sm ${
+                    currentSubscription?.status === "cancelled"
+                      ? "bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-100"
+                      : currentSubscription?.cancelAtPeriodEnd
+                        ? "bg-amber-200 text-amber-900 dark:bg-amber-800 dark:text-amber-100"
+                        : "bg-emerald-200 text-emerald-900 dark:bg-emerald-800 dark:text-emerald-100"
+                  }`}
+                >
+                  <span
+                    className={`w-2 h-2 rounded-full animate-pulse ${
+                      currentSubscription?.status === "cancelled"
+                        ? "bg-slate-600"
+                        : currentSubscription?.cancelAtPeriodEnd
+                          ? "bg-amber-600"
+                          : "bg-emerald-600"
+                    }`}
+                  />
+                  {currentSubscription?.status === "cancelled"
+                    ? "Cancelled"
+                    : currentSubscription?.cancelAtPeriodEnd
+                      ? "Cancels at period end"
+                      : "Active"}
+                </span>
+              </div>
+
+              <div className="flex justify-center -mb-10 mt-4">
+                <FreshDateMascot
+                  mood={
+                    currentSubscription?.status === "cancelled"
+                      ? "sad"
+                      : currentSubscription?.cancelAtPeriodEnd
+                        ? "thinking"
+                        : "proud"
+                  }
+                  size="xxl"
+                />
+              </div>
+            </div>
+
+            <div className="pt-12 px-6 pb-6 space-y-4 bg-background">
+              <div className="rounded-2xl border-2 border-border bg-card p-4 space-y-3 shadow-sm">
+                {currentSubscription?.currentPeriodStart && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Calendar size="xs" />
+                      <span className="text-sm font-medium">Started</span>
+                    </div>
+                    <span className="font-bold text-sm text-foreground">
+                      {new Date(
+                        currentSubscription.currentPeriodStart,
+                      ).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+                {currentSubscription?.currentPeriodEnd && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <NotoStopwatch size="xs" />
+                      <span className="text-sm font-medium">
+                        {currentSubscription?.cancelAtPeriodEnd
+                          ? "Access until"
+                          : "Renews on"}
+                      </span>
+                    </div>
+                    <span className="font-bold text-sm text-foreground">
+                      {new Date(
+                        currentSubscription.currentPeriodEnd,
+                      ).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+                {currentSubscription?.cancelledAt && (
+                  <div className="flex items-center justify-between pt-2 border-t-2 border-border">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Calendar size="xs" />
+                      <span className="text-sm font-medium">Cancelled on</span>
+                    </div>
+                    <span className="font-bold text-sm text-foreground">
+                      {new Date(
+                        currentSubscription.cancelledAt,
+                      ).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {currentSubscription?.cancelAtPeriodEnd && (
+                <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/30 border-2 border-amber-200 dark:border-amber-900 p-4">
+                  <p className="text-sm text-amber-900 dark:text-amber-100 font-semibold mb-1">
+                    You still have access
+                  </p>
+                  <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+                    Your subscription is canceled but your premium benefits stay
+                    active until{" "}
+                    {currentSubscription?.currentPeriodEnd
+                      ? new Date(
+                          currentSubscription.currentPeriodEnd,
+                        ).toLocaleDateString()
+                      : "the end of your billing period"}
+                    . Want to keep going? Resubscribe anytime before it ends.
+                  </p>
+                </div>
+              )}
+
+              {currentSubscription?.status === "cancelled" && (
+                <div className="rounded-2xl bg-slate-50 dark:bg-slate-950/30 border-2 border-slate-200 dark:border-slate-800 p-4 space-y-3">
+                  <div>
+                    <p className="text-sm text-slate-900 dark:text-slate-100 font-semibold mb-1">
+                      Subscription ended
+                    </p>
+                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                      Your plan has ended. Resubscribe to unlock unlimited lives
+                      and premium features again.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      setShowSubscriptionDetails(false);
+                      handleResubscribe(currentSubscription.plan);
+                    }}
+                    disabled={
+                      checkoutId !== null || !currentSubscription?.plan?.id
+                    }
+                    className="w-full bg-slate-700 hover:bg-slate-800 text-white dark:bg-slate-200 dark:hover:bg-white dark:text-slate-900"
+                  >
+                    {checkoutId === `premium:${currentSubscription?.plan?.id}`
+                      ? "Resubscribing..."
+                      : "Resubscribe Now"}
+                  </Button>
+                </div>
+              )}
+
+              {currentSubscription?.status !== "cancelled" &&
+                !currentSubscription?.cancelAtPeriodEnd && (
+                  <div className="rounded-2xl bg-red-50 dark:bg-red-950/30 border-2 border-red-200 dark:border-red-900 p-4 space-y-3">
+                    <div>
+                      <p className="text-sm text-red-900 dark:text-red-100 font-semibold mb-1">
+                        Cancel subscription
+                      </p>
+                      <p className="text-xs text-red-800 dark:text-red-200 leading-relaxed">
+                        If you cancel, you will keep premium access until{" "}
+                        {currentSubscription?.currentPeriodEnd
+                          ? new Date(
+                              currentSubscription.currentPeriodEnd,
+                            ).toLocaleDateString()
+                          : "the end of your billing period"}
+                        . After that, your subscription will not renew.
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        setShowSubscriptionDetails(false);
+                        promptCancelSubscription();
+                      }}
+                      disabled={isCanceling}
+                      className="w-full bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      {isCanceling ? "Canceling..." : "Cancel Subscription"}
+                    </Button>
+                  </div>
+                )}
+
+              {/* {currentSubscription?.cancelAtPeriodEnd &&
+                currentSubscription?.status !== "cancelled" && (
+                  <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/30 border-2 border-amber-200 dark:border-amber-900 p-4">
+                    <p className="text-sm text-amber-900 dark:text-amber-100 font-semibold mb-1">
+                      Want to keep premium access?
+                    </p>
+                    <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+                      You can switch to a different billing interval anytime
+                      before{" "}
+                      {currentSubscription?.currentPeriodEnd
+                        ? new Date(
+                            currentSubscription.currentPeriodEnd,
+                          ).toLocaleDateString()
+                        : "the end of your billing period"}
+                      . Just select the other plan card above.
+                    </p>
+                  </div>
+                )} */}
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Switch plan confirmation modal */}
-        {pendingSwitchPlan && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-            <div className="bg-card border border-border rounded-2xl p-6 max-w-md w-full shadow-xl text-center">
-              <h3 className="text-xl font-bold text-foreground mb-2">
-                Switch plan?
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                You currently have the{" "}
-                <span className="font-semibold text-foreground">
-                  {currentSubscription?.plan?.name || "current"}
-                </span>{" "}
-                plan. We&apos;ll cancel it and start checkout for the{" "}
-                <span className="font-semibold text-foreground">
-                  {pendingSwitchPlan.duration}
-                </span>{" "}
-                plan.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3">
+        <Dialog
+          open={!!pendingSwitchPlan}
+          onOpenChange={(open) => {
+            if (!open) {
+              setPendingSwitchPlan(null);
+              setIsCanceling(false);
+              setCheckoutId(null);
+            }
+          }}
+        >
+          <DialogContent className="sm:rounded-3xl border-2 border-border p-0 overflow-hidden max-w-md">
+            <div className="p-6 text-center">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold text-foreground">
+                  Switch plan?
+                </DialogTitle>
+                <DialogDescription className="text-muted-foreground mt-2">
+                  You currently have the{" "}
+                  <span className="font-semibold text-foreground">
+                    {currentSubscription?.plan?.name || "current"}
+                  </span>{" "}
+                  plan. We&apos;ll cancel it and start checkout for the{" "}
+                  <span className="font-semibold text-foreground">
+                    {pendingSwitchPlan?.duration}
+                  </span>{" "}
+                  plan.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="mt-6 flex-col sm:flex-row gap-3 sm:justify-center">
                 <Button
                   variant="outline"
                   className="flex-1"
@@ -388,10 +824,10 @@ export default function StorePage() {
                     "Switch Plan"
                   )}
                 </Button>
-              </div>
+              </DialogFooter>
             </div>
-          </div>
-        )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
