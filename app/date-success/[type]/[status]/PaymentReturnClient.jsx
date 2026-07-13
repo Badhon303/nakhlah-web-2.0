@@ -179,7 +179,12 @@ export default function PaymentReturnClient() {
             </Button>
 
             <Button
-              variant="outline"
+              variant={isCanceled ? "default" : "outline"}
+              className={
+                isCanceled
+                  ? "bg-accent hover:bg-accent/90 text-accent-foreground"
+                  : ""
+              }
               onClick={() =>
                 router.push(isCanceled ? "/store?refetch=dates" : "/store")
               }

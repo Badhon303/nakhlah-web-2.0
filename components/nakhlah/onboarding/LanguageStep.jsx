@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Mascot } from "../Mascot";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 
 const languages = [
   { value: "arabic", label: "Arabic", native: "العربية", icon: "🇸🇦" },
@@ -19,7 +19,7 @@ export function LanguageStep({ selectedLanguage, onSelect }) {
         animate={{ opacity: 1, y: 0 }}
         className="mb-10 flex items-center gap-6 justify-center"
       >
-        <Mascot mood="proud" size="md" className="w-32 h-32" />
+        <FreshDateMascot mood="proud" size="md" />
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">
             What you want to learn?
@@ -43,7 +43,7 @@ export function LanguageStep({ selectedLanguage, onSelect }) {
               "hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
               selectedLanguage === lang.value
                 ? "border-accent bg-accent/10 shadow-accent-glow"
-                : "border-border bg-card hover:border-primary"
+                : "border-border bg-card hover:border-primary",
             )}
           >
             <span className="text-4xl">{lang.icon}</span>

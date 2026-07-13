@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import LogoAnimation from "@/components/icons/Logo";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import Link from "next/link";
 
 const ERROR_CONFIGS = {
@@ -16,7 +16,7 @@ const ERROR_CONFIGS = {
     secondaryHref: "/onboarding",
   },
   network: {
-    mood: "confused",
+    mood: "sad",
     quote: "Hmm… I can't reach the server.",
     subtext: "Check your internet connection and try again. I'll be here!",
     primaryLabel: "TRY AGAIN",
@@ -117,7 +117,7 @@ export function JourneyErrorFallback({ error = "", onRetry }) {
           }}
           className="mb-6 flex justify-center"
         >
-          <LogoAnimation className="w-44" />
+          <FreshDateMascot mood={config.mood} size="xxl" />
         </motion.div>
 
         {/* Subtext */}

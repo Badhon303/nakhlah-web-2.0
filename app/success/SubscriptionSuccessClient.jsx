@@ -15,7 +15,7 @@ export default function SubscriptionSuccessClient() {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="hidden lg:flex flex-col items-center justify-center"
+          className="hidden lg:flex flex-col items-center justify-center gap-6"
         >
           <FreshDateMascot mood="celebrating" size="xxxl" />
           <h2 className="text-2xl font-bold text-foreground text-center max-w-md">
@@ -34,9 +34,9 @@ export default function SubscriptionSuccessClient() {
           </div>
 
           <div className="space-y-4">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 text-accent">
+            {/* <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 text-accent">
               <ShoppingBag className="w-8 h-8" />
-            </div>
+            </div> */}
 
             <h1 className="text-3xl md:text-5xl font-bold text-foreground">
               Subscription active!

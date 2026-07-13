@@ -3,7 +3,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Mascot } from "@/components/nakhlah/Mascot";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { PathwayNode } from "./PathwayNode";
 import { SectionHeader } from "./SectionHeader";
 import { DecorativeElement, ConnectorLine } from "./DecorativeElements";
@@ -181,7 +181,7 @@ export default function PathwayCarousel({
               }}
               transition={{ type: "spring", stiffness: 200, damping: 20 }}
             >
-              <Mascot mood="excited" size="lg" />
+              <FreshDateMascot mood="excited" size="lg" />
             </motion.div>
           )}
 
@@ -192,7 +192,7 @@ export default function PathwayCarousel({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <Mascot mood="happy" size="md" />
+            <FreshDateMascot mood="happy" size="md" />
           </motion.div>
         </div>
       </div>

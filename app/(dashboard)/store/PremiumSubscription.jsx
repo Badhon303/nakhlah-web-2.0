@@ -19,7 +19,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Crown } from "@/components/icons/Crown";
 import { DatesIcon } from "@/components/icons/PublicAssetIcons";
-import { Mascot } from "@/components/nakhlah/Mascot";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { useSubscriptionPlansStore } from "@/stores/useSubscriptionPlansStore";
 import {
@@ -320,7 +320,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
           <div className="relative overflow-hidden rounded-3xl bg-accent p-6 text-center shadow-lg">
             <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
               <div className="flex-shrink-0">
-                <Mascot mood="excited" size="xxl" />
+                <FreshDateMascot mood="excited" size="xxl" />
               </div>
 
               <div className="flex-1 max-w-2xl">

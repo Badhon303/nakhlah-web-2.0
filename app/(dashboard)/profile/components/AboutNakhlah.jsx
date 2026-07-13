@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Mascot } from "@/components/nakhlah/Mascot";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
@@ -85,7 +85,7 @@ export default function AboutNakhlahPage({
         {/* Mascot Logo */}
         <div className="flex justify-center mb-6">
           <div className="rounded-2xl flex items-center justify-center">
-            <Mascot size="xxl" mood="happy" />
+            <FreshDateMascot mood="happy" size="xxl" />
           </div>
         </div>
 

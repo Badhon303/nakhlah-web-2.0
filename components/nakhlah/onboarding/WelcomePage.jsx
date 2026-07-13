@@ -48,7 +48,7 @@
 // }
 
 import { Button } from "@/components/ui/button";
-import { Mascot } from "../Mascot";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 
 export function WelcomeStep({ onStart, onLogin }) {
   return (
@@ -59,7 +59,7 @@ export function WelcomeStep({ onStart, onLogin }) {
       </div>
 
       {/* mascot */}
-      <Mascot size="xxl" mood="happy" />
+      <FreshDateMascot mood="happy" size="xxl" />
 
       {/* app title */}
       <h1 className="text-3xl font-bold text-violet-600 mb-2">Nakhlah</h1>
