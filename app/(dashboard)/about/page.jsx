@@ -9,6 +9,7 @@ import { Mascot } from "@/components/nakhlah/Mascot";
 import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
 import { getSessionToken } from "@/lib/authUtils";
 import { fetchAbout } from "@/services/api/globals";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 
 const SECTION_CONFIG = [
   { key: "about", title: "About" },
@@ -62,7 +63,7 @@ export default function AboutPage() {
         </div>
 
         <div className="flex justify-center mb-6">
-          <Mascot size="xxl" mood="happy" />
+          <FreshDateMascot size="xxl" mood="happy" />
         </div>
 
         {isLoading ? (

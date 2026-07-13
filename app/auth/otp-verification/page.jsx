@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft, Delete } from "lucide-react";
-import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
 import { useRouter } from "next/navigation";
 
 export default function OTPVerificationPage() {
@@ -108,7 +107,7 @@ export default function OTPVerificationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-start sm:items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-start sm:items-center justify-center px-4 py-6">
       {/* Mobile fixed nav */}
       <Link
         href="/auth/forgot-password"
@@ -117,11 +116,6 @@ export default function OTPVerificationPage() {
         <ArrowLeft className="h-5 w-5" />
         <span className="font-semibold text-sm">Back</span>
       </Link>
-      <div className="fixed top-4 right-4 z-50 lg:hidden">
-        <div className="bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-full p-2 shadow-lg">
-          <ThemeToggle size="lg" />
-        </div>
-      </div>
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
         {/* Left Side - Mascot */}
         <motion.div

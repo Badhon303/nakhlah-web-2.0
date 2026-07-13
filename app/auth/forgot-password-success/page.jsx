@@ -6,7 +6,7 @@ import { MailCheck } from "lucide-react";
 
 export default function ForgotPasswordSuccessPage() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-6">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}

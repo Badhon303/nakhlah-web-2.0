@@ -261,7 +261,7 @@ export default function StorePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-10 max-w-5xl space-y-14">
+      <div className="container mx-auto px-4 py-6 max-w-5xl space-y-14">
         {/* ── Date Packages ── */}
         <section>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 items-end">

@@ -9,8 +9,10 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Moon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
 
 export default function SettingsPage({ onBack, onNavigate }) {
   const router = useRouter();
@@ -49,6 +51,13 @@ export default function SettingsPage({ onBack, onNavigate }) {
         "bg-purple-100 text-purple-500 dark:bg-purple-900/30 dark:text-purple-400",
       action: "about-nakhlah",
     },
+    {
+      label: "Theme",
+      icon: Moon,
+      color:
+        "bg-indigo-100 text-indigo-500 dark:bg-indigo-900/30 dark:text-indigo-400",
+      toggle: true,
+    },
   ];
 
   const handleLogout = () => {
@@ -56,7 +65,7 @@ export default function SettingsPage({ onBack, onNavigate }) {
   };
 
   return (
-    <div className="container mx-auto px-3 sm:px-4 py-6 max-w-3xl">
+    <div className="container mx-auto px-4 py-6 max-w-3xl">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -115,7 +124,14 @@ export default function SettingsPage({ onBack, onNavigate }) {
                 </div>
 
                 {/* Right side - toggle or chevron */}
-                {!item.toggle && (
+                {item.toggle ? (
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center"
+                  >
+                    <ThemeToggle size="md" />
+                  </div>
+                ) : (
                   <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
                 )}
               </motion.div>

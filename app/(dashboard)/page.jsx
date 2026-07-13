@@ -225,7 +225,7 @@ export default function LearnPage() {
   return (
     <div className="bg-background text-foreground">
       {/* Mobile sticky header */}
-      <div className="lg:hidden fixed top-0 w-full z-[55] bg-primary shadow-md">
+      <div className="lg:hidden fixed top-0 w-full z-[40] bg-primary shadow-md">
         <UserStats />
       </div>
 

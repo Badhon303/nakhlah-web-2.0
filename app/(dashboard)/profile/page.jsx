@@ -238,7 +238,7 @@ function ProfileAndSettingsContent() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="px-4 sm:px-5 lg:px-0"
+          className="px-4 lg:px-0"
         >
           {renderView()}
         </motion.div>

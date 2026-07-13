@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ProgressSteps } from "@/components/nakhlah/ProgressSteps";
-import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
+import Image from "next/image";
 import { ProficiencyStep } from "@/components/nakhlah/onboarding/ProficiencyStep";
 import { GoalStep } from "@/components/nakhlah/onboarding/GoalStep";
 import { PurposeStep } from "@/components/nakhlah/onboarding/PurposeStep";
@@ -623,7 +623,7 @@ export default function Onboarding() {
 
   if (!isAuthResolved || isLoadingOnboarding) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4 py-6">
         <div className="text-center space-y-3 max-w-sm">
           <FreshDateMascot mood="excited" size="xxxl" />
           <p className="text-muted-foreground font-medium">
@@ -639,14 +639,20 @@ export default function Onboarding() {
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border pt-[env(safe-area-inset-top)]">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="text-3xl">🌴</div>
+            <Image
+              src="/Nakhlah_Logo.webp"
+              alt="Nakhlah logo"
+              width={40}
+              height={40}
+              className="w-10 h-10 rounded-lg object-cover"
+              priority
+            />
             <span className="text-xl font-bold text-foreground">Nakhlah</span>
           </div>
-          <ThemeToggle />
         </div>
       </header>
 
-      <div className=" container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6">
         <div className="max-w-[520px] mx-auto">
           <ProgressSteps steps={steps} currentStep={currentStep} />
         </div>

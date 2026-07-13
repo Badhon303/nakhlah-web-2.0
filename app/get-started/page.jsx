@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export default function GetStartedPage() {
   return (
-    <div className="min-h-screen w-full bg-background flex items-center justify-center p-8">
+    <div className="min-h-screen w-full bg-background flex items-center justify-center px-4 py-6">
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}

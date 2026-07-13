@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CardMenuOptions } from "@/components/nakhlah/CardMenuOptions";
 import {
@@ -145,10 +144,6 @@ export function ProfileSection() {
     return [...earnedBadgeIcons, ...earnedAchievementIcons].slice(0, 10);
   }, [earnedBadgeIcons, earnedAchievementIcons]);
 
-  const handleLogout = () => {
-    router.push("/auth/login");
-  };
-
   const menuOptions = [
     {
       label: "View Full Profile",
@@ -215,18 +210,6 @@ export function ProfileSection() {
                 )}
               </div>
             </TooltipProvider>
-          </div>
-
-          {/* Logout Button */}
-          <div className="mt-4 pt-4 border-t border-border">
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="w-full flex items-center justify-center gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 hover:border-destructive/50"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </Button>
           </div>
         </div>
       ) : (

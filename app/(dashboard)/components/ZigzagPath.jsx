@@ -1,22 +1,24 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { Circle } from "./Circle";
-import { Mascot } from "@/components/nakhlah/Mascot";
-import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { GateBanner } from "@/components/nakhlah/GateBanner";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Lock, FileText } from "lucide-react";
 
 const PATH_CENTER = 50;
 const PATH_AMPLITUDE = 25;
 const PATH_FREQUENCY = 0.8;
 const LESSON_ROW_HEIGHT = 112;
-const MASCOT_VERTICAL_OFFSET = -150;
+const MASCOT_VERTICAL_OFFSET = -180;
 const MASCOT_SIDE_POSITIONS = {
-  left: "22%",
-  right: "78%",
+  left: "75%",
+  right: "25%",
 };
 
 export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
   const [currentLevelId, setCurrentLevelId] = useState("");
+  const hasScrolledRef = useRef(false);
+  const prevLessonsRef = useRef(lessons);
 
   const currentLevel = levels.find((l) => l.id === currentLevelId);
 
@@ -115,7 +117,7 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
         const placement = {
           ...slot,
           mood: mascot?.mood || moods[slot.slotIndex % moods.length],
-          size: mascot?.size || sizes[slot.slotIndex % sizes.length],
+          size: mascot?.size || sizes[slot.slotIndex % moods.length],
           message: mascot?.message,
         };
 
@@ -175,72 +177,79 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
     return () => observers.forEach((o) => o.disconnect());
   }, [levels, isLoading, currentLevelId]);
 
+  // Reset scroll guard whenever lessons data changes identity
+  useEffect(() => {
+    if (prevLessonsRef.current !== lessons) {
+      hasScrolledRef.current = false;
+      prevLessonsRef.current = lessons;
+    }
+  }, [lessons]);
+
+  // Scroll to current lesson on load / after refresh
   useEffect(() => {
     if (isLoading || lessons.length === 0) return undefined;
+    if (hasScrolledRef.current) return undefined;
 
-    const lastInteractedId = sessionStorage.getItem("lastInteractedNodeId");
-    const selectedId = sessionStorage.getItem("selectedNodeId");
-
-    let targetEl = null;
-    if (lastInteractedId) {
-      targetEl = document.getElementById(`node-${lastInteractedId}`);
-    }
-    if (!targetEl && selectedId) {
-      targetEl = document.getElementById(`node-${selectedId}`);
-    }
-    if (!targetEl) {
+    const getTargetEl = () => {
       const currentLesson = lessons.find((l) => l.isCurrent);
-      if (currentLesson) {
-        targetEl = document.getElementById(`node-${currentLesson.apiId}`);
-      }
-    }
-    if (!targetEl) {
-      const firstUnlockedLesson = lessons.find((l) => !l.isLocked);
-      if (firstUnlockedLesson) {
-        targetEl = document.getElementById(`node-${firstUnlockedLesson.apiId}`);
-      }
-    }
+      let targetEl = currentLesson
+        ? document.getElementById(`node-${currentLesson.apiId}`)
+        : null;
 
-    if (targetEl) {
-      targetEl.scrollIntoView({ behavior: "auto", block: "center" });
-    }
+      if (!targetEl) {
+        const lastInteractedId = sessionStorage.getItem("lastInteractedNodeId");
+        if (lastInteractedId) {
+          targetEl = document.getElementById(`node-${lastInteractedId}`);
+        }
+      }
+
+      if (!targetEl) {
+        const firstUnlocked = lessons.find((l) => !l.isLocked);
+        if (firstUnlocked) {
+          targetEl = document.getElementById(`node-${firstUnlocked.apiId}`);
+        }
+      }
+
+      return targetEl;
+    };
+
+    const doScroll = () => {
+      const targetEl = getTargetEl();
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: "instant", block: "center" });
+        hasScrolledRef.current = true;
+        return true;
+      }
+      return false;
+    };
+
+    let t1, t2;
+    const raf = requestAnimationFrame(() => {
+      if (!doScroll()) {
+        t1 = setTimeout(() => {
+          if (!doScroll()) {
+            t2 = setTimeout(doScroll, 500);
+          }
+        }, 400);
+      }
+    });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, [lessons, isLoading]);
 
   return (
     <div className="relative lg:max-w-lg mx-auto">
-      {/* Mobile mask: hides scrolled content behind the fixed stats + unit headers */}
-      <div className="fixed top-0 left-0 right-0 h-[72px] z-[44] bg-background lg:hidden pointer-events-none" />
-
-      {/* Fixed unit header on mobile to avoid sticky jitter while scrolling */}
-      <div className="fixed top-[72px] left-0 right-0 z-[45] bg-background border-b border-border/60 py-2 lg:hidden">
-        <div className="mx-auto w-full max-w-lg px-4">
-          <div
-            className={`flex items-center justify-between px-4 py-3 rounded-lg shadow-lg transition-all duration-500 ease-in-out bg-gradient-to-r ${getLevelColor(
-              currentLevel?.colorIndex || 1,
-            )} text-white`}
-          >
-            <div>
-              <div className="text-sm text-white/90 mb-1 font-semibold uppercase tracking-wider">
-                {currentLevel?.levelName ? `${currentLevel.levelName}, ` : ""}
-                {currentLevel?.name || ""}
-              </div>
-              {currentTask?.title ? (
-                <div className="text-2xl font-bold leading-tight">
-                  {currentTask.title}
-                </div>
-              ) : null}
-            </div>
-            <button className="text-white p-2 rounded-full">
-              <FileText className="w-6 h-6" />
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Mobile mask: hides scrolled content behind the fixed UserStats header */}
+      <div className="fixed top-0 left-0 right-0 h-[72px] z-[39] bg-background lg:hidden pointer-events-none" />
 
       {/* Desktop mask to keep whitespace above sticky header clean */}
       <div className="hidden lg:block sticky top-0 z-[44] h-6 bg-background" />
 
-      {/* Sticky unit header on desktop */}
+      {/* Sticky unit header on desktop only */}
       <div className="hidden lg:block sticky top-6 z-[44] bg-background py-2 lg:py-0">
         <div
           className={`flex items-center justify-between px-4 py-3 rounded-lg shadow-lg transition-all duration-500 ease-in-out bg-gradient-to-r ${getLevelColor(
@@ -264,14 +273,28 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
         </div>
       </div>
 
-      <div className="h-[88px] lg:hidden" />
+      {/* Section unlocker placeholder - sits at the visual top in reversed layout */}
+      <div className="mb-8 mt-0 lg:mt-6 flex justify-center">
+        <div className="bg-card border-2 border-dashed border-border rounded-xl p-6 w-full max-w-md text-center">
+          <div className="flex justify-center mb-3">
+            <Lock className="w-6 h-6 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-bold text-foreground mb-2">
+            Next Section Locked
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Complete the current section to unlock the next one.
+          </p>
+        </div>
+      </div>
 
-      {/* Lessons grouped by level */}
-      <div className="relative mt-6 lg:mt-10">
-        {levels.map((level, levelIndex) => {
+      {/* Lessons grouped by level - bottom-to-top: level 1 sits at the visual bottom */}
+      <div className="relative flex flex-col-reverse">
+        {levels.map((level) => {
           const levelLessons = groupedLessons[level.id] || [];
           const isFirstLessonCurrent = levelLessons[0]?.isCurrent;
           const levelStartIndex = lessonIndexById.get(levelLessons[0]?.id) ?? 0;
+          const gatePosition = getPosition(levelStartIndex);
           const levelMascots = levelLessons.flatMap(
             (lesson) => mascotPlacementsByAnchorId.get(lesson.id) || [],
           );
@@ -280,30 +303,23 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
             <div
               key={level.id}
               data-level-id={level.id}
-              className="mb-12 relative"
+              className="relative flex flex-col-reverse"
             >
-              {/* Level barrier */}
+              {/* Level Gate Banner - sits at the visual bottom of the level, aligned with the first lesson node */}
               <div
-                className={`relative h-1 flex items-center justify-center ${
-                  isFirstLessonCurrent ? "mb-16 mt-6" : "mb-6"
+                className={`w-fit ${
+                  isFirstLessonCurrent ? "mt-12 mb-6" : "mt-8"
                 }`}
+                style={{
+                  marginLeft: gatePosition.left,
+                  transform: gatePosition.transform,
+                }}
               >
-                {/* <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t-2 border-dashed border-border"></div>
-                </div> */}
-                <div className="relative bg-background px-4">
-                  <span
-                    className={`text-lg font-bold bg-gradient-to-r ${getLevelColor(
-                      level.colorIndex || levelIndex + 1,
-                    )} bg-clip-text text-transparent`}
-                  >
-                    {level.name}
-                  </span>
-                </div>
+                <GateBanner title={level.name} />
               </div>
 
-              {/* Zigzag path for this level */}
-              <div className="relative">
+              {/* Zigzag path for this level - first lesson at visual bottom */}
+              <div className="relative flex flex-col-reverse">
                 {levelLessons.map((lesson, index) => {
                   const globalIndex = lessonIndexById.get(lesson.id);
                   const position = getPosition(globalIndex ?? index);
@@ -351,12 +367,10 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
                               borderWidth: 4,
                             }}
                           >
-                            {/* The bubble text */}
                             <div className="text-center font-bold text-accent tracking-wide uppercase">
                               START!
                             </div>
 
-                            {/* Beautiful curved SVG tail */}
                             <svg
                               className="absolute left-1/2 -translate-x-1/2 text-accent"
                               style={{
@@ -392,12 +406,16 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
 
                 {levelMascots.map((mascot) => (
                   <div
-                    key={`${level.id}-${mascot.slotIndex}-${mascot.mood || "helper"}`}
+                    key={`${level.id}-${mascot.slotIndex}-${
+                      mascot.mood || "helper"
+                    }`}
                     className="absolute z-10 pointer-events-none"
                     style={{
                       left: MASCOT_SIDE_POSITIONS[mascot.side],
                       top: `${
-                        (mascot.midpoint - levelStartIndex) *
+                        (levelLessons.length -
+                          1 -
+                          (mascot.midpoint - levelStartIndex)) *
                           LESSON_ROW_HEIGHT +
                         LESSON_ROW_HEIGHT / 2 +
                         MASCOT_VERTICAL_OFFSET
@@ -405,7 +423,7 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
                       transform: "translate(-50%, -50%)",
                     }}
                   >
-                    <Mascot
+                    <FreshDateMascot
                       mood={mascot.mood || "happy"}
                       size={mascot.size || "md"}
                       message={mascot.message}
@@ -416,21 +434,6 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
             </div>
           );
         })}
-
-        {/* Section unlocker placeholder */}
-        <div className="mt-8 flex justify-center">
-          <div className="bg-card border-2 border-dashed border-border rounded-xl p-6 w-full max-w-md text-center">
-            <div className="flex justify-center mb-3">
-              <Lock className="w-6 h-6 text-muted-foreground" />
-            </div>
-            <h3 className="text-lg font-bold text-foreground mb-2">
-              Next Section Locked
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Complete the current section to unlock the next one.
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );
