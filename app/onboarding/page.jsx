@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ProgressSteps } from "@/components/nakhlah/ProgressSteps";
 import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
+import Image from "next/image";
 import { ProficiencyStep } from "@/components/nakhlah/onboarding/ProficiencyStep";
 import { GoalStep } from "@/components/nakhlah/onboarding/GoalStep";
 import { PurposeStep } from "@/components/nakhlah/onboarding/PurposeStep";
@@ -639,20 +640,27 @@ export default function Onboarding() {
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border pt-[env(safe-area-inset-top)]">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="text-3xl">🌴</div>
+            <Image
+              src="/Nakhlah_Logo.webp"
+              alt="Nakhlah logo"
+              width={32}
+              height={32}
+              className="w-8 h-8 rounded-lg object-cover"
+              priority
+            />
             <span className="text-xl font-bold text-foreground">Nakhlah</span>
           </div>
           <ThemeToggle />
         </div>
       </header>
 
-      <div className=" container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-2 md:py-4 lg:py-10">
         <div className="max-w-[520px] mx-auto">
           <ProgressSteps steps={steps} currentStep={currentStep} />
         </div>
       </div>
 
-      <main className="flex-1 container mx-auto px-4 py-6 flex items-start justify-center">
+      <main className="flex-1 container mx-auto px-4 py-10 flex items-start justify-center">
         {isLoadingOnboarding ? (
           <div className="w-full max-w-xl mx-auto text-center text-muted-foreground">
             Loading onboarding options...
@@ -717,7 +725,7 @@ export default function Onboarding() {
             )}
           </div>
 
-          {[4, 5, 6, 7, 8].includes(currentStep) && (
+          {[1, 2, 3, 4, 5, 6, 7, 8].includes(currentStep) && (
             <div className="relative flex items-center">
               <div className="flex-1 border-t border-border" />
               <button
