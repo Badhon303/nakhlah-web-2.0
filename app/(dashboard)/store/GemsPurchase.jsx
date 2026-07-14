@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { DatesIcon } from "@/components/icons/PublicAssetIcons";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ChevronDown, ChevronLeft, Search } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { getSessionToken } from "@/lib/authUtils";
 import { fetchHelpCenter } from "@/services/api/globals";
 

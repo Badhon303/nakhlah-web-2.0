@@ -5,7 +5,7 @@ import { CardMenuOptions } from "@/components/nakhlah/CardMenuOptions";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
 import { useDailyQuestStore } from "@/stores/useDailyQuestStore";

@@ -3,14 +3,12 @@ import AchievementTick from "@/components/icons/AchievementTick";
 import { motion } from "framer-motion";
 import { ChevronLeft, Lock } from "lucide-react";
 import { useMemo } from "react";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+import { buildApiUrl } from "@/lib/api-config";
 
 const getMediaUrl = (url) => {
   if (!url) return "";
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
-  if (!API_URL) return url;
-  return `${API_URL}${url}`;
+  return buildApiUrl(url);
 };
 
 const levelColorClasses = [

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
 import { fetchAbout } from "@/services/api/globals";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { getSessionToken } from "@/lib/authUtils";
 
 export default function AboutNakhlahPage({

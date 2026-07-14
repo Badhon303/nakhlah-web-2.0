@@ -5,9 +5,38 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 /* Nakhlah Design System - Desert-inspired Language Learning App */
 
 @layer base {
+  :root {
+    --capacitor-status-bar-height: 0px;
+  }
+
+  body {
+    padding-top: var(--capacitor-status-bar-height, 0px);
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--capacitor-status-bar-height, 0px);
+    background: #8249DF;
+    z-index: 9999;
+    pointer-events: none;
+  }
+
   :root {
     /* Sandy Yellow - Primary (Desert Sand) */
     --primary: 42 55% 78%;

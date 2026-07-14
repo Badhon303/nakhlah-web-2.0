@@ -15,7 +15,7 @@ import {
   fetchJourneyStructure,
   makeLearnerProgress,
 } from "@/services/api";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { hasOpenedGiftBox } from "@/lib/gamification";
 import { useDailyQuestStore } from "@/stores/useDailyQuestStore";

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Trophy } from "@/components/icons/Trophy";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
 import { useLeaderboardStore } from "@/stores/useLeaderboardStore";

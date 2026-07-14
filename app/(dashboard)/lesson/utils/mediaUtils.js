@@ -1,3 +1,5 @@
+import { buildApiUrl } from "@/lib/api-config";
+
 /**
  * Constructs the full media URL from the API response
  * @param {string} url - The media URL from the API
@@ -8,7 +10,7 @@ export function getMediaUrl(url) {
     if (url.startsWith("http")) {
         return url;
     }
-    return `${process.env.NEXT_PUBLIC_API_URL}${url}`;
+    return buildApiUrl(url);
 }
 
 /**

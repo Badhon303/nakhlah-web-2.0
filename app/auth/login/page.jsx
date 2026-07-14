@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
-import { signIn } from "next-auth/react";
+import { signIn } from "@/lib/auth-client";
 import LogoAnimation from "@/components/icons/Logo";
 import { useRouter } from "next/navigation";
 import { queueToastAfterNavigation, toast } from "@/components/nakhlah/Toast";

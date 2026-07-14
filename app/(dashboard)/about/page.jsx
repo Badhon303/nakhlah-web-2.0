@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { Mascot } from "@/components/nakhlah/Mascot";
 import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
 import { getSessionToken } from "@/lib/authUtils";

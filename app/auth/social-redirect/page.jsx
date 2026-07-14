@@ -3,7 +3,7 @@
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { fetchMyProfile } from "@/services/api/auth";
 

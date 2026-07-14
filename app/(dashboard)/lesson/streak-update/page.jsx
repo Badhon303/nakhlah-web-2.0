@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { StreakIcon } from "@/components/icons/PublicAssetIcons";
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { fetchLearnerStreak } from "@/services/api";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getCurrentStreakCount, getMissedDaysCount } from "@/lib/streakUtils";

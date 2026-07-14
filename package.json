@@ -13,6 +13,11 @@
     "test": "npm run lint"
   },
   "dependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/ios": "^8.4.1",
+    "@capacitor/status-bar": "^8.0.2",
     "@fontsource/nunito": "^5.2.7",
     "@gsap/react": "^2.1.2",
     "@hookform/resolvers": "^3.10.0",
@@ -75,6 +80,7 @@
     "zustand": "^5.0.13"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.4.1",
     "@eslint/js": "^9.32.0",
     "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^22.16.5",
@@ -82,6 +88,7 @@
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.22",
+    "baseline-browser-mapping": "^2.10.43",
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
     "eslint-plugin-jest-dom": "^5.5.0",

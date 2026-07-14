@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut } from "@/lib/auth-client";
 
 const navItems = [
   { path: "/", label: "Home", icon: "/icons/Home-Icon.127e8555.svg" },

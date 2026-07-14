@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { StreakIcon } from "@/components/icons/PublicAssetIcons";
 import { Check } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { fetchLearnerStreak } from "@/services/api";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getCurrentStreakCount, getRecentStreakDays } from "@/lib/streakUtils";

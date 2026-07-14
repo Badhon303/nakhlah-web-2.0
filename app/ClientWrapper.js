@@ -6,7 +6,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { Navbar } from "@/components/nakhlah/Navbar";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
@@ -41,6 +41,7 @@ export default function ClientWrapper({ children }) {
   useEffect(() => {
     prefetchAll();
   }, [prefetchAll]);
+
   const fetchDailyQuests = useDailyQuestStore((store) => store.fetchDailyQuests);
   const claimQuestIfAvailable = useDailyQuestStore((store) => store.claimQuestIfAvailable);
   const challengeStatuses = useDailyQuestStore((store) => store.challengeStatuses);

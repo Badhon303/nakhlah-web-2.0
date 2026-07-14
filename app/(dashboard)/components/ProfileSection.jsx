@@ -11,7 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { useEffect, useMemo, useState } from "react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import {
@@ -21,15 +21,14 @@ import {
 import { Medal } from "@/components/icons/Medal";
 import { getUserKey } from "@/lib/userKey";
 import { useProfileStore } from "@/stores/useProfileStore";
+import { buildApiUrl } from "@/lib/api-config";
 
 const DEFAULT_PROFILE_IMAGE = "https://github.com/shadcn.png";
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 const getMediaUrl = (url) => {
   if (!url) return "";
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
-  if (!API_URL) return url;
-  return `${API_URL}${url}`;
+  return buildApiUrl(url);
 };
 
 const formatJoinedDate = (dateInput) => {

@@ -2,14 +2,12 @@
 
 import { ChevronRight } from "lucide-react";
 import { Medal } from "@/components/icons/Medal";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+import { buildApiUrl } from "@/lib/api-config";
 
 const getIconUrl = (url) => {
   if (!url) return "";
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
-  if (!API_URL) return url;
-  return `${API_URL}${url}`;
+  return buildApiUrl(url);
 };
 
 export default function BadgeCard({ badge }) {

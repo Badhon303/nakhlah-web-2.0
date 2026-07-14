@@ -27,7 +27,7 @@ import {
   refreshAccessToken,
   updateMyProfile,
 } from "@/services/api/auth";
-import { signIn } from "next-auth/react";
+import { signIn, getSessionSync } from "@/lib/auth-client";
 import { toast } from "@/components/nakhlah/Toast";
 import { buildApiUrl } from "@/lib/api-config";
 
@@ -203,9 +203,7 @@ export default function Onboarding() {
   };
 
   const getActiveAccessToken = async () => {
-    const session = await fetch("/api/auth/session")
-      .then((res) => res.json())
-      .catch(() => null);
+    const session = getSessionSync();
 
     if (session?.accessToken) {
       return session.accessToken;

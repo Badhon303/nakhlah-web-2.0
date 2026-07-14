@@ -244,7 +244,7 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
   return (
     <div className="relative lg:max-w-lg mx-auto">
       {/* Mobile mask: hides scrolled content behind the fixed UserStats header */}
-      <div className="fixed top-0 left-0 right-0 h-[72px] z-[39] bg-background lg:hidden pointer-events-none" />
+      <div className="fixed left-0 right-0 h-[72px] z-[39] bg-background lg:hidden pointer-events-none" style={{ top: "var(--capacitor-status-bar-height, 0px)" }} />
 
       {/* Desktop mask to keep whitespace above sticky header clean */}
       <div className="hidden lg:block sticky top-0 z-[44] h-6 bg-background" />

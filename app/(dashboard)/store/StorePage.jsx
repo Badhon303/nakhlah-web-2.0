@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { Calendar } from "@/components/icons/Calendar";
 import { NotoStopwatch } from "@/components/icons/NotoStopwatch";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";

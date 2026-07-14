@@ -14,7 +14,7 @@ import LogoAnimation from "@/components/icons/Logo";
 import Image from "next/image";
 import cloudinaryLoader from "./utils/cloudinaryLoader";
 import { getMediaUrl, shuffleArray, sortByOrder } from "./utils/mediaUtils";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import {
   fetchLessonQuestions as fetchLessonAPI,

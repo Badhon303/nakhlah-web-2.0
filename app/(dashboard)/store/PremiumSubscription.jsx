@@ -25,7 +25,7 @@ import {
   Star,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { Crown } from "@/components/icons/Crown";
 import { DatesIcon } from "@/components/icons/PublicAssetIcons";

@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronDown, Search } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { fetchHelpCenter } from "@/services/api/globals";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { getSessionToken } from "@/lib/authUtils";
 
 export default function HelpCenterPage({

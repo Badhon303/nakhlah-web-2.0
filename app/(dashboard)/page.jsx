@@ -8,7 +8,7 @@ import { ProfileSection } from "./components/ProfileSection";
 import { LeaderboardCard } from "./components/LeaderboardCard";
 import { JourneyErrorFallback } from "./components/JourneyErrorFallback";
 import { Trophy } from "@/components/icons/Trophy";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
 import { useJourneyStore } from "@/stores/useJourneyStore";
@@ -225,7 +225,7 @@ export default function LearnPage() {
   return (
     <div className="bg-background text-foreground">
       {/* Mobile sticky header */}
-      <div className="lg:hidden fixed top-0 w-full z-[40] bg-primary shadow-md">
+      <div className="lg:hidden fixed top-0 w-full z-[40] bg-primary shadow-md" style={{ top: "var(--capacitor-status-bar-height, 0px)" }}>
         <UserStats />
       </div>
 

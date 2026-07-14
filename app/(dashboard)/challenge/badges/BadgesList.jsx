@@ -3,7 +3,7 @@
 import { Search } from "lucide-react";
 import BadgeSection from "./BadgeSection";
 import { useEffect, useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { fetchGamificationBadges, fetchMyProfile } from "@/services/api";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 

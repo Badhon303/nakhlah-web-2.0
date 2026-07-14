@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import MissionSection from "./MissionSection";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";

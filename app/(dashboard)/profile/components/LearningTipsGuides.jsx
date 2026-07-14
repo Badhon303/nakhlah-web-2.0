@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, BookOpen, Lightbulb } from "lucide-react";
 import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
 import { fetchHelpCenter } from "@/services/api/globals";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { getSessionToken } from "@/lib/authUtils";
 
 export default function LearningTipsGuidesPage({ onBack }) {

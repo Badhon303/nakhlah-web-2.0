@@ -11,7 +11,7 @@ import {
 import { Bullseye } from "@/components/icons/BullsEye";
 import { CheckCircle2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { fetchUserDailyQuest } from "@/services/api";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 

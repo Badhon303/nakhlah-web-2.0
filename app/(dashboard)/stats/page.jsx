@@ -14,7 +14,7 @@ import {
   Calendar,
   Flame,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { fetchMyProfile } from "@/services/api";
 import { getCurrentStreakCount } from "@/lib/streakUtils";

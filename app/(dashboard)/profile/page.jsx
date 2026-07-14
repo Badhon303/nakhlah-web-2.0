@@ -19,7 +19,7 @@ import FollowingPage from "./components/Following";
 import ShareProfileDrawer from "./components/ShareProfileDrawer";
 import GeneralSettingsPage from "./components/GeneralSettings";
 import AboutNakhlahPage from "./components/AboutNakhlah";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";

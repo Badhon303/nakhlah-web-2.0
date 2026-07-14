@@ -5,6 +5,7 @@ import MainLayout from "@/components/MainLayout";
 import { ThemeProvider } from "next-themes";
 import SessionProvider from "@/components/SessionProvider";
 import { CustomToaster } from "@/components/nakhlah/Toast";
+import CapacitorInit from "@/components/CapacitorInit";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -33,6 +34,7 @@ export default function RootLayout({ children }) {
       <body
         className={`${inter.variable} ${geistMono.variable} antialiased overflow-x-hidden`}
       >
+        <CapacitorInit />
         <SessionProvider>
           <ThemeProvider
             attribute="class"
