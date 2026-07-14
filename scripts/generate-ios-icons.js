@@ -16,28 +16,36 @@ async function main() {
     process.exit(1);
   }
 
-  // iOS requires a single 1024x1024 icon with no alpha channel
+  // iOS requires a single 1024x1024 PNG with NO alpha channel, sRGB
   // Logo at 70% with white padding (matching Android square icon proportion)
   const iosLogoSize = Math.round(1024 * 0.70);
   const iosPadding = Math.round((1024 - iosLogoSize) / 2);
 
-  await sharp(logoPath)
+  // Step 1: Resize logo with white background
+  const logoBuffer = await sharp(logoPath)
     .resize(iosLogoSize, iosLogoSize, {
       fit: "contain",
       background: { r: 255, g: 255, b: 255, alpha: 1 },
     })
-    .extend({
-      top: iosPadding,
-      bottom: iosPadding,
-      left: iosPadding,
-      right: iosPadding,
-      background: { r: 255, g: 255, b: 255, alpha: 1 },
-    })
-    .flatten({ background: { r: 255, g: 255, b: 255 } })
     .png()
+    .toBuffer();
+
+  // Step 2: Create 1024x1024 white canvas and composite logo centered, then flatten to remove alpha
+  await sharp({
+    create: {
+      width: 1024,
+      height: 1024,
+      channels: 3,
+      background: { r: 255, g: 255, b: 255 },
+    },
+  })
+    .composite([{ input: logoBuffer, gravity: "center" }])
+    .flatten({ background: { r: 255, g: 255, b: 255 } })
+    .removeAlpha()
+    .png({ compressionLevel: 9 })
     .toFile(path.join(iconDir, "AppIcon-512@2x.png"));
 
-  console.log(`Generated iOS AppIcon-512@2x.png (1024x1024, logo ${iosLogoSize}px with padding)`);
+  console.log(`Generated iOS AppIcon-512@2x.png (1024x1024, logo ${iosLogoSize}px, no alpha)`);
 
   // Also generate splash screen
   const splashDir = path.join(__dirname, "..", "ios", "App", "App", "Assets.xcassets", "Splash.imageset");
