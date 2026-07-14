@@ -17,16 +17,27 @@ async function main() {
   }
 
   // iOS requires a single 1024x1024 icon with no alpha channel
+  // Logo at 70% with white padding (matching Android square icon proportion)
+  const iosLogoSize = Math.round(1024 * 0.70);
+  const iosPadding = Math.round((1024 - iosLogoSize) / 2);
+
   await sharp(logoPath)
-    .resize(1024, 1024, {
+    .resize(iosLogoSize, iosLogoSize, {
       fit: "contain",
+      background: { r: 255, g: 255, b: 255, alpha: 1 },
+    })
+    .extend({
+      top: iosPadding,
+      bottom: iosPadding,
+      left: iosPadding,
+      right: iosPadding,
       background: { r: 255, g: 255, b: 255, alpha: 1 },
     })
     .flatten({ background: { r: 255, g: 255, b: 255 } })
     .png()
     .toFile(path.join(iconDir, "AppIcon-512@2x.png"));
 
-  console.log("Generated iOS AppIcon-512@2x.png (1024x1024)");
+  console.log(`Generated iOS AppIcon-512@2x.png (1024x1024, logo ${iosLogoSize}px with padding)`);
 
   // Also generate splash screen
   const splashDir = path.join(__dirname, "..", "ios", "App", "App", "Assets.xcassets", "Splash.imageset");
