@@ -383,7 +383,11 @@ export default function Onboarding() {
   };
 
   const handleBack = () => {
-    if (currentStep > 1) setCurrentStep((s) => s - 1);
+    if (currentStep === 1) {
+      router.push("/get-started");
+    } else if (currentStep > 1) {
+      setCurrentStep((s) => s - 1);
+    }
   };
 
   const toggleInterest = (interestId) => {
@@ -694,8 +698,8 @@ export default function Onboarding() {
             <Button
               variant="ghost"
               onClick={handleBack}
-              disabled={currentStep === 1 || isRegistering}
-              className={cn("gap-2", currentStep === 1 && "invisible")}
+              disabled={isRegistering}
+              className="gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
               Back
