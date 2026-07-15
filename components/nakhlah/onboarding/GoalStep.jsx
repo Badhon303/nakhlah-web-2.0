@@ -27,18 +27,18 @@ export function GoalStep({
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {goals.map((goal, index) => {
           const value = String(goal.goalTime);
           return (
             <motion.button
               key={goal.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.1 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.08 }}
               onClick={() => onSelect(value)}
               className={cn(
-                "flex flex-col items-center gap-3 p-6 rounded-2xl border-2 transition-all duration-300",
+                "flex items-center gap-4 p-5 rounded-2xl border-2 transition-all duration-300",
                 "hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
                 selectedGoal === value
                   ? "border-accent bg-accent/10 shadow-accent-glow"
@@ -53,22 +53,16 @@ export function GoalStep({
                     className="w-full h-full object-contain"
                   />
                 ) : (
-                  <span className="font-bold">⏱</span>
+                  <span className="text-2xl">⏱</span>
                 )}
               </div>
-              <div className="text-center">
-                <p className="text-accent font-semibold text-sm">
-                  {value} min / day
-                </p>
-              </div>
+              <p className="font-bold text-foreground text-lg text-left flex-1">
+                {value} min / day
+              </p>
               {selectedGoal === value && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute top-2 right-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center"
-                >
+                <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center">
                   <svg
-                    className="w-3 h-3 text-accent-foreground"
+                    className="w-4 h-4 text-accent-foreground"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -80,14 +74,14 @@ export function GoalStep({
                       d="M5 13l4 4L19 7"
                     />
                   </svg>
-                </motion.div>
+                </div>
               )}
             </motion.button>
           );
         })}
       </div>
 
-      <motion.div
+      {/* <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
@@ -97,7 +91,7 @@ export function GoalStep({
           💡 <span className="text-foreground font-medium">Tip:</span> You can
           always change your daily goal later in settings
         </p>
-      </motion.div>
+      </motion.div> */}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ProgressSteps } from "@/components/nakhlah/ProgressSteps";
 import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
 import Image from "next/image";
+import Link from "next/link";
 import { ProficiencyStep } from "@/components/nakhlah/onboarding/ProficiencyStep";
 import { GoalStep } from "@/components/nakhlah/onboarding/GoalStep";
 import { PurposeStep } from "@/components/nakhlah/onboarding/PurposeStep";
@@ -197,6 +198,7 @@ export default function Onboarding() {
   const [isLoadingOnboarding, setIsLoadingOnboarding] = useState(true);
   const [loadingError, setLoadingError] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const getMediaUrl = (url) => {
     if (!url) return "";
@@ -235,6 +237,16 @@ export default function Onboarding() {
   const loadOnboardingData = async () => {
     setIsLoadingOnboarding(true);
     setLoadingError("");
+
+    // Check auth status
+    try {
+      const session = await fetch("/api/auth/session")
+        .then((res) => res.json())
+        .catch(() => null);
+      setIsAuthenticated(!!session?.user?.id);
+    } catch (error) {
+      setIsAuthenticated(false);
+    }
 
     let result = await fetchUserOnboardingGlobals();
 
@@ -388,6 +400,39 @@ export default function Onboarding() {
     } else if (currentStep > 1) {
       setCurrentStep((s) => s - 1);
     }
+  };
+
+  const handleSkip = () => {
+    // Clear selection for current step before moving to next
+    switch (currentStep) {
+      case 1: // Strength
+        setProficiencyLevel("");
+        break;
+      case 2: // Goal
+        setDailyGoal("");
+        break;
+      case 3: // Purpose
+        setPurpose("");
+        break;
+      case 4: // Country
+        setCountry("");
+        break;
+      case 5: // Source
+        setUserSource("");
+        break;
+      case 6: // Interests
+        setInterests([]);
+        break;
+      case 7: // Profile
+        setFullName("");
+        setContactNumber("");
+        setProfilePicture(null);
+        break;
+      case 8: // Age
+        setAge("");
+        break;
+    }
+    setCurrentStep((s) => s + 1);
   };
 
   const toggleInterest = (interestId) => {
@@ -643,7 +688,10 @@ export default function Onboarding() {
     <div className="min-h-screen bg-background flex flex-col">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border pt-[env(safe-area-inset-top)]">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <Link
+            href={isAuthenticated ? "/" : "/auth/login"}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          >
             <Image
               src="/Nakhlah_Logo.webp"
               alt="Nakhlah logo"
@@ -653,7 +701,7 @@ export default function Onboarding() {
               priority
             />
             <span className="text-xl font-bold text-foreground">Nakhlah</span>
-          </div>
+          </Link>
           <ThemeToggle />
         </div>
       </header>
@@ -730,16 +778,12 @@ export default function Onboarding() {
           </div>
 
           {[1, 2, 3, 4, 5, 6, 7, 8].includes(currentStep) && (
-            <div className="relative flex items-center">
-              <div className="flex-1 border-t border-border" />
-              <button
-                onClick={() => setCurrentStep((s) => s + 1)}
-                className="px-4 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
-              >
-                or skip for now
-              </button>
-              <div className="flex-1 border-t border-border" />
-            </div>
+            <button
+              onClick={handleSkip}
+              className="px-4 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+            >
+              or skip for now
+            </button>
           )}
         </div>
       </footer>
