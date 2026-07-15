@@ -62,7 +62,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-start sm:items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-start sm:items-center justify-center px-4 py-10">
       <div className="fixed top-4 right-4 z-50 lg:hidden">
         <div className="bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-full p-2 shadow-lg">
           <ThemeToggle size="lg" />

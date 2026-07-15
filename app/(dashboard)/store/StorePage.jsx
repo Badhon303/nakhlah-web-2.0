@@ -692,7 +692,7 @@ export default function StorePage() {
                 </div>
               )}
 
-              {currentSubscription?.status === "cancelled" && (
+              {/* {currentSubscription?.status === "cancelled" && (
                 <div className="rounded-2xl bg-slate-50 dark:bg-slate-950/30 border-2 border-slate-200 dark:border-slate-800 p-4 space-y-3">
                   <div>
                     <p className="text-sm text-slate-900 dark:text-slate-100 font-semibold mb-1">
@@ -718,7 +718,7 @@ export default function StorePage() {
                       : "Resubscribe Now"}
                   </Button>
                 </div>
-              )}
+              )} */}
 
               {currentSubscription?.status !== "cancelled" &&
                 !currentSubscription?.cancelAtPeriodEnd && (

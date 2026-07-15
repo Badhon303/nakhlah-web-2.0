@@ -411,42 +411,42 @@ function UnitAssets({ theme }) {
       {/* Dunes - Full width */}
       {assets.dune1 && (
         <svg
-          className="absolute bottom-0 left-0 w-full h-[30vh] md:h-[25vh]"
+          className="absolute bottom-0 left-0 w-full h-[38vh] md:h-[45vh]"
           viewBox="0 0 1920 160"
           preserveAspectRatio="none"
         >
           <path
             fill={assets.dune1.color}
             opacity={assets.dune1.opacity}
-            d="M-100,160 L-100,80 C200,20 500,120 800,60 C1100,0 1400,100 1700,40 C1900,10 2020,80 2100,100 L2100,160 Z"
+            d="M-100,160 L-100,100 C300,60 600,110 900,80 C1200,50 1500,90 1800,70 C1950,60 2020,80 2100,90 L2100,160 Z"
           />
         </svg>
       )}
 
       {assets.dune2 && (
         <svg
-          className="absolute bottom-0 left-0 w-full h-[25vh] md:h-[20vh]"
+          className="absolute bottom-0 left-0 w-full h-[31vh] md:h-[40vh]"
           viewBox="0 0 1920 128"
           preserveAspectRatio="none"
         >
           <path
             fill={assets.dune2.color}
             opacity={assets.dune2.opacity}
-            d="M-100,128 L-100,64 C300,20 600,90 900,50 C1200,10 1500,80 1800,30 C1950,10 2020,60 2100,40 L2100,128 Z"
+            d="M-100,128 L-100,80 C300,50 600,90 900,70 C1200,50 1500,80 1800,60 C1950,50 2020,70 2100,80 L2100,128 Z"
           />
         </svg>
       )}
 
       {assets.dune3 && (
         <svg
-          className="absolute bottom-0 left-0 w-full h-[30vh] md:h-[25vh]"
+          className="absolute bottom-0 left-0 w-full h-[38vh] md:h-[45vh]"
           viewBox="0 0 1920 144"
           preserveAspectRatio="none"
         >
           <path
             fill={assets.dune3.color}
             opacity={assets.dune3.opacity}
-            d="M-100,144 L-100,90 C150,60 400,110 650,75 C900,40 1050,100 1300,70 C1550,40 1750,95 1920,60 L2100,80 L2100,144 Z"
+            d="M-100,144 L-100,90 C200,70 500,100 800,85 C1100,70 1400,95 1700,80 C1850,75 1950,85 2050,90 L2100,144 Z"
           />
         </svg>
       )}
@@ -573,7 +573,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="absolute bottom-[8%] md:bottom-[14%] lg:bottom-[10%] left-[28%] md:left-[30%] w-24 md:w-32 lg:w-36 h-auto"
+          className="absolute bottom-[14%] md:bottom-[14%] lg:bottom-[10%] left-[28%] md:left-[30%] w-24 md:w-32 lg:w-36 h-auto"
         >
           <img
             src={getAssetSrc("palmTrees")}
@@ -685,7 +685,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="absolute top-[15%] md:top-[8%] left-[60%] sm:left-[65%] md:left-[55%] w-44 md:w-56 lg:w-72"
+          className="absolute top-[15%] md:top-[8%] left-[55%] sm:left-[65%] md:left-[55%] w-44 md:w-56 lg:w-72"
         >
           <img
             src={getAssetSrc("makkahClock")}
@@ -784,7 +784,7 @@ function UnitAssets({ theme }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="absolute bottom-[12%] md:bottom-[8%] lg:bottom-[5%] left-[20%] md:left-[25%] -translate-x-1/2 bottom-16 w-40 md:w-52 lg:w-64"
+            className="absolute bottom-[8%] md:bottom-[8%] lg:bottom-[5%] left-[20%] md:left-[25%] -translate-x-1/2 bottom-16 w-40 md:w-52 lg:w-64"
           >
             <img
               src={getAssetSrc("masmakhFortress")}
@@ -800,7 +800,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="absolute bottom-[8%] md:bottom-[15%] lg:bottom-[10%] left-[8%] md:left-[15%] w-48 md:w-56 lg:w-64"
+          className="absolute bottom-[12%] md:bottom-[15%] lg:bottom-[10%] left-[8%] md:left-[15%] w-48 md:w-56 lg:w-64"
         >
           <img
             src={getAssetSrc("mosque")}
@@ -848,7 +848,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="absolute bottom-[10%] md:bottom-[20%] lg:bottom-[15%] right-[5%] md:left-[10%] lg:left-[15%] w-56 md:w-64 lg:w-72"
+          className="absolute bottom-[8%] md:bottom-[20%] lg:bottom-[5%] right-[5%] md:left-[10%] lg:left-[15%] w-56 md:w-64 lg:w-72"
         >
           <img
             src={getAssetSrc("stadium")}
@@ -864,7 +864,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="absolute top-[18%] md:top-[15%] lg:top-[10%] left-[8%] md:left-[12%] w-48 md:w-60 lg:w-72"
+          className="absolute top-[18%] md:top-[15%] lg:top-[10%] left-[8%] md:left-[12%] lg:left-[20%] w-48 md:w-60 lg:w-72"
         >
           <img
             src={getAssetSrc("hospital")}
@@ -880,7 +880,7 @@ function UnitAssets({ theme }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="absolute bottom-[10%] md:bottom-[15%] lg:bottom-[8%] left-[40%] md:left-[55%] w-60 md:w-72 lg:w-80"
+          className="absolute bottom-[8%] md:bottom-[15%] lg:bottom-[8%] left-[35%] md:left-[55%] lg:left-[50%] w-60 md:w-72 lg:w-80"
         >
           <img
             src={getAssetSrc("university1")}

@@ -22,7 +22,7 @@ export default function GetStartedPage() {
         >
           <div className="bg-card px-8 py-4 rounded-3xl shadow-lg border border-border">
             <p className="text-xl font-semibold text-foreground">
-              Hi there! I&apos;m Tamroor!
+              Hi there! I&apos;m Ruthanah!
             </p>
           </div>
           {/* Fixed triangle with proper CSS values */}
