@@ -36,49 +36,10 @@ export default function CapacitorInit() {
             } else {
               setShowExitDialog(true);
             }
-          }
+          },
         );
       } catch {}
     })();
-
-    // CSS padding fallback: detect status bar height and apply as CSS variable
-    const detectStatusBarHeight = () => {
-      let height = 0;
-
-      // Method 1: env(safe-area-inset-top)
-      try {
-        const el = document.createElement("div");
-        el.style.cssText =
-          "position:absolute;top:0;left:0;visibility:hidden;padding-top:env(safe-area-inset-top);";
-        document.body.appendChild(el);
-        height = parseInt(getComputedStyle(el).paddingTop) || 0;
-        document.body.removeChild(el);
-      } catch {}
-
-      // Method 2: outerHeight - innerHeight
-      if (height === 0 && typeof window.outerHeight === "number") {
-        const diff = window.outerHeight - window.innerHeight;
-        if (diff > 0 && diff < 100) height = diff;
-      }
-
-      // Method 3: screen height difference
-      if (height === 0 && window.screen) {
-        const diff = (window.screen.height || 0) - (window.screen.availHeight || 0);
-        if (diff > 0 && diff < 100) height = diff;
-      }
-
-      // Method 4: default Android status bar height (24dp ≈ 24 CSS px)
-      if (height === 0) {
-        height = 24;
-      }
-
-      document.documentElement.style.setProperty(
-        "--capacitor-status-bar-height",
-        height + "px",
-      );
-    };
-
-    detectStatusBarHeight();
 
     return () => {
       cancelled = true;
@@ -182,5 +143,3 @@ export default function CapacitorInit() {
     </div>
   );
 }
-
-

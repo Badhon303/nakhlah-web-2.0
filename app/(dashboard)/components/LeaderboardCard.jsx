@@ -1,9 +1,7 @@
 "use client";
 
 import { Trophy } from "@/components/icons/Trophy";
-import { CardMenuOptions } from "@/components/nakhlah/CardMenuOptions";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useSession } from "@/lib/auth-client";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
@@ -38,7 +36,6 @@ const FALLBACK_LEADERS = [
 ];
 
 export function LeaderboardCard() {
-  const router = useRouter();
   const { data: session, status } = useSession();
   const topThree = useLeaderboardStore((state) => state.topThree);
   const fetchLeaderboard = useLeaderboardStore(
@@ -66,13 +63,6 @@ export function LeaderboardCard() {
     loadLeaders();
   }, [clearLeaderboard, fetchLeaderboard, session, status]);
 
-  const menuOptions = [
-    {
-      label: "See Full Leaderboard",
-      onClick: () => router.push("/leaderboard"),
-    },
-  ];
-
   return (
     <div className="bg-card p-4 rounded-lg shadow-sm">
       <div className="flex items-center justify-between mb-4">
@@ -83,7 +73,6 @@ export function LeaderboardCard() {
           </h2>
           <p className="text-xs text-muted-foreground mt-1">Weekly rankings</p>
         </div>
-        <CardMenuOptions options={menuOptions} />
       </div>
 
       <ul className="space-y-2">

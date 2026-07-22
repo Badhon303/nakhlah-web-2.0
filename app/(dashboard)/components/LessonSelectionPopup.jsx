@@ -226,15 +226,15 @@ export function LessonSelectionPopup({
   if (isTaskGiftBox) {
     return (
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-md p-0 gap-0 border-border [&>button]:hidden rounded-2xl overflow-hidden shadow-xl border-2 bg-gradient-to-b from-accent/5 to-accent/10">
-          <div className="bg-accent p-4 text-center relative">
+        <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md p-0 gap-0 border-border [&>button]:hidden rounded-2xl overflow-hidden shadow-xl border-2 bg-gradient-to-b from-accent/5 to-accent/10">
+          <div className="bg-accent p-3 sm:p-4 text-center relative">
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
+              className="absolute top-3 sm:top-4 right-3 sm:right-4 text-white/70 hover:text-white transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
-            <DialogTitle className="text-xl font-black text-white tracking-wide">
+            <DialogTitle className="text-lg sm:text-xl font-black text-white tracking-wide">
               {isGiftAlreadyOpened
                 ? "Gift Already Claimed"
                 : hasClaimed
@@ -243,7 +243,7 @@ export function LessonSelectionPopup({
             </DialogTitle>
           </div>
 
-          <div className="p-10 flex flex-col items-center justify-center relative overflow-hidden">
+          <div className="p-6 sm:p-10 flex flex-col items-center justify-center relative overflow-hidden">
             {loadError && (
               <div className="absolute top-4 bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm font-bold z-20">
                 {loadError}
@@ -329,7 +329,7 @@ export function LessonSelectionPopup({
                 isLocked || hasClaimed || isClaiming || isGiftAlreadyOpened
               }
               className={`
-                relative z-10 w-48 h-48 rounded-full flex flex-col items-center justify-center
+                relative z-10 w-36 h-36 sm:w-48 sm:h-48 rounded-full flex flex-col items-center justify-center
                 transition-all duration-300
                 ${isLocked ? "opacity-50 grayscale cursor-not-allowed" : "cursor-pointer"}
                 ${!hasClaimed && !isLocked && !isGiftAlreadyOpened ? "hover:scale-105 active:scale-95 drop-shadow-xl" : ""}
@@ -366,25 +366,25 @@ export function LessonSelectionPopup({
               <div className="relative text-accent">
                 {isGiftAlreadyOpened ? (
                   <div className="relative">
-                    <TreasureChest className="w-32 h-32 opacity-70 grayscale-[0.15]" />
+                    <TreasureChest className="w-24 h-24 sm:w-32 sm:h-32 opacity-70 grayscale-[0.15]" />
                     {/* <div className="absolute -right-2 -top-2 rounded-full bg-emerald-500 p-2 text-white shadow-lg">
                       <CheckCircle2 className="w-6 h-6" />
                     </div> */}
                   </div>
                 ) : hasClaimed ? (
-                  <TreasureChest className="w-36 h-36 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)] text-yellow-500" />
+                  <TreasureChest className="w-28 h-28 sm:w-36 sm:h-36 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)] text-yellow-500" />
                 ) : (
-                  <TreasureChest className="w-32 h-32" />
+                  <TreasureChest className="w-24 h-24 sm:w-32 sm:h-32" />
                 )}
               </div>
             </motion.button>
 
             <motion.div
-              className="mt-8 text-center z-10"
+              className="mt-4 sm:mt-8 text-center z-10"
               initial={false}
               animate={{ y: hasClaimed ? -10 : 0 }}
             >
-              <h3 className="text-2xl font-black text-foreground mb-2">
+              <h3 className="text-xl sm:text-2xl font-black text-foreground mb-2">
                 {isLocked
                   ? "Locked Gift"
                   : isGiftAlreadyOpened
@@ -393,7 +393,7 @@ export function LessonSelectionPopup({
                       ? "Awesome!"
                       : "You found a gift!"}
               </h3>
-              <p className="text-muted-foreground font-semibold">
+              <p className="text-sm sm:text-base text-muted-foreground font-semibold">
                 {isLocked
                   ? "Complete previous tasks to open."
                   : isGiftAlreadyOpened
@@ -405,7 +405,7 @@ export function LessonSelectionPopup({
 
               {hasClaimed && !isGiftAlreadyOpened && giftRewards ? (
                 <motion.div
-                  className="mt-6 flex flex-col items-center gap-3"
+                  className="mt-4 sm:mt-6 flex flex-col items-center gap-2 sm:gap-3"
                   initial="hidden"
                   animate="visible"
                   variants={{
@@ -414,7 +414,7 @@ export function LessonSelectionPopup({
                 >
                   {giftRewards.injazReceived > 0 && (
                     <motion.p
-                      className="text-2xl font-black text-amber-500 drop-shadow-sm"
+                      className="text-xl sm:text-2xl font-black text-amber-500 drop-shadow-sm"
                       variants={{
                         hidden: { opacity: 0, y: 20, scale: 0.85 },
                         visible: {
@@ -434,7 +434,7 @@ export function LessonSelectionPopup({
                   )}
                   {giftRewards.datesReceived > 0 && (
                     <motion.p
-                      className="text-2xl font-black text-sky-500 drop-shadow-sm"
+                      className="text-xl sm:text-2xl font-black text-sky-500 drop-shadow-sm"
                       variants={{
                         hidden: { opacity: 0, y: 20, scale: 0.85 },
                         visible: {
@@ -454,7 +454,7 @@ export function LessonSelectionPopup({
                   )}
                   {giftRewards.badgesAdded.length > 0 && (
                     <motion.p
-                      className="text-xl font-bold text-emerald-500 drop-shadow-sm"
+                      className="text-lg sm:text-xl font-bold text-emerald-500 drop-shadow-sm"
                       variants={{
                         hidden: { opacity: 0, y: 20, scale: 0.85 },
                         visible: {
@@ -485,19 +485,19 @@ export function LessonSelectionPopup({
   // Regular Lesson Selection layout
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg p-0 gap-0 border-border [&>button]:hidden rounded-2xl overflow-hidden shadow-lg border-2">
+      <DialogContent className="w-[calc(100%-2rem)] sm:max-w-lg p-0 gap-0 border-border [&>button]:hidden rounded-2xl overflow-hidden shadow-lg border-2">
         {/* Simple Header */}
-        <div className="bg-accent p-5 text-center relative">
+        <div className="bg-accent p-4 sm:p-5 text-center relative">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors p-1"
+            className="absolute top-3 sm:top-4 right-3 sm:right-4 text-white/70 hover:text-white transition-colors p-1"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
-          <DialogTitle className="text-2xl font-black text-white tracking-wide">
+          <DialogTitle className="text-xl sm:text-2xl font-black text-white tracking-wide">
             Choose a Lesson
           </DialogTitle>
-          <p className="text-white/90 font-medium text-sm mt-1">
+          <p className="text-white/90 font-medium text-xs sm:text-sm mt-1">
             {isLocked
               ? "Lesson is locked"
               : isCompleted
@@ -509,16 +509,16 @@ export function LessonSelectionPopup({
         </div>
 
         {/* Lessons Grid (Tighter Spacing) */}
-        <div className="p-6 bg-card">
+        <div className="p-4 sm:p-6 bg-card">
           {isLoading ? (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {Array.from({ length: 4 }).map((_, index) => (
                 <div
                   key={`lesson-skeleton-${index}`}
-                  className="relative p-5 rounded-2xl border-4 border-border/60 bg-background/70"
+                  className="relative p-3 sm:p-5 rounded-2xl border-4 border-border/60 bg-background/70"
                 >
-                  <div className="w-24 h-24 mx-auto rounded-2xl bg-muted animate-pulse" />
-                  <div className="mt-4 h-4 w-3/4 mx-auto rounded bg-muted animate-pulse" />
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-2xl bg-muted animate-pulse" />
+                  <div className="mt-3 sm:mt-4 h-4 w-3/4 mx-auto rounded bg-muted animate-pulse" />
                   <div className="mt-2 h-3 w-1/2 mx-auto rounded bg-muted/80 animate-pulse" />
                 </div>
               ))}
@@ -528,19 +528,19 @@ export function LessonSelectionPopup({
               {loadError}
             </p>
           ) : (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {lessons.map((lesson) => {
                 const lessonIcon = lesson.isExam ? (
                   <img
                     src="/icons/Quiz1.svg"
                     alt="Quiz"
-                    className="w-20 h-20 object-contain"
+                    className="w-14 h-14 sm:w-20 sm:h-20 object-contain"
                   />
                 ) : (
                   <img
                     src="/icons/Lesson.svg"
                     alt="Lesson"
-                    className="w-20 h-20 object-contain"
+                    className="w-14 h-14 sm:w-20 sm:h-20 object-contain"
                   />
                 );
 
@@ -550,8 +550,8 @@ export function LessonSelectionPopup({
                     onClick={() => handleLessonClick(lesson)}
                     disabled={lesson.isLocked}
                     className={`
-                      relative p-5 rounded-2xl border-4 transition-all
-                      flex flex-col items-center justify-center gap-3 group
+                      relative p-3 sm:p-5 rounded-2xl border-4 transition-all
+                      flex flex-col items-center justify-center gap-2 sm:gap-3 group
                       ${
                         lesson.isLocked
                           ? "bg-muted border-muted-foreground/20 cursor-not-allowed opacity-75"
@@ -564,20 +564,20 @@ export function LessonSelectionPopup({
                   >
                     {/* Small Status Overlays */}
                     {lesson.isLocked && (
-                      <div className="absolute top-2 right-2">
+                      <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2">
                         <Lock size="sm" variant="silver" />
                       </div>
                     )}
                     {lesson.isCompleted && !lesson.isLocked && (
-                      <div className="absolute top-2 right-2 text-emerald-500">
-                        <CheckCircle2 className="w-6 h-6 fill-emerald-100" />
+                      <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 text-emerald-500">
+                        <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 fill-emerald-100" />
                       </div>
                     )}
 
                     {/* Extra Large Icon */}
                     <div
                       className={`
-                        w-24 h-24 flex items-center justify-center
+                        w-16 h-16 sm:w-24 sm:h-24 flex items-center justify-center
                         ${lesson.isLocked ? "grayscale opacity-50" : ""}
                         transition-transform group-hover:scale-105 duration-200
                       `}
@@ -588,7 +588,7 @@ export function LessonSelectionPopup({
                     {/* Lesson Title */}
                     <p
                       className={`
-                        text-md font-bold text-center tracking-tight leading-tight px-1
+                        text-sm sm:text-base font-bold text-center tracking-tight leading-tight px-1
                         ${lesson.isLocked ? "text-muted-foreground" : "text-foreground"}
                       `}
                     >
@@ -602,7 +602,7 @@ export function LessonSelectionPopup({
 
           {/* Info Text */}
           {footerText ? (
-            <p className="text-xs font-semibold text-muted-foreground/80 text-center mt-5 uppercase tracking-wider">
+            <p className="text-xs font-semibold text-muted-foreground/80 text-center mt-3 sm:mt-5 uppercase tracking-wider">
               {footerText}
             </p>
           ) : null}

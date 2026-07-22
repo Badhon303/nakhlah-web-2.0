@@ -20,7 +20,7 @@ export default function MainLayout({ children }) {
         className={
           hideNavbar
             ? ""
-            : "sm:min-h-[calc(100vh_-_64px)] lg:pl-64 pb-20 lg:pb-0"
+            : "min-h-[100dvh] lg:min-h-screen lg:pl-64 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0"
         }
       >
         <ToastProvider />

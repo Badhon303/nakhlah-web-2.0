@@ -42,7 +42,7 @@ export function CountryStep({
                 : "border-border bg-card hover:border-primary",
             )}
           >
-            <div className="w-12 h-12 rounded-full overflow-hidden bg-muted shrink-0">
+            <div className="w-12 h-12 rounded-md overflow-hidden bg-muted shrink-0">
               {country?.countryMedia?.url && (
                 <img
                   src={getMediaUrl(country.countryMedia.url)}

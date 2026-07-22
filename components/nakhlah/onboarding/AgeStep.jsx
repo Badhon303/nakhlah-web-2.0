@@ -20,29 +20,40 @@ export function AgeStep({ title, ages = [], selectedAge, onSelect }) {
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         {ages.map((ageOption, index) => (
           <motion.button
             key={ageOption.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.08 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.1 }}
             onClick={() => onSelect(ageOption.id)}
             className={cn(
-              "flex items-center gap-4 p-5 rounded-2xl border-2 transition-all duration-300",
+              "relative flex items-center justify-center p-6 rounded-2xl border-2 transition-all duration-300",
               "hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
               selectedAge === ageOption.id
                 ? "border-accent bg-accent/10 shadow-accent-glow"
                 : "border-border bg-card hover:border-primary",
             )}
           >
-            <p className="font-bold text-foreground text-lg text-left flex-1">
+            <p
+              className={cn(
+                "text-center text-lg font-bold",
+                selectedAge === ageOption.id
+                  ? "text-accent"
+                  : "text-foreground",
+              )}
+            >
               {ageOption.ageTitle}
             </p>
             {selectedAge === ageOption.id && (
-              <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute top-2 right-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center"
+              >
                 <svg
-                  className="w-4 h-4 text-accent-foreground"
+                  className="w-3 h-3 text-accent-foreground"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -54,7 +65,7 @@ export function AgeStep({ title, ages = [], selectedAge, onSelect }) {
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-              </div>
+              </motion.div>
             )}
           </motion.button>
         ))}

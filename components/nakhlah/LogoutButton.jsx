@@ -3,9 +3,7 @@
 import { signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
-import { toast } from "@/components/nakhlah/Toast";
 import { logoutUser } from "@/services/api/auth";
-import { useRouter } from "next/navigation";
 
 export function LogoutButton({
   variant = "ghost",
@@ -14,27 +12,21 @@ export function LogoutButton({
   showIcon = true,
   children = "Logout",
 }) {
-  const router = useRouter();
-
   const handleLogout = async () => {
     try {
       await logoutUser();
-      await signOut({ redirect: false });
-      toast.success("Logged out successfully");
-      router.push(redirectTo);
-      router.refresh();
+      await signOut({ redirect: true, callbackUrl: redirectTo });
     } catch (error) {
       console.error("Logout error:", error);
-      toast.error("Failed to logout");
+      // Force redirect to login even if logout fails
+      if (typeof window !== "undefined") {
+        window.location.href = redirectTo;
+      }
     }
   };
 
   return (
-    <Button
-      variant={variant}
-      onClick={handleLogout}
-      className={className}
-    >
+    <Button variant={variant} onClick={handleLogout} className={className}>
       {showIcon && <LogOut className="w-4 h-4 mr-2" />}
       {children}
     </Button>

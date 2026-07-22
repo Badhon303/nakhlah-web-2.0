@@ -2,8 +2,9 @@
 import { Circle } from "./Circle";
 import { GateBanner } from "@/components/nakhlah/GateBanner";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Lock, FileText } from "lucide-react";
+import { FileText, Sparkles } from "lucide-react";
 
 const PATH_CENTER = 50;
 const PATH_AMPLITUDE = 25;
@@ -11,14 +12,29 @@ const PATH_FREQUENCY = 0.8;
 const LESSON_ROW_HEIGHT = 112;
 const MASCOT_VERTICAL_OFFSET = -180;
 const MASCOT_SIDE_POSITIONS = {
-  left: "75%",
-  right: "25%",
+  left: "80%",
+  right: "20%",
 };
+
+function getResponsiveMascotSize(width) {
+  if (width >= 768) return "xxxl";
+  return "xxxl";
+}
 
 export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
   const [currentLevelId, setCurrentLevelId] = useState("");
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 0,
+  );
   const hasScrolledRef = useRef(false);
   const prevLessonsRef = useRef(lessons);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const currentLevel = levels.find((l) => l.id === currentLevelId);
 
@@ -51,7 +67,8 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
     if (!Array.isArray(lessons) || lessons.length < 4) return new Map();
 
     const moods = ["proud", "encouraging", "happy", "cool"];
-    const sizes = ["xxl", "xxl", "xxl", "xxl"];
+    const baseSize = getResponsiveMascotSize(windowWidth);
+    const sizes = [baseSize, baseSize, baseSize, baseSize]; // identical, responsive mascot sizes
     const halfWave = Math.PI / PATH_FREQUENCY;
     const firstTurningPoint = Math.PI / (2 * PATH_FREQUENCY);
     const slotCandidates = [];
@@ -117,7 +134,7 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
         const placement = {
           ...slot,
           mood: mascot?.mood || moods[slot.slotIndex % moods.length],
-          size: mascot?.size || sizes[slot.slotIndex % moods.length],
+          size: mascot?.size || sizes[slot.slotIndex % sizes.length],
           message: mascot?.message,
         };
 
@@ -128,7 +145,7 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
       });
 
     return placementsByAnchor;
-  }, [lessonIndexById, lessons, mascots]);
+  }, [lessonIndexById, lessons, mascots, windowWidth]);
 
   const getLevelColor = (level) => {
     const colors = [
@@ -243,8 +260,32 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
 
   return (
     <div className="relative lg:max-w-lg mx-auto">
-      {/* Mobile mask: hides scrolled content behind the fixed UserStats header */}
-      <div className="fixed left-0 right-0 h-[72px] z-[39] bg-background lg:hidden pointer-events-none" style={{ top: "var(--capacitor-status-bar-height, 0px)" }} />
+      {/* Mobile mask: hides scrolled content behind the fixed UserStats header and the sticky banner */}
+      <div className="fixed top-0 left-0 right-0 h-[92px] z-[39] bg-background lg:hidden pointer-events-none" />
+
+      {/* Mobile current-level banner at the top of the journey path */}
+      <div className="lg:hidden sticky top-[92px] z-[43] bg-background py-2 mb-4">
+        <div
+          className={`flex items-center justify-between px-4 py-3 rounded-lg shadow-lg transition-all duration-500 ease-in-out bg-gradient-to-r ${getLevelColor(
+            currentLevel?.colorIndex || 1,
+          )} text-white`}
+        >
+          <div>
+            <div className="text-sm text-white/90 mb-1 font-semibold uppercase tracking-wider">
+              {currentLevel?.levelName ? `${currentLevel.levelName}, ` : ""}
+              {currentLevel?.name || ""}
+            </div>
+            {currentTask?.title ? (
+              <div className="text-lg font-bold leading-tight">
+                {currentTask.title}
+              </div>
+            ) : null}
+          </div>
+          <button className="text-white p-2 rounded-full">
+            <FileText className="w-6 h-6" />
+          </button>
+        </div>
+      </div>
 
       {/* Desktop mask to keep whitespace above sticky header clean */}
       <div className="hidden lg:block sticky top-0 z-[44] h-6 bg-background" />
@@ -273,19 +314,27 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
         </div>
       </div>
 
-      {/* Section unlocker placeholder - sits at the visual top in reversed layout */}
+      {/* Completion celebration placeholder at the visual top of the journey */}
       <div className="mb-8 mt-0 lg:mt-6 flex justify-center">
-        <div className="bg-card border-2 border-dashed border-border rounded-xl p-6 w-full max-w-md text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="relative overflow-hidden bg-gradient-to-br from-accent/20 via-primary/20 to-accent/10 border-2 border-accent/30 rounded-3xl p-6 w-full max-w-md text-center shadow-lg"
+        >
           <div className="flex justify-center mb-3">
-            <Lock className="w-6 h-6 text-muted-foreground" />
+            <FreshDateMascot mood="celebrating" size="xl" />
           </div>
-          <h3 className="text-lg font-bold text-foreground mb-2">
-            Next Section Locked
+          <h3 className="text-xl font-black text-foreground mb-2">
+            Congratulations!
           </h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Complete the current section to unlock the next one.
+          <p className="text-sm font-semibold text-muted-foreground mb-1">
+            You have completed the journey.
           </p>
-        </div>
+          <p className="text-sm text-muted-foreground">
+            Keep practicing to maintain your streak and master every lesson.
+          </p>
+        </motion.div>
       </div>
 
       {/* Lessons grouped by level - bottom-to-top: level 1 sits at the visual bottom */}

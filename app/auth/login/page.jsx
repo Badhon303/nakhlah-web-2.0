@@ -185,7 +185,7 @@ export default function Login() {
               </div>
 
               {/* Sign In Button */}
-              <div className="hidden sm:block">
+              <div>
                 <Button
                   type="submit"
                   disabled={isLoading}
@@ -250,16 +250,6 @@ export default function Login() {
                 </Link>
               </p>
             </form>
-          </div>
-          {/* Mobile bottom action */}
-          <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-background border-t border-border p-4">
-            <Button
-              onClick={handleSubmit}
-              disabled={isLoading}
-              className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
-            >
-              {isLoading ? "SIGNING IN..." : "SIGN IN"}
-            </Button>
           </div>
         </motion.div>
       </div>

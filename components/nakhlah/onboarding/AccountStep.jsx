@@ -1,11 +1,13 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { Eye, EyeOff } from "lucide-react";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 
 export function AccountStep({ email, password = "", onChange }) {
   const [localEmail, setLocalEmail] = useState(email || "");
   const [localPassword, setLocalPassword] = useState(password || "");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     onChange({
@@ -55,13 +57,26 @@ export function AccountStep({ email, password = "", onChange }) {
           <label className="block text-sm text-muted-foreground mb-1">
             Create a password
           </label>
-          <input
-            value={localPassword}
-            onChange={(e) => setLocalPassword(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-border bg-transparent outline-none"
-            placeholder="Choose a secure password"
-            type="password"
-          />
+          <div className="relative">
+            <input
+              value={localPassword}
+              onChange={(e) => setLocalPassword(e.target.value)}
+              className="w-full px-4 py-3 pr-12 rounded-xl border border-border bg-transparent outline-none"
+              placeholder="Choose a secure password"
+              type={showPassword ? "text" : "password"}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              {showPassword ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
+            </button>
+          </div>
         </div>
 
         <div className="text-sm text-muted-foreground">

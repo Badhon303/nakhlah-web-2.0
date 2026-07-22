@@ -18,26 +18,6 @@
 
 @layer base {
   :root {
-    --capacitor-status-bar-height: 0px;
-  }
-
-  body {
-    padding-top: var(--capacitor-status-bar-height, 0px);
-  }
-
-  body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: var(--capacitor-status-bar-height, 0px);
-    background: #8249DF;
-    z-index: 9999;
-    pointer-events: none;
-  }
-
-  :root {
     /* Sandy Yellow - Primary (Desert Sand) */
     --primary: 42 55% 78%;
     --primary-foreground: 30 40% 20%;
@@ -208,11 +188,6 @@
     @apply bg-background text-foreground antialiased;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    /* This adds padding to the top of your app equal to the status bar height */
-    padding-top: env(safe-area-inset-top);
-
-    /* You may also want to handle the bottom for home indicators on iPhone/Android */
-    padding-bottom: env(safe-area-inset-bottom);
   }
 
   body::-webkit-scrollbar {

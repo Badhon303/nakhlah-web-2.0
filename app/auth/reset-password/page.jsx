@@ -176,7 +176,7 @@ function CreatePasswordContent() {
               </div>
 
               {/* Continue Button */}
-              <div className="hidden sm:block">
+              <div>
                 <Button
                   onClick={handleContinue}
                   disabled={isLoading}
@@ -186,16 +186,6 @@ function CreatePasswordContent() {
                 </Button>
               </div>
             </div>
-          </div>
-          {/*Mobile Continue Button */}
-          <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-background border-t border-border p-4">
-            <Button
-              onClick={handleContinue}
-              disabled={isLoading}
-              className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
-            >
-              {isLoading ? "RESETTING PASSWORD..." : "CONTINUE"}
-            </Button>
           </div>
         </motion.div>
       </div>

@@ -38,14 +38,14 @@ export function GoalStep({
               transition={{ delay: index * 0.1 }}
               onClick={() => onSelect(value)}
               className={cn(
-                "flex flex-col items-center gap-3 p-6 rounded-2xl border-2 transition-all duration-300",
+                "relative flex flex-col items-center gap-3 p-6 rounded-2xl border-2 transition-all duration-300",
                 "hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
                 selectedGoal === value
                   ? "border-accent bg-accent/10 shadow-accent-glow"
                   : "border-border bg-card hover:border-primary",
               )}
             >
-              <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-md overflow-hidden shrink-0 flex items-center justify-center">
                 {goal?.goalMedia?.url ? (
                   <img
                     src={getMediaUrl(goal.goalMedia.url)}
@@ -86,18 +86,6 @@ export function GoalStep({
           );
         })}
       </div>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="mt-8 p-4 rounded-xl bg-secondary/10 border border-secondary/20"
-      >
-        <p className="text-center text-sm text-muted-foreground">
-          💡 <span className="text-foreground font-medium">Tip:</span> You can
-          always change your daily goal later in settings
-        </p>
-      </motion.div>
     </div>
   );
 }
