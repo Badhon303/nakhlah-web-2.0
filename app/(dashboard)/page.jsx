@@ -151,7 +151,7 @@ export default function LearnPage() {
         setLoadError("");
 
         if (status === "loading") return;
-        if (status === "unauthenticated" || !isSessionValid(session)) {
+        if (status === "unauthenticated" || !session?.accessToken) {
           clearJourney();
           clearProfile();
           throw new Error("Please login to view your journey.");

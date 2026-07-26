@@ -34,7 +34,7 @@ export async function refreshAccessToken(currentToken) {
 
         return {
             success: true,
-            token: data?.token || null,
+            token: data?.refreshedToken || data?.token || null,
             exp: data?.exp || null,
             data,
         };
@@ -67,7 +67,7 @@ export async function fetchCurrentUser(token) {
         return {
             success: true,
             user: data?.user || null,
-            token: data?.token || token || null,
+            token: data?.refreshedToken || data?.token || token || null,
             exp: data?.exp || null,
             message: data?.message,
             data,

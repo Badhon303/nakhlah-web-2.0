@@ -38,6 +38,8 @@ export default function RootLayout({ children }) {
             attribute="class"
             defaultTheme="system"
             enableSystem
+            themes={["light", "dark"]}
+            storageKey="nakhlah-theme"
             disableTransitionOnChange
           >
             <ConditionalNavbar />
