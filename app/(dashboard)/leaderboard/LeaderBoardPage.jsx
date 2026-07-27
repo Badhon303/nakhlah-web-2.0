@@ -74,9 +74,7 @@ function RestList({ restList, onViewProfile }) {
             >
               {user.name}
             </p>
-            <p className="text-muted-foreground text-sm">
-              {user.injaz} Injaz
-            </p>
+            <p className="text-muted-foreground text-sm">{user.injaz} Injaz</p>
           </div>
         </motion.div>
       ))}
@@ -138,7 +136,7 @@ export default function Leaderboard({ onViewProfile }) {
     <div className="min-h-screen">
       <div className=" container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-between mb-6"
@@ -151,8 +149,8 @@ export default function Leaderboard({ onViewProfile }) {
               <Trophy />
             </div>
           </div>
-          {/* Search removed */}
-        </motion.div>
+        </motion.div> */}
+
 
         {/* Top 3 Podium */}
         <motion.div
