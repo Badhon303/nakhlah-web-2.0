@@ -122,7 +122,7 @@ export function LessonSelectionPopup({
     };
 
     loadLessons();
-  }, [open, session, status, taskId, isTaskGiftBox]);
+  }, [open, session, status, taskId, isTaskGiftBox, isCompleted]);
 
   // ... keeping the rest the same up to the return
   const footerText = isLocked

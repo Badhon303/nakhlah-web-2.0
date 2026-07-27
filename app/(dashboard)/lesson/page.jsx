@@ -120,7 +120,7 @@ function resolveCanonicalArabicFromLearnAnswer(learnAnswer) {
 
 // Last-resort display mapping for common undiacritized starter words.
 const DIACRITIC_FALLBACK_BY_BASE_WORD = {
-  اسمي: "اِسْمِي",
+  Ø§Ø³Ù…ÙŠ: "Ø§ÙØ³Ù’Ù…ÙÙŠ",
 };
 
 function applyDiacriticsFallback(value) {
@@ -803,7 +803,7 @@ export default function LessonPage() {
     const startIndex = match.index;
     const endIndex = startIndex + match[0].length;
 
-    // Do not render literal underscores or surrounding quotes in the UI — show a normalized blank
+    // Do not render literal underscores or surrounding quotes in the UI â€” show a normalized blank
     const displayBlank = /^_+$/.test(raw) ? "" : raw;
 
     let before = arabicSentence.slice(0, startIndex);

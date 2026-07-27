@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { Circle } from "./Circle";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { motion } from "framer-motion";
@@ -159,7 +158,9 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const currentLevel = levels.find((l) => l.id === currentLevelId);
+  const currentLevel = levels.find(
+    (l) => l.id === (currentLevelId || levels[0]?.id),
+  );
 
   const groupedLessons = lessons.reduce((acc, lesson) => {
     const key = lesson.sectionId || lesson.level;
@@ -168,9 +169,10 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
     return acc;
   }, {});
 
-  const currentSectionLessons = currentLevel
-    ? groupedLessons[currentLevel.id] || []
-    : [];
+  const currentSectionLessons = useMemo(
+    () => (currentLevel ? groupedLessons[currentLevel.id] || [] : []),
+    [currentLevel, groupedLessons],
+  );
   const currentTask =
     currentSectionLessons.find((lesson) => lesson.isCurrent) ||
     currentSectionLessons.find((lesson) => !lesson.isLocked) ||
@@ -339,12 +341,8 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
       observers.push(observer);
     });
 
-    if (levels && levels.length > 0 && !currentLevelId) {
-      setCurrentLevelId(levels[0].id);
-    }
-
     return () => observers.forEach((o) => o.disconnect());
-  }, [levels, isLoading, currentLevelId]);
+  }, [levels, isLoading]);
 
   // Reset scroll guard whenever lessons data changes identity
   useEffect(() => {
@@ -424,7 +422,7 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
           subtitle={
             [currentLevel?.levelName, currentTask?.title]
               .filter(Boolean)
-              .join(" · ") || ""
+              .join(" Â· ") || ""
           }
           percentage={levelProgress}
           colorIndex={currentLevel?.colorIndex || 1}
@@ -442,7 +440,7 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
           subtitle={
             [currentLevel?.levelName, currentTask?.title]
               .filter(Boolean)
-              .join(" · ") || ""
+              .join(" Â· ") || ""
           }
           percentage={levelProgress}
           colorIndex={currentLevel?.colorIndex || 1}
