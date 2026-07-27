@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 const moodToSvg = {
   happy: "happy.svg",
@@ -44,7 +45,7 @@ export const FreshDateMascot = ({
         className="shrink-0"
         style={{ width: dimensions, height: dimensions }}
       >
-        <img
+        <Image
           src={`/mascots/${svgFile}`}
           alt={`Mascot ${mood}`}
           width={dimensions}

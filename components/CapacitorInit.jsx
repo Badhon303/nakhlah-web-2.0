@@ -11,18 +11,16 @@ export default function CapacitorInit() {
 
     (async () => {
       try {
-        const { Capacitor } = await import("@capacitor/core");
+        const { Capacitor, SystemBars } = await import("@capacitor/core");
         if (!Capacitor?.isNativePlatform?.()) return;
 
-        const { StatusBar, Style } = await import("@capacitor/status-bar");
-        if (cancelled) return;
-
-        await StatusBar.setStyle({ style: Style.Dark });
-        await StatusBar.setBackgroundColor({ color: "#8249DF" });
-
+        // Android 15+ enforces edge-to-edge and ignores statusBarColor /
+        // setOverlaysWebView, so the bars are only styled here and the layout
+        // keeps clear of them via the injected --safe-area-inset-* variables.
         try {
-          await StatusBar.setOverlaysWebView({ overlay: false });
+          await SystemBars?.setStyle?.({ style: "LIGHT" });
         } catch {}
+        if (cancelled) return;
 
         // Handle hardware back button
         const { App } = await import("@capacitor/app");

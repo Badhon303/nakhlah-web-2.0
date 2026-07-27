@@ -94,7 +94,7 @@ export function Navbar() {
       </nav>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t px-2 bg-background/95 backdrop-blur-md border-border pb-[env(safe-area-inset-bottom)]">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t px-2 bg-background/95 backdrop-blur-md border-border pb-[var(--sab)]">
         <div className="flex items-center justify-between py-2 gap-1">
           {navItems.map((item) => {
             const isActive = pathname === item.path;

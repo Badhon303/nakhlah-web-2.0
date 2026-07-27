@@ -679,7 +679,7 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border pt-[env(safe-area-inset-top)]">
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between shrink-0">
           <Link
             href={isAuthenticated ? "/" : "/auth/login"}
@@ -746,7 +746,7 @@ export default function Onboarding() {
       </main>
 
       {currentStep < steps.length && (
-        <footer className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border pb-[env(safe-area-inset-bottom)]">
+        <footer className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border pb-[var(--sab)]">
           <div className="container px-4 py-4 flex items-center justify-between max-w-xl mx-auto">
             {[1, 2, 3, 4, 5, 6, 7, 8].includes(currentStep) && (
               <Button

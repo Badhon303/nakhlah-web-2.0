@@ -7,6 +7,7 @@ import { useSession } from "@/lib/auth-client";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
 import { useLeaderboardStore } from "@/stores/useLeaderboardStore";
+import Image from "next/image";
 
 const FALLBACK_LEADERS = [
   {
@@ -87,7 +88,7 @@ export function LeaderboardCard() {
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full overflow-hidden bg-muted flex items-center justify-center text-xs font-semibold">
                 {leader.avatarUrl ? (
-                  <img
+                  <Image
                     src={leader.avatarUrl}
                     alt={leader.name}
                     className="w-full h-full object-cover"
@@ -112,3 +113,4 @@ export function LeaderboardCard() {
     </div>
   );
 }
+

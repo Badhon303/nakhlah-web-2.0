@@ -20,6 +20,7 @@ import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { hasOpenedGiftBox } from "@/lib/gamification";
 import { useDailyQuestStore } from "@/stores/useDailyQuestStore";
 import { useLessonStore } from "@/stores/useLessonStore";
+import Image from "next/image";
 
 const sortByOrder = (items, key) =>
   [...(items || [])].sort((a, b) => (a?.[key] || 0) - (b?.[key] || 0));
@@ -531,13 +532,13 @@ export function LessonSelectionPopup({
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {lessons.map((lesson) => {
                 const lessonIcon = lesson.isExam ? (
-                  <img
+                  <Image
                     src="/icons/Quiz1.svg"
                     alt="Quiz"
                     className="w-14 h-14 sm:w-20 sm:h-20 object-contain"
                   />
                 ) : (
-                  <img
+                  <Image
                     src="/icons/Lesson.svg"
                     alt="Lesson"
                     className="w-14 h-14 sm:w-20 sm:h-20 object-contain"

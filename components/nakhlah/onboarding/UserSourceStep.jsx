@@ -1,8 +1,10 @@
+
 "use client";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import Image from "next/image";
 
 export function UserSourceStep({
   title,
@@ -56,7 +58,7 @@ export function UserSourceStep({
             >
               <div className="w-12 h-12 rounded-md overflow-hidden shrink-0 flex items-center justify-center">
                 {option?.sourcePicture?.url ? (
-                  <img
+                  <Image
                     src={getMediaUrl(option.sourcePicture.url)}
                     alt={option?.sourcePicture?.alt || option.sourceName}
                     className="w-full h-full object-contain"

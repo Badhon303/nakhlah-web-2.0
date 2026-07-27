@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import Image from "next/image";
 
 export function GoalStep({
   title,
@@ -47,7 +48,7 @@ export function GoalStep({
             >
               <div className="w-12 h-12 rounded-md overflow-hidden shrink-0 flex items-center justify-center">
                 {goal?.goalMedia?.url ? (
-                  <img
+                  <Image
                     src={getMediaUrl(goal.goalMedia.url)}
                     alt={goal?.goalMedia?.alt || `${value} minutes`}
                     className="w-full h-full object-contain"

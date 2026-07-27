@@ -17,7 +17,15 @@
         <item name="android:windowTranslucentNavigation">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:fitsSystemWindows">true</item>
+        <!--
+          Must stay false. Edge to edge is enforced from API 35 and cannot be
+          opted out of on API 36, so insets are handled in CSS via the
+          safe area inset CSS variables Capacitor injects. Letting the platform
+          inset the WebView as well would double the padding on API 34 and below.
+        -->
+        <item name="android:fitsSystemWindows">false</item>
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
     </style>
 
 

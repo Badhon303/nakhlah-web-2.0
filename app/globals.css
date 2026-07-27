@@ -5,13 +5,47 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /*
+   * Capacitor 8.3+ injects --safe-area-inset-* natively on Android (edge-to-edge
+   * is enforced from targetSdk 35+ and cannot be opted out of on Android 16).
+   * env() is used as the fallback for iOS and the browser.
+   */
+  --sat: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --sab: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --sal: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  --sar: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+}
+
 @layer utilities {
   .safe-area-top {
-    padding-top: env(safe-area-inset-top);
+    padding-top: var(--sat);
   }
   .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: var(--sab);
   }
+  .safe-area-x {
+    padding-left: var(--sal);
+    padding-right: var(--sar);
+  }
+}
+
+/* Keep in-flow content clear of the status bar under edge-to-edge */
+body {
+  padding-top: var(--sat);
+}
+
+/* Opaque scrim behind the OS status bar so it stays readable over any content */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--sat);
+  background: #8249df;
+  z-index: 2147483647;
+  pointer-events: none;
 }
 
 /* Nakhlah Design System - Desert-inspired Language Learning App */

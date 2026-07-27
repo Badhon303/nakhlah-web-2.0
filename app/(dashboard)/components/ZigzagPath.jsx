@@ -261,10 +261,10 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
   return (
     <div className="relative lg:max-w-lg mx-auto">
       {/* Mobile mask: hides scrolled content behind the fixed UserStats header and the sticky banner */}
-      <div className="fixed top-0 left-0 right-0 h-[92px] z-[39] bg-background lg:hidden pointer-events-none" />
+      <div className="fixed top-[var(--sat)] left-0 right-0 h-[92px] z-[39] bg-background lg:hidden pointer-events-none" />
 
       {/* Mobile current-level banner at the top of the journey path */}
-      <div className="lg:hidden sticky top-[92px] z-[43] bg-background py-2 mb-4">
+      <div className="lg:hidden sticky top-[calc(92px_+_var(--sat))] z-[43] bg-background py-2 mb-4">
         <div
           className={`flex items-center justify-between px-4 py-3 rounded-lg shadow-lg transition-all duration-500 ease-in-out bg-gradient-to-r ${getLevelColor(
             currentLevel?.colorIndex || 1,

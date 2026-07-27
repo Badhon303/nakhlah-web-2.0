@@ -98,7 +98,7 @@ export function LessonResultHandler({
   }, [playClick, onContinue]);
 
   return (
-    <div className="border-t-2 border-border bg-background shrink-0 pb-[env(safe-area-inset-bottom)]">
+    <div className="border-t-2 border-border bg-background shrink-0 pb-[var(--sab)]">
       <AnimatePresence mode="wait" initial={false}>
         {isCorrect === null ? (
           <motion.div

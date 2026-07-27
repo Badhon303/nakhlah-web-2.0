@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import Image from "next/image";
 
 export function CountryStep({
   title,
@@ -44,7 +45,7 @@ export function CountryStep({
           >
             <div className="w-12 h-12 rounded-md overflow-hidden bg-muted shrink-0">
               {country?.countryMedia?.url && (
-                <img
+                <Image
                   src={getMediaUrl(country.countryMedia.url)}
                   alt={country?.countryMedia?.alt || country.countryName}
                   className="w-full h-full object-cover"

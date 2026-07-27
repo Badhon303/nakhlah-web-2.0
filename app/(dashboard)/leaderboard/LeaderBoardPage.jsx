@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Trophy } from "@/components/icons/Trophy";
 import { useSession } from "@/lib/auth-client";
@@ -8,23 +9,9 @@ import { useLeaderboardStore } from "@/stores/useLeaderboardStore";
 
 const PAGE_SIZE = 10;
 
-export default function Leaderboard({ onViewProfile }) {
-  const { data: session, status } = useSession();
-  const leaderboardData = useLeaderboardStore((state) => state.leaderboard);
-  const topThree = useLeaderboardStore((state) => state.topThree);
-  const isLoading = useLeaderboardStore((state) => state.isLoading);
-  const fetchLeaderboard = useLeaderboardStore(
-    (state) => state.fetchLeaderboard,
-  );
-  const clearLeaderboard = useLeaderboardStore((state) => state.clear);
-
-  const restList = leaderboardData.slice(3);
+function RestList({ restList, onViewProfile }) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const loadMoreRef = useRef(null);
-
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [leaderboardData]);
 
   useEffect(() => {
     const el = loadMoreRef.current;
@@ -44,6 +31,86 @@ export default function Leaderboard({ onViewProfile }) {
     observer.observe(el);
     return () => observer.disconnect();
   }, [visibleCount, restList.length]);
+
+  return (
+    <>
+      {restList.slice(0, visibleCount).map((user, index) => (
+        <motion.div
+          key={user.id}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 + index * 0.05 }}
+          className={`w-full bg-transparent lg:bg-card flex items-center gap-4 px-2 py-4 lg:p-4 rounded-2xl ${
+            user.isCurrentUser
+              ? "bg-muted/30 border-2 border-primary lg:shadow-lg"
+              : "border border-border shadow-md"
+          }`}
+        >
+          <div className="w-8 text-center">
+            <span className="font-bold text-muted-foreground text-lg">
+              {user.rank}
+            </span>
+          </div>
+          <div
+            className={`w-14 h-14 rounded-full bg-gradient-to-br ${user.color} flex items-center justify-center text-white font-bold text-lg shadow-lg`}
+          >
+            {user.avatarUrl ? (
+              <Image
+                src={user.avatarUrl}
+                alt={user.name}
+                className="w-full h-full rounded-full object-cover"
+                width={56}
+                height={56}
+              />
+            ) : (
+              user.avatar
+            )}
+          </div>
+          <div className="flex-1 text-left">
+            <p
+              className={`font-bold ${
+                user.isCurrentUser ? "text-primary" : "text-foreground"
+              }`}
+            >
+              {user.name}
+            </p>
+            <p className="text-muted-foreground text-sm">{user.injaz} Injaz</p>
+          </div>
+        </motion.div>
+      ))}
+
+      {visibleCount < restList.length && (
+        <div ref={loadMoreRef} className="pt-2 flex justify-center">
+          <button
+            onClick={() =>
+              setVisibleCount((prev) =>
+                Math.min(prev + PAGE_SIZE, restList.length),
+              )
+            }
+            className="px-6 py-2.5 rounded-xl border border-border bg-card text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+          >
+            Load More
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
+export default function Leaderboard({ onViewProfile }) {
+  const { data: session, status } = useSession();
+  const leaderboardData = useLeaderboardStore((state) => state.leaderboard);
+  const topThree = useLeaderboardStore((state) => state.topThree);
+  const isLoading = useLeaderboardStore((state) => state.isLoading);
+  const fetchLeaderboard = useLeaderboardStore(
+    (state) => state.fetchLeaderboard,
+  );
+  const clearLeaderboard = useLeaderboardStore((state) => state.clear);
+
+  const restList = leaderboardData.slice(3);
+  const dataKey = useMemo(() => {
+    return leaderboardData.length + "-" + (leaderboardData[0]?.id ?? "");
+  }, [leaderboardData]);
 
   useEffect(() => {
     const loadLeaderboard = async () => {
@@ -104,10 +171,12 @@ export default function Leaderboard({ onViewProfile }) {
                 className={`w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-gradient-to-br ${topThree[1]?.color} flex items-center justify-center text-white font-bold text-xl lg:text-2xl shadow-xl border-4 border-background`}
               >
                 {topThree[1]?.avatarUrl ? (
-                  <img
+                  <Image
                     src={topThree[1].avatarUrl}
                     alt={topThree[1]?.name || "Rank 2"}
                     className="w-full h-full rounded-full object-cover"
+                    width={96}
+                    height={96}
                   />
                 ) : (
                   topThree[1]?.avatar
@@ -139,10 +208,12 @@ export default function Leaderboard({ onViewProfile }) {
                 className={`w-24 h-24 lg:w-28 lg:h-28 rounded-full bg-gradient-to-br ${topThree[0]?.color} flex items-center justify-center text-white font-bold text-2xl lg:text-3xl shadow-2xl border-4 border-background`}
               >
                 {topThree[0]?.avatarUrl ? (
-                  <img
+                  <Image
                     src={topThree[0].avatarUrl}
                     alt={topThree[0]?.name || "Rank 1"}
                     className="w-full h-full rounded-full object-cover"
+                    width={112}
+                    height={112}
                   />
                 ) : (
                   topThree[0]?.avatar
@@ -174,10 +245,12 @@ export default function Leaderboard({ onViewProfile }) {
                 className={`w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-gradient-to-br ${topThree[2]?.color} flex items-center justify-center text-white font-bold text-xl lg:text-2xl shadow-xl border-4 border-background`}
               >
                 {topThree[2]?.avatarUrl ? (
-                  <img
+                  <Image
                     src={topThree[2].avatarUrl}
                     alt={topThree[2]?.name || "Rank 3"}
                     className="w-full h-full rounded-full object-cover"
+                    width={96}
+                    height={96}
                   />
                 ) : (
                   topThree[2]?.avatar
@@ -219,67 +292,11 @@ export default function Leaderboard({ onViewProfile }) {
               No leaderboard data available.
             </div>
           ) : (
-            <>
-              {restList.slice(0, visibleCount).map((user, index) => (
-                <motion.div
-                  key={user.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.7 + index * 0.05 }}
-                  className={`w-full bg-transparent lg:bg-card flex items-center gap-4 px-2 py-4 lg:p-4 rounded-2xl ${
-                    user.isCurrentUser
-                      ? "bg-muted/30 border-2 border-primary lg:shadow-lg"
-                      : "border border-border shadow-md"
-                  }`}
-                >
-                  <div className="w-8 text-center">
-                    <span className="font-bold text-muted-foreground text-lg">
-                      {user.rank}
-                    </span>
-                  </div>
-                  <div
-                    className={`w-14 h-14 rounded-full bg-gradient-to-br ${user.color} flex items-center justify-center text-white font-bold text-lg shadow-lg`}
-                  >
-                    {user.avatarUrl ? (
-                      <img
-                        src={user.avatarUrl}
-                        alt={user.name}
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      user.avatar
-                    )}
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p
-                      className={`font-bold ${
-                        user.isCurrentUser ? "text-primary" : "text-foreground"
-                      }`}
-                    >
-                      {user.name}
-                    </p>
-                    <p className="text-muted-foreground text-sm">
-                      {user.injaz} Injaz
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-
-              {visibleCount < restList.length && (
-                <div ref={loadMoreRef} className="pt-2 flex justify-center">
-                  <button
-                    onClick={() =>
-                      setVisibleCount((prev) =>
-                        Math.min(prev + PAGE_SIZE, restList.length),
-                      )
-                    }
-                    className="px-6 py-2.5 rounded-xl border border-border bg-card text-sm font-semibold text-foreground hover:bg-muted transition-colors"
-                  >
-                    Load More
-                  </button>
-                </div>
-              )}
-            </>
+            <RestList
+              key={dataKey}
+              restList={restList}
+              onViewProfile={onViewProfile}
+            />
           )}
         </motion.div>
       </div>
