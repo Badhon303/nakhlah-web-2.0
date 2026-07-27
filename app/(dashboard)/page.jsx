@@ -192,7 +192,7 @@ export default function LearnPage() {
     }
 
     loadJourney(shouldForceRefresh);
-  }, [loadJourney]);
+  }, [loadJourney, invalidateJourney, invalidateProfile]);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -225,7 +225,7 @@ export default function LearnPage() {
   return (
     <div className="bg-background text-foreground">
       {/* Mobile sticky header */}
-      <div className="lg:hidden fixed top-0 w-full z-[40] bg-primary shadow-md" style={{ top: "var(--capacitor-status-bar-height, 0px)" }}>
+      <div className="lg:hidden fixed top-[var(--sat)] left-0 right-0 z-[40] bg-primary shadow-md">
         <UserStats />
       </div>
 

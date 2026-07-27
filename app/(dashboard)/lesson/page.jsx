@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -1472,7 +1471,7 @@ export default function LessonPage() {
     }
 
     return (
-      <div className="min-h-screen sm:min-h-[calc(100vh_-_64px)] lg:min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-[100dvh] sm:min-h-[calc(100dvh_-_64px)] lg:min-h-[100dvh] bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-lg text-center space-y-5 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-lg">
           <div className="flex justify-center mb-4">
             <LogoAnimation className="w-48" />
@@ -1512,7 +1511,7 @@ export default function LessonPage() {
   }
 
   return (
-    <div className="min-h-screen sm:min-h-[calc(100vh_-_64px)] lg:min-h-screen bg-background flex flex-col">
+    <div className="min-h-[100dvh] sm:min-h-[calc(100dvh_-_64px)] lg:min-h-[100dvh] bg-background flex flex-col">
       <AnimatePresence>
         {showFullMarksClaimedNotice ? (
           <motion.div

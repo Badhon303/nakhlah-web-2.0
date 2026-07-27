@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import Image from "next/image";
 
 export function PurposeStep({
   title,
@@ -43,9 +44,9 @@ export function PurposeStep({
                 : "border-border bg-card hover:border-primary",
             )}
           >
-            <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-md overflow-hidden shrink-0 flex items-center justify-center">
               {purpose?.purposeMedia?.url ? (
-                <img
+                <Image
                   src={getMediaUrl(purpose.purposeMedia.url)}
                   alt={purpose?.purposeMedia?.alt || purpose.purposeTitle}
                   className="w-full h-full object-contain"

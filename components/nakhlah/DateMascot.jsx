@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 const moodToSvg = {
   happy: "happy.svg",
@@ -23,6 +24,7 @@ const sizeMap = {
   xl: 100,
   xxl: 128,
   xxxl: 160,
+  xxxxl: 192,
 };
 
 export const FreshDateMascot = ({
@@ -40,13 +42,15 @@ export const FreshDateMascot = ({
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
+        className="shrink-0"
+        style={{ width: dimensions, height: dimensions }}
       >
-        <img
+        <Image
           src={`/mascots/${svgFile}`}
           alt={`Mascot ${mood}`}
           width={dimensions}
           height={dimensions}
-          className="block"
+          className="block w-full h-full object-contain"
         />
       </motion.div>
 

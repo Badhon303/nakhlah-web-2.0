@@ -11,18 +11,16 @@ export default function CapacitorInit() {
 
     (async () => {
       try {
-        const { Capacitor } = await import("@capacitor/core");
+        const { Capacitor, SystemBars } = await import("@capacitor/core");
         if (!Capacitor?.isNativePlatform?.()) return;
 
-        const { StatusBar, Style } = await import("@capacitor/status-bar");
-        if (cancelled) return;
-
-        await StatusBar.setStyle({ style: Style.Dark });
-        await StatusBar.setBackgroundColor({ color: "#8249DF" });
-
+        // Android 15+ enforces edge-to-edge and ignores statusBarColor /
+        // setOverlaysWebView, so the bars are only styled here and the layout
+        // keeps clear of them via the injected --safe-area-inset-* variables.
         try {
-          await StatusBar.setOverlaysWebView({ overlay: false });
+          await SystemBars?.setStyle?.({ style: "LIGHT" });
         } catch {}
+        if (cancelled) return;
 
         // Handle hardware back button
         const { App } = await import("@capacitor/app");
@@ -40,45 +38,6 @@ export default function CapacitorInit() {
         );
       } catch {}
     })();
-
-    // CSS padding fallback: detect status bar height and apply as CSS variable
-    const detectStatusBarHeight = () => {
-      let height = 0;
-
-      // Method 1: env(safe-area-inset-top)
-      try {
-        const el = document.createElement("div");
-        el.style.cssText =
-          "position:absolute;top:0;left:0;visibility:hidden;padding-top:env(safe-area-inset-top);";
-        document.body.appendChild(el);
-        height = parseInt(getComputedStyle(el).paddingTop) || 0;
-        document.body.removeChild(el);
-      } catch {}
-
-      // Method 2: outerHeight - innerHeight
-      if (height === 0 && typeof window.outerHeight === "number") {
-        const diff = window.outerHeight - window.innerHeight;
-        if (diff > 0 && diff < 100) height = diff;
-      }
-
-      // Method 3: screen height difference
-      if (height === 0 && window.screen) {
-        const diff = (window.screen.height || 0) - (window.screen.availHeight || 0);
-        if (diff > 0 && diff < 100) height = diff;
-      }
-
-      // Method 4: default Android status bar height (24dp ≈ 24 CSS px)
-      if (height === 0) {
-        height = 24;
-      }
-
-      document.documentElement.style.setProperty(
-        "--capacitor-status-bar-height",
-        height + "px",
-      );
-    };
-
-    detectStatusBarHeight();
 
     return () => {
       cancelled = true;

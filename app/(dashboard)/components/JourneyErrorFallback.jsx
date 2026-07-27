@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const ERROR_CONFIGS = {
   unauthenticated: {
@@ -57,6 +59,17 @@ function detectErrorType(errorMessage = "") {
 export function JourneyErrorFallback({ error = "", onRetry }) {
   const errorType = detectErrorType(error);
   const config = ERROR_CONFIGS[errorType];
+  const router = useRouter();
+
+  useEffect(() => {
+    if (errorType === "unauthenticated") {
+      router.replace("/auth/login");
+    }
+  }, [errorType, router]);
+
+  if (errorType === "unauthenticated") {
+    return null;
+  }
 
   const PrimaryButton = config.primaryHref ? (
     <Link

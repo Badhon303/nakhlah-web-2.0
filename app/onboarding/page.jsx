@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ProgressSteps } from "@/components/nakhlah/ProgressSteps";
 import Image from "next/image";
+import Link from "next/link";
 import { ProficiencyStep } from "@/components/nakhlah/onboarding/ProficiencyStep";
 import { GoalStep } from "@/components/nakhlah/onboarding/GoalStep";
 import { PurposeStep } from "@/components/nakhlah/onboarding/PurposeStep";
@@ -17,7 +18,6 @@ import { AgeStep } from "@/components/nakhlah/onboarding/AgeStep";
 import { AccountStep } from "@/components/nakhlah/onboarding/AccountStep";
 import { CompletionStep } from "@/components/nakhlah/onboarding/CompletionStep";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { registerUser } from "@/lib/authUtils";
 import {
@@ -196,6 +196,7 @@ export default function Onboarding() {
   const [isLoadingOnboarding, setIsLoadingOnboarding] = useState(true);
   const [loadingError, setLoadingError] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const getMediaUrl = (url) => {
     if (!url) return "";
@@ -232,6 +233,14 @@ export default function Onboarding() {
   const loadOnboardingData = async () => {
     setIsLoadingOnboarding(true);
     setLoadingError("");
+
+    // Check auth status for logo navigation
+    try {
+      const session = getSessionSync();
+      setIsAuthenticated(!!session?.user?.id);
+    } catch (error) {
+      setIsAuthenticated(false);
+    }
 
     let result = await fetchUserOnboardingGlobals();
 
@@ -380,7 +389,43 @@ export default function Onboarding() {
   };
 
   const handleBack = () => {
-    if (currentStep > 1) setCurrentStep((s) => s - 1);
+    if (currentStep === 1) {
+      router.push("/get-started");
+    } else if (currentStep > 1) {
+      setCurrentStep((s) => s - 1);
+    }
+  };
+
+  const handleSkip = () => {
+    switch (currentStep) {
+      case 1:
+        setProficiencyLevel("");
+        break;
+      case 2:
+        setDailyGoal("");
+        break;
+      case 3:
+        setPurpose("");
+        break;
+      case 4:
+        setCountry("");
+        break;
+      case 5:
+        setUserSource("");
+        break;
+      case 6:
+        setInterests([]);
+        break;
+      case 7:
+        setFullName("");
+        setContactNumber("");
+        setProfilePicture(null);
+        break;
+      case 8:
+        setAge("");
+        break;
+    }
+    setCurrentStep((s) => s + 1);
   };
 
   const toggleInterest = (interestId) => {
@@ -634,25 +679,41 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border pt-[env(safe-area-inset-top)]">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between shrink-0">
+          <Link
+            href={isAuthenticated ? "/" : "/auth/login"}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity shrink-0"
+          >
             <Image
               src="/Nakhlah_Logo.webp"
               alt="Nakhlah logo"
-              width={40}
-              height={40}
-              className="w-10 h-10 rounded-lg object-cover"
+              width={32}
+              height={32}
+              className="w-8 h-8 rounded-lg object-cover shrink-0"
               priority
             />
-            <span className="text-xl font-bold text-foreground">Nakhlah</span>
-          </div>
+            <span className="text-xl font-bold text-foreground shrink-0">
+              Nakhlah
+            </span>
+          </Link>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6">
-        <div className="max-w-[520px] mx-auto">
-          <ProgressSteps steps={steps} currentStep={currentStep} />
+      <div className="container mx-auto px-4 py-4">
+        <div className="max-w-[520px] mx-auto flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleBack}
+            disabled={isRegistering}
+            className="shrink-0"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div className="flex-1 min-w-0">
+            <ProgressSteps steps={steps} currentStep={currentStep} />
+          </div>
         </div>
       </div>
 
@@ -684,57 +745,35 @@ export default function Onboarding() {
         )}
       </main>
 
-      <footer className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border pb-[env(safe-area-inset-bottom)]">
-        <div className="container px-1 py-4 flex flex-col gap-3 max-w-xl mx-auto">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              onClick={handleBack}
-              disabled={currentStep === 1 || isRegistering}
-              className={cn("gap-2", currentStep === 1 && "invisible")}
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
-
-            {currentStep < steps.length ? (
+      {currentStep < steps.length && (
+        <footer className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border pb-[var(--sab)]">
+          <div className="container px-4 py-4 flex items-center justify-between max-w-xl mx-auto">
+            {[1, 2, 3, 4, 5, 6, 7, 8].includes(currentStep) && (
               <Button
-                onClick={handleNext}
-                disabled={
-                  isLoadingOnboarding ||
-                  !!loadingError ||
-                  !canProceed() ||
-                  isRegistering
-                }
-                className="gap-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white"
+                variant="ghost"
+                onClick={handleSkip}
+                disabled={isRegistering}
+                className="gap-2 text-muted-foreground hover:text-foreground"
               >
-                {isRegistering ? "Creating Account..." : "Continue"}
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            ) : (
-              <Button
-                onClick={handleComplete}
-                className="gap-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white"
-              >
-                Start Learning
+                Skip
               </Button>
             )}
+            <Button
+              onClick={handleNext}
+              disabled={
+                isLoadingOnboarding ||
+                !!loadingError ||
+                !canProceed() ||
+                isRegistering
+              }
+              className="gap-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white ml-auto"
+            >
+              {isRegistering ? "Creating Account..." : "Continue"}
+              <ArrowRight className="w-4 h-4" />
+            </Button>
           </div>
-
-          {[4, 5, 6, 7, 8].includes(currentStep) && (
-            <div className="relative flex items-center">
-              <div className="flex-1 border-t border-border" />
-              <button
-                onClick={() => setCurrentStep((s) => s + 1)}
-                className="px-4 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
-              >
-                or skip for now
-              </button>
-              <div className="flex-1 border-t border-border" />
-            </div>
-          )}
-        </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 }

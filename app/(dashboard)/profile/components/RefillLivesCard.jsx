@@ -52,15 +52,15 @@ export default function RefillLivesCard() {
   };
 
   return (
-    <div className="rounded-2xl bg-card shadow-lg border border-border overflow-hidden p-6">
+    <div className="lg:rounded-2xl lg:bg-card lg:shadow-lg lg:border lg:border-border lg:overflow-hidden lg:p-6">
       <div className="">
-        <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
+        <h3 className="text-xl font-semibold flex items-center gap-2 mb-4 lg:mb-6">
           {/* <Heart className="w-5 h-5 text-destructive" /> */}
           Refill Palm Trees
         </h3>
       </div>
       <div className="">
-        <p className="text-sm text-muted-foreground mb-6">
+        <p className="text-sm text-muted-foreground mb-4 lg:mb-6">
           Out of Palm Trees? Refill and continue learning without interruptions!
         </p>
         <div className="p-3 bg-muted rounded-lg border border-muted-foreground/50 text-sm mb-4">

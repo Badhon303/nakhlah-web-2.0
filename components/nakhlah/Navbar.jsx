@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/lib/auth-client";
+import { Crown, Home, LogOut, Trophy, User } from "lucide-react";
 
 const navItems = [
   { path: "/", label: "Home", icon: "/icons/Home-Icon.127e8555.svg" },
@@ -17,6 +18,13 @@ const navItems = [
   { path: "/store", label: "Store", icon: "/icons/STORE.9b24d09f.svg" },
   { path: "/profile", label: "Profile", icon: "/icons/Profile.f8f9b305.svg" },
 ];
+
+const mobileIconMap = {
+  "/": Home,
+  "/leaderboard": Trophy,
+  "/store": Crown,
+  "/profile": User,
+};
 
 export function Navbar() {
   const pathname = usePathname();
@@ -46,24 +54,29 @@ export function Navbar() {
           <div className="flex flex-col gap-2">
             {navItems.map((item) => {
               const isActive = pathname === item.path;
+              const NavIcon = mobileIconMap[item.path];
               return (
                 <Link
                   key={item.path}
                   href={item.path}
                   className={cn(
-                    "relative flex items-center gap-3 rounded-xl px-4 py-3 text-base font-semibold text-foreground transition-all",
+                    "relative flex items-center gap-3 rounded-xl px-4 py-3 text-base font-semibold transition-all",
                     isActive
                       ? "bg-accent/10 text-accent"
-                      : "hover:bg-muted/50 dark:hover:bg-muted/20",
+                      : "text-foreground hover:bg-muted/50 dark:hover:bg-muted/20",
                   )}
                 >
-                  <Image
-                    src={item.icon}
-                    alt={item.label}
-                    width={24}
-                    height={24}
-                    className="h-6 w-6"
-                  />
+                  {NavIcon ? (
+                    <NavIcon className="h-6 w-6" />
+                  ) : (
+                    <Image
+                      src={item.icon}
+                      alt={item.label}
+                      width={24}
+                      height={24}
+                      className="h-6 w-6"
+                    />
+                  )}
                   <span>{item.label}</span>
                 </Link>
               );
@@ -73,13 +86,7 @@ export function Navbar() {
               onClick={handleLogout}
               className="relative flex items-center gap-3 rounded-xl px-4 py-3 text-base font-semibold text-foreground transition-all w-full hover:bg-muted/50 dark:hover:bg-muted/20"
             >
-              <Image
-                src="/icons/logout.125f3808.svg"
-                alt="Logout"
-                width={24}
-                height={24}
-                className="h-6 w-6"
-              />
+              <LogOut className="h-6 w-6" />
               <span>Logout</span>
             </button>
           </div>
@@ -87,27 +94,43 @@ export function Navbar() {
       </nav>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t px-2 bg-background/95 backdrop-blur-md border-border">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t px-2 bg-background/95 backdrop-blur-md border-border pb-[var(--sab)]">
         <div className="flex items-center justify-between py-2 gap-1">
           {navItems.map((item) => {
             const isActive = pathname === item.path;
+            const MobileIcon = mobileIconMap[item.path];
             return (
               <Link
                 key={item.path}
                 href={item.path}
-                className={cn(
-                  "flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0 text-foreground",
-                  isActive ? "bg-accent/10 text-accent" : "hover:bg-muted/50",
-                )}
+                className="flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0 text-foreground hover:bg-muted/50 dark:hover:bg-transparent"
               >
-                <Image
-                  src={item.icon}
-                  alt={item.label}
-                  width={24}
-                  height={24}
-                  className="h-5 w-5"
-                />
-                <span className="text-[10px] font-medium truncate w-full text-center">
+                <span
+                  className={cn(
+                    "flex items-center justify-center p-2 rounded-xl transition-colors",
+                    isActive
+                      ? "bg-accent text-accent-foreground dark:bg-transparent dark:text-accent"
+                      : "",
+                  )}
+                >
+                  {MobileIcon ? (
+                    <MobileIcon className="h-5 w-5" />
+                  ) : (
+                    <Image
+                      src={item.icon}
+                      alt={item.label}
+                      width={24}
+                      height={24}
+                      className="h-5 w-5"
+                    />
+                  )}
+                </span>
+                <span
+                  className={cn(
+                    "text-[10px] font-medium truncate w-full text-center",
+                    isActive ? "text-accent" : "",
+                  )}
+                >
                   {item.label}
                 </span>
               </Link>
@@ -116,15 +139,11 @@ export function Navbar() {
           {/* Logout - Mobile */}
           <button
             onClick={handleLogout}
-            className="flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0 text-foreground hover:bg-muted/50"
+            className="flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0 text-foreground hover:bg-muted/50 dark:hover:bg-transparent"
           >
-            <Image
-              src="/icons/logout.125f3808.svg"
-              alt="Logout"
-              width={24}
-              height={24}
-              className="h-5 w-5"
-            />
+            <span className="flex items-center justify-center p-2 rounded-xl">
+              <LogOut className="h-5 w-5" />
+            </span>
             <span className="text-[10px] font-medium truncate w-full text-center">
               Logout
             </span>

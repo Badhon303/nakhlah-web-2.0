@@ -6,8 +6,6 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { forgotPassword } from "@/services/api/auth";
 import { toast } from "@/components/nakhlah/Toast";
@@ -46,15 +44,6 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-start sm:items-center justify-center px-4 py-6">
-      {/* Mobile fixed nav */}
-      <button
-        type="button"
-        onClick={() => window.history.back()}
-        className="fixed top-4 left-4 z-50 lg:hidden inline-flex items-center gap-1.5 text-foreground hover:text-accent transition-colors bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2"
-      >
-        <ArrowLeft className="h-5 w-5" />
-        <span className="font-semibold text-sm">Back</span>
-      </button>
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
         {/* Left Side - Mascot */}
         <motion.div
@@ -79,18 +68,6 @@ export default function ForgotPasswordPage() {
             {/* Mobile Mascot */}
             <div className="flex justify-center mb-6 lg:hidden">
               <FreshDateMascot mood="sad" size="xxxl" />
-            </div>
-
-            {/* Back Button - desktop only */}
-            <div className="mb-6 hidden lg:block">
-              <button
-                type="button"
-                onClick={() => window.history.back()}
-                className="inline-flex items-center gap-2 text-foreground hover:text-accent transition-colors"
-              >
-                <ArrowLeft className="h-5 w-5" />
-                <span className="font-semibold">Back</span>
-              </button>
             </div>
 
             {/* Header */}
@@ -132,7 +109,7 @@ export default function ForgotPasswordPage() {
               </div>
 
               {/* Continue Button */}
-              <div className="hidden sm:block">
+              <div>
                 <Button
                   onClick={handleContinue}
                   disabled={isLoading}
@@ -142,15 +119,6 @@ export default function ForgotPasswordPage() {
                 </Button>
               </div>
             </div>
-          </div>
-          <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-background border-t border-border p-4">
-            <Button
-              onClick={handleContinue}
-              disabled={isLoading}
-              className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
-            >
-              {isLoading ? "SENDING..." : "CONTINUE"}
-            </Button>
           </div>
         </motion.div>
       </div>
