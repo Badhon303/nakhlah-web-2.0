@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-start sm:items-center justify-center px-4 py-6">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-6">
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
         {/* Left Side - Mascot */}
         <motion.div
@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-full max-w-md mx-auto pt-6 lg:pt-0"
+          className="w-full max-w-md mx-auto"
         >
           <div className="bg-transparent lg:bg-card rounded-none lg:rounded-3xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-8">
             {/* Mobile Mascot */}

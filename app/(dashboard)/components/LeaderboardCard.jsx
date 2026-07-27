@@ -91,6 +91,8 @@ export function LeaderboardCard() {
                   <Image
                     src={leader.avatarUrl}
                     alt={leader.name}
+                    width={24}
+                    height={24}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -113,4 +115,3 @@ export function LeaderboardCard() {
     </div>
   );
 }
-

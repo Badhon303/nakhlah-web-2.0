@@ -516,11 +516,12 @@ export function LessonSelectionPopup({
               {Array.from({ length: 4 }).map((_, index) => (
                 <div
                   key={`lesson-skeleton-${index}`}
-                  className="relative p-3 sm:p-5 rounded-2xl border-4 border-border/60 bg-background/70"
+                  className="relative p-3 sm:p-5 rounded-2xl border-4 border-border/60 bg-background/70 flex flex-col items-center justify-center gap-2 sm:gap-3"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-2xl bg-muted animate-pulse" />
-                  <div className="mt-3 sm:mt-4 h-4 w-3/4 mx-auto rounded bg-muted animate-pulse" />
-                  <div className="mt-2 h-3 w-1/2 mx-auto rounded bg-muted/80 animate-pulse" />
+                  <div className="w-16 h-16 sm:w-24 sm:h-24 flex items-center justify-center">
+                    <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-muted animate-pulse" />
+                  </div>
+                  <div className="h-4 w-3/4 rounded bg-muted animate-pulse" />
                 </div>
               ))}
             </div>
@@ -535,12 +536,16 @@ export function LessonSelectionPopup({
                   <Image
                     src="/icons/Quiz1.svg"
                     alt="Quiz"
+                    width={80}
+                    height={80}
                     className="w-14 h-14 sm:w-20 sm:h-20 object-contain"
                   />
                 ) : (
                   <Image
                     src="/icons/Lesson.svg"
                     alt="Lesson"
+                    width={80}
+                    height={80}
                     className="w-14 h-14 sm:w-20 sm:h-20 object-contain"
                   />
                 );

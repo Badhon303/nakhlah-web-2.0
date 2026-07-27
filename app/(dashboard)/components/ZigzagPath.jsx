@@ -1,10 +1,9 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { Circle } from "./Circle";
-import { GateBanner } from "@/components/nakhlah/GateBanner";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FileText, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 const PATH_CENTER = 50;
 const PATH_AMPLITUDE = 25;
@@ -19,6 +18,130 @@ const MASCOT_SIDE_POSITIONS = {
 function getResponsiveMascotSize(width) {
   if (width >= 768) return "xxxl";
   return "xxxl";
+}
+
+function getLevelRingColor(colorIndex) {
+  const colors = ["#4ade80", "#c084fc", "#fb923c", "#60a5fa", "#f87171"];
+  return colors[((colorIndex || 1) - 1) % colors.length] || colors[3];
+}
+
+function LevelProgressRing({ percentage, colorIndex, className = "" }) {
+  const radius = 24;
+  const strokeWidth = 5;
+  const circumference = 2 * Math.PI * radius;
+  const safePercentage = Math.max(
+    0,
+    Math.min(100, Math.round(percentage || 0)),
+  );
+  const offset = circumference - (safePercentage / 100) * circumference;
+  const strokeColor = getLevelRingColor(colorIndex);
+
+  return (
+    <svg
+      viewBox="0 0 56 56"
+      preserveAspectRatio="xMidYMid meet"
+      className={`h-full w-auto aspect-square shrink-0 ${className}`}
+    >
+      <circle cx="28" cy="28" r="28" fill="#ffffff" />
+      <circle
+        cx="28"
+        cy="28"
+        r={radius}
+        fill="none"
+        stroke="#e5e7eb"
+        strokeWidth={strokeWidth}
+      />
+      <circle
+        cx="28"
+        cy="28"
+        r={radius}
+        fill="none"
+        stroke={strokeColor}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        transform="rotate(-90 28 28)"
+        style={{ transition: "stroke-dashoffset 600ms ease" }}
+      />
+      <text
+        x="28"
+        y="29"
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fill="#1f2937"
+        fontSize="12"
+        fontWeight="700"
+      >
+        {safePercentage}%
+      </text>
+    </svg>
+  );
+}
+
+function UnitBanner({
+  gradientClass,
+  title,
+  subtitle,
+  percentage,
+  colorIndex,
+  compact = false,
+}) {
+  return (
+    <div
+      className={`relative overflow-hidden flex items-center justify-between rounded-full shadow-lg transition-all duration-500 ease-in-out bg-gradient-to-r ${gradientClass} text-white ${
+        compact ? "h-16 p-1.5" : "h-[72px] p-2"
+      }`}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 right-16 w-28 opacity-20"
+        style={{
+          backgroundImage:
+            "radial-gradient(currentColor 1.5px, transparent 1.5px)",
+          backgroundSize: "10px 10px",
+        }}
+      />
+
+      <div className={`relative min-w-0 pr-3 ${compact ? "pl-3" : "pl-4"}`}>
+        <div
+          className={`font-extrabold leading-tight truncate ${
+            compact ? "text-lg" : "text-xl"
+          }`}
+        >
+          {title}
+        </div>
+        {/* {subtitle ? (
+          <div className="text-xs sm:text-sm text-white/80 font-medium truncate">
+            {subtitle}
+          </div>
+        ) : null} */}
+      </div>
+
+      <LevelProgressRing
+        percentage={percentage}
+        colorIndex={colorIndex}
+        className="relative"
+      />
+    </div>
+  );
+}
+
+function UnitDivider({ label, colorIndex }) {
+  const color = getLevelRingColor(colorIndex);
+
+  return (
+    <div className="w-full flex items-center justify-center gap-3 my-6 px-6">
+      <span className="h-px flex-1 bg-border" />
+      <span
+        className="text-sm md:text-base font-bold tracking-wide whitespace-nowrap"
+        style={{ color }}
+      >
+        {label}
+      </span>
+      <span className="h-px flex-1 bg-border" />
+    </div>
+  );
 }
 
 export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
@@ -53,6 +176,20 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
     currentSectionLessons.find((lesson) => !lesson.isLocked) ||
     currentSectionLessons[0];
 
+  const levelProgress = useMemo(() => {
+    if (!currentSectionLessons.length) return 0;
+    const total = currentSectionLessons.length;
+    const unlocked = currentSectionLessons.filter(
+      (lesson) => !lesson.isLocked,
+    ).length;
+    return total > 0 ? Math.round((unlocked / total) * 100) : 0;
+  }, [currentSectionLessons]);
+
+  const hasCompletedJourney =
+    !isLoading &&
+    lessons.length > 0 &&
+    lessons.every((lesson) => lesson.isCompleted);
+
   const getPosition = (index) => {
     const x = PATH_CENTER + Math.sin(index * PATH_FREQUENCY) * PATH_AMPLITUDE;
     return { left: `${x}%`, transform: "translateX(-50%)" };
@@ -64,7 +201,7 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
   );
 
   const mascotPlacementsByAnchorId = useMemo(() => {
-    if (!Array.isArray(lessons) || lessons.length < 4) return new Map();
+    if (!Array.isArray(lessons) || lessons.length === 0) return new Map();
 
     const moods = ["proud", "encouraging", "happy", "cool"];
     const baseSize = getResponsiveMascotSize(windowWidth);
@@ -143,6 +280,21 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
         anchoredPlacements.push(placement);
         placementsByAnchor.set(slot.anchorLessonId, anchoredPlacements);
       });
+
+    const firstLessonId = lessons[0]?.id;
+    if (firstLessonId) {
+      const firstCurveMascot = {
+        anchorLessonId: firstLessonId,
+        midpoint: 0.75,
+        side: "right",
+        slotIndex: "first-curve",
+        mood: "proud",
+        size: baseSize,
+      };
+      const anchoredPlacements = placementsByAnchor.get(firstLessonId) || [];
+      anchoredPlacements.push(firstCurveMascot);
+      placementsByAnchor.set(firstLessonId, anchoredPlacements);
+    }
 
     return placementsByAnchor;
   }, [lessonIndexById, lessons, mascots, windowWidth]);
@@ -264,27 +416,19 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
       <div className="fixed top-[var(--sat)] left-0 right-0 h-[92px] z-[39] bg-background lg:hidden pointer-events-none" />
 
       {/* Mobile current-level banner at the top of the journey path */}
-      <div className="lg:hidden sticky top-[calc(92px_+_var(--sat))] z-[43] bg-background py-2 mb-4">
-        <div
-          className={`flex items-center justify-between px-4 py-3 rounded-lg shadow-lg transition-all duration-500 ease-in-out bg-gradient-to-r ${getLevelColor(
-            currentLevel?.colorIndex || 1,
-          )} text-white`}
-        >
-          <div>
-            <div className="text-sm text-white/90 mb-1 font-semibold uppercase tracking-wider">
-              {currentLevel?.levelName ? `${currentLevel.levelName}, ` : ""}
-              {currentLevel?.name || ""}
-            </div>
-            {currentTask?.title ? (
-              <div className="text-lg font-bold leading-tight">
-                {currentTask.title}
-              </div>
-            ) : null}
-          </div>
-          <button className="text-white p-2 rounded-full">
-            <FileText className="w-6 h-6" />
-          </button>
-        </div>
+      <div className="lg:hidden sticky top-[calc(92px_+_var(--sat))] z-[43] bg-background mb-4">
+        <UnitBanner
+          compact
+          gradientClass={getLevelColor(currentLevel?.colorIndex || 1)}
+          title={currentLevel?.name || ""}
+          subtitle={
+            [currentLevel?.levelName, currentTask?.title]
+              .filter(Boolean)
+              .join(" · ") || ""
+          }
+          percentage={levelProgress}
+          colorIndex={currentLevel?.colorIndex || 1}
+        />
       </div>
 
       {/* Desktop mask to keep whitespace above sticky header clean */}
@@ -292,50 +436,42 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
 
       {/* Sticky unit header on desktop only */}
       <div className="hidden lg:block sticky top-6 z-[44] bg-background py-2 lg:py-0">
-        <div
-          className={`flex items-center justify-between px-4 py-3 rounded-lg shadow-lg transition-all duration-500 ease-in-out bg-gradient-to-r ${getLevelColor(
-            currentLevel?.colorIndex || 1,
-          )} text-white`}
-        >
-          <div>
-            <div className="text-sm text-white/90 mb-1 font-semibold uppercase tracking-wider">
-              {currentLevel?.levelName ? `${currentLevel.levelName}, ` : ""}
-              {currentLevel?.name || ""}
-            </div>
-            {currentTask?.title ? (
-              <div className="text-2xl font-bold leading-tight">
-                {currentTask.title}
-              </div>
-            ) : null}
-          </div>
-          <button className="text-white p-2 rounded-full">
-            <FileText className="w-6 h-6" />
-          </button>
-        </div>
+        <UnitBanner
+          gradientClass={getLevelColor(currentLevel?.colorIndex || 1)}
+          title={currentLevel?.name || ""}
+          subtitle={
+            [currentLevel?.levelName, currentTask?.title]
+              .filter(Boolean)
+              .join(" · ") || ""
+          }
+          percentage={levelProgress}
+          colorIndex={currentLevel?.colorIndex || 1}
+        />
       </div>
 
-      {/* Completion celebration placeholder at the visual top of the journey */}
-      <div className="mb-8 mt-0 lg:mt-6 flex justify-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="relative overflow-hidden bg-gradient-to-br from-accent/20 via-primary/20 to-accent/10 border-2 border-accent/30 rounded-3xl p-6 w-full max-w-md text-center shadow-lg"
-        >
-          <div className="flex justify-center mb-3">
-            <FreshDateMascot mood="celebrating" size="xl" />
-          </div>
-          <h3 className="text-xl font-black text-foreground mb-2">
-            Congratulations!
-          </h3>
-          <p className="text-sm font-semibold text-muted-foreground mb-1">
-            You have completed the journey.
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Keep practicing to maintain your streak and master every lesson.
-          </p>
-        </motion.div>
-      </div>
+      {hasCompletedJourney ? (
+        <div className="mb-8 mt-0 lg:mt-6 flex justify-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="relative overflow-hidden bg-gradient-to-br from-accent/20 via-primary/20 to-accent/10 border-2 border-accent/30 rounded-3xl p-6 w-full max-w-md text-center shadow-lg"
+          >
+            <div className="flex justify-center mb-3">
+              <FreshDateMascot mood="celebrating" size="xl" />
+            </div>
+            <h3 className="text-xl font-black text-foreground mb-2">
+              Congratulations!
+            </h3>
+            <p className="text-sm font-semibold text-muted-foreground mb-1">
+              You have completed the journey.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Keep practicing to maintain your streak and master every lesson.
+            </p>
+          </motion.div>
+        </div>
+      ) : null}
 
       {/* Lessons grouped by level - bottom-to-top: level 1 sits at the visual bottom */}
       <div className="relative flex flex-col-reverse">
@@ -343,7 +479,6 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
           const levelLessons = groupedLessons[level.id] || [];
           const isFirstLessonCurrent = levelLessons[0]?.isCurrent;
           const levelStartIndex = lessonIndexById.get(levelLessons[0]?.id) ?? 0;
-          const gatePosition = getPosition(levelStartIndex);
           const levelMascots = levelLessons.flatMap(
             (lesson) => mascotPlacementsByAnchorId.get(lesson.id) || [],
           );
@@ -354,17 +489,9 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
               data-level-id={level.id}
               className="relative flex flex-col-reverse"
             >
-              {/* Level Gate Banner - sits at the visual bottom of the level, aligned with the first lesson node */}
-              <div
-                className={`w-fit ${
-                  isFirstLessonCurrent ? "mt-12 mb-6" : "mt-8"
-                }`}
-                style={{
-                  marginLeft: gatePosition.left,
-                  transform: gatePosition.transform,
-                }}
-              >
-                <GateBanner title={level.name} />
+              {/* Unit label - centered horizontally at the visual bottom of the level */}
+              <div className={isFirstLessonCurrent ? "mt-10 mb-4" : "mt-6"}>
+                <UnitDivider label={level.name} colorIndex={level.colorIndex} />
               </div>
 
               {/* Zigzag path for this level - first lesson at visual bottom */}

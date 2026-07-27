@@ -1471,7 +1471,7 @@ export default function LessonPage() {
     }
 
     return (
-      <div className="min-h-[100dvh] sm:min-h-[calc(100dvh_-_64px)] lg:min-h-[100dvh] bg-background flex items-center justify-center p-4">
+      <div className="min-h-[calc(100dvh_-_var(--sat)_-_var(--sab))] sm:min-h-[calc(100dvh_-_64px)] lg:min-h-[100dvh] bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-lg text-center space-y-5 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-lg">
           <div className="flex justify-center mb-4">
             <LogoAnimation className="w-48" />
@@ -1511,7 +1511,7 @@ export default function LessonPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] sm:min-h-[calc(100dvh_-_64px)] lg:min-h-[100dvh] bg-background flex flex-col">
+    <div className="h-[calc(100dvh_-_var(--sat)_-_var(--sab))] sm:min-h-[calc(100dvh_-_64px)] lg:min-h-[100dvh] bg-background flex flex-col overflow-hidden sm:overflow-visible">
       <AnimatePresence>
         {showFullMarksClaimedNotice ? (
           <motion.div
@@ -1606,11 +1606,7 @@ export default function LessonPage() {
       )}
 
       <div
-        className={`flex-1 flex justify-center p-3 sm:p-4 ${
-          questionType === "pair_matching"
-            ? "items-start overflow-x-hidden"
-            : "items-center"
-        }`}
+        className={`flex-1 flex justify-center p-3 sm:p-4 items-center overflow-x-hidden`}
       >
         <div className="w-full max-w-4xl mx-auto">
           <motion.div
@@ -1774,7 +1770,7 @@ export default function LessonPage() {
             {questionType === "true_false" && (
               <>
                 <div>
-                  <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground">
+                  <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground text-center">
                     True or False?
                   </p>
                 </div>

@@ -62,7 +62,7 @@ export function Navbar() {
                   className={cn(
                     "relative flex items-center gap-3 rounded-xl px-4 py-3 text-base font-semibold transition-all",
                     isActive
-                      ? "bg-accent/10 text-accent"
+                      ? "text-accent"
                       : "text-foreground hover:bg-muted/50 dark:hover:bg-muted/20",
                   )}
                 >
@@ -95,7 +95,7 @@ export function Navbar() {
 
       {/* Mobile Bottom Navigation */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t px-2 bg-background/95 backdrop-blur-md border-border pb-[var(--sab)]">
-        <div className="flex items-center justify-between py-2 gap-1">
+        <div className="flex items-center justify-between gap-1">
           {navItems.map((item) => {
             const isActive = pathname === item.path;
             const MobileIcon = mobileIconMap[item.path];
