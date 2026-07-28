@@ -1511,7 +1511,7 @@ export default function LessonPage() {
   }
 
   return (
-    <div className="h-[calc(100dvh_-_var(--sat)_-_var(--sab))] sm:min-h-[calc(100dvh_-_64px)] lg:min-h-[100dvh] bg-background flex flex-col overflow-hidden sm:overflow-visible">
+    <div className="h-[calc(100dvh_-_var(--sat))] sm:min-h-[calc(100dvh_-_64px)] lg:min-h-[100dvh] bg-background flex flex-col overflow-hidden sm:overflow-visible">
       <AnimatePresence>
         {showFullMarksClaimedNotice ? (
           <motion.div
@@ -2184,7 +2184,7 @@ export default function LessonPage() {
 
       <div className="shrink-0">
         {questionType === "learn" ? (
-          <div className="border-t-2 border-border bg-background px-4 py-4 sm:py-5">
+          <div className="border-t-2 border-border bg-background px-4 py-4 sm:py-5 pb-[calc(1rem_+_var(--sab))] sm:pb-[calc(1.25rem_+_var(--sab))]">
             <div className="container max-w-4xl mx-auto flex flex-row items-center gap-4">
               <button
                 onClick={goToNext}
