@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useMemo } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 const ICONS = {
   correct: "/icons/Correct_answer.svg",
@@ -75,10 +76,16 @@ export function LessonResultHandler({
   const playWrong = useSoundEffect(SOUNDS.wrong);
   const playClick = useSoundEffect(SOUNDS.click);
 
-  const message = useMemo(() => {
-    if (isCorrect === null) return "";
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (isCorrect === null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- clearing on reset is intentional
+      setMessage("");
+      return;
+    }
     const phrases = isCorrect ? CORRECT_PHRASES : WRONG_PHRASES;
-    return phrases[Math.floor(Math.random() * phrases.length)];
+    setMessage(phrases[Math.floor(Math.random() * phrases.length)]);
   }, [isCorrect]);
 
   const previousResult = useRef(null);
@@ -132,37 +139,44 @@ export function LessonResultHandler({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className={`w-full px-4 py-4 sm:py-5 overflow-hidden ${
+            className={`w-full px-4 overflow-hidden ${
               isCorrect
-                ? "bg-green-100 dark:bg-green-900/40"
-                : "bg-red-100 dark:bg-red-900/40"
+                ? "py-4 sm:py-5 bg-emerald-500"
+                : "py-6 sm:py-8 bg-red-500"
             }`}
           >
-            <div className="container max-w-4xl mx-auto flex flex-row items-center justify-between gap-3">
+            <div
+              className={`container max-w-4xl mx-auto flex flex-row justify-between gap-3 ${
+                isCorrect ? "items-center" : "items-start"
+              }`}
+            >
               {/* Icon + text — always left, single row */}
-              <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-                <img
+              <div
+                className={`flex gap-2 sm:gap-4 min-w-0 flex-1 ${
+                  isCorrect ? "items-center" : "items-start"
+                }`}
+              >
+                <Image
                   src={isCorrect ? ICONS.correct : ICONS.wrong}
                   alt={isCorrect ? "Correct" : "Wrong"}
                   className="w-10 h-10 sm:w-14 sm:h-14 shrink-0 object-contain drop-shadow-sm"
                 />
                 <div className="min-w-0">
-                  <h3
-                    className={`text-base sm:text-xl font-black leading-tight ${
-                      isCorrect
-                        ? "text-green-800 dark:text-green-400"
-                        : "text-red-800 dark:text-red-400"
-                    }`}
-                  >
+                  <h3 className="text-base sm:text-xl font-black leading-tight text-white">
                     {message}
                   </h3>
                   {!isCorrect && correctAnswer && (
-                    <p className="text-red-700 dark:text-red-300 font-bold text-md sm:text-lg leading-snug break-words">
-                      Correct:{" "}
-                      <span dir="rtl" className="inline-block">
+                    <div className="mt-1">
+                      <p className="text-white/80 font-bold text-sm sm:text-base leading-snug">
+                        Correct:
+                      </p>
+                      <p
+                        dir="auto"
+                        className="text-white font-bold text-md sm:text-lg leading-snug break-words"
+                      >
                         {correctAnswer}
-                      </span>
-                    </p>
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
@@ -171,8 +185,8 @@ export function LessonResultHandler({
                 onClick={handleContinue}
                 className={`h-11 sm:h-14 px-4 sm:min-w-[200px] font-bold text-sm sm:text-lg rounded-xl shadow-lg transform active:scale-95 transition-transform shrink-0 ${
                   isCorrect
-                    ? "bg-green-600 hover:bg-green-700 text-white"
-                    : "bg-red-600 hover:bg-red-700 text-white"
+                    ? "bg-white hover:bg-white/90 text-emerald-600"
+                    : "bg-white hover:bg-white/90 text-red-600"
                 }`}
               >
                 Continue

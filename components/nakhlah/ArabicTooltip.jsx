@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -12,11 +15,40 @@ import {
  * @param {string} children - Child content
  */
 export function ArabicTooltip({ text, pronunciation }) {
+  const [open, setOpen] = useState(false);
+  const [isTouch, setIsTouch] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(pointer: coarse)");
+    const update = () => setIsTouch(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  const handleMouseEnter = useCallback(() => {
+    if (!isTouch) setOpen(true);
+  }, [isTouch]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (!isTouch) setOpen(false);
+  }, [isTouch]);
+
+  const handleClick = useCallback(() => {
+    if (isTouch) setOpen((prev) => !prev);
+  }, [isTouch]);
+
   return (
-    <TooltipProvider>
-      <Tooltip>
+    <TooltipProvider delayDuration={0}>
+      <Tooltip open={open}>
         <TooltipTrigger asChild>
-          <span className="cursor-help border-b border-dotted border-foreground/30 hover:border-foreground/60 hover:text-accent transition-colors">
+          <span
+            className="cursor-help border-b border-dotted border-foreground/30 hover:border-foreground/60 hover:text-accent transition-colors select-none"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            onClick={handleClick}
+          >
             {text}
           </span>
         </TooltipTrigger>

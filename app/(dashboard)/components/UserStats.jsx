@@ -179,6 +179,19 @@ export function UserStats() {
     }
   };
 
+  const getMobileTailPosition = (stat) => {
+    switch (stat) {
+      case "streak":
+        return "left-5";
+      case "dates":
+        return "left-1/2 -translate-x-1/2";
+      case "palms":
+        return "right-5";
+      default:
+        return "left-1/2 -translate-x-1/2";
+    }
+  };
+
   return (
     <>
       {/* Mobile Overlay */}
@@ -231,6 +244,9 @@ export function UserStats() {
             <div
               className={`lg:hidden absolute top-full mt-2 w-80 bg-card border rounded-lg shadow-lg z-50 p-4 space-y-4 ${getMobilePopupPosition("streak")}`}
             >
+              <div
+                className={`absolute -top-2 h-3.5 w-3.5 rotate-45 bg-card border-l border-t ${getMobileTailPosition("streak")}`}
+              />
               <div className="space-y-2">
                 <h4 className="font-medium leading-none text-lg">
                   {streakCount} day{streakCount === 1 ? "" : "s"} streak
@@ -294,6 +310,9 @@ export function UserStats() {
             <div
               className={`lg:hidden absolute top-full mt-2 w-80 bg-card border rounded-lg shadow-lg z-50 p-4 space-y-4 ${getMobilePopupPosition("dates")}`}
             >
+              <div
+                className={`absolute -top-2 h-3.5 w-3.5 rotate-45 bg-card border-l border-t ${getMobileTailPosition("dates")}`}
+              />
               <div className="flex space-x-4 items-center">
                 <TreasureChest size="xxl" />
                 <div className="space-y-1">
@@ -388,6 +407,9 @@ export function UserStats() {
             <div
               className={`lg:hidden absolute top-full mt-2 w-80 bg-card border rounded-lg shadow-lg z-50 p-4 space-y-4 ${getMobilePopupPosition("palms")}`}
             >
+              <div
+                className={`absolute -top-2 h-3.5 w-3.5 rotate-45 bg-card border-l border-t ${getMobileTailPosition("palms")}`}
+              />
               <div className="space-y-2">
                 <h4 className="font-medium leading-none">Palm Trees</h4>
                 <div className="flex space-x-1">
@@ -431,3 +453,5 @@ export function UserStats() {
     </>
   );
 }
+
+

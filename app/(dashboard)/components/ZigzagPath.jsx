@@ -1,5 +1,4 @@
 import { Circle } from "./Circle";
-
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -89,13 +88,15 @@ function UnitBanner({
 }) {
   return (
     <div
-      className={`relative overflow-hidden flex items-center justify-between rounded-full shadow-lg transition-all duration-500 ease-in-out bg-gradient-to-r ${gradientClass} text-white ${
-        compact ? "h-16 p-1.5" : "h-[72px] p-2"
+      className={`relative overflow-hidden flex items-center rounded-full shadow-lg transition-all duration-500 ease-in-out bg-gradient-to-r ${gradientClass} text-white ${
+        compact ? "h-16 pl-3 pr-0" : "h-[72px] pl-4 pr-0"
       }`}
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 right-16 w-28 opacity-20"
+        className={`pointer-events-none absolute inset-y-0 w-28 opacity-20 ${
+          compact ? "right-16" : "right-[72px]"
+        }`}
         style={{
           backgroundImage:
             "radial-gradient(currentColor 1.5px, transparent 1.5px)",
@@ -103,7 +104,11 @@ function UnitBanner({
         }}
       />
 
-      <div className={`relative min-w-0 pr-3 ${compact ? "pl-3" : "pl-4"}`}>
+      <div
+        className={`relative min-w-0 ${
+          compact ? "pr-16 pl-0" : "pr-[72px] pl-0"
+        }`}
+      >
         <div
           className={`font-extrabold leading-tight truncate ${
             compact ? "text-lg" : "text-xl"
@@ -118,11 +123,16 @@ function UnitBanner({
         ) : null} */}
       </div>
 
-      <LevelProgressRing
-        percentage={percentage}
-        colorIndex={colorIndex}
-        className="relative"
-      />
+      <div
+        className="absolute right-0 top-0 h-full aspect-square"
+        aria-hidden="true"
+      >
+        <LevelProgressRing
+          percentage={percentage}
+          colorIndex={colorIndex}
+          className="h-full w-auto"
+        />
+      </div>
     </div>
   );
 }
@@ -423,19 +433,11 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
           subtitle={
             [currentLevel?.levelName, currentTask?.title]
               .filter(Boolean)
-              .join(" · ") || ""
+              .join(" Â· ") || ""
           }
           percentage={levelProgress}
           colorIndex={currentLevel?.colorIndex || 1}
         />
-
-
-
-
-
-
-
-
       </div>
 
       {/* Desktop mask to keep whitespace above sticky header clean */}
@@ -449,20 +451,11 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
           subtitle={
             [currentLevel?.levelName, currentTask?.title]
               .filter(Boolean)
-              .join(" · ") || ""
+              .join(" Â· ") || ""
           }
           percentage={levelProgress}
           colorIndex={currentLevel?.colorIndex || 1}
         />
-
-
-
-
-
-
-
-
-
       </div>
 
       {hasCompletedJourney ? (
@@ -495,7 +488,6 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
           const levelLessons = groupedLessons[level.id] || [];
           const isFirstLessonCurrent = levelLessons[0]?.isCurrent;
           const levelStartIndex = lessonIndexById.get(levelLessons[0]?.id) ?? 0;
-
           const levelMascots = levelLessons.flatMap(
             (lesson) => mascotPlacementsByAnchorId.get(lesson.id) || [],
           );
@@ -509,14 +501,6 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
               {/* Unit label - centered horizontally at the visual bottom of the level */}
               <div className={isFirstLessonCurrent ? "mt-10 mb-4" : "mt-6"}>
                 <UnitDivider label={level.name} colorIndex={level.colorIndex} />
-
-
-
-
-
-
-
-
               </div>
 
               {/* Zigzag path for this level - first lesson at visual bottom */}
