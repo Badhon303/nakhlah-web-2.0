@@ -79,12 +79,12 @@ export function CustomToaster() {
           closeButton:
             "absolute right-2 top-2 left-auto grid h-6 w-6 place-items-center rounded-none border-0 bg-transparent p-0 text-current opacity-70 shadow-none transition-opacity hover:bg-transparent hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
           success:
-            "bg-green-50 dark:bg-green-900/40 border-green-400 text-green-900 dark:text-green-200",
+            "bg-emerald-500 border-emerald-600 text-white [&_[data-description]]:text-white/90",
           error:
-            "bg-red-50 dark:bg-red-900/40 border-red-400 text-red-900 dark:text-red-200",
+            "bg-red-500 border-red-600 text-white [&_[data-description]]:text-white/90",
           warning:
-            "bg-amber-50 dark:bg-amber-900/40 border-amber-400 text-amber-900 dark:text-amber-200",
-          info: "bg-blue-50 dark:bg-blue-900/40 border-blue-500 text-blue-800 dark:text-blue-200",
+            "bg-amber-500 border-amber-600 text-white [&_[data-description]]:text-white/90",
+          info: "bg-sky-500 border-sky-600 text-white [&_[data-description]]:text-white/90",
           default: "bg-card border-border text-foreground",
         },
       }}

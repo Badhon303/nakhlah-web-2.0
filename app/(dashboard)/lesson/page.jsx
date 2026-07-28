@@ -1749,7 +1749,7 @@ export default function LessonPage() {
                           className={`p-3 sm:p-4 md:p-6 w-full min-h-[80px] sm:min-h-[100px] rounded-lg sm:rounded-xl border-2 text-left transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${
                             selectedOptionId === option.id
                               ? isCorrect === true
-                                ? "border-green-500 bg-green-500/10 text-green-600"
+                                ? "border-emerald-500 bg-emerald-500/10 text-emerald-600"
                                 : isCorrect === false
                                   ? "border-red-500 bg-red-500/10 text-red-600"
                                   : "border-accent bg-accent/10 text-foreground shadow-md sm:shadow-lg"
@@ -1791,7 +1791,7 @@ export default function LessonPage() {
                     className={`p-4 sm:p-6 md:p-8 w-full min-h-[100px] sm:min-h-[120px] rounded-xl sm:rounded-2xl border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex flex-col items-center justify-center gap-2 sm:gap-3 ${
                       selectedTrueFalse === true
                         ? isCorrect === true
-                          ? "border-green-500 bg-green-500/10 text-green-600"
+                          ? "border-emerald-500 bg-emerald-500/10 text-emerald-600"
                           : isCorrect === false
                             ? "border-red-500 bg-red-500/10 text-red-600"
                             : "border-accent bg-accent/10 text-foreground"
@@ -1802,7 +1802,7 @@ export default function LessonPage() {
                       className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-lg sm:text-2xl font-bold ${
                         selectedTrueFalse === true
                           ? isCorrect === true
-                            ? "bg-green-500 text-white"
+                            ? "bg-emerald-500 text-white"
                             : isCorrect === false
                               ? "bg-red-500 text-white"
                               : "bg-accent text-white"
@@ -1823,7 +1823,7 @@ export default function LessonPage() {
                     className={`p-4 sm:p-6 md:p-8 w-full min-h-[100px] sm:min-h-[120px] rounded-xl sm:rounded-2xl border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex flex-col items-center justify-center gap-2 sm:gap-3 ${
                       selectedTrueFalse === false
                         ? isCorrect === true
-                          ? "border-green-500 bg-green-500/10 text-green-600"
+                          ? "border-emerald-500 bg-emerald-500/10 text-emerald-600"
                           : isCorrect === false
                             ? "border-red-500 bg-red-500/10 text-red-600"
                             : "border-accent bg-accent/10 text-foreground"
@@ -1834,7 +1834,7 @@ export default function LessonPage() {
                       className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-lg sm:text-2xl font-bold ${
                         selectedTrueFalse === false
                           ? isCorrect === true
-                            ? "bg-green-500 text-white"
+                            ? "bg-emerald-500 text-white"
                             : isCorrect === false
                               ? "bg-red-500 text-white"
                               : "bg-accent text-white"
@@ -1981,7 +1981,7 @@ export default function LessonPage() {
                           className={`p-3 sm:p-4 md:p-6 w-full min-h-[80px] sm:min-h-[100px] rounded-lg sm:rounded-xl border-2 text-left transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${
                             isSelected
                               ? isCorrect === true
-                                ? "border-green-500 bg-green-500/10 text-green-600"
+                                ? "border-emerald-500 bg-emerald-500/10 text-emerald-600"
                                 : isCorrect === false
                                   ? "border-red-500 bg-red-500/10 text-red-600"
                                   : "border-accent bg-accent/10 text-foreground shadow-md sm:shadow-lg"
@@ -2116,7 +2116,7 @@ export default function LessonPage() {
                               disabled={isMatched}
                               className={`w-full p-2 sm:p-2.5 rounded-lg sm:rounded-xl border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-h-[44px] sm:min-h-[50px] ${
                                 isMatched
-                                  ? "border-green-500 bg-green-500/10 text-green-600"
+                                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-600"
                                   : isIncorrect
                                     ? "border-red-500 bg-red-500/10 text-red-600"
                                     : isSelected
@@ -2154,7 +2154,7 @@ export default function LessonPage() {
                               disabled={isMatched}
                               className={`w-full p-2 sm:p-2.5 rounded-lg sm:rounded-xl border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-h-[44px] sm:min-h-[50px] ${
                                 isMatched
-                                  ? "border-green-500 bg-green-500/10 text-green-600"
+                                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-600"
                                   : isIncorrect
                                     ? "border-red-500 bg-red-500/10 text-red-600"
                                     : isSelected

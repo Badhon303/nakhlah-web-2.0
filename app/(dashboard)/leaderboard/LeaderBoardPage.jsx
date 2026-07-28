@@ -9,6 +9,116 @@ import { useLeaderboardStore } from "@/stores/useLeaderboardStore";
 
 const PAGE_SIZE = 10;
 
+const PODIUM_CONFIG = {
+  1: {
+    avatarSize: "w-24 h-24 lg:w-28 lg:h-28",
+    avatarText: "text-2xl lg:text-3xl",
+    avatarImg: 112,
+    blockWidth: "w-28 lg:w-36",
+    blockHeight: "h-32 lg:h-36",
+    frontFace: "from-violet-400 to-violet-500",
+    topFace: "bg-violet-300",
+    numberClass: "text-5xl lg:text-6xl",
+    medalBg: "bg-amber-400",
+    delay: 0.3,
+  },
+  2: {
+    avatarSize: "w-20 h-20 lg:w-24 lg:h-24",
+    avatarText: "text-xl lg:text-2xl",
+    avatarImg: 96,
+    blockWidth: "w-24 lg:w-32",
+    blockHeight: "h-24 lg:h-28",
+    frontFace: "from-violet-500 to-violet-600",
+    topFace: "bg-violet-400",
+    numberClass: "text-4xl lg:text-5xl",
+    medalBg: "bg-slate-300",
+    delay: 0.4,
+  },
+  3: {
+    avatarSize: "w-20 h-20 lg:w-24 lg:h-24",
+    avatarText: "text-xl lg:text-2xl",
+    avatarImg: 96,
+    blockWidth: "w-24 lg:w-32",
+    blockHeight: "h-20 lg:h-24",
+    frontFace: "from-violet-600 to-violet-700",
+    topFace: "bg-violet-500",
+    numberClass: "text-4xl lg:text-5xl",
+    medalBg: "bg-amber-600",
+    delay: 0.5,
+  },
+};
+
+function PodiumPlace({ user, rank }) {
+  const config = PODIUM_CONFIG[rank];
+
+  return (
+    <div className="flex flex-col items-center">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: config.delay }}
+        className="relative"
+      >
+        <div
+          className={`${config.avatarSize} rounded-full bg-gradient-to-br ${user?.color} flex items-center justify-center text-white font-bold ${config.avatarText} shadow-xl border-4 border-background relative z-10`}
+        >
+          {user?.avatarUrl ? (
+            <Image
+              src={user.avatarUrl}
+              alt={user?.name || `Rank ${rank}`}
+              className="w-full h-full rounded-full object-cover"
+              width={config.avatarImg}
+              height={config.avatarImg}
+            />
+          ) : (
+            user?.avatar
+          )}
+        </div>
+        {/* Medal with ribbon */}
+        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
+          <div
+            className={`w-7 h-7 rounded-full ${config.medalBg} border-2 border-background flex items-center justify-center shadow-md relative z-10`}
+          >
+            <span className="text-white text-xs font-black">{rank}</span>
+          </div>
+          <div className="flex -mt-1">
+            <div
+              className={`w-2 h-3 ${config.medalBg} [transform:skewX(20deg)] opacity-90`}
+            />
+            <div
+              className={`w-2 h-3 ${config.medalBg} [transform:skewX(-20deg)] opacity-90`}
+            />
+          </div>
+        </div>
+      </motion.div>
+
+      <p className="mt-6 font-semibold text-foreground text-sm lg:text-base truncate max-w-[120px] text-center">
+        {user?.name}
+      </p>
+      <div className="mt-1 rounded-full bg-card px-3 py-1 text-accent font-bold text-sm shadow-md border border-border">
+        {user?.injaz} Injaz
+      </div>
+
+      {/* 3D podium block */}
+      <div className={`relative ${config.blockWidth} mt-3`}>
+        <div
+          className={`absolute -top-2.5 inset-x-0 h-2.5 ${config.topFace}`}
+          style={{ clipPath: "polygon(10% 0, 90% 0, 100% 100%, 0% 100%)" }}
+        />
+        <div
+          className={`${config.blockHeight} bg-gradient-to-b ${config.frontFace} shadow-lg flex items-center justify-center rounded-b-sm`}
+        >
+          <span
+            className={`${config.numberClass} font-black text-white/90 drop-shadow-sm`}
+          >
+            {rank}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function RestList({ restList, onViewProfile }) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const loadMoreRef = useRef(null);
@@ -158,116 +268,9 @@ export default function Leaderboard({ onViewProfile }) {
           transition={{ delay: 0.2 }}
           className="relative mb-8 flex items-end justify-center gap-4 lg:gap-8 mt-8"
         >
-          {/* Second Place */}
-          <div className="flex flex-col items-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="relative"
-            >
-              <div
-                className={`w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-gradient-to-br ${topThree[1]?.color} flex items-center justify-center text-white font-bold text-xl lg:text-2xl shadow-xl border-4 border-background`}
-              >
-                {topThree[1]?.avatarUrl ? (
-                  <Image
-                    src={topThree[1].avatarUrl}
-                    alt={topThree[1]?.name || "Rank 2"}
-                    className="w-full h-full rounded-full object-cover"
-                    width={96}
-                    height={96}
-                  />
-                ) : (
-                  topThree[1]?.avatar
-                )}
-              </div>
-            </motion.div>
-            <div className="mt-2 bg-card rounded-2xl px-4 py-3 text-center shadow-lg border border-border min-w-[120px]">
-              <p className="font-semibold text-foreground text-sm mb-1">
-                {topThree[1]?.name}
-              </p>
-              <p className="text-accent font-bold text-lg">
-                {topThree[1]?.injaz} Injaz
-              </p>
-            </div>
-            <div className="w-24 lg:w-32 h-24 bg-gradient-to-b from-gray-300 to-gray-400 rounded-t-2xl mt-2 flex items-center justify-center">
-              <span className="text-4xl font-bold text-white/80">2</span>
-            </div>
-          </div>
-
-          {/* First Place */}
-          <div className="flex flex-col items-center -mt-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="relative"
-            >
-              <div
-                className={`w-24 h-24 lg:w-28 lg:h-28 rounded-full bg-gradient-to-br ${topThree[0]?.color} flex items-center justify-center text-white font-bold text-2xl lg:text-3xl shadow-2xl border-4 border-background`}
-              >
-                {topThree[0]?.avatarUrl ? (
-                  <Image
-                    src={topThree[0].avatarUrl}
-                    alt={topThree[0]?.name || "Rank 1"}
-                    className="w-full h-full rounded-full object-cover"
-                    width={112}
-                    height={112}
-                  />
-                ) : (
-                  topThree[0]?.avatar
-                )}
-              </div>
-            </motion.div>
-            <div className="mt-2 bg-card rounded-2xl px-6 py-4 text-center shadow-xl border-2 border-primary/20 min-w-[140px]">
-              <p className="font-bold text-foreground mb-1">
-                {topThree[0]?.name}
-              </p>
-              <p className="text-accent font-bold text-2xl">
-                {topThree[0]?.injaz} Injaz
-              </p>
-            </div>
-            <div className="w-28 lg:w-36 h-32 bg-gradient-to-b from-violet-400 to-violet-500 rounded-t-2xl mt-2 flex items-center justify-center shadow-lg">
-              <span className="text-5xl font-bold text-white/90">1</span>
-            </div>
-          </div>
-
-          {/* Third Place */}
-          <div className="flex flex-col items-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="relative"
-            >
-              <div
-                className={`w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-gradient-to-br ${topThree[2]?.color} flex items-center justify-center text-white font-bold text-xl lg:text-2xl shadow-xl border-4 border-background`}
-              >
-                {topThree[2]?.avatarUrl ? (
-                  <Image
-                    src={topThree[2].avatarUrl}
-                    alt={topThree[2]?.name || "Rank 3"}
-                    className="w-full h-full rounded-full object-cover"
-                    width={96}
-                    height={96}
-                  />
-                ) : (
-                  topThree[2]?.avatar
-                )}
-              </div>
-            </motion.div>
-            <div className="mt-2 bg-card rounded-2xl px-4 py-3 text-center shadow-lg border border-border min-w-[120px]">
-              <p className="font-semibold text-foreground text-sm mb-1">
-                {topThree[2]?.name}
-              </p>
-              <p className="text-accent font-bold text-lg">
-                {topThree[2]?.injaz} Injaz
-              </p>
-            </div>
-            <div className="w-24 lg:w-32 h-20 bg-gradient-to-b from-amber-600 to-amber-700 rounded-t-2xl mt-2 flex items-center justify-center">
-              <span className="text-4xl font-bold text-white/80">3</span>
-            </div>
-          </div>
+          <PodiumPlace user={topThree[1]} rank={2} />
+          <PodiumPlace user={topThree[0]} rank={1} />
+          <PodiumPlace user={topThree[2]} rank={3} />
         </motion.div>
 
         {/* Rest of Leaderboard List */}

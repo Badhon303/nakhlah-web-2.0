@@ -88,13 +88,15 @@ function UnitBanner({
 }) {
   return (
     <div
-      className={`relative overflow-hidden flex items-center justify-between rounded-full shadow-lg transition-all duration-500 ease-in-out bg-gradient-to-r ${gradientClass} text-white ${
-        compact ? "h-16 p-1.5" : "h-[72px] p-2"
+      className={`relative overflow-hidden flex items-center rounded-full shadow-lg transition-all duration-500 ease-in-out bg-gradient-to-r ${gradientClass} text-white ${
+        compact ? "h-16 pl-3 pr-0" : "h-[72px] pl-4 pr-0"
       }`}
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 right-16 w-28 opacity-20"
+        className={`pointer-events-none absolute inset-y-0 w-28 opacity-20 ${
+          compact ? "right-16" : "right-[72px]"
+        }`}
         style={{
           backgroundImage:
             "radial-gradient(currentColor 1.5px, transparent 1.5px)",
@@ -102,7 +104,11 @@ function UnitBanner({
         }}
       />
 
-      <div className={`relative min-w-0 pr-3 ${compact ? "pl-3" : "pl-4"}`}>
+      <div
+        className={`relative min-w-0 ${
+          compact ? "pr-16 pl-0" : "pr-[72px] pl-0"
+        }`}
+      >
         <div
           className={`font-extrabold leading-tight truncate ${
             compact ? "text-lg" : "text-xl"
@@ -117,11 +123,16 @@ function UnitBanner({
         ) : null} */}
       </div>
 
-      <LevelProgressRing
-        percentage={percentage}
-        colorIndex={colorIndex}
-        className="relative"
-      />
+      <div
+        className="absolute right-0 top-0 h-full aspect-square"
+        aria-hidden="true"
+      >
+        <LevelProgressRing
+          percentage={percentage}
+          colorIndex={colorIndex}
+          className="h-full w-auto"
+        />
+      </div>
     </div>
   );
 }

@@ -11,7 +11,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { signIn } from "@/lib/auth-client";
 import LogoAnimation from "@/components/icons/Logo";
 import { useRouter } from "next/navigation";
-import { queueToastAfterNavigation, toast } from "@/components/nakhlah/Toast";
+import { toast } from "@/components/nakhlah/Toast";
 import { useProfileStore } from "@/stores/useProfileStore";
 
 export default function Login() {
@@ -47,7 +47,6 @@ export default function Login() {
       }
 
       if (result?.ok) {
-        queueToastAfterNavigation("success", "Login successful!");
         clearProfile();
         router.push("/");
         router.refresh();
