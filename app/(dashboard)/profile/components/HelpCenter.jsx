@@ -41,15 +41,15 @@ export default function HelpCenterPage({
   }, [faqs, searchQuery]);
 
   return (
-    <div className="min-h-[calc(100vh-6rem)] px-4 py-6 lg:py-8 lg:flex lg:items-center lg:justify-center">
+    <div className="max-w-2xl mx-auto py-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-3xl bg-card rounded-3xl border border-border shadow-lg p-5 md:p-6"
+        className="w-full max-w-2xl bg-transparent lg:bg-card rounded-none lg:rounded-2xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-6"
       >
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6 md:mb-7">
+        <div className="flex items-center gap-4 mb-8">
           <button
             onClick={onBack}
             className="inline-flex items-center justify-center rounded-full hover:bg-muted h-10 w-10 transition-colors"
@@ -57,12 +57,12 @@ export default function HelpCenterPage({
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Help Center</h1>
+            <h1 className="text-2xl font-bold text-foreground">Help Center</h1>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-3 mb-5 md:mb-6 flex-wrap">
+        <div className="flex gap-4 mb-8 flex-wrap">
           <div className="px-4 py-2 rounded-lg font-medium bg-accent text-accent-foreground">
             FAQ
           </div>
@@ -94,10 +94,13 @@ export default function HelpCenterPage({
 
         {/* FAQ List */}
         {isLoading ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="border border-border rounded-xl p-4">
-                <div className="h-4 bg-muted/50 rounded animate-pulse w-3/4" />
+                <div
+                  className="h-4 bg-muted/50 rounded animate-pulse"
+                  style={{ width: `${90 - i * 8}%` }}
+                />
               </div>
             ))}
           </div>

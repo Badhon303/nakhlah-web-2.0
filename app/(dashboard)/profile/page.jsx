@@ -2,9 +2,6 @@
 import { Suspense, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import NotificationSettingsPage from "./components/NotificationSettings";
-import AccessibilitySettingsPage from "./components/AccessibilitySettings";
-import SecuritySettingsPage from "./components/SecuritySettings";
-import FindFriendsPage from "./components/FindFriends";
 import HelpCenterPage from "./components/HelpCenter";
 import ContactUsPage from "./components/ContactUs";
 import AllAchievementsPage from "./components/AllAchievements";
@@ -14,10 +11,7 @@ import LearningTipsGuidesPage from "./components/LearningTipsGuides";
 import ProfilePage from "./ProfilePage";
 import SettingsPage from "./SettingsPage";
 import EditProfilePage from "./components/EditProfile";
-import FollowersPage from "./components/Followers";
-import FollowingPage from "./components/Following";
 import ShareProfileDrawer from "./components/ShareProfileDrawer";
-import GeneralSettingsPage from "./components/GeneralSettings";
 import AboutNakhlahPage from "./components/AboutNakhlah";
 import { useSession } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -31,16 +25,10 @@ const VALID_VIEWS = new Set([
   "profile",
   "settings",
   "edit-profile",
-  "followers",
-  "following",
   "all-achievements",
   "notification",
-  "accessibility",
-  "security",
-  "find-friends",
   "help-center",
   "contact-us",
-  "general",
   "about-nakhlah",
   "terms-and-conditions",
   "privacy-policy",
@@ -49,11 +37,12 @@ const VALID_VIEWS = new Set([
 ]);
 
 function ProfileAndSettingsContent() {
-  const [activeView, setActiveView] = useState("profile");
+  const [localView, setLocalView] = useState("profile");
   const [showShareDrawer, setShowShareDrawer] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [profileData, setProfileData] = useState(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const [startEditingProfile, setStartEditingProfile] = useState(false);
   const { data: session, status } = useSession();
   const achievementsData = useAchievementsStore((s) => s.achievements);
   const fetchAchievements = useAchievementsStore((s) => s.fetchAchievements);
@@ -64,12 +53,11 @@ function ProfileAndSettingsContent() {
     (store) => store.claimQuestIfAvailable,
   );
 
-  useEffect(() => {
-    const requestedView = searchParams.get("view");
-    if (requestedView && VALID_VIEWS.has(requestedView)) {
-      setActiveView(requestedView);
-    }
-  }, [searchParams]);
+  // Derive the active view from the URL `view` param during render so we don't
+  // need to sync it via an effect (which would trigger cascading renders).
+  const requestedView = searchParams.get("view");
+  const activeView =
+    requestedView && VALID_VIEWS.has(requestedView) ? requestedView : localView;
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -111,7 +99,16 @@ function ProfileAndSettingsContent() {
     }
   };
 
-  const handleNavigate = (view) => {
+  // Switch the local view and clear any URL `?view=` param so local navigation
+  // takes precedence over the URL-derived view.
+  const navigateTo = (view) => {
+    setLocalView(view);
+    if (requestedView) {
+      router.replace("/profile", { scroll: false });
+    }
+  };
+
+  const handleNavigate = (view, options = {}) => {
     if (view === "share-profile") {
       setShowShareDrawer(true);
       const token = getSessionToken(session);
@@ -123,10 +120,14 @@ function ProfileAndSettingsContent() {
         });
       }
     } else if (view === "payment") {
-      setActiveView("profile");
+      setStartEditingProfile(false);
+      navigateTo("profile");
       router.push("/store");
     } else {
-      setActiveView(view);
+      setStartEditingProfile(
+        view === "edit-profile" ? options?.startEditing || false : false,
+      );
+      navigateTo(view);
     }
   };
 
@@ -145,77 +146,67 @@ function ProfileAndSettingsContent() {
       case "settings":
         return (
           <SettingsPage
-            onBack={() => setActiveView("profile")}
+            onBack={() => navigateTo("profile")}
             onNavigate={handleNavigate}
           />
         );
       case "edit-profile":
         return (
           <EditProfilePage
-            onBack={() => setActiveView("profile")}
+            onBack={() =>
+              navigateTo(startEditingProfile ? "profile" : "settings")
+            }
             currentUser={currentUser}
             profileData={profileData}
             onProfileUpdated={handleProfileUpdated}
+            startEditing={startEditingProfile}
           />
         );
-      case "followers":
-        return <FollowersPage onBack={() => setActiveView("profile")} />;
-      case "following":
-        return <FollowingPage onBack={() => setActiveView("profile")} />;
+
       case "all-achievements":
         return (
           <AllAchievementsPage
-            onBack={() => setActiveView("profile")}
+            onBack={() => navigateTo("profile")}
             achievements={achievementsData}
             isLoading={isProfileLoading}
           />
         );
       case "notification":
         return (
-          <NotificationSettingsPage onBack={() => setActiveView("settings")} />
+          <NotificationSettingsPage onBack={() => navigateTo("settings")} />
         );
-      case "accessibility":
-        return (
-          <AccessibilitySettingsPage onBack={() => setActiveView("settings")} />
-        );
-      case "security":
-        return (
-          <SecuritySettingsPage onBack={() => setActiveView("settings")} />
-        );
-      case "find-friends":
-        return <FindFriendsPage onBack={() => setActiveView("settings")} />;
+
       case "help-center":
         return (
           <HelpCenterPage
-            onBack={() => setActiveView("settings")}
-            onNavigateContact={() => setActiveView("contact-us")}
-            onNavigateLearningTips={() => setActiveView("learning-tips")}
+            onBack={() => navigateTo("settings")}
+            onNavigateContact={() => navigateTo("contact-us")}
+            onNavigateLearningTips={() => navigateTo("learning-tips")}
           />
         );
       case "contact-us":
-        return <ContactUsPage onBack={() => setActiveView("help-center")} />;
-      case "general":
-        return <GeneralSettingsPage onBack={() => setActiveView("settings")} />;
+        return <ContactUsPage onBack={() => navigateTo("help-center")} />;
+
       case "about-nakhlah":
         return (
           <AboutNakhlahPage
-            onBack={() => setActiveView("settings")}
+            onBack={() => navigateTo("settings")}
             onNavigate={handleNavigate}
           />
         );
       case "terms-and-conditions":
         return (
           <TermsAndConditionsPage
-            onBack={() => setActiveView("about-nakhlah")}
+            onBack={() => navigateTo("about-nakhlah")}
           />
         );
       case "privacy-policy":
         return (
-          <PrivacyPolicyPage onBack={() => setActiveView("about-nakhlah")} />
+          <PrivacyPolicyPage onBack={() => navigateTo("about-nakhlah")} />
         );
       case "learning-tips":
         return (
-          <LearningTipsGuidesPage onBack={() => setActiveView("help-center")} />
+          <LearningTipsGuidesPage onBack={() => navigateTo("help-center")} />
         );
       default:
         return (

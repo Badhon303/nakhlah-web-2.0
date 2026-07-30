@@ -60,7 +60,7 @@ export default function AboutNakhlahPage({
   ];
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto py-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -101,8 +101,8 @@ export default function AboutNakhlahPage({
 
         {/* About Content */}
         {isLoading ? (
-          <div className="space-y-2 mb-8 px-1">
-            {[...Array(4)].map((_, i) => (
+          <div className="space-y-3 mb-8">
+            {[...Array(5)].map((_, i) => (
               <div
                 key={i}
                 className="h-4 bg-muted/50 rounded animate-pulse"
@@ -115,7 +115,7 @@ export default function AboutNakhlahPage({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="mb-8 px-1"
+            className="mb-8"
           >
             <LexicalRenderer lexicalJson={aboutData.about} />
           </motion.div>
