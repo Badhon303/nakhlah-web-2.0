@@ -21,7 +21,6 @@ import {
 import { toast } from "@/components/nakhlah/Toast";
 import { buildApiUrl } from "@/lib/api-config";
 import { useProfileStore } from "@/stores/useProfileStore";
-import Image from "next/image";
 
 const MAX_FILE_SIZE = 300 * 1024;
 
@@ -297,7 +296,7 @@ export default function EditProfilePage({
           <div className="relative">
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-3xl font-bold text-white overflow-hidden">
               {getProfileImageUrl() ? (
-                <Image
+                <img
                   src={getProfileImageUrl()}
                   alt="Profile"
                   className="w-full h-full object-cover"

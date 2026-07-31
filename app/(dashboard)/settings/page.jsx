@@ -1,13 +1,13 @@
 "use client";
 import { Suspense } from "react";
-import ProfileAndSettingsContent from "./ProfileAndSettingsContent";
+import ProfileAndSettingsContent from "../profile/ProfileAndSettingsContent";
 
 export default function Home() {
   return (
     <Suspense
       fallback={<div className="min-h-screen bg-background overflow-hidden" />}
     >
-      <ProfileAndSettingsContent basePath="/profile" defaultView="profile" />
+      <ProfileAndSettingsContent basePath="/settings" defaultView="settings" />
     </Suspense>
   );
 }

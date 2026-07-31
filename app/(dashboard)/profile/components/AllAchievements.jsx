@@ -1,9 +1,11 @@
 import { Medal } from "@/components/icons/Medal";
 import AchievementTick from "@/components/icons/AchievementTick";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { motion } from "framer-motion";
 import { ChevronLeft, Lock } from "lucide-react";
 import { useMemo } from "react";
 import { buildApiUrl } from "@/lib/api-config";
+import Image from "next/image";
 
 const getMediaUrl = (url) => {
   if (!url) return "";
@@ -85,8 +87,17 @@ export default function AllAchievementsPage({
             Loading achievements...
           </div>
         ) : !groupedAchievements.length ? (
-          <div className="rounded-xl border border-border p-6 text-center text-muted-foreground">
-            No achievements available yet.
+          <div className="flex flex-col items-center gap-5 py-10 text-center">
+            <FreshDateMascot mood="sad" size="xxxl" />
+            <div className="space-y-1 max-w-sm">
+              <p className="text-base font-semibold text-foreground">
+                No achievements yet!
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Complete lessons and challenges to unlock your first
+                achievement.
+              </p>
+            </div>
           </div>
         ) : (
           <div className="space-y-8">
@@ -131,7 +142,7 @@ export default function AllAchievementsPage({
                             className={`relative shrink-0 ${!isUnlocked ? "opacity-60" : ""}`}
                           >
                             {achievement.unitIcon ? (
-                              <img
+                              <Image
                                 src={getMediaUrl(
                                   achievement.unitIcon?.url ||
                                     achievement.unitIcon,

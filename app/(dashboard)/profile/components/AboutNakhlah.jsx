@@ -1,3 +1,4 @@
+
 "use client";
 import { useEffect, useState } from "react";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
@@ -148,4 +149,4 @@ export default function AboutNakhlahPage({
       </motion.div>
     </div>
   );
-}
+} 

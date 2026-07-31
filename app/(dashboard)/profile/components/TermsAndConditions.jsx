@@ -86,3 +86,4 @@ export default function TermsAndConditionsPage({ onBack }) {
     </div>
   );
 }
+
