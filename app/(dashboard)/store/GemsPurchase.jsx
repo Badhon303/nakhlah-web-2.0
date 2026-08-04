@@ -6,15 +6,17 @@ import { useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { DatesIcon } from "@/components/icons/PublicAssetIcons";
-import { getSessionToken, isSessionValid } from "@/lib/authUtils";
+import { isSessionValid } from "@/lib/authUtils";
 import { useDatePackagesStore } from "@/stores/useDatePackagesStore";
-import { createDatePaymentOrder } from "@/services/api";
+import { purchaseDatePackage } from "@/services/revenuecat-checkout";
+import { useRevenueCat } from "@/components/RevenueCatProvider";
 import { toast } from "@/components/nakhlah/Toast";
 import { ArrowLeft } from "lucide-react";
 
 export default function GemsPurchase({ onBack }) {
   const router = useRouter();
   const { data: session } = useSession();
+  const { refresh: refreshEntitlements } = useRevenueCat();
   const [checkoutId, setCheckoutId] = useState(null);
 
   const datePackages = useDatePackagesStore((state) => state.packages);
@@ -39,15 +41,21 @@ export default function GemsPurchase({ onBack }) {
     if (!requireAuth()) return;
 
     setCheckoutId(pkg.id);
-    const result = await createDatePaymentOrder(pkg.id, getSessionToken(session));
+    const result = await purchaseDatePackage(pkg);
+
+    setCheckoutId(null);
 
     if (!result.success) {
-      setCheckoutId(null);
-      toast.error(result.error || "Unable to start PayPal checkout.");
+      if (result.cancelled) {
+        toast.info("Purchase cancelled.");
+      } else {
+        toast.error(result.error || "Unable to complete purchase.");
+      }
       return;
     }
 
-    window.location.assign(result.approvalUrl);
+    toast.success("Purchase successful!");
+    await refreshEntitlements();
   };
 
   const containerVariants = {
@@ -87,7 +95,7 @@ export default function GemsPurchase({ onBack }) {
             </h2>
           </div>
           <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
-            Choose a date package and we’ll open PayPal checkout directly.
+            Choose a date package and complete your purchase securely.
           </p>
         </div>
 
@@ -147,7 +155,7 @@ export default function GemsPurchase({ onBack }) {
                       disabled={checkoutId !== null}
                       className="w-full font-semibold h-10 bg-accent hover:bg-accent/90"
                     >
-                      {checkoutId === pkg.id ? "Opening PayPal..." : "Buy Now"}
+                      {checkoutId === pkg.id ? "Processing..." : "Buy Now"}
                     </Button>
                   </div>
                 </motion.div>

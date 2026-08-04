@@ -43,7 +43,7 @@ export default function SubscriptionFailedClient() {
             </h1>
 
             <p className="text-muted-foreground text-base md:text-lg leading-relaxed max-w-xl mx-auto">
-              Your PayPal subscription checkout was canceled or failed, so no
+              Your subscription checkout was canceled or failed, so no
               charge was completed. You can choose a plan again whenever
               you&apos;re ready.
             </p>

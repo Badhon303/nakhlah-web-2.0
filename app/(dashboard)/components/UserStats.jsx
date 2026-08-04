@@ -202,7 +202,7 @@ export function UserStats() {
         />
       )}
 
-      <div className="flex items-center bg-accent lg:bg-card p-5 lg:p-4 rounded-none lg:rounded-lg shadow-sm justify-around lg:shadow-sm">
+      <div className="flex items-center bg-accent lg:bg-card p-2 lg:p-4 rounded-none lg:rounded-lg shadow-sm justify-around lg:shadow-sm">
         {/* Streak */}
         <div className="relative">
           <div

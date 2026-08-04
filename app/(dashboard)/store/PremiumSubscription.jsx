@@ -33,10 +33,11 @@ import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { useSubscriptionPlansStore } from "@/stores/useSubscriptionPlansStore";
 import {
-  createSubscriptionPayment,
   fetchCurrentSubscription,
   cancelSubscription,
 } from "@/services/api";
+import { purchaseSubscriptionPlan } from "@/services/revenuecat-checkout";
+import { useRevenueCat } from "@/components/RevenueCatProvider";
 import { toast } from "@/components/nakhlah/Toast";
 
 const premiumFeatures = [
@@ -110,6 +111,7 @@ const premiumFeatures = [
 export default function PremiumSubscription({ onBack, initialPlan }) {
   const router = useRouter();
   const { data: session } = useSession();
+  const { refresh: refreshEntitlements } = useRevenueCat();
   const [currentStep, setCurrentStep] = useState(initialPlan ? 2 : 1);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [checkoutPlanId, setCheckoutPlanId] = useState(null);
@@ -200,18 +202,22 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
     }
 
     setCheckoutPlanId(plan.id);
-    const result = await createSubscriptionPayment(
-      plan,
-      getSessionToken(session),
-    );
+    const result = await purchaseSubscriptionPlan(plan);
+
+    setCheckoutPlanId(null);
 
     if (!result.success) {
-      setCheckoutPlanId(null);
-      toast.error(result.error || "Unable to start PayPal subscription.");
+      if (result.cancelled) {
+        toast.info("Purchase cancelled.");
+      } else {
+        toast.error(result.error || "Unable to start subscription.");
+      }
       return;
     }
 
-    window.location.assign(result.approvalUrl);
+    toast.success("Subscription activated!");
+    await refreshEntitlements();
+    await loadCurrentSubscription();
   };
 
   const isSubscriptionActive =
@@ -273,26 +279,25 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
     if (!pendingSwitchPlan) return;
 
     setShowConfirmSwitch(false);
+    setIsCanceling(true);
 
-    const subscriptionId = currentSubscription?.id;
-    if (subscriptionId) {
-      setIsCanceling(true);
-      const cancelResult = await cancelSubscription(
-        subscriptionId,
-        getSessionToken(session),
-      );
-      setIsCanceling(false);
+    const result = await purchaseSubscriptionPlan(pendingSwitchPlan);
 
-      if (!cancelResult.success) {
-        toast.error(cancelResult.error || "Unable to switch plan.");
-        return;
+    setIsCanceling(false);
+    setPendingSwitchPlan(null);
+
+    if (!result.success) {
+      if (result.cancelled) {
+        toast.info("Purchase cancelled.");
+      } else {
+        toast.error(result.error || "Unable to switch plan.");
       }
-
-      toast.success("Previous subscription canceled. Starting new checkout...");
+      return;
     }
 
-    await startSubscriptionCheckout(pendingSwitchPlan);
-    setPendingSwitchPlan(null);
+    toast.success("Plan switched successfully.");
+    await refreshEntitlements();
+    await loadCurrentSubscription();
   };
 
   const handleSubscriptionCheckout = async () => {
@@ -453,7 +458,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
               Choose a subscription plan
             </h2>
             <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
-              Select a plan and we’ll open PayPal checkout directly.
+              Select a plan and complete your purchase securely.
             </p>
           </motion.div>
 
@@ -605,12 +610,12 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
               }
             >
               {checkoutPlanId
-                ? "Opening PayPal..."
+                ? "Processing..."
                 : currentSubscription &&
                     currentSubscription.status !== "cancelled" &&
                     currentSubscription.plan?.id !== selectedPlanDetails?.id
                   ? "Switch Plan"
-                  : "Continue with PayPal"}
+                  : "Continue to Purchase"}
             </Button>
           </div>
 

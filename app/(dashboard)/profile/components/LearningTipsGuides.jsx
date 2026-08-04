@@ -37,7 +37,7 @@ export default function LearningTipsGuidesPage({ onBack }) {
   }, [session]);
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto py-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -52,10 +52,7 @@ export default function LearningTipsGuidesPage({ onBack }) {
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-500 flex items-center justify-center">
-              <BookOpen className="w-5 h-5" />
-            </div>
+          <div>
             <h1 className="text-2xl font-bold text-foreground">
               Learning Tips &amp; Guides
             </h1>
@@ -63,13 +60,13 @@ export default function LearningTipsGuidesPage({ onBack }) {
         </div>
 
         {isLoading ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="space-y-2">
-                <div className="h-4 bg-muted/50 rounded animate-pulse w-3/4" />
-                <div className="h-4 bg-muted/50 rounded animate-pulse w-full" />
-                <div className="h-4 bg-muted/50 rounded animate-pulse w-5/6" />
-              </div>
+              <div
+                key={i}
+                className="h-4 bg-muted/50 rounded animate-pulse"
+                style={{ width: `${90 - i * 8}%` }}
+              />
             ))}
           </div>
         ) : error ? (

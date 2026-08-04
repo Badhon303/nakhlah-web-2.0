@@ -54,7 +54,9 @@ export default function ProfilePage({
           <HeaderSection
             stats={resolvedStats}
             onNavigateSettings={() => onNavigate("settings")}
-            onNavigateEdit={() => onNavigate("edit-profile")}
+            onNavigateEdit={() =>
+              onNavigate("edit-profile", { startEditing: true })
+            }
             onShare={() => onNavigate("share-profile")}
             currentUser={currentUser}
             profileData={profileData}

@@ -1,9 +1,11 @@
 "use client";
 import { Medal } from "@/components/icons/Medal";
 import AchievementTick from "@/components/icons/AchievementTick";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { motion } from "framer-motion";
 import { ChevronRight, Lock } from "lucide-react";
 import { buildApiUrl } from "@/lib/api-config";
+import Image from "next/image";
 
 const getMediaUrl = (url) => {
   if (!url) return "";
@@ -50,8 +52,16 @@ export default function AchievementsList({
         )}
 
         {!isLoading && !compactAchievements.length && (
-          <div className="p-4 bg-muted/30 rounded-xl border border-border/30 text-sm text-muted-foreground">
-            No achievements available yet.
+          <div className="flex flex-col items-center gap-4 py-8 text-center">
+            <FreshDateMascot mood="sad" size="xxl" />
+            <div className="space-y-1 max-w-xs">
+              <p className="text-sm font-semibold text-foreground">
+                No achievements yet!
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Keep learning and complete lessons to unlock your first one.
+              </p>
+            </div>
           </div>
         )}
 
@@ -66,7 +76,7 @@ export default function AchievementsList({
             >
               <div className="relative shrink-0">
                 {achievement.unitIcon ? (
-                  <img
+                  <Image
                     src={getMediaUrl(
                       achievement.unitIcon?.url || achievement.unitIcon,
                     )}

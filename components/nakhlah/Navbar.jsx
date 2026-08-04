@@ -4,8 +4,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { signOut } from "@/lib/auth-client";
-import { Crown, Home, LogOut, Trophy, User } from "lucide-react";
+import { Crown, Home, Settings, Trophy, User } from "lucide-react";
 
 const navItems = [
   { path: "/", label: "Home", icon: "/icons/Home-Icon.127e8555.svg" },
@@ -28,10 +27,7 @@ const mobileIconMap = {
 
 export function Navbar() {
   const pathname = usePathname();
-
-  const handleLogout = () => {
-    signOut({ callbackUrl: "/auth/login" });
-  };
+  const isSettings = pathname === "/settings";
 
   return (
     <>
@@ -53,7 +49,9 @@ export function Navbar() {
           {/* Nav Links */}
           <div className="flex flex-col gap-2">
             {navItems.map((item) => {
-              const isActive = pathname === item.path;
+              const isActive =
+                pathname === item.path &&
+                (item.path !== "/profile" || !isSettings);
               const NavIcon = mobileIconMap[item.path];
               return (
                 <Link
@@ -81,14 +79,19 @@ export function Navbar() {
                 </Link>
               );
             })}
-            {/* Logout - right after Profile with no gap */}
-            <button
-              onClick={handleLogout}
-              className="relative flex items-center gap-3 rounded-xl px-4 py-3 text-base font-semibold text-foreground transition-all w-full hover:bg-muted/50 dark:hover:bg-muted/20"
+            {/* Settings - right after Profile with no gap */}
+            <Link
+              href="/settings"
+              className={cn(
+                "relative flex items-center gap-3 rounded-xl px-4 py-3 text-base font-semibold transition-all w-full",
+                isSettings
+                  ? "text-accent"
+                  : "text-foreground hover:bg-muted/50 dark:hover:bg-muted/20",
+              )}
             >
-              <LogOut className="h-6 w-6" />
-              <span>Logout</span>
-            </button>
+              <Settings className="h-6 w-6" />
+              <span>Settings</span>
+            </Link>
           </div>
         </div>
       </nav>
@@ -97,7 +100,9 @@ export function Navbar() {
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t px-2 bg-background/95 backdrop-blur-md border-border pb-[var(--sab)]">
         <div className="flex items-center justify-between gap-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.path;
+            const isActive =
+              pathname === item.path &&
+              (item.path !== "/profile" || !isSettings);
             const MobileIcon = mobileIconMap[item.path];
             return (
               <Link
@@ -136,18 +141,35 @@ export function Navbar() {
               </Link>
             );
           })}
-          {/* Logout - Mobile */}
-          <button
-            onClick={handleLogout}
-            className="flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0 text-foreground hover:bg-muted/50 dark:hover:bg-transparent"
+          {/* Settings - Mobile */}
+          <Link
+            href="/settings"
+            className={cn(
+              "flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0",
+              isSettings
+                ? "text-accent"
+                : "text-foreground hover:bg-muted/50 dark:hover:bg-transparent",
+            )}
           >
-            <span className="flex items-center justify-center p-2 rounded-xl">
-              <LogOut className="h-5 w-5" />
+            <span
+              className={cn(
+                "flex items-center justify-center p-2 rounded-xl transition-colors",
+                isSettings
+                  ? "bg-accent text-accent-foreground dark:bg-transparent dark:text-accent"
+                  : "",
+              )}
+            >
+              <Settings className="h-5 w-5" />
             </span>
-            <span className="text-[10px] font-medium truncate w-full text-center">
-              Logout
+            <span
+              className={cn(
+                "text-[10px] font-medium truncate w-full text-center",
+                isSettings ? "text-accent" : "",
+              )}
+            >
+              Settings
             </span>
-          </button>
+          </Link>
         </div>
       </nav>
     </>

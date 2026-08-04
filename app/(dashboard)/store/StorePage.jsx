@@ -38,15 +38,18 @@ import {
 } from "@/components/ui/tooltip";
 import { toast } from "@/components/nakhlah/Toast";
 import {
-  createDatePaymentOrder,
-  createSubscriptionPayment,
   cancelSubscription,
-  switchSubscription,
   fetchCurrentSubscription,
 } from "@/services/api";
+import {
+  purchaseSubscriptionPlan,
+  purchaseDatePackage,
+} from "@/services/revenuecat-checkout";
+import { useRevenueCat } from "@/components/RevenueCatProvider";
 
 export default function StorePage() {
   const { data: session } = useSession();
+  const { refresh: refreshEntitlements } = useRevenueCat();
   const searchParams = useSearchParams();
   const [checkoutId, setCheckoutId] = useState(null);
   const [currentSubscription, setCurrentSubscription] = useState(null);
@@ -71,10 +74,6 @@ export default function StorePage() {
       return false;
     }
     return true;
-  };
-
-  const redirectToPayPal = (approvalUrl) => {
-    window.location.assign(approvalUrl);
   };
 
   const datePackages = useDatePackagesStore((state) => state.packages);
@@ -104,18 +103,22 @@ export default function StorePage() {
     if (!requireAuth()) return;
 
     setCheckoutId(`dates:${pkg.id}`);
-    const result = await createDatePaymentOrder(
-      pkg.id,
-      getSessionToken(session),
-    );
+    const result = await purchaseDatePackage(pkg);
+
+    setCheckoutId(null);
 
     if (!result.success) {
-      setCheckoutId(null);
-      toast.error(result.error || "Unable to start PayPal checkout.");
+      if (result.cancelled) {
+        toast.info("Purchase cancelled.");
+      } else {
+        toast.error(result.error || "Unable to complete purchase.");
+      }
       return;
     }
 
-    redirectToPayPal(result.approvalUrl);
+    toast.success("Purchase successful!");
+    await refreshEntitlements();
+    await loadCurrentSubscription();
   };
 
   const handleSubscriptionCheckout = async (plan) => {
@@ -147,45 +150,47 @@ export default function StorePage() {
 
   const startSubscriptionCheckout = async (plan) => {
     setCheckoutId(`premium:${plan.id}`);
-    const result = await createSubscriptionPayment(
-      plan,
-      getSessionToken(session),
-    );
+    const result = await purchaseSubscriptionPlan(plan);
+
+    setCheckoutId(null);
 
     if (!result.success) {
-      setCheckoutId(null);
-      toast.error(result.error || "Unable to start PayPal subscription.");
+      if (result.cancelled) {
+        toast.info("Purchase cancelled.");
+      } else {
+        toast.error(result.error || "Unable to start subscription.");
+      }
       return;
     }
 
-    redirectToPayPal(result.approvalUrl);
+    toast.success("Subscription activated!");
+    await refreshEntitlements();
+    await loadCurrentSubscription();
   };
 
   const handleConfirmSwitch = async () => {
     if (!pendingSwitchPlan) return;
 
-    const token = getSessionToken(session);
     setIsCanceling(true);
     setCheckoutId(`premium:${pendingSwitchPlan.id}`);
 
-    const switchResult = await switchSubscription(pendingSwitchPlan.id, token);
+    const switchResult = await purchaseSubscriptionPlan(pendingSwitchPlan);
+
+    setIsCanceling(false);
+    setCheckoutId(null);
 
     if (!switchResult.success) {
-      setIsCanceling(false);
-      setCheckoutId(null);
-      toast.error(switchResult.error || "Failed to switch plan.");
-      return;
-    }
-
-    const approvalUrl = switchResult.data?.approvalUrl;
-    if (approvalUrl) {
-      window.location.assign(approvalUrl);
+      if (switchResult.cancelled) {
+        toast.info("Purchase cancelled.");
+      } else {
+        toast.error(switchResult.error || "Failed to switch plan.");
+      }
       return;
     }
 
     toast.success(switchResult.message || "Plan switched successfully.");
+    await refreshEntitlements();
     await loadCurrentSubscription();
-    setIsCanceling(false);
     setPendingSwitchPlan(null);
   };
 
@@ -243,20 +248,23 @@ export default function StorePage() {
       return;
     }
 
-    // Fully cancelled subscriptions need a fresh checkout, not a switch.
     setCheckoutId(`premium:${newPlanId}`);
-    const result = await createSubscriptionPayment(
-      plan || currentSubscription?.plan,
-      getSessionToken(session),
-    );
+    const result = await purchaseSubscriptionPlan(plan || currentSubscription?.plan);
+
+    setCheckoutId(null);
 
     if (!result.success) {
-      setCheckoutId(null);
-      toast.error(result.error || "Unable to resubscribe.");
+      if (result.cancelled) {
+        toast.info("Purchase cancelled.");
+      } else {
+        toast.error(result.error || "Unable to resubscribe.");
+      }
       return;
     }
 
-    window.location.assign(result.approvalUrl);
+    toast.success("Subscription activated!");
+    await refreshEntitlements();
+    await loadCurrentSubscription();
   };
 
   return (

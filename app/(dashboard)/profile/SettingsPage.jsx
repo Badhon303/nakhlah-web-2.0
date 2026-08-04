@@ -65,7 +65,7 @@ export default function SettingsPage({ onBack, onNavigate }) {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-3xl">
+    <div className="max-w-2xl mx-auto py-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
