@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">nakhlah</string>
     <string name="title_activity_main">nakhlah</string>
-    <string name="package_name">com.nakhlah.app</string>
-    <string name="custom_url_scheme">com.nakhlah.app</string>
+    <string name="package_name">com.fintechhub.nakhlah</string>
+    <string name="custom_url_scheme">com.fintechhub.nakhlah</string>
 </resources>

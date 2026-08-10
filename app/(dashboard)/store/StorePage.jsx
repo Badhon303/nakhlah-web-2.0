@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { Calendar } from "@/components/icons/Calendar";
@@ -53,20 +53,22 @@ export default function StorePage() {
   const searchParams = useSearchParams();
   const [checkoutId, setCheckoutId] = useState(null);
   const [currentSubscription, setCurrentSubscription] = useState(null);
-  const [isLoadingCurrent, setIsLoadingCurrent] = useState(true);
+  const [isLoadingCurrentState, setIsLoadingCurrent] = useState(true);
   const [pendingSwitchPlan, setPendingSwitchPlan] = useState(null);
   const [isCanceling, setIsCanceling] = useState(false);
   const [showConfirmCancel, setShowConfirmCancel] = useState(false);
   const [showSubscriptionDetails, setShowSubscriptionDetails] = useState(false);
   const shouldRefetchDates = searchParams.get("refetch") === "dates";
 
-  const loadCurrentSubscription = async () => {
+  const loadCurrentSubscription = useCallback(async () => {
     if (!isSessionValid(session)) return;
+
     const result = await fetchCurrentSubscription(getSessionToken(session));
     if (result.success) {
       setCurrentSubscription(result.subscription);
     }
-  };
+    setIsLoadingCurrent(false);
+  }, [session]);
 
   const requireAuth = () => {
     if (!isSessionValid(session)) {
@@ -87,17 +89,21 @@ export default function StorePage() {
   const isLoadingDates = useDatePackagesStore((state) => state.isLoading);
   const isLoadingPlans = useSubscriptionPlansStore((state) => state.isLoading);
   const datesError = useDatePackagesStore((state) => state.error);
+  const isLoadingCurrent =
+    isSessionValid(session) && isLoadingCurrentState;
 
   useEffect(() => {
-    fetchDatePackages({ forceRefresh: shouldRefetchDates });
-    fetchSubscriptionPlans({ forceRefresh: shouldRefetchDates });
-
-    if (isSessionValid(session)) {
-      loadCurrentSubscription().then(() => setIsLoadingCurrent(false));
-    } else {
-      setIsLoadingCurrent(false);
-    }
-  }, [fetchDatePackages, fetchSubscriptionPlans, shouldRefetchDates, session]);
+    queueMicrotask(() => {
+      fetchDatePackages({ forceRefresh: shouldRefetchDates });
+      fetchSubscriptionPlans({ forceRefresh: shouldRefetchDates });
+      loadCurrentSubscription();
+    });
+  }, [
+    fetchDatePackages,
+    fetchSubscriptionPlans,
+    loadCurrentSubscription,
+    shouldRefetchDates,
+  ]);
 
   const handleDateCheckout = async (pkg) => {
     if (!requireAuth()) return;

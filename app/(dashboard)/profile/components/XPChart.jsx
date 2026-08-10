@@ -1,15 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
-import { useEffect, useState, useMemo } from "react";
-import { useProfileStore } from "@/stores/useProfileStore";
 
 export default function XPChart() {
-  const profileData = useProfileStore((state) => state.profile);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Static demo data for chart
   const apData = [
