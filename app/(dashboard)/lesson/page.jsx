@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -120,7 +120,7 @@ function resolveCanonicalArabicFromLearnAnswer(learnAnswer) {
 
 // Last-resort display mapping for common undiacritized starter words.
 const DIACRITIC_FALLBACK_BY_BASE_WORD = {
-  "\u0627\u0633\u0645\u064a": "\u0627\u0650\u0633\u0652\u0645\u0650\u064a",
+  اسمي: "اِسْمِي",
 };
 
 function applyDiacriticsFallback(value) {
@@ -803,7 +803,7 @@ export default function LessonPage() {
     const startIndex = match.index;
     const endIndex = startIndex + match[0].length;
 
-    // Do not render literal underscores or surrounding quotes in the UI Ã¢â‚¬â€ show a normalized blank
+    // Do not render literal underscores or surrounding quotes in the UI â€” show a normalized blank
     const displayBlank = /^_+$/.test(raw) ? "" : raw;
 
     let before = arabicSentence.slice(0, startIndex);

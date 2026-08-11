@@ -71,12 +71,6 @@ export function JourneyErrorFallback({ error = "", onRetry }) {
     return null;
   }
 
-  // Always redirect unauthenticated users to login immediately without rendering fallback
-  if (errorType === "unauthenticated" && typeof window !== "undefined") {
-    window.location.href = "/auth/login";
-    return null;
-  }
-
   const PrimaryButton = config.primaryHref ? (
     <Link
       href={config.primaryHref}

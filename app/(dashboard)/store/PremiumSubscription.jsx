@@ -116,7 +116,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [checkoutPlanId, setCheckoutPlanId] = useState(null);
   const [currentSubscription, setCurrentSubscription] = useState(null);
-  const [isLoadingCurrentState, setIsLoadingCurrent] = useState(true);
+  const [isLoadingCurrent, setIsLoadingCurrent] = useState(true);
   const [isCanceling, setIsCanceling] = useState(false);
   const [showConfirmSwitch, setShowConfirmSwitch] = useState(false);
   const [showConfirmCancel, setShowConfirmCancel] = useState(false);
@@ -129,45 +129,20 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
   const isLoadingPlans = useSubscriptionPlansStore((state) => state.isLoading);
 
   const loadCurrentSubscription = useCallback(async () => {
-    if (!isSessionValid(session)) return null;
-
+    if (!isSessionValid(session)) {
+      setIsLoadingCurrent(false);
+      return;
+    }
     const result = await fetchCurrentSubscription(getSessionToken(session));
     if (result.success) {
       setCurrentSubscription(result.subscription);
     }
     setIsLoadingCurrent(false);
-    return result.success ? result.subscription : null;
   }, [session]);
 
-  // RevenueCat webhooks can take a few seconds to reach our backend after a
-  // purchase (especially on the Test Store on Android), so poll briefly for
-  // the `user-subscriptions` record instead of relying on a single fetch.
-  const waitForActiveSubscription = useCallback(
-    async (planId, { attempts = 6, delayMs = 1500 } = {}) => {
-      for (let i = 0; i < attempts; i += 1) {
-        const sub = await loadCurrentSubscription();
-        const isActiveForPlan =
-          sub &&
-          sub.status !== "cancelled" &&
-          (!planId || sub.plan?.id === planId);
-        if (isActiveForPlan) return sub;
-        if (i < attempts - 1) {
-          await new Promise((resolve) => setTimeout(resolve, delayMs));
-        }
-      }
-      return null;
-    },
-    [loadCurrentSubscription],
-  );
-
-  const isLoadingCurrent =
-    isSessionValid(session) && isLoadingCurrentState;
-
   useEffect(() => {
-    queueMicrotask(() => {
-      fetchSubscriptionPlans();
-      loadCurrentSubscription();
-    });
+    fetchSubscriptionPlans();
+    loadCurrentSubscription();
   }, [fetchSubscriptionPlans, loadCurrentSubscription]);
 
   const requireAuth = () => {
@@ -242,7 +217,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
 
     toast.success("Subscription activated!");
     await refreshEntitlements();
-    await waitForActiveSubscription(plan.id);
+    await loadCurrentSubscription();
   };
 
   const isSubscriptionActive =
@@ -322,7 +297,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
 
     toast.success("Plan switched successfully.");
     await refreshEntitlements();
-    await waitForActiveSubscription(pendingSwitchPlan.id);
+    await loadCurrentSubscription();
   };
 
   const handleSubscriptionCheckout = async () => {

@@ -154,10 +154,7 @@ export default function LearnPage() {
         if (status === "unauthenticated" || !isSessionValid(session)) {
           clearJourney();
           clearProfile();
-          if (typeof window !== "undefined") {
-            window.location.href = "/auth/login";
-          }
-          return;
+          throw new Error("Please login to view your journey.");
         }
 
         const token = getSessionToken(session);
@@ -228,14 +225,14 @@ export default function LearnPage() {
   return (
     <div className="bg-background text-foreground">
       {/* Mobile sticky header */}
-      <div className="lg:hidden fixed top-[var(--sat)] left-0 right-0 z-[40] bg-primary shadow-md">
+      <div className="lg:hidden fixed top-[var(--sat)] left-0 right-0 z-[45] bg-primary shadow-md">
         <UserStats />
       </div>
 
-      <main className="container mx-auto pt-[92px] lg:pt-0 lg:px-4 lg:py-6 max-w-7xl">
+      <main className="container mx-auto pt-[56px] lg:pt-0 lg:px-4 lg:py-6 max-w-7xl">
         <div className="flex flex-col lg:flex-row gap-12">
           {/* Left side: Scrollable pathway */}
-          <div className="lg:w-2/3 lg:h-[calc(100dvh_-_3rem)] lg:overflow-y-auto no-scrollbar">
+          <div className="lg:w-2/3 lg:h-[calc(100vh_-_64px)] lg:overflow-y-auto no-scrollbar">
             {loadError ? (
               <JourneyErrorFallback
                 error={loadError}
@@ -253,7 +250,7 @@ export default function LearnPage() {
 
           {/* Right side: Sticky Sidebar */}
           <div
-            className={`hidden lg:block lg:w-1/3 space-y-6 lg:h-[calc(100dvh_-_3rem)] lg:overflow-y-auto no-scrollbar lg:sticky ${stickyTopOffset} h-fit max-w-sm ml-auto`}
+            className={`hidden lg:block lg:w-1/3 space-y-6 lg:h-[calc(100vh_-_64px)] lg:overflow-y-auto no-scrollbar lg:sticky ${stickyTopOffset} h-fit max-w-sm ml-auto`}
           >
             <UserStats />
             <DailyQuests />
