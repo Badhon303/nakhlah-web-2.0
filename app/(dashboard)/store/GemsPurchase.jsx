@@ -13,6 +13,8 @@ import { useRevenueCat } from "@/components/RevenueCatProvider";
 import { toast } from "@/components/nakhlah/Toast";
 import { ArrowLeft } from "lucide-react";
 
+const JOURNEY_REFRESH_FLAG_KEY = "nakhlah:journey-needs-refresh";
+
 export default function GemsPurchase({ onBack }) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -56,6 +58,11 @@ export default function GemsPurchase({ onBack }) {
 
     toast.success("Purchase successful!");
     await refreshEntitlements();
+
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(JOURNEY_REFRESH_FLAG_KEY, "true");
+      window.dispatchEvent(new CustomEvent("nakhlah:journey-updated"));
+    }
   };
 
   const containerVariants = {

@@ -23,6 +23,27 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const handleGoogleLogin = async () => {
+    clearProfile();
+    setIsLoading(true);
+
+    try {
+      const result = await signIn("google", {
+        callbackUrl: "/auth/social-redirect",
+      });
+      if (!result?.ok) {
+        toast.error(result?.error || "Google sign-in failed");
+        return;
+      }
+      router.push("/auth/social-redirect");
+    } catch (error) {
+      console.error("Google login error:", error);
+      toast.error(error.message || "Google sign-in failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -210,10 +231,7 @@ export default function Login() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  clearProfile();
-                  signIn("google", { callbackUrl: "/auth/social-redirect" });
-                }}
+                onClick={handleGoogleLogin}
                 disabled={isLoading}
                 className="w-full h-12 border-border hover:bg-accent/10 font-semibold text-foreground rounded-xl"
               >

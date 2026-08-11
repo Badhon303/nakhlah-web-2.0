@@ -34,7 +34,7 @@ export default function CapacitorInit() {
             } else {
               setShowExitDialog(true);
             }
-          }
+          },
         );
       } catch {}
     })();
@@ -141,5 +141,3 @@ export default function CapacitorInit() {
     </div>
   );
 }
-
-

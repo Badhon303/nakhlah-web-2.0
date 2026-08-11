@@ -2,7 +2,6 @@ import { Circle } from "./Circle";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Sparkles } from "lucide-react";
 
 const PATH_CENTER = 50;
 const PATH_AMPLITUDE = 25;
@@ -216,7 +215,23 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
   const mascotPlacementsByAnchorId = useMemo(() => {
     if (!Array.isArray(lessons) || lessons.length === 0) return new Map();
 
-    const moods = ["proud", "encouraging", "happy", "cool"];
+    const allMoods = [
+      "proud",
+      "encouraging",
+      "happy",
+      "cool",
+      "excited",
+      "confident",
+      "thinking",
+      "focused",
+      "surprised",
+      "default",
+    ];
+    const startOffset = (lessons?.length || 0) % allMoods.length;
+    const step = 3; // coprime with allMoods.length to cycle without repeats
+    const getMoodForIndex = (i) =>
+      allMoods[(startOffset + i * step) % allMoods.length];
+
     const baseSize = getResponsiveMascotSize(windowWidth);
     const sizes = [baseSize, baseSize, baseSize, baseSize]; // identical, responsive mascot sizes
     const halfWave = Math.PI / PATH_FREQUENCY;
@@ -248,7 +263,7 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
       Array.isArray(mascots) && mascots.length > 0
         ? mascots
         : slotCandidates.map((_, index) => ({
-            mood: moods[index % moods.length],
+            mood: getMoodForIndex(index),
             size: sizes[index % sizes.length],
           }));
 
@@ -283,7 +298,7 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
 
         const placement = {
           ...slot,
-          mood: mascot?.mood || moods[slot.slotIndex % moods.length],
+          mood: mascot?.mood || getMoodForIndex(slot.slotIndex),
           size: mascot?.size || sizes[slot.slotIndex % sizes.length],
           message: mascot?.message,
         };
@@ -296,12 +311,15 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
 
     const firstLessonId = lessons[0]?.id;
     if (firstLessonId) {
+      const firstSlotMood = requestedMascots[0]?.mood || getMoodForIndex(0);
+      const firstCurveMood =
+        allMoods.find((m) => m !== firstSlotMood) || allMoods[0];
       const firstCurveMascot = {
         anchorLessonId: firstLessonId,
         midpoint: 0.75,
         side: "right",
         slotIndex: "first-curve",
-        mood: "proud",
+        mood: firstCurveMood,
         size: baseSize,
       };
       const anchoredPlacements = placementsByAnchor.get(firstLessonId) || [];

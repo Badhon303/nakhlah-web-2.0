@@ -1,0 +1,30 @@
+.toast-progress [data-sonner-toast][data-front="true"] {
+  background-image: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.7),
+    rgba(255, 255, 255, 0.7)
+  );
+  background-size: 100% 3px;
+  background-position: top left;
+  background-repeat: no-repeat;
+  animation: sonner-progress var(--toast-duration, 5000ms) linear forwards;
+}
+
+.toast-progress [data-sonner-toast][data-front="true"][data-removed="true"],
+.toast-progress [data-sonner-toast][data-front="true"][data-promise="true"] {
+  animation: none;
+}
+
+.toast-progress [data-sonner-toast][data-front="true"]:hover,
+.toast-progress [data-sonner-toast][data-front="true"][data-expanded="true"] {
+  animation-play-state: paused;
+}
+
+@keyframes sonner-progress {
+  from {
+    background-size: 100% 3px;
+  }
+  to {
+    background-size: 0% 3px;
+  }
+}

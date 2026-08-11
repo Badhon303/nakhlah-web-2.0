@@ -4,15 +4,10 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   BookOpen,
   Zap,
@@ -23,6 +18,7 @@ import {
   Flame,
   ArrowLeft,
   Star,
+  X,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
@@ -32,10 +28,7 @@ import { DatesIcon } from "@/components/icons/PublicAssetIcons";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { useSubscriptionPlansStore } from "@/stores/useSubscriptionPlansStore";
-import {
-  fetchCurrentSubscription,
-  cancelSubscription,
-} from "@/services/api";
+import { fetchCurrentSubscription, cancelSubscription } from "@/services/api";
 import { purchaseSubscriptionPlan } from "@/services/revenuecat-checkout";
 import { useRevenueCat } from "@/components/RevenueCatProvider";
 import { toast } from "@/components/nakhlah/Toast";
@@ -160,8 +153,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
     [loadCurrentSubscription],
   );
 
-  const isLoadingCurrent =
-    isSessionValid(session) && isLoadingCurrentState;
+  const isLoadingCurrent = isSessionValid(session) && isLoadingCurrentState;
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -379,7 +371,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
           <div className="relative overflow-hidden rounded-3xl bg-accent p-6 text-center shadow-lg">
             <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
               <div className="flex-shrink-0">
-                <FreshDateMascot mood="excited" size="xxl" />
+                <FreshDateMascot mood="excited" size="xxl" className="p-2" />
               </div>
 
               <div className="flex-1 max-w-2xl">
@@ -644,20 +636,47 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
             </Button>
           </div>
 
-          {showConfirmSwitch && pendingSwitchPlan && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-              <div className="bg-card border border-border rounded-3xl p-6 max-w-md w-full shadow-xl text-center">
-                <h3 className="text-xl font-bold text-foreground mb-2">
+          <Dialog
+            open={showConfirmSwitch && !!pendingSwitchPlan}
+            onOpenChange={(open) => {
+              if (!open) {
+                setShowConfirmSwitch(false);
+                setPendingSwitchPlan(null);
+                setIsCanceling(false);
+              }
+            }}
+          >
+            <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md p-0 gap-0 border-border [&>button]:hidden rounded-2xl overflow-hidden shadow-xl border-2 bg-card">
+              <div className="bg-accent p-4 sm:p-5 text-center relative">
+                <button
+                  onClick={() => {
+                    setShowConfirmSwitch(false);
+                    setPendingSwitchPlan(null);
+                    setIsCanceling(false);
+                  }}
+                  disabled={isCanceling}
+                  className="absolute top-3 sm:top-4 right-3 sm:right-4 text-white/70 hover:text-white transition-colors disabled:pointer-events-none"
+                >
+                  <X className="w-5 h-5" />
+                  <span className="sr-only">Close</span>
+                </button>
+                <DialogTitle className="text-xl sm:text-2xl font-black text-white tracking-wide">
                   Switch subscription plan?
-                </h3>
-                <p className="text-muted-foreground mb-6">
+                </DialogTitle>
+                <p className="text-white/90 font-medium text-xs sm:text-sm mt-1">
+                  Change your billing plan
+                </p>
+              </div>
+
+              <div className="p-6 bg-card text-center">
+                <p className="text-sm text-muted-foreground mb-6">
                   You already have an active{" "}
-                  <span className="font-semibold">
+                  <span className="font-semibold text-foreground">
                     {currentSubscription?.plan?.name || "subscription"}
                   </span>
                   . Switching will cancel it and start a new{" "}
-                  <span className="font-semibold">
-                    {pendingSwitchPlan.duration}
+                  <span className="font-semibold text-foreground">
+                    {pendingSwitchPlan?.duration}
                   </span>{" "}
                   plan.
                 </p>
@@ -668,7 +687,9 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
                     onClick={() => {
                       setShowConfirmSwitch(false);
                       setPendingSwitchPlan(null);
+                      setIsCanceling(false);
                     }}
+                    disabled={isCanceling}
                   >
                     Keep Current
                   </Button>
@@ -681,17 +702,31 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
                   </Button>
                 </div>
               </div>
-            </div>
-          )}
+            </DialogContent>
+          </Dialog>
 
-          <AlertDialog
-            open={showConfirmCancel}
-            onOpenChange={setShowConfirmCancel}
-          >
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Cancel subscription?</AlertDialogTitle>
-                <AlertDialogDescription>
+          <Dialog open={showConfirmCancel} onOpenChange={setShowConfirmCancel}>
+            <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md p-0 gap-0 border-border [&>button]:hidden rounded-2xl overflow-hidden shadow-xl border-2 bg-card">
+              <div className="bg-accent p-4 sm:p-5 text-center relative">
+                <button
+                  onClick={() => setShowConfirmCancel(false)}
+                  disabled={isCanceling}
+                  className="absolute top-3 sm:top-4 right-3 sm:right-4 text-white/70 hover:text-white transition-colors disabled:pointer-events-none"
+                >
+                  <X className="w-5 h-5" />
+                  <span className="sr-only">Close</span>
+                </button>
+                <DialogTitle className="text-xl sm:text-2xl font-black text-white tracking-wide">
+                  Cancel subscription?
+                </DialogTitle>
+                <p className="text-white/90 font-medium text-xs sm:text-sm mt-1">
+                  You can keep using premium until the end of your billing
+                  period
+                </p>
+              </div>
+
+              <div className="p-6 bg-card text-center">
+                <p className="text-sm text-muted-foreground mb-6">
                   Your{" "}
                   <span className="font-semibold text-foreground">
                     {currentSubscription?.plan?.name || "Premium"}
@@ -706,25 +741,30 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
                       : "the end of your current billing period"}
                   </span>
                   .
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel disabled={isCanceling}>
-                  Keep Subscription
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={(e) => {
-                    e.preventDefault();
-                    confirmCancelSubscription();
-                  }}
-                  disabled={isCanceling}
-                  className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
-                >
-                  {isCanceling ? "Canceling..." : "Yes, Cancel"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowConfirmCancel(false)}
+                    disabled={isCanceling}
+                  >
+                    Keep Subscription
+                  </Button>
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      confirmCancelSubscription();
+                    }}
+                    disabled={isCanceling}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    {isCanceling ? "Canceling..." : "Yes, Cancel"}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </motion.div>
       )}
     </div>

@@ -23,6 +23,9 @@ importers:
       '@capacitor/status-bar':
         specifier: ^8.0.2
         version: 8.0.3(@capacitor/core@8.4.2)
+      '@capawesome/capacitor-google-sign-in':
+        specifier: 0.1.0
+        version: 0.1.0(@capacitor/core@8.4.2)
       '@fontsource/nunito':
         specifier: ^5.2.7
         version: 5.2.7
@@ -370,6 +373,11 @@ packages:
 
   '@capacitor/status-bar@8.0.3':
     resolution: {integrity: sha512-csSpfNeN49Hx9JaQBSJEIiEbOLtXg3kcc2IpScq2fu5L520h3AWEvsxoH8Srk1jxfRKepaJ4S4sqSC3foI4AgA==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capawesome/capacitor-google-sign-in@0.1.0':
+    resolution: {integrity: sha512-3tUCPk3lohyoLdbs2X64xyCdfeJekULA7MoCZsrqsZu7Ex8dpI3SUv4ckKbmK1RwRnGRUsxqEpYK0dsp0UAkhA==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
@@ -4367,6 +4375,10 @@ snapshots:
       '@capacitor/core': 8.4.2
 
   '@capacitor/status-bar@8.0.3(@capacitor/core@8.4.2)':
+    dependencies:
+      '@capacitor/core': 8.4.2
+
+  '@capawesome/capacitor-google-sign-in@0.1.0(@capacitor/core@8.4.2)':
     dependencies:
       '@capacitor/core': 8.4.2
 

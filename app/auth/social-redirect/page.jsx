@@ -3,8 +3,8 @@
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "@/lib/auth-client";
-import { getSessionToken, isSessionValid } from "@/lib/authUtils";
+import { completeGoogleSignIn, useSession } from "@/lib/auth-client";
+import { getSessionToken } from "@/lib/authUtils";
 import { fetchMyProfile } from "@/services/api/auth";
 
 export default function SocialRedirectPage() {
@@ -18,13 +18,17 @@ export default function SocialRedirectPage() {
     const resolveSocialProfile = async () => {
       if (status === "loading") return;
 
-      if (!isSessionValid(session)) {
-        resolvedRef.current = true;
-        router.replace("/auth/login");
-        return;
+      let token = getSessionToken(session);
+      if (window.location.hash.includes("access_token=")) {
+        const result = await completeGoogleSignIn();
+        if (!result.ok) {
+          resolvedRef.current = true;
+          router.replace("/auth/login");
+          return;
+        }
+        token = getSessionToken(result.session);
       }
 
-      const token = getSessionToken(session);
       if (!token) {
         resolvedRef.current = true;
         router.replace("/auth/login");

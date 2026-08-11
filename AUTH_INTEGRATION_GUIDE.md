@@ -1,6 +1,7 @@
 # Authentication API Integration Summary
 
 ## Overview
+
 This document outlines all authentication API integrations completed for the Nakhlah application.
 
 ## Environment Variables Required
@@ -16,9 +17,22 @@ NEXTAUTH_SECRET=your_nextauth_secret_here
 NEXTAUTH_URL=http://localhost:3000
 
 # Google OAuth
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_web_google_client_id_here
+NEXT_PUBLIC_GOOGLE_OAUTH_REDIRECT_URI=https://uat.nakhlah.net/api/auth/callback/google
 GOOGLE_CLIENT_ID=your_google_client_id_here
 GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 ```
+
+## Native Google Sign-In Setup
+
+Mobile Google login uses the native Google Sign-In SDK through `@capawesome/capacitor-google-sign-in`. It does not use a Google redirect URI or the `com.fintechhub.nakhla` deep link.
+
+- Android: create/configure an Android OAuth client for package `com.fintechhub.nakhla` with the release and debug SHA-1 fingerprints.
+- iOS: create an iOS OAuth client, then add its `GIDClientID` and reversed client-ID URL scheme to `ios/App/App/Info.plist`.
+- `NEXT_PUBLIC_GOOGLE_CLIENT_ID` must be the Web OAuth client ID. The native SDK returns a Google access token, which is sent to `/api/users/social-login` for verification.
+- Run `npx cap sync` after configuring the native credentials.
+
+The HTTPS callback is only used by the browser/web fallback. It is not used by native Android or iOS login.
 
 ## Completed Integrations
 
@@ -29,21 +43,24 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 **Location:** [app/auth/login/page.jsx](app/auth/login/page.jsx)
 
 **Implementation:**
+
 - Added Google Provider to NextAuth configuration in [lib/auth.js](lib/auth.js)
 - Google sign-in button placed below the standard sign-in form
 - On successful Google authentication, calls backend `/api/users/social-login` with user data
 - Backend returns JWT token and user info, stored in NextAuth session
 
 **Request Body:**
+
 ```json
 {
   "name": "User Name",
-  "email": "user@example.com", 
+  "email": "user@example.com",
   "password": ""
 }
 ```
 
 **Response:**
+
 ```json
 {
   "token": "jwt_token_here",
@@ -66,11 +83,13 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 **Location:** [app/onboarding/page.jsx](app/onboarding/page.jsx)
 
 **Implementation:**
+
 - Called after successful registration/onboarding completion
 - Sends onboarding data to create user profile
 - Requires authentication token in Authorization header
 
 **Request Body:**
+
 ```json
 {
   "name": "User Name",
@@ -84,6 +103,7 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Profile created successfully",
@@ -100,12 +120,14 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 **Component:** [components/nakhlah/onboarding/UserSourceStep.jsx](components/nakhlah/onboarding/UserSourceStep.jsx)
 
 **Implementation:**
+
 - New onboarding step added between Quiz and Account steps
 - Social media source options: Facebook, Instagram, Twitter, YouTube, Friend, Other
 - Optional contact number field
 - Data included in user profile creation
 
 **Updated Onboarding Flow:**
+
 1. Proficiency Level
 2. Daily Goal
 3. Quiz
@@ -122,12 +144,14 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 **Location:** [app/auth/forgot-password/page.jsx](app/auth/forgot-password/page.jsx)
 
 **Implementation:**
+
 - User enters email address
 - Sends request to backend to generate OTP/reset code
 - Email stored in sessionStorage for OTP verification step
 - Redirects to OTP verification page on success
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com"
@@ -135,6 +159,7 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Reset code sent to your email"
@@ -150,6 +175,7 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 **Location:** [app/auth/create-new-password/page.jsx](app/auth/create-new-password/page.jsx)
 
 **Implementation:**
+
 - Accepts reset token from URL query params or sessionStorage
 - Validates password confirmation match
 - Sends new password + token to backend
@@ -157,6 +183,7 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 - Redirects to welcome-back page
 
 **Request Body:**
+
 ```json
 {
   "password": "new_password_here",
@@ -165,6 +192,7 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Password reset successfully"
@@ -180,6 +208,7 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 **Issue:** Invalid Tailwind classes `border-l-12`, `border-r-12`, `border-t-12` causing NaN height errors
 
 **Fix:** Replaced with inline styles using proper CSS border properties:
+
 ```jsx
 style={{
   width: 0,
@@ -198,17 +227,17 @@ All API functions are located in [services/api/auth.js](services/api/auth.js):
 
 ```javascript
 // Registration
-registerUser(email, password)
+registerUser(email, password);
 
 // Login
-loginUser(email, password)
+loginUser(email, password);
 
 // User Profile
-createUserProfile(profileData, token)
+createUserProfile(profileData, token);
 
 // Password Reset
-forgotPassword(email)
-resetPassword(token, password)
+forgotPassword(email);
+resetPassword(token, password);
 ```
 
 ---
@@ -216,6 +245,7 @@ resetPassword(token, password)
 ## Authentication Flow Diagrams
 
 ### Registration Flow:
+
 ```
 1. User enters details in onboarding → Account step
 2. handleRegistration() calls registerUser(email, password)
@@ -227,6 +257,7 @@ resetPassword(token, password)
 ```
 
 ### Google Login Flow:
+
 ```
 1. User clicks "Continue with Google" button
 2. NextAuth redirects to Google OAuth consent
@@ -238,6 +269,7 @@ resetPassword(token, password)
 ```
 
 ### Password Reset Flow:
+
 ```
 1. User enters email in forgot-password page
 2. forgotPassword(email) sends request to backend
@@ -255,25 +287,31 @@ resetPassword(token, password)
 ## Testing Checklist
 
 ### Google Login
+
 - [ ] GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET configured
 - [ ] Google OAuth consent screen configured
-- [ ] Authorized redirect URIs include: `http://localhost:3000/api/auth/callback/google`
-- [ ] Test successful Google login flow
+- [ ] Web fallback redirect URI is configured as `https://uat.nakhlah.net/api/auth/callback/google`
+- [ ] Android OAuth client has the correct package name and SHA-1 fingerprints
+- [ ] iOS OAuth client and reversed client-ID URL scheme are configured
+- [ ] Test successful Google login flow on web, Android, and iOS
 - [ ] Verify token storage in session
 - [ ] Check redirect to dashboard
 
 ### User Profile Creation
+
 - [ ] Test profile creation after registration
 - [ ] Verify all onboarding data sent correctly
 - [ ] Check Authorization header includes valid token
 - [ ] Confirm profile data stored in backend
 
 ### Forgot Password
+
 - [ ] Test email validation
 - [ ] Verify reset email sent to user
 - [ ] Test redirect to reset-password page
 
 ### Reset Password
+
 - [ ] Test password validation (min 6 chars)
 - [ ] Verify password confirmation match
 - [ ] Check token retrieval from URL query params
@@ -284,7 +322,7 @@ resetPassword(token, password)
 
 ## Notes
 
-1. **Token Management:** 
+1. **Token Management:**
    - NextAuth handles JWT tokens for authenticated sessions
    - Reset password uses separate access_token from OTP verification
    - Session tokens stored automatically by NextAuth

@@ -16,8 +16,9 @@ import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
-import { refillPalmTrees } from "@/services/api";
+import { fetchCurrentSubscription, refillPalmTrees } from "@/services/api";
 import { useProfileStore } from "@/stores/useProfileStore";
+import { Infinity as InfinityIcon } from "lucide-react";
 import { useStreakStore } from "@/stores/useStreakStore";
 import { toast } from "@/components/nakhlah/Toast";
 import {
@@ -31,6 +32,7 @@ export function UserStats() {
   const router = useRouter();
   const [mobileOpenCard, setMobileOpenCard] = useState(null);
   const [isRefillingPalmTrees, setIsRefillingPalmTrees] = useState(false);
+  const [currentSubscription, setCurrentSubscription] = useState(null);
   const hasForcedPalmRefreshRef = useRef(false);
   const { data: session, status } = useSession();
   const profileData = useProfileStore((state) => state.profile);
@@ -53,10 +55,15 @@ export function UserStats() {
       if (!token) return;
 
       const userKey = getUserKey(session);
-      const [profileResult] = await Promise.all([
+      const [profileResult, _, subscriptionResult] = await Promise.all([
         fetchProfile(token, forceRefresh, userKey),
         fetchStreak({ token, userKey, forceRefresh }),
+        fetchCurrentSubscription(token).catch(() => ({ success: false })),
       ]);
+
+      if (subscriptionResult?.success) {
+        setCurrentSubscription(subscriptionResult.subscription);
+      }
 
       const cachedPalmTrees = Number(
         profileResult?.profile?.gamificationStock?.palm?.palmStock,
@@ -103,9 +110,29 @@ export function UserStats() {
     };
   }, [loadStats]);
 
+  useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void loadStats(true);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [loadStats]);
+
   const streakCount = getCurrentStreakCount(streakData);
   const datesCount = profileData?.gamificationStock?.dateStock ?? 0;
   const palmTreesCount = profileData?.gamificationStock?.palm?.palmStock ?? 5;
+  const hasProSubscription = Boolean(
+    currentSubscription &&
+    currentSubscription.status !== "cancelled" &&
+    !currentSubscription.cancelAtPeriodEnd,
+  );
   const streakActivities = useMemo(
     () =>
       buildStreakActivities(
@@ -117,8 +144,9 @@ export function UserStats() {
     streakCount > 0
       ? `You're on a ${streakCount}-day streak.`
       : "Do a lesson today to start a new streak!";
-  const palmTreesMessage =
-    palmTreesCount >= 5
+  const palmTreesMessage = hasProSubscription
+    ? "You have unlimited Palm Trees"
+    : palmTreesCount >= 5
       ? "You have full Palm Trees"
       : `You have ${palmTreesCount} Palm Trees`;
 
@@ -132,6 +160,11 @@ export function UserStats() {
 
   const handleRefillPalmTrees = async () => {
     if (isRefillingPalmTrees) return;
+
+    if (hasProSubscription) {
+      toast.info("You have unlimited Palm Trees with your Pro subscription.");
+      return;
+    }
 
     if (palmTreesCount >= 5) {
       toast.info("You already have full Palm Trees.");
@@ -363,41 +396,75 @@ export function UserStats() {
                 </Button>
               </HoverCardTrigger>
               <HoverCardContent className="w-80 space-y-4" align="end">
-                <div className="space-y-2">
-                  <h4 className="font-medium leading-none">Palm Trees</h4>
-                  <div className="flex space-x-1">
-                    {[...Array(5)].map((_, i) => (
-                      <PalmIcon
-                        key={i}
-                        className={
-                          i < palmTreesCount ? "opacity-100" : "opacity-30"
-                        }
-                      />
-                    ))}
+                {hasProSubscription ? (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <h4 className="font-medium leading-none">Palm Trees</h4>
+                      <div className="flex space-x-1">
+                        {[...Array(5)].map((_, i) => (
+                          <PalmIcon key={i} />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="rounded-xl bg-gradient-to-r from-green-400 to-green-600 p-4 text-white shadow-md flex items-center justify-between">
+                      <div>
+                        <p className="font-extrabold text-sm tracking-wide uppercase">
+                          UNLIMITED PALM TREES
+                        </p>
+                        <p className="text-xs text-white/90">
+                          You have unlimited lives with Premium
+                        </p>
+                      </div>
+                      <InfinityIcon className="w-6 h-6" />
+                    </div>
+                    <Button
+                      className="w-full"
+                      onClick={() => router.push("/store")}
+                    >
+                      MANAGE SUBSCRIPTION
+                    </Button>
                   </div>
-                  <p className="text-sm font-semibold">{palmTreesMessage}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Keep on learning
-                  </p>
-                </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <h4 className="font-medium leading-none">Palm Trees</h4>
+                      <div className="flex space-x-1">
+                        {[...Array(5)].map((_, i) => (
+                          <PalmIcon
+                            key={i}
+                            className={
+                              i < palmTreesCount ? "opacity-100" : "opacity-30"
+                            }
+                          />
+                        ))}
+                      </div>
+                      <p className="text-sm font-semibold">
+                        {palmTreesMessage}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Keep on learning
+                      </p>
+                    </div>
 
-                <div className="grid gap-2">
-                  <Button
-                    variant="outline"
-                    className="text-accent"
-                    onClick={() => router.push("/store")}
-                  >
-                    UNLIMITED PALM TREES
-                  </Button>
-                  <Button
-                    onClick={handleRefillPalmTrees}
-                    disabled={isRefillingPalmTrees || palmTreesCount >= 5}
-                  >
-                    {isRefillingPalmTrees
-                      ? "REFILLING..."
-                      : "REFILL PALM TREES"}
-                  </Button>
-                </div>
+                    <div className="grid gap-2">
+                      <Button
+                        variant="outline"
+                        className="text-accent"
+                        onClick={() => router.push("/store")}
+                      >
+                        UNLIMITED PALM TREES
+                      </Button>
+                      <Button
+                        onClick={handleRefillPalmTrees}
+                        disabled={isRefillingPalmTrees || palmTreesCount >= 5}
+                      >
+                        {isRefillingPalmTrees
+                          ? "REFILLING..."
+                          : "REFILL PALM TREES"}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </HoverCardContent>
             </HoverCard>
           </div>
@@ -410,42 +477,79 @@ export function UserStats() {
               <div
                 className={`absolute -top-2 h-3.5 w-3.5 rotate-45 bg-card border-l border-t ${getMobileTailPosition("palms")}`}
               />
-              <div className="space-y-2">
-                <h4 className="font-medium leading-none">Palm Trees</h4>
-                <div className="flex space-x-1">
-                  {[...Array(5)].map((_, i) => (
-                    <PalmIcon
-                      key={i}
-                      className={
-                        i < palmTreesCount ? "opacity-100" : "opacity-30"
-                      }
-                    />
-                  ))}
+              {hasProSubscription ? (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <h4 className="font-medium leading-none">Palm Trees</h4>
+                    <div className="flex space-x-1">
+                      {[...Array(5)].map((_, i) => (
+                        <PalmIcon key={i} />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="rounded-xl bg-gradient-to-r from-purple-400 to-purple-600 p-4 text-white shadow-md flex items-center justify-between">
+                    <div>
+                      <p className="font-extrabold text-sm tracking-wide uppercase">
+                        UNLIMITED PALM TREES
+                      </p>
+                      <p className="text-xs text-white/90">
+                        You have unlimited lives with Premium
+                      </p>
+                    </div>
+                    <InfinityIcon className="w-6 h-6" />
+                  </div>
+                  <button
+                    className="w-full py-2 bg-primary text-primary-foreground rounded-md"
+                    onClick={() => {
+                      handleCloseAll();
+                      router.push("/store");
+                    }}
+                  >
+                    MANAGE SUBSCRIPTION
+                  </button>
                 </div>
-                <p className="text-sm font-semibold">{palmTreesMessage}</p>
-                <p className="text-sm text-muted-foreground">
-                  Keep on learning
-                </p>
-              </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <h4 className="font-medium leading-none">Palm Trees</h4>
+                    <div className="flex space-x-1">
+                      {[...Array(5)].map((_, i) => (
+                        <PalmIcon
+                          key={i}
+                          className={
+                            i < palmTreesCount ? "opacity-100" : "opacity-30"
+                          }
+                        />
+                      ))}
+                    </div>
+                    <p className="text-sm font-semibold">{palmTreesMessage}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Keep on learning
+                    </p>
+                  </div>
 
-              <div className="grid gap-2">
-                <button
-                  className="w-full py-2 border rounded-md text-accent"
-                  onClick={() => {
-                    handleCloseAll();
-                    router.push("/store");
-                  }}
-                >
-                  UNLIMITED PALM TREES
-                </button>
-                <button
-                  className="w-full py-2 bg-primary text-primary-foreground rounded-md disabled:opacity-70"
-                  onClick={handleRefillPalmTrees}
-                  disabled={isRefillingPalmTrees || palmTreesCount >= 5}
-                >
-                  {isRefillingPalmTrees ? "REFILLING..." : "REFILL PALM TREES"}
-                </button>
-              </div>
+                  <div className="grid gap-2">
+                    <button
+                      className="w-full py-2 border rounded-md text-accent"
+                      onClick={() => {
+                        handleCloseAll();
+                        router.push("/store");
+                      }}
+                    >
+                      UNLIMITED PALM TREES
+                    </button>
+                    <button
+                      className="w-full py-2 bg-primary text-primary-foreground rounded-md disabled:opacity-70"
+                      onClick={handleRefillPalmTrees}
+                      disabled={isRefillingPalmTrees || palmTreesCount >= 5}
+                    >
+                      {isRefillingPalmTrees
+                        ? "REFILLING..."
+                        : "REFILL PALM TREES"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -453,5 +557,3 @@ export function UserStats() {
     </>
   );
 }
-
-

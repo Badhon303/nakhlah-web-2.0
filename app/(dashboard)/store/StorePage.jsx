@@ -13,16 +13,6 @@ import { useDatePackagesStore } from "@/stores/useDatePackagesStore";
 import { useSubscriptionPlansStore } from "@/stores/useSubscriptionPlansStore";
 import { Button } from "@/components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -37,10 +27,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { toast } from "@/components/nakhlah/Toast";
-import {
-  cancelSubscription,
-  fetchCurrentSubscription,
-} from "@/services/api";
+import { cancelSubscription, fetchCurrentSubscription } from "@/services/api";
 import {
   purchaseSubscriptionPlan,
   purchaseDatePackage,
@@ -89,8 +76,7 @@ export default function StorePage() {
   const isLoadingDates = useDatePackagesStore((state) => state.isLoading);
   const isLoadingPlans = useSubscriptionPlansStore((state) => state.isLoading);
   const datesError = useDatePackagesStore((state) => state.error);
-  const isLoadingCurrent =
-    isSessionValid(session) && isLoadingCurrentState;
+  const isLoadingCurrent = isSessionValid(session) && isLoadingCurrentState;
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -255,7 +241,9 @@ export default function StorePage() {
     }
 
     setCheckoutId(`premium:${newPlanId}`);
-    const result = await purchaseSubscriptionPlan(plan || currentSubscription?.plan);
+    const result = await purchaseSubscriptionPlan(
+      plan || currentSubscription?.plan,
+    );
 
     setCheckoutId(null);
 
@@ -528,21 +516,27 @@ export default function StorePage() {
           </motion.div>
         </section>
 
-        <AlertDialog
-          open={showConfirmCancel}
-          onOpenChange={setShowConfirmCancel}
-        >
-          <AlertDialogContent className="relative">
-            <AlertDialogCancel
-              disabled={isCanceling}
-              className="absolute right-4 top-4 h-4 w-4 p-0 border-0 bg-transparent text-foreground opacity-70 hover:opacity-100 hover:bg-transparent focus:ring-0 focus:ring-offset-0 disabled:pointer-events-none"
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close</span>
-            </AlertDialogCancel>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Cancel subscription?</AlertDialogTitle>
-              <AlertDialogDescription>
+        <Dialog open={showConfirmCancel} onOpenChange={setShowConfirmCancel}>
+          <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md p-0 gap-0 border-border [&>button]:hidden rounded-2xl overflow-hidden shadow-xl border-2 bg-card">
+            <div className="bg-accent p-4 sm:p-5 text-center relative">
+              <button
+                onClick={() => setShowConfirmCancel(false)}
+                disabled={isCanceling}
+                className="absolute top-3 sm:top-4 right-3 sm:right-4 text-white/70 hover:text-white transition-colors disabled:pointer-events-none"
+              >
+                <X className="w-5 h-5" />
+                <span className="sr-only">Close</span>
+              </button>
+              <DialogTitle className="text-xl sm:text-2xl font-black text-white tracking-wide">
+                Cancel subscription?
+              </DialogTitle>
+              <p className="text-white/90 font-medium text-xs sm:text-sm mt-1">
+                You can keep using premium until the end of your billing period
+              </p>
+            </div>
+
+            <div className="p-6 bg-card text-center">
+              <p className="text-sm text-muted-foreground mb-6">
                 Your{" "}
                 <span className="font-semibold text-foreground">
                   {currentSubscription?.plan?.name || "Premium"}
@@ -557,33 +551,38 @@ export default function StorePage() {
                     : "the end of your current billing period"}
                 </span>
                 .
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={isCanceling}>
-                Keep Subscription
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={(e) => {
-                  e.preventDefault();
-                  confirmCancelSubscription();
-                }}
-                disabled={isCanceling}
-                className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
-              >
-                {isCanceling ? "Canceling..." : "Yes, Cancel"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setShowConfirmCancel(false)}
+                  disabled={isCanceling}
+                >
+                  Keep Subscription
+                </Button>
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    confirmCancelSubscription();
+                  }}
+                  disabled={isCanceling}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                >
+                  {isCanceling ? "Canceling..." : "Yes, Cancel"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <Dialog
           open={showSubscriptionDetails}
           onOpenChange={setShowSubscriptionDetails}
         >
-          <DialogContent className="sm:rounded-3xl border-2 border-border p-0 overflow-hidden max-w-2xl">
+          <DialogContent className="w-[calc(100%-2rem)] sm:max-w-lg p-0 gap-0 border-border [&>button]:hidden rounded-2xl overflow-hidden shadow-xl border-2">
             <div
-              className={`p-6 pb-0 ${
+              className={`relative p-6 pb-0 ${
                 currentSubscription?.status === "cancelled"
                   ? "bg-gradient-to-br from-slate-100 via-background to-background dark:from-slate-900 dark:via-background dark:to-background"
                   : currentSubscription?.cancelAtPeriodEnd
@@ -591,6 +590,13 @@ export default function StorePage() {
                     : "bg-gradient-to-br from-emerald-50 via-background to-background dark:from-emerald-950/30 dark:via-background dark:to-background"
               }`}
             >
+              <button
+                onClick={() => setShowSubscriptionDetails(false)}
+                className="absolute top-4 right-4 text-foreground/60 hover:text-foreground transition-colors z-10"
+              >
+                <X className="w-5 h-5" />
+                <span className="sr-only">Close</span>
+              </button>
               <div>
                 <DialogTitle className="text-2xl font-bold text-foreground">
                   {currentSubscription?.plan?.name || "Premium"}
@@ -637,6 +643,7 @@ export default function StorePage() {
                         : "proud"
                   }
                   size="xxl"
+                  className="p-2"
                 />
               </div>
             </div>
@@ -797,25 +804,41 @@ export default function StorePage() {
             }
           }}
         >
-          <DialogContent className="sm:rounded-3xl border-2 border-border p-0 overflow-hidden max-w-md">
-            <div className="p-6 text-center">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-bold text-foreground">
-                  Switch plan?
-                </DialogTitle>
-                <DialogDescription className="text-muted-foreground mt-2">
-                  You currently have the{" "}
-                  <span className="font-semibold text-foreground">
-                    {currentSubscription?.plan?.name || "current"}
-                  </span>{" "}
-                  plan. We&apos;ll cancel it and start checkout for the{" "}
-                  <span className="font-semibold text-foreground">
-                    {pendingSwitchPlan?.duration}
-                  </span>{" "}
-                  plan.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter className="mt-6 flex-col sm:flex-row gap-3 sm:justify-center">
+          <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md p-0 gap-0 border-border [&>button]:hidden rounded-2xl overflow-hidden shadow-xl border-2 bg-card">
+            <div className="bg-accent p-4 sm:p-5 text-center relative">
+              <button
+                onClick={() => {
+                  setPendingSwitchPlan(null);
+                  setIsCanceling(false);
+                  setCheckoutId(null);
+                }}
+                disabled={isCanceling}
+                className="absolute top-3 sm:top-4 right-3 sm:right-4 text-white/70 hover:text-white transition-colors disabled:pointer-events-none"
+              >
+                <X className="w-5 h-5" />
+                <span className="sr-only">Close</span>
+              </button>
+              <DialogTitle className="text-xl sm:text-2xl font-black text-white tracking-wide">
+                Switch plan?
+              </DialogTitle>
+              <p className="text-white/90 font-medium text-xs sm:text-sm mt-1">
+                Change your billing plan
+              </p>
+            </div>
+
+            <div className="p-6 bg-card text-center">
+              <p className="text-sm text-muted-foreground mb-6">
+                You currently have the{" "}
+                <span className="font-semibold text-foreground">
+                  {currentSubscription?.plan?.name || "current"}
+                </span>{" "}
+                plan. We&apos;ll cancel it and start checkout for the{" "}
+                <span className="font-semibold text-foreground">
+                  {pendingSwitchPlan?.duration}
+                </span>{" "}
+                plan.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   variant="outline"
                   className="flex-1"
@@ -824,6 +847,7 @@ export default function StorePage() {
                     setIsCanceling(false);
                     setCheckoutId(null);
                   }}
+                  disabled={isCanceling}
                 >
                   Keep Current
                 </Button>
@@ -838,7 +862,7 @@ export default function StorePage() {
                     "Switch Plan"
                   )}
                 </Button>
-              </DialogFooter>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
