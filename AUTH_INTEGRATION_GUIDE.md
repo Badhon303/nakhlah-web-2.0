@@ -29,10 +29,17 @@ Mobile Google login uses the native Google Sign-In SDK through `@capawesome/capa
 
 - Android: create/configure an Android OAuth client for package `com.fintechhub.nakhla` with the release and debug SHA-1 fingerprints.
 - iOS: create an iOS OAuth client, then add its `GIDClientID` and reversed client-ID URL scheme to `ios/App/App/Info.plist`.
-- `NEXT_PUBLIC_GOOGLE_CLIENT_ID` must be the Web OAuth client ID. The native SDK returns a Google access token, which is sent to `/api/users/social-login` for verification.
+- `NEXT_PUBLIC_GOOGLE_CLIENT_ID` must be the Web OAuth client ID. Native login requests only authentication and sends Google's ID token to `/api/users/social-login` for verification; it does not request extra profile scopes.
 - Run `npx cap sync` after configuring the native credentials.
+- The API deployment should set `GOOGLE_CLIENT_ID` to the same Web OAuth client ID so it can validate native ID-token audiences.
+- The mobile build must expose `NEXT_PUBLIC_GOOGLE_CLIENT_ID`; `GOOGLE_CLIENT_ID` alone is not available to browser code and will not initialize the native plugin.
+- On Android, register the exact package `com.fintechhub.nakhla` and the SHA-1 fingerprints for the debug and release signing keys in Google Cloud Console. A missing or incorrect fingerprint commonly surfaces as `SIGN_IN_CANCELED` from Credential Manager.
 
 The HTTPS callback is only used by the browser/web fallback. It is not used by native Android or iOS login.
+
+### Native sign-in troubleshooting
+
+If the app displays `The user canceled the sign-in flow` without the account picker appearing, verify the Android OAuth client package/SHA-1 configuration first. This error is emitted by the native Google SDK before the app calls `/api/users/social-login`; the API cannot cause that specific error. Once the native flow succeeds, the API verifies the returned Google ID token at `POST /api/users/social-login`.
 
 ## Completed Integrations
 
