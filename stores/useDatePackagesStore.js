@@ -10,21 +10,33 @@ import { fetchDatePackages as fetchDatePackagesApi } from "@/services/api";
  */
 const DATE_PACKAGES_TTL_MS = 5 * 60 * 1000;
 
-const mapDatePackage = (item, index) => ({
-    id: item?.id || `date-package-${index}`,
-    label: item?.name || "DATE PACKAGE",
-    amount: Number(item?.dateAmount) || 0,
-    price: `$${item?.price ?? 0}`,
-    description:
-        item?.description ||
-        `Get ${item?.dateAmount || 0} Dates to keep learning without interruption.`,
-    buttonLabel: "GET DATES",
-    emoji: "💎",
-    popular: item?.sortOrder === 2,
-    isActive: item?.isActive !== false,
-    sortOrder: item?.sortOrder || 0,
-    raw: item,
-});
+const REVENUECAT_DATE_PACKAGES = {
+    "date-package-1": { amount: 500, price: 2, label: "DATE REFILL" },
+    "date-package-2": { amount: 1000, price: 5, label: "DATE BOOST" },
+    "date-package-3": { amount: 2500, price: 10, label: "DATE SURGE" },
+};
+
+const mapDatePackage = (item, index) => {
+    const id = item?.id || `date-package-${index}`;
+    const defaults = REVENUECAT_DATE_PACKAGES[id] || {};
+    const amount = Number(item?.dateAmount) || defaults.amount || 0;
+
+    return {
+        id,
+        label: item?.name || defaults.label || "DATE PACKAGE",
+        amount,
+        price: `$${item?.price ?? defaults.price ?? 0}`,
+        description:
+            item?.description ||
+            `Get ${amount} Dates to keep learning without interruption.`,
+        buttonLabel: "GET DATES",
+        emoji: "💎",
+        popular: item?.sortOrder === 2 || id === "date-package-2",
+        isActive: item?.isActive !== false,
+        sortOrder: item?.sortOrder || Number(id.split("-").pop()) || 0,
+        raw: item,
+    };
+};
 
 export const useDatePackagesStore = create((set, get) => ({
     ...createCachedSlice(DATE_PACKAGES_TTL_MS),

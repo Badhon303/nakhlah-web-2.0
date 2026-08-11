@@ -51,8 +51,17 @@ Add these to `.env` / `.env.local` (all are read via `NEXT_PUBLIC_*` since they'
 2. In App Store Connect / Google Play Console, create the actual subscription/in-app-purchase products (monthly/annual plans, date/gem packs) and import them into RevenueCat.
 3. Create an **entitlement** (e.g. `premium`) and attach the subscription products to it.
 4. Create two **offerings**: one for subscriptions (packages typed `MONTHLY` / `ANNUAL`) and one for date packages (e.g. offering id `dates`), each containing the relevant packages.
-5. Optionally, have the backend catalog (`fetchSubscriptionPlans` / `fetchDatePackages`) return `rcPackageId` (or `rcProductId`) per item so the frontend mapping in `services/revenuecat-checkout.js` is explicit instead of relying on interval/amount heuristics.
-6. Configure a RevenueCat → backend webhook so purchases/renewals/cancellations update your own subscription records (used by `fetchCurrentSubscription` / `cancelSubscription`).
+5. The date package catalog ids map to the RevenueCat products below. The frontend also accepts `rcPackageId` / `rcProductId` from the backend, which takes precedence over the built-in mapping.
+
+| Catalog id | Dates | Price | RevenueCat package | RevenueCat product |
+| --- | ---: | ---: | --- | --- |
+| `date-package-1` | 500 | $2 | `date-package-1` | `date_package_1` |
+| `date-package-2` | 1,000 | $5 | `date-package-2` | `date_package_2` |
+| `date-package-3` | 2,500 | $10 | `date-package-3` | `date_package_3` |
+
+The subscription mappings are `$rc_monthly` → `monthly` and `$rc_annual` → `yearly`.
+
+6. Date packages are one-time purchases and must not be attached to the `premium` entitlement. Configure a RevenueCat → backend webhook to credit the purchased dates exactly once using the transaction/product id as the idempotency key. Subscription purchases/renewals/cancellations should update your own subscription records (used by `fetchCurrentSubscription` / `cancelSubscription`).
 
 ## Native project sync
 

@@ -18,11 +18,44 @@ import {
     getDatesOfferingId,
 } from "@/lib/revenuecat";
 
+const DATE_PACKAGE_REVENUECAT_IDS = {
+    "date-package-1": {
+        packageId: "date-package-1",
+        productId: "date_package_1",
+        dateAmount: 500,
+    },
+    "date-package-2": {
+        packageId: "date-package-2",
+        productId: "date_package_2",
+        dateAmount: 1000,
+    },
+    "date-package-3": {
+        packageId: "date-package-3",
+        productId: "date_package_3",
+        dateAmount: 2500,
+    },
+};
+
+const SUBSCRIPTION_REVENUECAT_IDS = {
+    month: { packageId: "$rc_monthly", productId: "monthly" },
+    year: { packageId: "$rc_annual", productId: "yearly" },
+};
+
 function readIdentifierHints(item) {
     const raw = item?.raw || item || {};
-    return {
+    const configuredHints = {
         packageId: raw.rcPackageId || raw.revenueCatPackageId || null,
         productId: raw.rcProductId || raw.revenueCatProductId || null,
+    };
+    const knownDateHints = DATE_PACKAGE_REVENUECAT_IDS[raw.id || item?.id];
+    const knownSubscriptionHints = SUBSCRIPTION_REVENUECAT_IDS[
+        raw.interval || item?.interval
+    ];
+    const knownHints = knownDateHints || knownSubscriptionHints;
+
+    return {
+        packageId: configuredHints.packageId || knownHints?.packageId || null,
+        productId: configuredHints.productId || knownHints?.productId || null,
     };
 }
 
@@ -57,6 +90,15 @@ function matchSubscriptionByInterval(packages, plan) {
 
 function matchDatePackage(packages, pkg) {
     const amount = Number(pkg?.amount) || Number(pkg?.raw?.dateAmount) || null;
+    const knownHints = Object.values(DATE_PACKAGE_REVENUECAT_IDS).find(
+        (entry) => entry.dateAmount === amount,
+    );
+
+    if (knownHints) {
+        const byKnownId = matchByHints(packages, knownHints);
+        if (byKnownId) return byKnownId;
+    }
+
     if (amount) {
         const byAmount = packages.find(
             (p) =>
