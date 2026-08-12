@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Camera, CheckCircle2 } from "lucide-react";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import { cn } from "@/lib/utils";
 
 const MAX_FILE_SIZE = 300 * 1024;
 
@@ -12,30 +13,26 @@ export function ProfileInfoStep({
   fullName,
   contactNumber,
   profilePicture,
+  contactError,
+  nameError,
   onChange,
 }) {
   const [localName, setLocalName] = useState(fullName || "");
   const [localContact, setLocalContact] = useState(contactNumber || "");
   const [localPicture, setLocalPicture] = useState(profilePicture || null);
   const [fileError, setFileError] = useState("");
-  const [contactError, setContactError] = useState("");
+
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
   useEffect(() => {
-    onChange({
+    onChangeRef.current({
       fullName: localName,
       contactNumber: localContact,
       profilePicture: localPicture,
       fileError,
-      contactError,
     });
-  }, [
-    localName,
-    localContact,
-    localPicture,
-    fileError,
-    contactError,
-    onChange,
-  ]);
+  }, [localName, localContact, localPicture, fileError]);
 
   const previewUrl = useMemo(() => {
     if (!localPicture) return "";
@@ -100,9 +97,16 @@ export function ProfileInfoStep({
           <Input
             value={localName}
             onChange={(e) => setLocalName(e.target.value)}
-            className="rounded-xl"
+            className={cn(
+              "rounded-xl",
+              nameError &&
+                "border-destructive focus-visible:ring-destructive/40",
+            )}
             placeholder="Your full name"
           />
+          {nameError ? (
+            <p className="text-xs text-destructive mt-1">{nameError}</p>
+          ) : null}
         </div>
 
         <div className="bg-card border border-border p-4 rounded-2xl">
@@ -111,11 +115,12 @@ export function ProfileInfoStep({
           </label>
           <Input
             value={localContact}
-            onChange={(e) => {
-              setLocalContact(e.target.value);
-              setContactError("");
-            }}
-            className="rounded-xl"
+            onChange={(e) => setLocalContact(e.target.value)}
+            className={cn(
+              "rounded-xl",
+              contactError &&
+                "border-destructive focus-visible:ring-destructive/40",
+            )}
             placeholder="Your contact number"
           />
           {contactError ? (

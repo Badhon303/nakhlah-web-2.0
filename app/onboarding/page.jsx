@@ -27,11 +27,19 @@ import {
   fetchMyProfile,
   fetchUserOnboardingGlobals,
   refreshAccessToken,
+  createUserProfile,
   updateMyProfile,
 } from "@/services/api/auth";
 import { signIn } from "next-auth/react";
 import { toast } from "@/components/nakhlah/Toast";
 import { buildApiUrl } from "@/lib/api-config";
+
+// Allows optional leading '+', parentheses, spaces, and hyphens,
+// requiring between 7 and 25 actual characters (the global standard).
+const looseGlobalPhoneRegex = /^\+?([0-9\s\-()]{7,25})$/;
+const NAME_MAX_LENGTH = 999;
+// Letters (any language), spaces, apostrophes, and hyphens only — no digits or special characters.
+const nameRegex = /^[\p{L}\s'-]+$/u;
 
 const steps = [
   { id: 1, label: "Strength" },
@@ -190,6 +198,7 @@ export default function Onboarding() {
   const [profilePicture, setProfilePicture] = useState(null);
   const [profileFileError, setProfileFileError] = useState("");
   const [profileContactError, setProfileContactError] = useState("");
+  const [profileNameError, setProfileNameError] = useState("");
   const [age, setAge] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -366,8 +375,7 @@ export default function Onboarding() {
         return (
           fullName.trim().length > 1 &&
           contactNumber.trim().length > 0 &&
-          !profileFileError &&
-          !profileContactError
+          !profileFileError
         );
       case 8:
         return age !== "";
@@ -380,9 +388,39 @@ export default function Onboarding() {
     }
   };
 
+  const validateProfileStep = () => {
+    let isValid = true;
+
+    const trimmedName = fullName.trim();
+    if (trimmedName.length > NAME_MAX_LENGTH) {
+      setProfileNameError(
+        `Full name must be under ${NAME_MAX_LENGTH} characters.`,
+      );
+      isValid = false;
+    } else if (!nameRegex.test(trimmedName)) {
+      setProfileNameError("Full name cannot contain special characters.");
+      isValid = false;
+    } else {
+      setProfileNameError("");
+    }
+
+    if (!looseGlobalPhoneRegex.test(contactNumber.trim())) {
+      setProfileContactError("Enter a valid contact number.");
+      isValid = false;
+    } else {
+      setProfileContactError("");
+    }
+
+    return isValid;
+  };
+
   const handleNext = async () => {
     if (isSocialSignup && currentStep === 8) {
       setCurrentStep(10);
+      return;
+    }
+
+    if (currentStep === 7 && !validateProfileStep()) {
       return;
     }
 
@@ -491,6 +529,12 @@ export default function Onboarding() {
   };
 
   const handleComplete = async () => {
+    if (!validateProfileStep()) {
+      toast.error("Please fix the errors in your profile info.");
+      setCurrentStep(7);
+      return;
+    }
+
     const token = await getActiveAccessToken();
 
     if (!token) {
@@ -515,14 +559,12 @@ export default function Onboarding() {
       contactNumber: contactNumber.trim(),
     };
 
-    const profileResult = await updateMyProfile(
-      profileData,
-      profilePicture || null,
-      token,
-    );
+    const profileResult = isSocialSignup
+      ? await createUserProfile(profileData, profilePicture || null, token)
+      : await updateMyProfile(profileData, profilePicture || null, token);
 
     if (!profileResult.success) {
-      toast.error(profileResult.error || "Failed to create profile");
+      toast.error(profileResult.error || "Failed to save profile");
       return;
     }
 
@@ -623,16 +665,21 @@ export default function Onboarding() {
             fullName={fullName}
             contactNumber={contactNumber}
             profilePicture={profilePicture}
+            contactError={profileContactError}
+            nameError={profileNameError}
             onChange={(fields) => {
-              if (fields.fullName !== undefined) setFullName(fields.fullName);
-              if (fields.contactNumber !== undefined)
+              if (fields.fullName !== undefined) {
+                setFullName(fields.fullName);
+                setProfileNameError("");
+              }
+              if (fields.contactNumber !== undefined) {
                 setContactNumber(fields.contactNumber);
+                setProfileContactError("");
+              }
               if (fields.profilePicture !== undefined)
                 setProfilePicture(fields.profilePicture);
               if (fields.fileError !== undefined)
                 setProfileFileError(fields.fileError);
-              if (fields.contactError !== undefined)
-                setProfileContactError(fields.contactError);
             }}
           />
         );
