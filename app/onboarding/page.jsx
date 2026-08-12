@@ -1,7 +1,7 @@
 "use client";
 
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ProgressSteps } from "@/components/nakhlah/ProgressSteps";
@@ -33,13 +33,6 @@ import {
 import { signIn } from "next-auth/react";
 import { toast } from "@/components/nakhlah/Toast";
 import { buildApiUrl } from "@/lib/api-config";
-
-// Allows optional leading '+', parentheses, spaces, and hyphens,
-// requiring between 7 and 25 actual characters (the global standard).
-const looseGlobalPhoneRegex = /^\+?([0-9\s\-()]{7,25})$/;
-const NAME_MAX_LENGTH = 999;
-// Letters (any language), spaces, apostrophes, and hyphens only — no digits or special characters.
-const nameRegex = /^[\p{L}\s'-]+$/u;
 
 const steps = [
   { id: 1, label: "Strength" },
@@ -199,6 +192,7 @@ export default function Onboarding() {
   const [profileFileError, setProfileFileError] = useState("");
   const [profileContactError, setProfileContactError] = useState("");
   const [profileNameError, setProfileNameError] = useState("");
+  const [profileEmailError, setProfileEmailError] = useState("");
   const [age, setAge] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -375,52 +369,26 @@ export default function Onboarding() {
         return (
           fullName.trim().length > 1 &&
           contactNumber.trim().length > 0 &&
-          !profileFileError
+          !profileFileError &&
+          !profileContactError &&
+          !profileNameError
         );
       case 8:
         return age !== "";
       case 9:
         return isSocialSignup
           ? true
-          : email.trim().includes("@") && password.trim().length >= 6;
+          : email.trim().length > 0 &&
+              !profileEmailError &&
+              password.trim().length >= 6;
       default:
         return true;
     }
   };
 
-  const validateProfileStep = () => {
-    let isValid = true;
-
-    const trimmedName = fullName.trim();
-    if (trimmedName.length > NAME_MAX_LENGTH) {
-      setProfileNameError(
-        `Full name must be under ${NAME_MAX_LENGTH} characters.`,
-      );
-      isValid = false;
-    } else if (!nameRegex.test(trimmedName)) {
-      setProfileNameError("Full name cannot contain special characters.");
-      isValid = false;
-    } else {
-      setProfileNameError("");
-    }
-
-    if (!looseGlobalPhoneRegex.test(contactNumber.trim())) {
-      setProfileContactError("Enter a valid contact number.");
-      isValid = false;
-    } else {
-      setProfileContactError("");
-    }
-
-    return isValid;
-  };
-
   const handleNext = async () => {
     if (isSocialSignup && currentStep === 8) {
       setCurrentStep(10);
-      return;
-    }
-
-    if (currentStep === 7 && !validateProfileStep()) {
       return;
     }
 
@@ -529,12 +497,6 @@ export default function Onboarding() {
   };
 
   const handleComplete = async () => {
-    if (!validateProfileStep()) {
-      toast.error("Please fix the errors in your profile info.");
-      setCurrentStep(7);
-      return;
-    }
-
     const token = await getActiveAccessToken();
 
     if (!token) {
@@ -594,6 +556,25 @@ export default function Onboarding() {
     router.push("/");
     router.refresh();
   };
+
+  const handleProfileInfoChange = useCallback((fields) => {
+    if (fields.fullName !== undefined) setFullName(fields.fullName);
+    if (fields.contactNumber !== undefined)
+      setContactNumber(fields.contactNumber);
+    if (fields.profilePicture !== undefined)
+      setProfilePicture(fields.profilePicture);
+    if (fields.fileError !== undefined) setProfileFileError(fields.fileError);
+    if (fields.contactError !== undefined)
+      setProfileContactError(fields.contactError);
+    if (fields.nameError !== undefined) setProfileNameError(fields.nameError);
+  }, []);
+
+  const handleAccountChange = useCallback((fields) => {
+    if (fields.email !== undefined) setEmail(fields.email);
+    if (fields.password !== undefined) setPassword(fields.password);
+    if (fields.emailError !== undefined)
+      setProfileEmailError(fields.emailError);
+  }, []);
 
   const renderStep = () => {
     switch (currentStep) {
@@ -665,22 +646,7 @@ export default function Onboarding() {
             fullName={fullName}
             contactNumber={contactNumber}
             profilePicture={profilePicture}
-            contactError={profileContactError}
-            nameError={profileNameError}
-            onChange={(fields) => {
-              if (fields.fullName !== undefined) {
-                setFullName(fields.fullName);
-                setProfileNameError("");
-              }
-              if (fields.contactNumber !== undefined) {
-                setContactNumber(fields.contactNumber);
-                setProfileContactError("");
-              }
-              if (fields.profilePicture !== undefined)
-                setProfilePicture(fields.profilePicture);
-              if (fields.fileError !== undefined)
-                setProfileFileError(fields.fileError);
-            }}
+            onChange={handleProfileInfoChange}
           />
         );
       case 8:
@@ -698,10 +664,7 @@ export default function Onboarding() {
           <AccountStep
             email={email}
             password={password}
-            onChange={(fields) => {
-              if (fields.email !== undefined) setEmail(fields.email);
-              if (fields.password !== undefined) setPassword(fields.password);
-            }}
+            onChange={handleAccountChange}
           />
         );
       case 10:
