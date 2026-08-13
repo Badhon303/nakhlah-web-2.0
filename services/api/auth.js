@@ -251,15 +251,32 @@ export async function loginUser(email, password) {
     }
 }
 
-export async function createUserProfile(profileData, token) {
+export async function createUserProfile(profileData, profilePictureFile, token) {
     try {
+        if (!token) {
+            throw new Error("Missing authentication token");
+        }
+
+        let body;
+        let headers;
+
+        if (profilePictureFile) {
+            const formData = new FormData();
+            formData.append("data", JSON.stringify(profileData || {}));
+            formData.append("profilePicture", profilePictureFile);
+            body = formData;
+            headers = {};
+        } else {
+            body = JSON.stringify(profileData);
+            headers = { "Content-Type": "application/json" };
+        }
+
         const { response } = await fetchWithAuthRetry("/api/user-profile", {
             method: "POST",
             token,
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(profileData),
+            headers,
+            body,
+
         });
 
         const data = await response.json();
@@ -873,4 +890,3 @@ export async function resetPassword(token, password) {
 //         };
 //     }
 // }
-

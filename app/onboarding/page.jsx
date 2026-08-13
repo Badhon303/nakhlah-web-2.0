@@ -188,6 +188,9 @@ export default function Onboarding() {
   const [profilePicture, setProfilePicture] = useState(null);
   const [profileFileError, setProfileFileError] = useState("");
   const [profileContactError, setProfileContactError] = useState("");
+  const [profileNameError, setProfileNameError] = useState("");
+  const [profileEmailError, setProfileEmailError] = useState("");
+  const [profilePasswordError, setProfilePasswordError] = useState("");
   const [age, setAge] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -361,14 +364,18 @@ export default function Onboarding() {
           fullName.trim().length > 1 &&
           contactNumber.trim().length > 0 &&
           !profileFileError &&
-          !profileContactError
+          !profileContactError &&
+          !profileNameError
         );
       case 8:
         return age !== "";
       case 9:
         return isSocialSignup
           ? true
-          : email.trim().includes("@") && password.trim().length >= 6;
+          : email.trim().length > 0 &&
+              !profileEmailError &&
+              password.trim().length >= 6 &&
+              !profilePasswordError;
       default:
         return true;
     }
@@ -626,6 +633,8 @@ export default function Onboarding() {
                 setProfileFileError(fields.fileError);
               if (fields.contactError !== undefined)
                 setProfileContactError(fields.contactError);
+              if (fields.nameError !== undefined)
+                setProfileNameError(fields.nameError);
             }}
           />
         );
@@ -647,6 +656,10 @@ export default function Onboarding() {
             onChange={(fields) => {
               if (fields.email !== undefined) setEmail(fields.email);
               if (fields.password !== undefined) setPassword(fields.password);
+              if (fields.emailError !== undefined)
+                setProfileEmailError(fields.emailError);
+              if (fields.passwordError !== undefined)
+                setProfilePasswordError(fields.passwordError);
             }}
           />
         );
