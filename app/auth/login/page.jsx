@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
-import { signIn } from "@/lib/auth-client";
+import { signIn, useSession } from "@/lib/auth-client";
+import { isSessionValid } from "@/lib/authUtils";
 import LogoAnimation from "@/components/icons/Logo";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/nakhlah/Toast";
@@ -17,6 +18,7 @@ import { useProfileStore } from "@/stores/useProfileStore";
 export default function Login() {
   const router = useRouter();
   const clearProfile = useProfileStore((state) => state.clear);
+  const { data: session, status } = useSession();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,6 +26,12 @@ export default function Login() {
   const [isCredentialsLoading, setIsCredentialsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const isLoading = isCredentialsLoading || isGoogleLoading;
+
+  // If a valid session already exists, never paint the sign-in form.
+  // This prevents flashing the form before redirecting.
+  if (status === "authenticated" && isSessionValid(session)) {
+    return null;
+  }
 
   const handleGoogleLogin = async (event) => {
     event?.preventDefault();
@@ -90,7 +98,6 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-background flex items-start sm:items-center justify-center px-4 py-6">
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
-        {/* Left Side - Maskot */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -103,7 +110,6 @@ export default function Login() {
           </p>
         </motion.div>
 
-        {/* Right Side - Form */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -111,12 +117,10 @@ export default function Login() {
           className="w-full max-w-md mx-auto pt-6 lg:pt-0"
         >
           <div className="bg-transparent lg:bg-card rounded-none lg:rounded-3xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-8">
-            {/* Mobile Logo */}
             <div className="flex justify-center mb-4 lg:hidden">
               <LogoAnimation className="w-44" />
             </div>
 
-            {/* Header */}
             <div className="mb-8">
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
@@ -132,9 +136,7 @@ export default function Login() {
               </motion.div>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email */}
               <div className="space-y-2">
                 <Label
                   htmlFor="email"
@@ -154,7 +156,6 @@ export default function Login() {
                 />
               </div>
 
-              {/* Password */}
               <div className="space-y-2">
                 <Label
                   htmlFor="password"
@@ -187,13 +188,12 @@ export default function Login() {
                 </div>
               </div>
 
-              {/* Remember Me & Forgot Password */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Checkbox
                     id="remember"
                     checked={rememberMe}
-                    onCheckedChange={setRememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked)}
                     disabled={isLoading}
                   />
                   <Label
@@ -211,7 +211,6 @@ export default function Login() {
                 </Link>
               </div>
 
-              {/* Sign In Button */}
               <div>
                 <Button
                   type="submit"
@@ -222,7 +221,6 @@ export default function Login() {
                 </Button>
               </div>
 
-              {/* Divider */}
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-border"></div>
@@ -234,7 +232,6 @@ export default function Login() {
                 </div>
               </div>
 
-              {/* Google Sign In Button */}
               <Button
                 type="button"
                 variant="outline"
@@ -264,7 +261,6 @@ export default function Login() {
                 Continue with Google
               </Button>
 
-              {/* Sign Up Link */}
               <p className="text-center text-sm text-muted-foreground">
                 Don&apos;t have an account?{" "}
                 <Link

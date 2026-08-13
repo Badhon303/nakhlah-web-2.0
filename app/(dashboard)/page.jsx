@@ -119,6 +119,7 @@ const buildJourneyView = (journey, currentProgress) => {
           isCompleted,
           isCurrent,
           isLocked,
+          lessonCount: Number(task?.lessonCount) || 0,
           icon: isGiftBox ? <Trophy size="xl" /> : null,
           level: unit.unitOrder,
           sectionId,

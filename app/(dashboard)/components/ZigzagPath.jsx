@@ -2,6 +2,9 @@ import { Circle } from "./Circle";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSession } from "@/lib/auth-client";
+import { getSessionToken, isSessionValid } from "@/lib/authUtils";
+import { fetchTaskLessons } from "@/services/api";
 
 const PATH_CENTER = 50;
 const PATH_AMPLITUDE = 25;
@@ -154,10 +157,12 @@ function UnitDivider({ label, colorIndex }) {
 }
 
 export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
+  const { data: session } = useSession();
   const [currentLevelId, setCurrentLevelId] = useState("");
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== "undefined" ? window.innerWidth : 0,
   );
+  const [lessonCountsByTask, setLessonCountsByTask] = useState({});
   const hasScrolledRef = useRef(false);
   const prevLessonsRef = useRef(lessons);
 
@@ -172,17 +177,76 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
     (l) => l.id === (currentLevelId || levels[0]?.id),
   );
 
-  const groupedLessons = lessons.reduce((acc, lesson) => {
-    const key = lesson.sectionId || lesson.level;
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(lesson);
-    return acc;
-  }, {});
+  const groupedLessons = useMemo(() => {
+    return lessons.reduce((acc, lesson) => {
+      const key = lesson.sectionId || lesson.level;
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(lesson);
+      return acc;
+    }, {});
+  }, [lessons]);
 
   const currentSectionLessons = useMemo(
     () => (currentLevel ? groupedLessons[currentLevel.id] || [] : []),
     [currentLevel, groupedLessons],
   );
+
+  // Compute lesson-level progress for the currently visible unit.
+  // We only call the API for tasks that are unlocked but not yet completed,
+  // because:
+  //   - locked tasks cannot have completed lessons -> completed = 0
+  //   - completed tasks are fully done -> completed = lessonCount
+  // The total lesson count is already provided by the journey-structure API.
+  useEffect(() => {
+    if (!currentSectionLessons.length || !isSessionValid(session)) return;
+
+    const token = getSessionToken(session);
+    if (!token) return;
+
+    const tasksToFetch = currentSectionLessons.filter(
+      (task) =>
+        !lessonCountsByTask[task.apiId] &&
+        !task.isLocked &&
+        !task.isCompleted &&
+        task.lessonCount > 0,
+    );
+    if (!tasksToFetch.length) return;
+
+    let cancelled = false;
+
+    const load = async () => {
+      const results = await Promise.all(
+        tasksToFetch.map(async (task) => {
+          const result = await fetchTaskLessons(task.apiId, token);
+          if (!result?.success) return null;
+          const docs = Array.isArray(result?.data?.docs)
+            ? result.data.docs
+            : [];
+          const completed = docs.filter(
+            (lesson) => lesson.status === "completed",
+          ).length;
+          return { apiId: task.apiId, completed };
+        }),
+      );
+
+      if (cancelled) return;
+
+      setLessonCountsByTask((prev) => {
+        const next = { ...prev };
+        results.forEach((r) => {
+          if (!r) return;
+          next[r.apiId] = { completed: r.completed };
+        });
+        return next;
+      });
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentSectionLessons, session, lessonCountsByTask]);
   const currentTask =
     currentSectionLessons.find((lesson) => lesson.isCurrent) ||
     currentSectionLessons.find((lesson) => !lesson.isLocked) ||
@@ -190,12 +254,47 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
 
   const levelProgress = useMemo(() => {
     if (!currentSectionLessons.length) return 0;
-    const total = currentSectionLessons.length;
-    const unlocked = currentSectionLessons.filter(
-      (lesson) => !lesson.isLocked,
-    ).length;
-    return total > 0 ? Math.round((unlocked / total) * 100) : 0;
-  }, [currentSectionLessons]);
+
+    let total = 0;
+    let completed = 0;
+    let missingLessonData = false;
+
+    currentSectionLessons.forEach((task) => {
+      const taskTotal = Number(task.lessonCount) || 0;
+      total += taskTotal;
+
+      if (task.isLocked || taskTotal === 0) {
+        // Locked or empty tasks contribute 0 completed lessons.
+        return;
+      }
+
+      if (task.isCompleted) {
+        completed += taskTotal;
+        return;
+      }
+
+      const cached = lessonCountsByTask[task.apiId];
+      if (cached) {
+        completed += cached.completed;
+      } else {
+        missingLessonData = true;
+      }
+    });
+
+    if (total === 0) return 0;
+
+    // If any in-progress task hasn't been fetched yet, fall back to task-level
+    // progress so the ring doesn't jump around while data is loading.
+    if (missingLessonData) {
+      const taskTotal = currentSectionLessons.length;
+      const taskCompleted = currentSectionLessons.filter(
+        (lesson) => lesson.isCompleted,
+      ).length;
+      return taskTotal > 0 ? Math.round((taskCompleted / taskTotal) * 100) : 0;
+    }
+
+    return Math.round((completed / total) * 100);
+  }, [currentSectionLessons, lessonCountsByTask]);
 
   const hasCompletedJourney =
     !isLoading &&

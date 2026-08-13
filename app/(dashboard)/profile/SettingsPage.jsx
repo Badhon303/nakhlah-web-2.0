@@ -11,12 +11,12 @@ import {
   ChevronRight,
   Moon,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
+import { signOut, getSessionSync } from "@/lib/auth-client";
+import { getSessionToken } from "@/lib/authUtils";
+import { logoutUser } from "@/services/api/auth";
 
 export default function SettingsPage({ onBack, onNavigate }) {
-  const router = useRouter();
-
   const settingsItems = [
     {
       label: "Personal Info",
@@ -60,8 +60,15 @@ export default function SettingsPage({ onBack, onNavigate }) {
     },
   ];
 
-  const handleLogout = () => {
-    router.push("/auth/login");
+  const handleLogout = async () => {
+    try {
+      const session = getSessionSync();
+      const token = getSessionToken(session);
+      await logoutUser(token);
+    } catch {
+      // ignore network errors, still proceed to clear local session
+    }
+    await signOut({ redirect: true, callbackUrl: "/auth/login" });
   };
 
   return (
