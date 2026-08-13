@@ -21,11 +21,18 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isCredentialsLoading, setIsCredentialsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const isLoading = isCredentialsLoading || isGoogleLoading;
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = async (event) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    if (isLoading) return;
+
     clearProfile();
-    setIsLoading(true);
+    setIsGoogleLoading(true);
 
     try {
       const result = await signIn("google", {
@@ -40,7 +47,7 @@ export default function Login() {
       console.error("Google login error:", error);
       toast.error(error.message || "Google sign-in failed");
     } finally {
-      setIsLoading(false);
+      setIsGoogleLoading(false);
     }
   };
 
@@ -52,7 +59,7 @@ export default function Login() {
       return;
     }
 
-    setIsLoading(true);
+    setIsCredentialsLoading(true);
 
     try {
       const result = await signIn("credentials", {
@@ -63,7 +70,7 @@ export default function Login() {
 
       if (result?.error) {
         toast.error(result.error || "Login failed");
-        setIsLoading(false);
+        setIsCredentialsLoading(false);
         return;
       }
 
@@ -76,7 +83,7 @@ export default function Login() {
       console.error("Login error:", error);
       toast.error("An error occurred during login");
     } finally {
-      setIsLoading(false);
+      setIsCredentialsLoading(false);
     }
   };
 
@@ -232,6 +239,7 @@ export default function Login() {
                 type="button"
                 variant="outline"
                 onClick={handleGoogleLogin}
+                onMouseDown={(event) => event.stopPropagation()}
                 disabled={isLoading}
                 className="w-full h-12 border-border hover:bg-accent/10 font-semibold text-foreground rounded-xl"
               >
