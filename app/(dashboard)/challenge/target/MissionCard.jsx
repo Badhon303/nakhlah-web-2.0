@@ -1,7 +1,10 @@
+"use client";
+
 import { motion } from "framer-motion";
-import { Medal } from "@/components/icons/Medal";
 import { CheckCircle2 } from "lucide-react";
+import { Medal } from "@/components/icons/Medal";
 import { buildApiUrl } from "@/lib/api-config";
+import { cn } from "@/lib/utils";
 
 const getIconUrl = (url) => {
   if (!url) return "";
@@ -9,73 +12,82 @@ const getIconUrl = (url) => {
   return buildApiUrl(url);
 };
 
-export default function MissionCard({ mission }) {
-  const Icon = mission.icon;
-  const iconUrl = getIconUrl(
-    mission.iconUrl || mission.icon?.url || mission.icon,
-  );
+export default function MissionCard({ mission, index = 0 }) {
+  const iconUrl = getIconUrl(mission.iconUrl || mission.icon?.url || "");
+  const current = Number(mission.current) || 0;
+  const target = Number(mission.target) || 0;
   const reward = Number(mission.reward) || 0;
+
   const completedByStatus =
     (mission.status || "").toLowerCase() === "completed";
-  const completedByProgress =
-    Number(mission.target) > 0 &&
-    Number(mission.current) >= Number(mission.target);
-  const completed = completedByStatus || completedByProgress;
+  const completedByProgress = target > 0 && current >= target;
+  const isCompleted = completedByStatus || completedByProgress;
+
+  // Quests outside today's rotation are rendered black-and-white as a preview.
   const isActive = mission.active !== false;
+  const progress = target > 0 ? Math.min(100, (current / target) * 100) : 0;
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      whileHover={isActive ? { scale: 1.02 } : {}}
-      className={`bg-card border rounded-2xl p-5 shadow-md transition-all ${
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: Math.min(index * 0.05, 0.3) }}
+      className={cn(
+        "flex items-center gap-4 rounded-2xl border bg-card p-4 shadow-sm transition-all",
         isActive
-          ? "border-border hover:shadow-lg"
-          : "border-border/40 opacity-40 grayscale pointer-events-none"
-      }`}
+          ? "border-border hover:shadow-md"
+          : "border-border/60 opacity-60 grayscale",
+      )}
     >
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4 min-w-0">
-          <div className="w-12 h-12 rounded-xl bg-transparent flex items-center justify-center shrink-0">
-            {iconUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={iconUrl}
-                alt={mission.label}
-                className="w-10 h-10 object-cover rounded-lg"
-              />
-            ) : Icon ? (
-              <Icon size="md" className="text-white" />
-            ) : (
-              <Medal size="md" className="text-white" />
-            )}
-          </div>
-
-          <div className="min-w-0">
-            <p
-              className={`font-bold ${
-                completed
-                  ? "line-through text-muted-foreground"
-                  : "text-foreground"
-              }`}
-            >
-              {mission.label}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Reward: {reward.toLocaleString()}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 shrink-0">
-          <span className="text-sm font-semibold text-accent">
-            {mission.current}/{mission.target}
-          </span>
-          {completed ? <CheckCircle2 className="w-5 h-5 text-accent" /> : null}
-        </div>
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center">
+        {iconUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={iconUrl}
+            alt=""
+            className="h-11 w-11 rounded-xl object-contain"
+          />
+        ) : (
+          <Medal size="md" className="text-accent" />
+        )}
       </div>
 
-      {/* Claim action is handled at lesson completion time for selected quests. */}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <p
+            className={cn(
+              "font-bold leading-snug",
+              isCompleted
+                ? "text-muted-foreground line-through"
+                : "text-foreground",
+            )}
+          >
+            {mission.label}
+          </p>
+          {isActive && isCompleted ? (
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+          ) : null}
+        </div>
+
+        {isActive ? (
+          <div className="mt-2 flex items-center gap-3">
+            <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-accent transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <span className="shrink-0 text-sm font-bold text-accent">
+              {current} / {target}
+            </span>
+          </div>
+        ) : (
+          <p className="mt-1 text-xs text-muted-foreground">
+            Not in today&apos;s rotation
+            {reward > 0 ? ` · ${reward.toLocaleString()} Injaz reward` : ""}
+          </p>
+        )}
+      </div>
     </motion.div>
   );
 }

@@ -1,24 +1,18 @@
+"use client";
+
 import { useEffect, useMemo } from "react";
 import { useSession } from "@/lib/auth-client";
-import MissionSection from "./MissionSection";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
 import { useDailyQuestStore } from "@/stores/useDailyQuestStore";
-
-const questSections = [
-  {
-    type: "daily",
-    title: "Daily Quests",
-    icon: "📅",
-    description: "Reset every day",
-  },
-];
+import { Button } from "@/components/ui/button";
+import MissionSection from "./MissionSection";
+import { MissionListSkeleton } from "../components/ChallengeSkeletons";
+import { ChallengeEmptyState } from "../components/ChallengeEmptyState";
 
 export default function DailyMissions() {
   const { data: session, status } = useSession();
-  const dailyMissions = useDailyQuestStore(
-    (store) => store.challengeDailyMissions,
-  );
+  const missions = useDailyQuestStore((store) => store.challengeDailyMissions);
   const isLoading = useDailyQuestStore((store) => store.isLoading);
   const loadError = useDailyQuestStore((store) => store.error);
   const fetchDailyQuests = useDailyQuestStore(
@@ -43,41 +37,80 @@ export default function DailyMissions() {
     fetchDailyQuests({ token, userKey: getUserKey(session) });
   }, [clearDailyQuests, fetchDailyQuests, session, status]);
 
-  const sections = useMemo(() => {
-    return questSections.map((section) => ({
-      ...section,
-      missions: dailyMissions.filter((m) => m.type === section.type),
-    }));
-  }, [dailyMissions]);
+  const reload = () => {
+    const token = getSessionToken(session);
+    if (!token) return;
+    void fetchDailyQuests({
+      token,
+      userKey: getUserKey(session),
+      forceRefresh: true,
+    });
+  };
 
-  const activeSections = sections.filter((s) => s.missions.length > 0);
+  // The backend shuffles a few quests into today's rotation; those come back
+  // with a status entry (active), the rest are shown as a greyed-out preview.
+  const { todaysMissions, otherMissions } = useMemo(
+    () => ({
+      todaysMissions: missions.filter((mission) => mission.active !== false),
+      otherMissions: missions.filter((mission) => mission.active === false),
+    }),
+    [missions],
+  );
 
-  if (isLoading) {
+  if (isLoading && !missions.length) {
     return (
-      <div className="rounded-2xl border border-border bg-card p-6 text-center text-muted-foreground">
-        Loading daily quests...
+      <div className="space-y-8">
+        <MissionListSkeleton rows={3} />
+        <MissionListSkeleton rows={2} />
       </div>
     );
   }
 
-  if (loadError) {
+  if (loadError && !missions.length) {
     return (
-      <div className="rounded-2xl border border-border bg-card p-6 text-center text-destructive">
-        {loadError}
-      </div>
+      <ChallengeEmptyState
+        title="We couldn't load your challenges"
+        description={loadError}
+        action={
+          <Button size="sm" onClick={reload}>
+            Try again
+          </Button>
+        }
+      />
+    );
+  }
+
+  if (!missions.length) {
+    return (
+      <ChallengeEmptyState
+        title="No challenges yet!"
+        description="Daily challenges appear here once they are set up. Check back soon."
+      />
     );
   }
 
   return (
-    <div className="space-y-12">
-      {!activeSections.length && (
-        <div className="rounded-2xl border border-border bg-card p-6 text-center text-muted-foreground">
-          No daily quests configured yet.
-        </div>
+    <div className="space-y-8">
+      {todaysMissions.length ? (
+        <MissionSection
+          title="Daily Missions"
+          emoji="🎯"
+          missions={todaysMissions}
+        />
+      ) : (
+        <ChallengeEmptyState
+          title="Today's missions aren't ready"
+          description="Your daily missions are still being picked. Pull up the menu to refresh."
+        />
       )}
-      {activeSections.map((section) => (
-        <MissionSection key={section.type} section={section} />
-      ))}
+
+      {otherMissions.length ? (
+        <MissionSection
+          title="Other Challenges"
+          description="Not part of today's rotation — they may show up on another day."
+          missions={otherMissions}
+        />
+      ) : null}
     </div>
   );
 }

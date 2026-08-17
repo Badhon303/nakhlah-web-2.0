@@ -4,16 +4,16 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Crown, Home, Settings, Trophy, User } from "lucide-react";
+import { Crown, Home, Target, Trophy, User } from "lucide-react";
 
 const navItems = [
   { path: "/", label: "Home", icon: "/icons/Home-Icon.127e8555.svg" },
-  // { path: "/challenge", label: "Challenges", icon: "/icons/Lesson.svg" },
   {
     path: "/leaderboard",
     label: "Leaderboard",
     icon: "/icons/LEADERBOARD.b7e283d4.svg",
   },
+  { path: "/challenge", label: "Challenges", icon: "/icons/Lesson.svg" },
   { path: "/store", label: "Store", icon: "/icons/STORE.9b24d09f.svg" },
   { path: "/profile", label: "Profile", icon: "/icons/Profile.f8f9b305.svg" },
 ];
@@ -23,11 +23,28 @@ const mobileIconMap = {
   "/leaderboard": Trophy,
   "/store": Crown,
   "/profile": User,
+  "/challenge": Target,
 };
 
 export function Navbar() {
   const pathname = usePathname();
-  const isSettings = pathname === "/settings";
+
+  // /settings renders the profile shell, so keep Profile highlighted there.
+  const isNavItemActive = (path) =>
+    pathname === path || (path === "/profile" && pathname === "/settings");
+
+  const handleNavClick = (event, path) => {
+    if (
+      pathname === path &&
+      event.button === 0 &&
+      !event.metaKey &&
+      !event.ctrlKey &&
+      !event.shiftKey &&
+      !event.altKey
+    ) {
+      event.preventDefault();
+    }
+  };
 
   return (
     <>
@@ -35,7 +52,11 @@ export function Navbar() {
       <nav className="hidden lg:flex flex-col fixed top-0 left-0 h-full w-64 border-r border-border/50 bg-background/95 backdrop-blur-md p-6 overflow-y-auto">
         <div className="flex flex-col gap-8">
           {/* Logo */}
-          <Link href="/" className="flex w-full items-center justify-center">
+          <Link
+            href="/"
+            onClick={(event) => handleNavClick(event, "/")}
+            className="flex w-full items-center justify-center"
+          >
             <Image
               src="/Nakhlah_Logo.webp"
               alt="Nakhlah logo"
@@ -49,14 +70,13 @@ export function Navbar() {
           {/* Nav Links */}
           <div className="flex flex-col gap-2">
             {navItems.map((item) => {
-              const isActive =
-                pathname === item.path &&
-                (item.path !== "/profile" || !isSettings);
+              const isActive = isNavItemActive(item.path);
               const NavIcon = mobileIconMap[item.path];
               return (
                 <Link
                   key={item.path}
                   href={item.path}
+                  onClick={(event) => handleNavClick(event, item.path)}
                   className={cn(
                     "relative flex items-center gap-3 rounded-xl px-4 py-3 text-base font-semibold transition-all",
                     isActive
@@ -79,19 +99,6 @@ export function Navbar() {
                 </Link>
               );
             })}
-            {/* Settings - right after Profile with no gap */}
-            <Link
-              href="/settings"
-              className={cn(
-                "relative flex items-center gap-3 rounded-xl px-4 py-3 text-base font-semibold transition-all w-full",
-                isSettings
-                  ? "text-accent"
-                  : "text-foreground hover:bg-muted/50 dark:hover:bg-muted/20",
-              )}
-            >
-              <Settings className="h-6 w-6" />
-              <span>Settings</span>
-            </Link>
           </div>
         </div>
       </nav>
@@ -100,14 +107,13 @@ export function Navbar() {
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t px-2 bg-background/95 backdrop-blur-md border-border pb-[var(--sab)]">
         <div className="flex items-center justify-between gap-1">
           {navItems.map((item) => {
-            const isActive =
-              pathname === item.path &&
-              (item.path !== "/profile" || !isSettings);
+            const isActive = isNavItemActive(item.path);
             const MobileIcon = mobileIconMap[item.path];
             return (
               <Link
                 key={item.path}
                 href={item.path}
+                onClick={(event) => handleNavClick(event, item.path)}
                 className="flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0 text-foreground hover:bg-muted/50 dark:hover:bg-transparent"
               >
                 <span
@@ -141,35 +147,6 @@ export function Navbar() {
               </Link>
             );
           })}
-          {/* Settings - Mobile */}
-          <Link
-            href="/settings"
-            className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0",
-              isSettings
-                ? "text-accent"
-                : "text-foreground hover:bg-muted/50 dark:hover:bg-transparent",
-            )}
-          >
-            <span
-              className={cn(
-                "flex items-center justify-center p-2 rounded-xl transition-colors",
-                isSettings
-                  ? "bg-accent text-accent-foreground dark:bg-transparent dark:text-accent"
-                  : "",
-              )}
-            >
-              <Settings className="h-5 w-5" />
-            </span>
-            <span
-              className={cn(
-                "text-[10px] font-medium truncate w-full text-center",
-                isSettings ? "text-accent" : "",
-              )}
-            >
-              Settings
-            </span>
-          </Link>
         </div>
       </nav>
     </>

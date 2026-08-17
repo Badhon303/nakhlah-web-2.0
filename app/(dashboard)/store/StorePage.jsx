@@ -34,6 +34,8 @@ import {
 } from "@/services/revenuecat-checkout";
 import { useRevenueCat } from "@/components/RevenueCatProvider";
 
+const JOURNEY_REFRESH_FLAG_KEY = "nakhlah:journey-needs-refresh";
+
 export default function StorePage() {
   const { data: session } = useSession();
   const { refresh: refreshEntitlements } = useRevenueCat();
@@ -111,6 +113,11 @@ export default function StorePage() {
     toast.success("Purchase successful!");
     await refreshEntitlements();
     await loadCurrentSubscription();
+
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(JOURNEY_REFRESH_FLAG_KEY, "true");
+      window.dispatchEvent(new CustomEvent("nakhlah:journey-updated"));
+    }
   };
 
   const handleSubscriptionCheckout = async (plan) => {

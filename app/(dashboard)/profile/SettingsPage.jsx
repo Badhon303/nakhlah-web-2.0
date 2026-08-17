@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   User,
@@ -15,8 +16,12 @@ import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
 import { signOut, getSessionSync } from "@/lib/auth-client";
 import { getSessionToken } from "@/lib/authUtils";
 import { logoutUser } from "@/services/api/auth";
+import { ConfirmPrompt } from "@/components/nakhlah/ConfirmPrompt";
 
 export default function SettingsPage({ onBack, onNavigate }) {
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   const settingsItems = [
     {
       label: "Personal Info",
@@ -61,6 +66,7 @@ export default function SettingsPage({ onBack, onNavigate }) {
   ];
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     try {
       const session = getSessionSync();
       const token = getSessionToken(session);
@@ -154,7 +160,7 @@ export default function SettingsPage({ onBack, onNavigate }) {
           className="mt-6"
         >
           <button
-            onClick={handleLogout}
+            onClick={() => setShowLogoutConfirm(true)}
             className="w-full flex items-center justify-center gap-3 p-4 hover:bg-destructive/10 dark:hover:bg-destructive/20 transition-all rounded-xl group"
           >
             <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center transition-colors">
@@ -166,6 +172,18 @@ export default function SettingsPage({ onBack, onNavigate }) {
           </button>
         </motion.div>
       </motion.div>
+
+      <ConfirmPrompt
+        open={showLogoutConfirm}
+        onOpenChange={setShowLogoutConfirm}
+        icon={LogOut}
+        title="Log out of Nakhlah?"
+        description="You'll need to sign in again to continue your learning streak."
+        confirmLabel="Log Out"
+        cancelLabel="Stay Signed In"
+        onConfirm={handleLogout}
+        isPending={isLoggingOut}
+      />
     </div>
   );
 }

@@ -6,16 +6,7 @@ import { LogOut } from "lucide-react";
 import { useSession, signOut, getSessionSync } from "@/lib/auth-client";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { logoutUser } from "@/services/api/auth";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from "@/components/ui/alert-dialog";
+import { ConfirmPrompt } from "@/components/nakhlah/ConfirmPrompt";
 
 const LOGIN_PATH = "/auth/login";
 
@@ -100,37 +91,17 @@ export default function BackNavigationGuard() {
   };
 
   return (
-    <AlertDialog
+    <ConfirmPrompt
       open={showConfirm}
-      onOpenChange={(open) => !open && handleCancel()}
-    >
-      <AlertDialogContent className="max-w-sm rounded-2xl sm:rounded-2xl">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-center">
-            Log out of Nakhlah?
-          </AlertDialogTitle>
-          <AlertDialogDescription className="text-center">
-            Going back would take you to the sign-in screen. You&apos;re still
-            logged in, so you&apos;ll need to log out first if you want to
-            return there.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter className="sm:justify-center gap-2">
-          <AlertDialogCancel disabled={isLoggingOut} onClick={handleCancel}>
-            Stay Signed In
-          </AlertDialogCancel>
-          <AlertDialogAction
-            disabled={isLoggingOut}
-            onClick={(e) => {
-              e.preventDefault();
-              handleConfirmLogout();
-            }}
-            className="bg-red-500 text-white hover:bg-red-600 focus:ring-red-500"
-          >
-            {isLoggingOut ? "Logging out..." : "Log Out"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      onOpenChange={setShowConfirm}
+      icon={LogOut}
+      title="Log out of Nakhlah?"
+      description="Going back would take you to the sign-in screen. You're still logged in, so you'll need to log out first if you want to return there."
+      confirmLabel="Log Out"
+      cancelLabel="Stay Signed In"
+      onConfirm={handleConfirmLogout}
+      onCancel={handleCancel}
+      isPending={isLoggingOut}
+    />
   );
 }

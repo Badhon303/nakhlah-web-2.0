@@ -1,35 +1,33 @@
-import { Calendar } from "lucide-react";
 import BadgeCard from "./BadgeCard";
 
-export default function BadgeSection({ section }) {
+export default function BadgeSection({
+  title,
+  description,
+  badges = [],
+  currentInjaz = 0,
+}) {
   return (
-    <div className="space-y-4">
-      {/* Section header */}
-      <div className="flex items-center justify-between px-1">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
-            <Calendar className="w-4 h-4 text-muted-foreground" />
-          </div>
-          <h3 className="font-bold text-foreground text-lg">{section.title}</h3>
-        </div>
-
-        <span className="text-sm font-semibold text-accent px-3 py-1 rounded-full bg-muted/50">
-          {section.badges.length} total
+    <section className="space-y-3">
+      <div className="flex items-baseline justify-between gap-3 px-1">
+        <h2 className="text-lg font-bold text-foreground">{title}</h2>
+        <span className="shrink-0 text-xs font-semibold text-muted-foreground">
+          {badges.length} {badges.length === 1 ? "badge" : "badges"}
         </span>
       </div>
 
-      {section.description && (
-        <p className="text-sm text-muted-foreground px-1">
-          {section.description}
-        </p>
-      )}
+      {description ? (
+        <p className="px-1 text-xs text-muted-foreground">{description}</p>
+      ) : null}
 
-      {/* Grid on desktop, list on mobile */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {section.badges.map((badge) => (
-          <BadgeCard key={badge.key || badge.title} badge={badge} />
+      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+        {badges.map((badge) => (
+          <BadgeCard
+            key={badge.key || badge.title}
+            badge={badge}
+            currentInjaz={currentInjaz}
+          />
         ))}
       </div>
-    </div>
+    </section>
   );
 }

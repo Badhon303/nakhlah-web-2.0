@@ -1,62 +1,104 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
+import { useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { CardMenuOptions } from "@/components/nakhlah/CardMenuOptions";
+import { useSession } from "@/lib/auth-client";
+import { getSessionToken, isSessionValid } from "@/lib/authUtils";
+import { getUserKey } from "@/lib/userKey";
+import { useDailyQuestStore } from "@/stores/useDailyQuestStore";
+import { useBadgesStore } from "@/stores/useBadgesStore";
+import { useProfileStore } from "@/stores/useProfileStore";
 import DailyMissions from "./target/DailyMissions";
 import BadgesList from "./badges/BadgesList";
-import { LockKey } from "@/components/icons/Lock-Key";
+
+const tabs = [
+  { id: "target", label: "Target" },
+  { id: "badges", label: "Badges" },
+];
 
 export default function ChallengesHome() {
-  const [activeTab, setActiveTab] = useState("target");
+  const searchParams = useSearchParams();
+  const { data: session } = useSession();
+  const requestedTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(
+    requestedTab === "badges" ? "badges" : "target",
+  );
+
+  const invalidateQuests = useDailyQuestStore((store) => store.invalidate);
+  const fetchDailyQuests = useDailyQuestStore(
+    (store) => store.fetchDailyQuests,
+  );
+  const invalidateBadges = useBadgesStore((store) => store.invalidate);
+  const fetchBadges = useBadgesStore((store) => store.fetchBadges);
+  const invalidateProfile = useProfileStore((store) => store.invalidate);
+  const fetchProfile = useProfileStore((store) => store.fetchMyProfile);
+
+  const handleRefresh = useCallback(() => {
+    if (!isSessionValid(session)) return;
+
+    const token = getSessionToken(session);
+    if (!token) return;
+
+    const userKey = getUserKey(session);
+    invalidateQuests();
+    invalidateBadges();
+    invalidateProfile();
+
+    void fetchDailyQuests({ token, userKey, forceRefresh: true });
+    void fetchBadges({ token, userKey, forceRefresh: true });
+    void fetchProfile(token, true, userKey);
+  }, [
+    fetchBadges,
+    fetchDailyQuests,
+    fetchProfile,
+    invalidateBadges,
+    invalidateProfile,
+    invalidateQuests,
+    session,
+  ]);
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
+    <div className="container mx-auto max-w-3xl px-4 pb-8 pt-4 lg:max-w-7xl lg:py-6">
+      {/* Tabs */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between mb-6"
+        transition={{ delay: 0.05 }}
+        className="mb-6 grid grid-cols-2 gap-3 lg:max-w-sm"
+        role="tablist"
       >
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-bold text-foreground md:text-4xl">
-            Challenges
-          </h1>
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center">
-            <LockKey />
-          </div>
-        </div>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="flex gap-2 mb-8 mx-auto justify-center lg:justify-start"
-      >
-        {[
-          { id: "target", label: "Target" },
-          { id: "badges", label: "Badges" },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-6 py-2 rounded-full text-sm font-semibold transition-all w-full lg:w-fit ${
-              activeTab === tab.id
-                ? "bg-primary text-primary-foreground shadow-lg"
-                : "bg-card text-muted-foreground hover:bg-muted border border-border"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "rounded-full border-2 px-6 py-2.5 text-sm font-bold transition-all active:scale-[0.98]",
+                isActive
+                  ? "border-accent bg-accent text-accent-foreground shadow-accent"
+                  : "border-accent/40 bg-transparent text-accent hover:border-accent",
+              )}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </motion.div>
 
       {/* Content */}
       <motion.div
         key={activeTab}
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25 }}
+        transition={{ duration: 0.22 }}
       >
         {activeTab === "target" ? <DailyMissions /> : <BadgesList />}
       </motion.div>
