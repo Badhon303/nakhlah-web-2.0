@@ -39,8 +39,8 @@ export default function StreakUpdate() {
   };
 
   return (
-    <div className="min-h-screen sm:min-h-[calc(100vh_-_64px)] lg:min-h-screen bg-background flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-lg mx-auto text-center flex-1 flex flex-col justify-center">
+    <div className="h-[calc(100dvh_-_var(--sat)_-_var(--sab))] min-h-0 overflow-hidden sm:min-h-[calc(100vh_-_64px)] sm:h-auto lg:min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-lg mx-auto text-center flex-1 min-h-0 flex flex-col justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}

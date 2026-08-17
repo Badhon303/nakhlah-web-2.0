@@ -101,13 +101,13 @@ export default function DailyMissionUpdate() {
   };
 
   return (
-    <div className="min-h-screen sm:min-h-[calc(100vh_-_64px)] lg:min-h-screen bg-background flex flex-col items-center justify-center p-4 sm:overflow-hidden">
+    <div className="h-[calc(100dvh_-_var(--sat)_-_var(--sab))] min-h-0 overflow-hidden sm:min-h-[calc(100vh_-_64px)] sm:h-auto lg:min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-lg mx-auto text-center flex-1 min-h-0 flex flex-col justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="bg-transparent lg:bg-card rounded-none lg:rounded-3xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-8 flex flex-col min-h-0 sm:max-h-[calc(100vh-2rem)] lg:max-h-[calc(100vh-4rem)]"
+          className="bg-transparent lg:bg-card rounded-none lg:rounded-3xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-8 flex flex-col min-h-0 max-h-[calc(100dvh-8rem)] overflow-hidden sm:max-h-[calc(100vh-2rem)] lg:max-h-[calc(100vh-4rem)]"
         >
           <motion.div
             initial={{ opacity: 0, y: -20 }}

@@ -173,15 +173,15 @@ export default function LessonCompleted() {
           >
             <div className="max-w-sm mx-auto rounded-2xl overflow-hidden border-2 border-amber-400">
               {/* Header */}
-              <div className="bg-gradient-to-r from-amber-400 to-amber-500 py-2 sm:py-4">
+              <div className="bg-gradient-to-r from-amber-400 to-amber-500 py-4">
                 <p className="text-white text-xl font-bold text-center">
                   Injaz Earned
                 </p>
               </div>
 
               {/* Body */}
-              <div className="bg-white py-3 sm:py-6">
-                <div className="flex items-center justify-center gap-2 sm:gap-3">
+              <div className="bg-white py-6">
+                <div className="flex items-center justify-center gap-3">
                   <InjazStarIcon size="md" className="text-amber-500" />
                   <span className="text-4xl font-extrabold text-slate-800">
                     {injazReceived}
@@ -192,21 +192,21 @@ export default function LessonCompleted() {
           </motion.div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-3 gap-2 mb-3 px-1 sm:gap-3 sm:mb-8 sm:px-4">
+          <div className="grid grid-cols-3 gap-3 mb-3 px-1 sm:mb-8 sm:px-4">
             {stats.map((stat) => (
               <div
                 key={stat.label}
                 className={`rounded-2xl overflow-hidden border-2 ${stat.border} bg-white`}
               >
                 {/* Header */}
-                <div className={`${stat.header} py-1 sm:py-2`}>
+                <div className={`${stat.header} py-2`}>
                   <p className="text-white font-bold text-base text-center truncate">
                     {stat.label}
                   </p>
                 </div>
 
                 {/* Body */}
-                <div className="flex items-center justify-center gap-1 py-2 sm:gap-2 sm:py-4">
+                <div className="flex items-center justify-center gap-2 py-4">
                   {stat.icon}
                   <span className="text-xl font-extrabold text-slate-900">
                     {stat.value}

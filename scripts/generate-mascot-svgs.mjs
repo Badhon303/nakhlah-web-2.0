@@ -181,7 +181,7 @@ const accessory = (mood) => {
     case "thinking":
       return `<g class="qbob"><text x="50" y="24" fill="#8B5A2B" font-size="14" font-weight="bold" font-family="Arial, sans-serif">?</text></g>`;
     case "sad":
-      return `<path class="tear2" d="M46.5 44.5 C47.9 46.9 47.9 48.6 46.5 49.4 C45.1 48.6 45.1 46.9 46.5 44.5 Z" fill="#7EC8F7" stroke="#5BA8DC" stroke-width="0.4"/>`;
+      return "";
     case "happy":
       return `<g class="pulse" stroke="#F5B940" stroke-width="1.5" stroke-linecap="round"><path d="M6 20 L3.5 16.5"/><path d="M10 16.5 L8.8 12.5"/><path d="M3.5 26 L0.8 24.5"/><path d="M58 20 L60.5 16.5"/><path d="M54 16.5 L55.2 12.5"/><path d="M60.5 26 L63.2 24.5"/></g>`;
     case "sleeping":
@@ -245,8 +245,6 @@ const STYLE = `
 @keyframes look{0%,100%{transform:translateX(0)}25%{transform:translateX(1.5px)}50%{transform:translateX(0)}75%{transform:translateX(-1.5px)}}
 .tear{animation:tear 1.6s ease-in infinite;transform-box:fill-box;transform-origin:center}
 @keyframes tear{0%{transform:translateY(0);opacity:.9}100%{transform:translateY(6px);opacity:0}}
-.tear2{animation:tear2 1.6s ease-in infinite;transform-box:fill-box;transform-origin:center}
-@keyframes tear2{0%{transform:translateY(0);opacity:.95}100%{transform:translateY(3.5px);opacity:0}}
 .breathe{animation:breathe 3s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.7)}}
 .shimmer{animation:shimmer 2s ease-in-out infinite}
@@ -356,4 +354,4 @@ for (const mood of MOODS) {
   writeFileSync(file, buildSvg(mood), "utf8");
   console.log(`wrote ${file}`);
 }
-console.log(`Done. ${MOODS.length} files.`);
+// console.log(`Done. ${MOODS.length} files.`);
