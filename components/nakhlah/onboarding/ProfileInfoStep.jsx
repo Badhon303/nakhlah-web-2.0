@@ -5,6 +5,12 @@ import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Camera, CheckCircle2 } from "lucide-react";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import { cn } from "@/lib/utils";
+import {
+  NAME_MAX_LENGTH,
+  PHONE_REGEX,
+  PHONE_ERROR_MESSAGE,
+} from "@/lib/validation";
 
 const MAX_FILE_SIZE = 300 * 1024;
 
@@ -19,23 +25,7 @@ export function ProfileInfoStep({
   const [localPicture, setLocalPicture] = useState(profilePicture || null);
   const [fileError, setFileError] = useState("");
   const [contactError, setContactError] = useState("");
-
-  useEffect(() => {
-    onChange({
-      fullName: localName,
-      contactNumber: localContact,
-      profilePicture: localPicture,
-      fileError,
-      contactError,
-    });
-  }, [
-    localName,
-    localContact,
-    localPicture,
-    fileError,
-    contactError,
-    onChange,
-  ]);
+  const [nameError, setNameError] = useState("");
 
   const previewUrl = useMemo(() => {
     if (!localPicture) return "";
@@ -50,23 +40,61 @@ export function ProfileInfoStep({
     };
   }, [previewUrl]);
 
+  const handleContactChange = (value) => {
+    setLocalContact(value);
+
+    const error =
+      value.trim() && !PHONE_REGEX.test(value.trim())
+        ? PHONE_ERROR_MESSAGE
+        : "";
+    setContactError(error);
+
+    onChange({
+      contactNumber: value,
+      contactError: error,
+    });
+  };
+
+  const handleNameChange = (value) => {
+    setLocalName(value);
+
+    let error = "";
+    if (value.trim()) {
+      if (value.trim().length < 2) {
+        error = "Full name must be at least 2 characters.";
+      } else if (value.trim().length > NAME_MAX_LENGTH) {
+        error = `Full name must be under ${NAME_MAX_LENGTH} characters.`;
+      }
+    }
+    setNameError(error);
+
+    onChange({
+      fullName: value,
+      nameError: error,
+    });
+  };
+
   const handleFileChange = (event) => {
     const file = event.target.files?.[0] || null;
 
     if (!file) {
       setLocalPicture(null);
       setFileError("");
+      onChange({ profilePicture: null, fileError: "" });
       return;
     }
 
     if (file.size > MAX_FILE_SIZE) {
       setLocalPicture(null);
-      setFileError("Profile picture must be below 300KB.");
+      const error = "Profile picture must be below 300KB.";
+      setFileError(error);
+      onChange({ profilePicture: null, fileError: error });
       return;
     }
 
     setFileError("");
     setLocalPicture(file);
+    onChange({ profilePicture: file, fileError: "" });
   };
 
   return (
@@ -99,10 +127,17 @@ export function ProfileInfoStep({
           </label>
           <Input
             value={localName}
-            onChange={(e) => setLocalName(e.target.value)}
-            className="rounded-xl"
+            onChange={(e) => handleNameChange(e.target.value)}
+            className={cn(
+              "rounded-xl",
+              nameError &&
+                "border-destructive focus-visible:ring-destructive/40",
+            )}
             placeholder="Your full name"
           />
+          {nameError ? (
+            <p className="text-xs text-destructive mt-1">{nameError}</p>
+          ) : null}
         </div>
 
         <div className="bg-card border border-border p-4 rounded-2xl">
@@ -111,11 +146,12 @@ export function ProfileInfoStep({
           </label>
           <Input
             value={localContact}
-            onChange={(e) => {
-              setLocalContact(e.target.value);
-              setContactError("");
-            }}
-            className="rounded-xl"
+            onChange={(e) => handleContactChange(e.target.value)}
+            className={cn(
+              "rounded-xl",
+              contactError &&
+                "border-destructive focus-visible:ring-destructive/40",
+            )}
             placeholder="Your contact number"
           />
           {contactError ? (

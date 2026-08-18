@@ -1,7 +1,7 @@
 "use client";
 
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ProgressSteps } from "@/components/nakhlah/ProgressSteps";
@@ -27,6 +27,7 @@ import {
   fetchMyProfile,
   fetchUserOnboardingGlobals,
   refreshAccessToken,
+  createUserProfile,
   updateMyProfile,
 } from "@/services/api/auth";
 import { signIn } from "next-auth/react";
@@ -190,6 +191,8 @@ export default function Onboarding() {
   const [profilePicture, setProfilePicture] = useState(null);
   const [profileFileError, setProfileFileError] = useState("");
   const [profileContactError, setProfileContactError] = useState("");
+  const [profileNameError, setProfileNameError] = useState("");
+  const [profileEmailError, setProfileEmailError] = useState("");
   const [age, setAge] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -367,14 +370,17 @@ export default function Onboarding() {
           fullName.trim().length > 1 &&
           contactNumber.trim().length > 0 &&
           !profileFileError &&
-          !profileContactError
+          !profileContactError &&
+          !profileNameError
         );
       case 8:
         return age !== "";
       case 9:
         return isSocialSignup
           ? true
-          : email.trim().includes("@") && password.trim().length >= 6;
+          : email.trim().length > 0 &&
+              !profileEmailError &&
+              password.trim().length >= 6;
       default:
         return true;
     }
@@ -515,14 +521,12 @@ export default function Onboarding() {
       contactNumber: contactNumber.trim(),
     };
 
-    const profileResult = await updateMyProfile(
-      profileData,
-      profilePicture || null,
-      token,
-    );
+    const profileResult = isSocialSignup
+      ? await createUserProfile(profileData, profilePicture || null, token)
+      : await updateMyProfile(profileData, profilePicture || null, token);
 
     if (!profileResult.success) {
-      toast.error(profileResult.error || "Failed to create profile");
+      toast.error(profileResult.error || "Failed to save profile");
       return;
     }
 
@@ -552,6 +556,25 @@ export default function Onboarding() {
     router.push("/");
     router.refresh();
   };
+
+  const handleProfileInfoChange = useCallback((fields) => {
+    if (fields.fullName !== undefined) setFullName(fields.fullName);
+    if (fields.contactNumber !== undefined)
+      setContactNumber(fields.contactNumber);
+    if (fields.profilePicture !== undefined)
+      setProfilePicture(fields.profilePicture);
+    if (fields.fileError !== undefined) setProfileFileError(fields.fileError);
+    if (fields.contactError !== undefined)
+      setProfileContactError(fields.contactError);
+    if (fields.nameError !== undefined) setProfileNameError(fields.nameError);
+  }, []);
+
+  const handleAccountChange = useCallback((fields) => {
+    if (fields.email !== undefined) setEmail(fields.email);
+    if (fields.password !== undefined) setPassword(fields.password);
+    if (fields.emailError !== undefined)
+      setProfileEmailError(fields.emailError);
+  }, []);
 
   const renderStep = () => {
     switch (currentStep) {
@@ -623,17 +646,7 @@ export default function Onboarding() {
             fullName={fullName}
             contactNumber={contactNumber}
             profilePicture={profilePicture}
-            onChange={(fields) => {
-              if (fields.fullName !== undefined) setFullName(fields.fullName);
-              if (fields.contactNumber !== undefined)
-                setContactNumber(fields.contactNumber);
-              if (fields.profilePicture !== undefined)
-                setProfilePicture(fields.profilePicture);
-              if (fields.fileError !== undefined)
-                setProfileFileError(fields.fileError);
-              if (fields.contactError !== undefined)
-                setProfileContactError(fields.contactError);
-            }}
+            onChange={handleProfileInfoChange}
           />
         );
       case 8:
@@ -651,10 +664,7 @@ export default function Onboarding() {
           <AccountStep
             email={email}
             password={password}
-            onChange={(fields) => {
-              if (fields.email !== undefined) setEmail(fields.email);
-              if (fields.password !== undefined) setPassword(fields.password);
-            }}
+            onChange={handleAccountChange}
           />
         );
       case 10:

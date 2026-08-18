@@ -1,18 +1,37 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import { cn } from "@/lib/utils";
+import {
+  EMAIL_REGEX,
+  EMAIL_ERROR_MESSAGE,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_ERROR_MESSAGE,
+} from "@/lib/validation";
 
 export function AccountStep({ email, password = "", onChange }) {
   const [localEmail, setLocalEmail] = useState(email || "");
   const [localPassword, setLocalPassword] = useState(password || "");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
-  useEffect(() => {
-    onChange({
-      email: localEmail,
-      password: localPassword,
-    });
-  }, [localEmail, localPassword, onChange]);
+  const handleEmailChange = (value) => {
+    setLocalEmail(value);
+    const error = value && !EMAIL_REGEX.test(value) ? EMAIL_ERROR_MESSAGE : "";
+    setEmailError(error);
+    onChange({ email: value, emailError: error });
+  };
+
+  const handlePasswordChange = (value) => {
+    setLocalPassword(value);
+    const error =
+      value && value.trim().length < PASSWORD_MIN_LENGTH
+        ? PASSWORD_ERROR_MESSAGE
+        : "";
+    setPasswordError(error);
+    onChange({ password: value, passwordError: error });
+  };
 
   return (
     <div className="w-full max-w-[520px] mx-auto">
@@ -44,11 +63,19 @@ export function AccountStep({ email, password = "", onChange }) {
           </label>
           <input
             value={localEmail}
-            onChange={(e) => setLocalEmail(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-border bg-transparent outline-none"
+            onChange={(e) => handleEmailChange(e.target.value)}
+            className={cn(
+              "w-full px-4 py-3 rounded-xl border bg-transparent outline-none",
+              emailError
+                ? "border-destructive focus:ring-2 focus:ring-destructive/40"
+                : "border-border",
+            )}
             placeholder="Put your email"
             type="email"
           />
+          {emailError ? (
+            <p className="text-xs text-destructive mt-1">{emailError}</p>
+          ) : null}
         </div>
 
         <div className="bg-card border border-border p-4 rounded-2xl">
@@ -57,11 +84,19 @@ export function AccountStep({ email, password = "", onChange }) {
           </label>
           <input
             value={localPassword}
-            onChange={(e) => setLocalPassword(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-border bg-transparent outline-none"
+            onChange={(e) => handlePasswordChange(e.target.value)}
+            className={cn(
+              "w-full px-4 py-3 rounded-xl border bg-transparent outline-none",
+              passwordError
+                ? "border-destructive focus:ring-2 focus:ring-destructive/40"
+                : "border-border",
+            )}
             placeholder="Choose a secure password"
             type="password"
           />
+          {passwordError ? (
+            <p className="text-xs text-destructive mt-1">{passwordError}</p>
+          ) : null}
         </div>
 
         <div className="text-sm text-muted-foreground">
