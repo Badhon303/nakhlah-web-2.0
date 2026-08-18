@@ -746,7 +746,12 @@ export default function Onboarding() {
         </div>
       )}
 
-      <main className="flex-1 container mx-auto px-4 py-6 flex items-start justify-center">
+      <main
+        className={cn(
+          "flex-1 container mx-auto px-4 py-6 flex justify-center",
+          currentStep === steps.length ? "items-center" : "items-start",
+        )}
+      >
         {isLoadingOnboarding ? (
           <div className="w-full max-w-xl mx-auto text-center text-muted-foreground">
             Loading onboarding options...
