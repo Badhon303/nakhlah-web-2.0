@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import Image from "next/image";
 
 export function GoalStep({
   title,
@@ -27,42 +28,51 @@ export function GoalStep({
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         {goals.map((goal, index) => {
           const value = String(goal.goalTime);
+          const isSelected = selectedGoal === value;
           return (
             <motion.button
               key={goal.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.08 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.1 }}
               onClick={() => onSelect(value)}
               className={cn(
-                "flex items-center gap-4 p-5 rounded-2xl border-2 transition-all duration-300",
+                "relative flex flex-col items-center gap-3 p-6 rounded-2xl border-2 transition-all duration-300",
                 "hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
-                selectedGoal === value
+                isSelected
                   ? "border-accent bg-accent/10 shadow-accent-glow"
                   : "border-border bg-card hover:border-primary",
               )}
             >
-              <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-md overflow-hidden shrink-0 flex items-center justify-center">
                 {goal?.goalMedia?.url ? (
-                  <img
+                  <Image
                     src={getMediaUrl(goal.goalMedia.url)}
                     alt={goal?.goalMedia?.alt || `${value} minutes`}
                     className="w-full h-full object-contain"
+                    width={48}
+                    height={48}
                   />
                 ) : (
-                  <span className="text-2xl">⏱</span>
+                  <span className="font-bold">⏱</span>
                 )}
               </div>
-              <p className="font-bold text-foreground text-lg text-left flex-1">
-                {value} min / day
-              </p>
-              {selectedGoal === value && (
-                <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center">
+              <div className="text-center">
+                <p className="text-accent font-semibold text-sm">
+                  {value} min / day
+                </p>
+              </div>
+              {isSelected && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute top-2 right-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center"
+                >
                   <svg
-                    className="w-4 h-4 text-accent-foreground"
+                    className="w-3 h-3 text-accent-foreground"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -74,7 +84,7 @@ export function GoalStep({
                       d="M5 13l4 4L19 7"
                     />
                   </svg>
-                </div>
+                </motion.div>
               )}
             </motion.button>
           );

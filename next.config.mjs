@@ -1,6 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**.nakhlah.net",
+        pathname: "/api/general-media/**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

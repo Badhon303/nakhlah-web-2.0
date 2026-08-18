@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export default function GetStartedPage() {
   return (
-    <div className="min-h-screen w-full bg-background flex items-center justify-center p-8">
+    <div className="min-h-screen w-full bg-background flex items-center justify-center px-4 py-6">
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -73,7 +73,7 @@ export default function GetStartedPage() {
         >
           <Link
             href="/onboarding"
-            className="w-full bg-accent hover:opacity-90 text-white font-bold text-lg py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-200 flex items-center justify-center"
+            className="w-full bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-200 flex items-center justify-center"
           >
             GET STARTED
           </Link>

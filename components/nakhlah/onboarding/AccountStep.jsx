@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { Eye, EyeOff } from "lucide-react";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { cn } from "@/lib/utils";
 import {
@@ -13,6 +14,7 @@ import {
 export function AccountStep({ email, password = "", onChange }) {
   const [localEmail, setLocalEmail] = useState(email || "");
   const [localPassword, setLocalPassword] = useState(password || "");
+  const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
@@ -82,18 +84,31 @@ export function AccountStep({ email, password = "", onChange }) {
           <label className="block text-sm text-muted-foreground mb-1">
             Create a password
           </label>
-          <input
-            value={localPassword}
-            onChange={(e) => handlePasswordChange(e.target.value)}
-            className={cn(
-              "w-full px-4 py-3 rounded-xl border bg-transparent outline-none",
-              passwordError
-                ? "border-destructive focus:ring-2 focus:ring-destructive/40"
-                : "border-border",
-            )}
-            placeholder="Choose a secure password"
-            type="password"
-          />
+          <div className="relative">
+            <input
+              value={localPassword}
+              onChange={(e) => handlePasswordChange(e.target.value)}
+              className={cn(
+                "w-full px-4 py-3 pr-12 rounded-xl border bg-transparent outline-none",
+                passwordError
+                  ? "border-destructive focus:ring-2 focus:ring-destructive/40"
+                  : "border-border",
+              )}
+              placeholder="Choose a secure password"
+              type={showPassword ? "text" : "password"}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              {showPassword ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
+            </button>
+          </div>
           {passwordError ? (
             <p className="text-xs text-destructive mt-1">{passwordError}</p>
           ) : null}

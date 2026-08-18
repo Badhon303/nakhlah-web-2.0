@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Camera, CheckCircle2 } from "lucide-react";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
@@ -187,10 +188,12 @@ export function ProfileInfoStep({
 
           {previewUrl ? (
             <div className="mt-3 flex items-center gap-3">
-              <img
+              <Image
                 src={previewUrl}
                 alt="Profile preview"
                 className="w-14 h-14 rounded-xl object-cover border border-border"
+                width={56}
+                height={56}
               />
               <span className="inline-flex items-center gap-1 text-xs text-emerald-600 font-semibold">
                 <CheckCircle2 className="w-3.5 h-3.5" />
