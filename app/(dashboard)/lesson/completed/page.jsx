@@ -104,7 +104,7 @@ export default function LessonCompleted() {
 
   const stats = [
     {
-      label: "Total Dates",
+      label: "Dates Earned",
       value: String(datesReceived),
       icon: <DatesIcon size="sm" />,
       border: "border-sky-400",

@@ -31,6 +31,7 @@ import { useLessonStore } from "@/stores/useLessonStore";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { getUserKey } from "@/lib/userKey";
 import { toast } from "@/components/nakhlah/Toast";
+import PalmTreesDepletedOverlay from "./PalmTreesDepletedOverlay";
 
 import LessonLoadingView from "./loading/LessonLoadingView";
 
@@ -362,7 +363,7 @@ function syncProfilePalmTrees(nextPalmTrees) {
   });
 }
 
-export default function LessonPage() {
+export default function LessonPage({ routeLessonId = "" }) {
   const router = useRouter();
   const { play } = useAudio();
   const { data: session, status } = useSession();
@@ -382,11 +383,13 @@ export default function LessonPage() {
   const fetchProfile = useProfileStore((state) => state.fetchMyProfile);
 
   const [questions, setQuestions] = useState([]);
+  const [lessonRefreshKey, setLessonRefreshKey] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showExitDialog, setShowExitDialog] = useState(false);
+  const [showPalmRefillPrompt, setShowPalmRefillPrompt] = useState(false);
   const [isCorrect, setIsCorrect] = useState(null);
   const [palmTrees, setPalmTrees] = useState(5);
   const [hasWrongAnswer, setHasWrongAnswer] = useState(false);
@@ -494,6 +497,7 @@ export default function LessonPage() {
       }
 
       const lessonId =
+        routeLessonId.trim() ||
         (storeSelectedLessonId || "").trim() ||
         sessionStorage.getItem("selectedLessonId")?.trim();
       const taskId =
@@ -621,6 +625,8 @@ export default function LessonPage() {
     status,
     router,
     isNavigatingToCompletion,
+    lessonRefreshKey,
+    routeLessonId,
   ]);
 
   useEffect(() => {
@@ -628,6 +634,16 @@ export default function LessonPage() {
       setCurrentIndex(0);
     }
   }, [currentIndex, totalQuestions]);
+
+  // Block interaction the instant Palm Trees hit zero mid-lesson (e.g. right
+  // after a wrong answer consumes the last one), instead of waiting for the
+  // learner to press Continue/Skip/Check.
+  useEffect(() => {
+    if (isLoading) return;
+    if (palmTrees <= 0) {
+      setShowPalmRefillPrompt(true);
+    }
+  }, [palmTrees, isLoading]);
 
   useEffect(() => {
     totalAnswerAttemptsRef.current = totalAnswerAttempts;
@@ -677,6 +693,7 @@ export default function LessonPage() {
     if (isLoading || !questions.length) return;
 
     const lessonId =
+      routeLessonId.trim() ||
       (storeSelectedLessonId || "").trim() ||
       sessionStorage.getItem("selectedLessonId")?.trim();
     const taskId =
@@ -1047,6 +1064,7 @@ export default function LessonPage() {
     setIsNavigatingToCompletion(true);
 
     const lessonId =
+      routeLessonId.trim() ||
       (storeSelectedLessonId || "").trim() ||
       sessionStorage.getItem("selectedLessonId")?.trim();
     const token = getSessionToken(session);
@@ -1152,9 +1170,7 @@ export default function LessonPage() {
 
   const goToNext = async () => {
     if (!hasPalmTrees) {
-      toast.error(
-        "No Palm Trees left. Refill Palm Trees to continue this lesson.",
-      );
+      setShowPalmRefillPrompt(true);
       return;
     }
 
@@ -1227,7 +1243,9 @@ export default function LessonPage() {
       return;
     }
 
-    const lessonId = sessionStorage.getItem("selectedLessonId")?.trim();
+    const lessonId =
+      routeLessonId.trim() ||
+      sessionStorage.getItem("selectedLessonId")?.trim();
     const token = getSessionToken(session);
     const isReplayOfCompletedLesson =
       (selectedLessonStatus || "").trim().toLowerCase() === "completed";
@@ -1283,7 +1301,7 @@ export default function LessonPage() {
   const handleCheckAnswer = async () => {
     if (!currentQuestion) return;
     if (!hasPalmTrees) {
-      toast.error("No Palm Trees left. Refill Palm Trees to answer questions.");
+      setShowPalmRefillPrompt(true);
       return;
     }
 
@@ -1448,6 +1466,9 @@ export default function LessonPage() {
       }
 
       await fetchProfile(token, true, getUserKey(session));
+      setPalmTrees(5);
+      setShowPalmRefillPrompt(false);
+      setLessonRefreshKey((key) => key + 1);
       toast.success(
         refillResult.message || "Palm Trees refilled successfully.",
       );
@@ -2193,14 +2214,12 @@ export default function LessonPage() {
             <div className="container max-w-4xl mx-auto flex flex-row items-center gap-4">
               <button
                 onClick={goToNext}
-                disabled={!hasPalmTrees}
                 className="text-muted-foreground hover:text-foreground font-bold text-base sm:text-lg underline underline-offset-4 shrink-0"
               >
                 Skip
               </button>
               <button
                 onClick={goToNext}
-                disabled={!hasPalmTrees}
                 className="w-auto min-w-[120px] sm:min-w-[200px] h-12 sm:h-14 bg-accent hover:opacity-90 text-accent-foreground font-bold text-base sm:text-lg rounded-xl ml-auto"
               >
                 Continue
@@ -2231,8 +2250,7 @@ export default function LessonPage() {
             onContinue={goToNext}
             onSkip={goToNext}
             disabled={
-              !hasPalmTrees ||
-              (questionType === "mcq"
+              questionType === "mcq"
                 ? !selectedOptionId
                 : questionType === "true_false"
                   ? selectedTrueFalse === null
@@ -2243,11 +2261,20 @@ export default function LessonPage() {
                       : questionType === "word_making" ||
                           questionType === "sentence_making"
                         ? selectedTokens.length === 0
-                        : false)
+                        : false
             }
           />
         )}
       </div>
+
+      {showPalmRefillPrompt && (
+        <PalmTreesDepletedOverlay
+          onRefill={handleRefillFromErrorState}
+          isRefilling={isRefillingFromError}
+          onGoPro={() => router.push("/store")}
+          onExit={handleLeaveLesson}
+        />
+      )}
     </div>
   );
 }

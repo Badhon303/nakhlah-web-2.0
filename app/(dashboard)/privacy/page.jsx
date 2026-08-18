@@ -43,7 +43,7 @@ export default function PrivacyRoutePage() {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-emerald-500" />
+            {/* <ShieldCheck className="w-5 h-5 text-emerald-500" /> */}
             <h1 className="text-3xl font-bold text-foreground">
               Privacy Policy
             </h1>

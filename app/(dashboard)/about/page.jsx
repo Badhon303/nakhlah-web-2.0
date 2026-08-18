@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { Mascot } from "@/components/nakhlah/Mascot";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
 import { getSessionToken } from "@/lib/authUtils";
 import { fetchAbout } from "@/services/api/globals";
@@ -18,7 +18,19 @@ const SECTION_CONFIG = [
   { key: "partners", title: "Partners" },
 ];
 
-const isRichText = (value) => value?.root?.type === "root";
+const hasTextContent = (node) => {
+  if (!node) return false;
+  if (typeof node.text === "string" && node.text.trim().length > 0) {
+    return true;
+  }
+  if (Array.isArray(node.children)) {
+    return node.children.some(hasTextContent);
+  }
+  return false;
+};
+
+const isRichText = (value) =>
+  value?.root?.type === "root" && hasTextContent(value.root);
 
 export default function AboutPage() {
   const router = useRouter();
@@ -62,7 +74,7 @@ export default function AboutPage() {
         </div>
 
         <div className="flex justify-center mb-6">
-          <Mascot size="xxl" mood="happy" />
+          <FreshDateMascot size="xxl" mood="happy" />
         </div>
 
         {isLoading ? (

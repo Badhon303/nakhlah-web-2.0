@@ -150,7 +150,7 @@ export function LessonSelectionPopup({
       isExam: Boolean(lesson.isExam),
     });
 
-    router.push("/lesson");
+    router.push(`/lesson/${encodeURIComponent(lesson.id)}`);
     onClose();
   };
 

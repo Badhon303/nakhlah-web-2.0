@@ -196,6 +196,8 @@ export default function Onboarding() {
   const [age, setAge] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
   const [onboardingData, setOnboardingData] = useState(null);
   const [isLoadingOnboarding, setIsLoadingOnboarding] = useState(true);
@@ -380,7 +382,9 @@ export default function Onboarding() {
           ? true
           : email.trim().length > 0 &&
               !profileEmailError &&
-              password.trim().length >= 6;
+              password.trim().length >= 6 &&
+              confirmPassword.trim().length >= 6 &&
+              !confirmPasswordError;
       default:
         return true;
     }
@@ -572,6 +576,10 @@ export default function Onboarding() {
   const handleAccountChange = useCallback((fields) => {
     if (fields.email !== undefined) setEmail(fields.email);
     if (fields.password !== undefined) setPassword(fields.password);
+    if (fields.confirmPassword !== undefined)
+      setConfirmPassword(fields.confirmPassword);
+    if (fields.confirmPasswordError !== undefined)
+      setConfirmPasswordError(fields.confirmPasswordError);
     if (fields.emailError !== undefined)
       setProfileEmailError(fields.emailError);
   }, []);
@@ -664,6 +672,7 @@ export default function Onboarding() {
           <AccountStep
             email={email}
             password={password}
+            confirmPassword={confirmPassword}
             onChange={handleAccountChange}
           />
         );
@@ -718,22 +727,24 @@ export default function Onboarding() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-4">
-        <div className="max-w-[520px] mx-auto flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleBack}
-            disabled={isRegistering}
-            className="shrink-0"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1 min-w-0">
-            <ProgressSteps steps={steps} currentStep={currentStep} />
+      {currentStep < steps.length && (
+        <div className="container mx-auto px-4 py-4">
+          <div className="max-w-[520px] mx-auto flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleBack}
+              disabled={isRegistering}
+              className="shrink-0"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1 min-w-0">
+              <ProgressSteps steps={steps} currentStep={currentStep} />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <main className="flex-1 container mx-auto px-4 py-6 flex items-start justify-center">
         {isLoadingOnboarding ? (
