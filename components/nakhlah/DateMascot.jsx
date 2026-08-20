@@ -973,17 +973,6 @@ export const FreshDateMascot = ({
             </text>
           </motion.g>
         );
-      case "sad":
-        return (
-          <motion.path
-            d="M46.5 44.5 C47.9 46.9 47.9 48.6 46.5 49.4 C45.1 48.6 45.1 46.9 46.5 44.5 Z"
-            fill="#7EC8F7"
-            stroke="#5BA8DC"
-            strokeWidth="0.4"
-            animate={{ y: [0, 3.5], opacity: [0.95, 0] }}
-            transition={{ repeat: Infinity, duration: 1.6, ease: "easeIn" }}
-          />
-        );
       case "happy":
         return (
           <motion.g

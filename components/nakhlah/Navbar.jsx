@@ -23,6 +23,26 @@ export function Navbar() {
   const pathname = usePathname();
   const isHomePage = pathname === "/";
 
+  // Clicking a nav link (or the logo) to the route we're already on would
+  // otherwise still trigger Next.js's default scroll-to-top behavior, even
+  // though no navigation actually happens. Swallow those clicks so the
+  // current scroll position (e.g. the learner's spot on the home journey
+  // path) is preserved. Modifier/middle clicks are left alone so opening in
+  // a new tab still works.
+  const handleNavClick = (e, path) => {
+    if (
+      pathname === path &&
+      !e.defaultPrevented &&
+      e.button === 0 &&
+      !e.metaKey &&
+      !e.ctrlKey &&
+      !e.shiftKey &&
+      !e.altKey
+    ) {
+      e.preventDefault();
+    }
+  };
+
   const handleLogout = async () => {
     window.dispatchEvent(new Event("nakhlah:logout-started"));
     try {
@@ -46,7 +66,11 @@ export function Navbar() {
       >
         <div className="flex flex-col gap-8">
           {/* Logo */}
-          <Link href="/" className="flex w-full items-center justify-center">
+          <Link
+            href="/"
+            onClick={(e) => handleNavClick(e, "/")}
+            className="flex w-full items-center justify-center"
+          >
             <Image
               src="/Nakhlah_Logo.webp"
               alt="Nakhlah logo"
@@ -65,6 +89,7 @@ export function Navbar() {
                 <Link
                   key={item.path}
                   href={item.path}
+                  onClick={(e) => handleNavClick(e, item.path)}
                   className={cn(
                     "relative flex items-center gap-3 rounded-xl px-4 py-3 text-base font-semibold transition-all",
                     isHomePage
@@ -133,6 +158,7 @@ export function Navbar() {
               <Link
                 key={item.path}
                 href={item.path}
+                onClick={(e) => handleNavClick(e, item.path)}
                 className={cn(
                   "flex-1 flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all min-w-0",
                   isHomePage
