@@ -133,6 +133,7 @@ const buildJourneyView = (journey, currentProgress) => {
 
 export default function LearnPage() {
   const [loadError, setLoadError] = useState("");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { data: session, status } = useSession();
   const journeyData = useJourneyStore((state) => state.journeyData);
   const isJourneyLoading = useJourneyStore((state) => state.isLoading);
@@ -151,7 +152,7 @@ export default function LearnPage() {
         setLoadError("");
 
         if (status === "loading") return;
-        if (status === "unauthenticated" || !isSessionValid(session)) {
+        if (status === "unauthenticated" || !session?.accessToken) {
           clearJourney();
           clearProfile();
           throw new Error("Please login to view your journey.");
@@ -179,6 +180,14 @@ export default function LearnPage() {
     },
     [clearJourney, clearProfile, fetchJourney, fetchProfile, session, status],
   );
+
+  useEffect(() => {
+    const handleLogoutStarted = () => setIsLoggingOut(true);
+
+    window.addEventListener("nakhlah:logout-started", handleLogoutStarted);
+    return () =>
+      window.removeEventListener("nakhlah:logout-started", handleLogoutStarted);
+  }, []);
 
   useEffect(() => {
     const shouldForceRefresh =
@@ -223,6 +232,10 @@ export default function LearnPage() {
   const isLoading =
     status === "loading" ||
     ((isJourneyLoading || isProfileLoading) && lessons.length === 0);
+
+  if (isLoggingOut) {
+    return <div className="min-h-screen bg-background" />;
+  }
 
   return (
     <div className="text-foreground min-h-screen no-scrollbar">

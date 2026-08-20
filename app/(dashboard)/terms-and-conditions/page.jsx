@@ -46,7 +46,7 @@ export default function TermsAndConditionsRoutePage() {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-blue-500" />
+            {/* <FileText className="w-5 h-5 text-blue-500" /> */}
             <h1 className="text-3xl font-bold text-foreground">
               Terms &amp; Conditions
             </h1>

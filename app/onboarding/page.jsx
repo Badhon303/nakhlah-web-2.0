@@ -196,6 +196,8 @@ export default function Onboarding() {
   const [age, setAge] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
   const [onboardingData, setOnboardingData] = useState(null);
   const [isLoadingOnboarding, setIsLoadingOnboarding] = useState(true);
@@ -380,7 +382,9 @@ export default function Onboarding() {
           ? true
           : email.trim().length > 0 &&
               !profileEmailError &&
-              password.trim().length >= 6;
+              password.trim().length >= 6 &&
+              confirmPassword.trim().length >= 6 &&
+              !confirmPasswordError;
       default:
         return true;
     }
@@ -572,6 +576,10 @@ export default function Onboarding() {
   const handleAccountChange = useCallback((fields) => {
     if (fields.email !== undefined) setEmail(fields.email);
     if (fields.password !== undefined) setPassword(fields.password);
+    if (fields.confirmPassword !== undefined)
+      setConfirmPassword(fields.confirmPassword);
+    if (fields.confirmPasswordError !== undefined)
+      setConfirmPasswordError(fields.confirmPasswordError);
     if (fields.emailError !== undefined)
       setProfileEmailError(fields.emailError);
   }, []);
@@ -664,6 +672,7 @@ export default function Onboarding() {
           <AccountStep
             email={email}
             password={password}
+            confirmPassword={confirmPassword}
             onChange={handleAccountChange}
           />
         );
@@ -683,7 +692,7 @@ export default function Onboarding() {
 
   if (!isAuthResolved || isLoadingOnboarding) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4 py-6">
         <div className="text-center space-y-3 max-w-sm">
           <FreshDateMascot mood="excited" size="xxxl" />
           <p className="text-muted-foreground font-medium">
@@ -696,33 +705,53 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border pt-[env(safe-area-inset-top)]">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between shrink-0">
           <Link
             href={isAuthenticated ? "/" : "/auth/login"}
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity shrink-0"
           >
             <Image
               src="/Nakhlah_Logo.webp"
               alt="Nakhlah logo"
               width={32}
               height={32}
-              className="w-8 h-8 rounded-lg object-cover"
+              className="w-8 h-8 rounded-lg object-cover shrink-0"
               priority
             />
-            <span className="text-xl font-bold text-foreground">Nakhlah</span>
+            <span className="text-xl font-bold text-foreground shrink-0">
+              Nakhlah
+            </span>
           </Link>
           <ThemeToggle />
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-2 md:py-4 lg:py-10">
-        <div className="max-w-[520px] mx-auto">
-          <ProgressSteps steps={steps} currentStep={currentStep} />
+      {currentStep < steps.length && (
+        <div className="container mx-auto px-4 py-4">
+          <div className="max-w-[520px] mx-auto flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleBack}
+              disabled={isRegistering}
+              className="shrink-0"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1 min-w-0">
+              <ProgressSteps steps={steps} currentStep={currentStep} />
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
-      <main className="flex-1 container mx-auto px-4 py-10 flex items-start justify-center">
+      <main
+        className={cn(
+          "flex-1 container mx-auto px-4 py-6 flex justify-center",
+          currentStep === steps.length ? "items-center" : "items-start",
+        )}
+      >
         {isLoadingOnboarding ? (
           <div className="w-full max-w-xl mx-auto text-center text-muted-foreground">
             Loading onboarding options...
@@ -750,53 +779,35 @@ export default function Onboarding() {
         )}
       </main>
 
-      <footer className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border pb-[env(safe-area-inset-bottom)]">
-        <div className="container px-1 py-4 flex flex-col gap-3 max-w-xl mx-auto">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              onClick={handleBack}
-              disabled={isRegistering}
-              className="gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
-
-            {currentStep < steps.length ? (
+      {currentStep < steps.length && (
+        <footer className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border pb-[var(--sab)]">
+          <div className="container px-4 py-4 flex items-center justify-between max-w-xl mx-auto">
+            {[1, 2, 3, 4, 5, 6, 7, 8].includes(currentStep) && (
               <Button
-                onClick={handleNext}
-                disabled={
-                  isLoadingOnboarding ||
-                  !!loadingError ||
-                  !canProceed() ||
-                  isRegistering
-                }
-                className="gap-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white"
+                variant="ghost"
+                onClick={handleSkip}
+                disabled={isRegistering}
+                className="gap-2 text-muted-foreground hover:text-foreground"
               >
-                {isRegistering ? "Creating Account..." : "Continue"}
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            ) : (
-              <Button
-                onClick={handleComplete}
-                className="gap-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white"
-              >
-                Start Learning
+                Skip
               </Button>
             )}
-          </div>
-
-          {[1, 2, 3, 4, 5, 6, 7, 8].includes(currentStep) && (
-            <button
-              onClick={handleSkip}
-              className="px-4 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+            <Button
+              onClick={handleNext}
+              disabled={
+                isLoadingOnboarding ||
+                !!loadingError ||
+                !canProceed() ||
+                isRegistering
+              }
+              className="gap-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white ml-auto"
             >
-              or skip for now
-            </button>
-          )}
-        </div>
-      </footer>
+              {isRegistering ? "Creating Account..." : "Continue"}
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </footer>
+      )}
     </div>
   );
 }

@@ -23,8 +23,14 @@ export function Navbar() {
   const pathname = usePathname();
   const isHomePage = pathname === "/";
 
-  const handleLogout = () => {
-    signOut({ callbackUrl: "/auth/login" });
+  const handleLogout = async () => {
+    window.dispatchEvent(new Event("nakhlah:logout-started"));
+    try {
+      await signOut({ redirect: false });
+    } catch {
+      // Redirect locally even if the auth request fails.
+    }
+    window.location.replace("/auth/login");
   };
 
   return (

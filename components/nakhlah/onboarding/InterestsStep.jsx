@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import Image from "next/image";
 
 export function InterestsStep({
   title,
@@ -47,14 +48,16 @@ export function InterestsStep({
                   : "border-border bg-card hover:border-primary",
               )}
             >
-              <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-md overflow-hidden shrink-0 flex items-center justify-center">
                 {interest?.interestPicture?.url ? (
-                  <img
+                  <Image
                     src={getMediaUrl(interest.interestPicture.url)}
                     alt={
                       interest?.interestPicture?.alt || interest.interestTitle
                     }
                     className="w-full h-full object-contain"
+                    width={48}
+                    height={48}
                   />
                 ) : (
                   <span className="text-2xl">⭐</span>

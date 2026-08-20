@@ -10,11 +10,9 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 export default function SettingsPage({ onBack, onNavigate }) {
-  const router = useRouter();
-
   const settingsItems = [
     {
       label: "Personal Info",
@@ -51,8 +49,14 @@ export default function SettingsPage({ onBack, onNavigate }) {
     },
   ];
 
-  const handleLogout = () => {
-    router.push("/auth/login");
+  const handleLogout = async () => {
+    window.dispatchEvent(new Event("nakhlah:logout-started"));
+    try {
+      await signOut({ redirect: false });
+    } catch {
+      // Redirect locally even if the auth request fails.
+    }
+    window.location.replace("/auth/login");
   };
 
   return (

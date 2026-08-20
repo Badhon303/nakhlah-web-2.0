@@ -34,7 +34,7 @@ export async function refreshAccessToken(currentToken) {
 
         return {
             success: true,
-            token: data?.token || null,
+            token: data?.refreshedToken || data?.token || null,
             exp: data?.exp || null,
             data,
         };
@@ -67,7 +67,7 @@ export async function fetchCurrentUser(token) {
         return {
             success: true,
             user: data?.user || null,
-            token: data?.token || token || null,
+            token: data?.refreshedToken || data?.token || token || null,
             exp: data?.exp || null,
             message: data?.message,
             data,
@@ -184,6 +184,25 @@ export async function fetchUserOnboardingGlobals(token) {
     }
 }
 
+function toRegistrationErrorMessage(data) {
+    const fieldErrors = data?.errors?.data?.errors;
+    if (Array.isArray(fieldErrors) && fieldErrors.length) {
+        const emailError = fieldErrors.find((entry) => entry?.path === "email");
+        if (emailError?.message) {
+            return /already registered/i.test(emailError.message)
+                ? "An account with this email already exists. Please log in instead."
+                : emailError.message;
+        }
+        if (fieldErrors[0]?.message) return fieldErrors[0].message;
+    }
+
+    return (
+        data?.errors?.message ||
+        data?.message ||
+        "Registration failed"
+    );
+}
+
 export async function registerUser(email, password) {
     try {
         const response = await fetch(withApiUrl("/api/users/sign-in"), {
@@ -198,7 +217,7 @@ export async function registerUser(email, password) {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data?.message || "Registration failed");
+            throw new Error(toRegistrationErrorMessage(data));
         }
 
         return {
