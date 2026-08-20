@@ -21,6 +21,11 @@ import {
 import { toast } from "@/components/nakhlah/Toast";
 import { buildApiUrl } from "@/lib/api-config";
 import { useProfileStore } from "@/stores/useProfileStore";
+import {
+  NAME_MAX_LENGTH,
+  PHONE_REGEX,
+  PHONE_ERROR_MESSAGE,
+} from "@/lib/validation";
 
 const MAX_FILE_SIZE = 300 * 1024;
 
@@ -35,6 +40,7 @@ export default function EditProfilePage({
   const [picturePreview, setPicturePreview] = useState("");
   const [fileError, setFileError] = useState("");
   const [contactError, setContactError] = useState("");
+  const [nameError, setNameError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
   const [onboardingOptions, setOnboardingOptions] = useState(null);
@@ -110,8 +116,25 @@ export default function EditProfilePage({
 
   const handleChange = (field, value) => {
     setLocalChanges((prev) => ({ ...prev, [field]: value }));
+
     if (field === "contactNumber") {
-      setContactError("");
+      const error =
+        value.trim() && !PHONE_REGEX.test(value.trim())
+          ? PHONE_ERROR_MESSAGE
+          : "";
+      setContactError(error);
+    }
+
+    if (field === "fullName") {
+      let error = "";
+      if (value.trim()) {
+        if (value.trim().length < 2) {
+          error = "Full name must be at least 2 characters.";
+        } else if (value.trim().length > NAME_MAX_LENGTH) {
+          error = `Full name must be under ${NAME_MAX_LENGTH} characters.`;
+        }
+      }
+      setNameError(error);
     }
   };
 
@@ -176,13 +199,8 @@ export default function EditProfilePage({
       return;
     }
 
-    if (
-      !formData.fullName.trim() ||
-      !formData.contactNumber.trim() ||
-      contactError ||
-      fileError
-    ) {
-      toast.error("Please fill in all required fields correctly");
+    if (nameError || contactError || fileError) {
+      toast.error("Please fix the highlighted fields before updating");
       return;
     }
 
@@ -304,6 +322,9 @@ export default function EditProfilePage({
               onChange={(e) => handleChange("fullName", e.target.value)}
               className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground"
             />
+            {nameError && (
+              <p className="text-xs text-destructive mt-1">{nameError}</p>
+            )}
           </div>
 
           <div>
@@ -473,8 +494,7 @@ export default function EditProfilePage({
             disabled={
               isSubmitting ||
               isLoadingOptions ||
-              !formData.fullName.trim() ||
-              !formData.contactNumber.trim() ||
+              !!nameError ||
               !!contactError ||
               !!fileError
             }

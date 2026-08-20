@@ -11,6 +11,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { resetPassword } from "@/services/api/auth";
 import { toast } from "@/components/nakhlah/Toast";
 import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
+import { cn } from "@/lib/utils";
+import { PASSWORD_MIN_LENGTH, PASSWORD_ERROR_MESSAGE } from "@/lib/validation";
 
 function CreatePasswordContent() {
   const router = useRouter();
@@ -19,6 +21,8 @@ function CreatePasswordContent() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [resetToken, setResetToken] = useState("");
 
@@ -29,14 +33,39 @@ function CreatePasswordContent() {
     }
   }, [searchParams]);
 
-  const handleContinue = async () => {
-    if (!password || password.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return;
-    }
+  const handlePasswordChange = (value) => {
+    setPassword(value);
+    const error =
+      value && value.trim().length < PASSWORD_MIN_LENGTH
+        ? PASSWORD_ERROR_MESSAGE
+        : "";
+    setPasswordError(error);
+    const nextConfirmError =
+      confirmPassword && confirmPassword !== value
+        ? "Passwords do not match."
+        : "";
+    setConfirmPasswordError(nextConfirmError);
+  };
 
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
+  const handleConfirmPasswordChange = (value) => {
+    setConfirmPassword(value);
+    const error = value && value !== password ? "Passwords do not match." : "";
+    setConfirmPasswordError(error);
+  };
+
+  const handleContinue = async () => {
+    const passwordValidationError =
+      !password || password.trim().length < PASSWORD_MIN_LENGTH
+        ? PASSWORD_ERROR_MESSAGE
+        : "";
+    const confirmValidationError =
+      password !== confirmPassword ? "Passwords do not match." : "";
+
+    setPasswordError(passwordValidationError);
+    setConfirmPasswordError(confirmValidationError);
+
+    if (passwordValidationError || confirmValidationError) {
+      toast.error(passwordValidationError || confirmValidationError);
       return;
     }
 
@@ -131,8 +160,12 @@ function CreatePasswordContent() {
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your new password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="h-12 bg-background border-border text-foreground pr-12"
+                    onChange={(e) => handlePasswordChange(e.target.value)}
+                    className={cn(
+                      "h-12 bg-background border-border text-foreground pr-12",
+                      passwordError &&
+                        "border-destructive focus-visible:ring-destructive/40",
+                    )}
                     disabled={isLoading}
                   />
                   <button
@@ -147,6 +180,9 @@ function CreatePasswordContent() {
                     )}
                   </button>
                 </div>
+                {passwordError ? (
+                  <p className="text-xs text-destructive">{passwordError}</p>
+                ) : null}
               </div>
 
               {/* Confirm Password */}
@@ -163,8 +199,14 @@ function CreatePasswordContent() {
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="Re-type your new password"
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="h-12 bg-background border-border text-foreground pr-12"
+                    onChange={(e) =>
+                      handleConfirmPasswordChange(e.target.value)
+                    }
+                    className={cn(
+                      "h-12 bg-background border-border text-foreground pr-12",
+                      confirmPasswordError &&
+                        "border-destructive focus-visible:ring-destructive/40",
+                    )}
                     disabled={isLoading}
                   />
                   <button
@@ -179,13 +221,20 @@ function CreatePasswordContent() {
                     )}
                   </button>
                 </div>
+                {confirmPasswordError ? (
+                  <p className="text-xs text-destructive">
+                    {confirmPasswordError}
+                  </p>
+                ) : null}
               </div>
 
               {/* Continue Button */}
               <div className="hidden sm:block">
                 <Button
                   onClick={handleContinue}
-                  disabled={isLoading}
+                  disabled={
+                    isLoading || !!passwordError || !!confirmPasswordError
+                  }
                   className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
                 >
                   {isLoading ? "RESETTING PASSWORD..." : "CONTINUE"}
@@ -197,7 +246,7 @@ function CreatePasswordContent() {
           <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-background border-t border-border p-4">
             <Button
               onClick={handleContinue}
-              disabled={isLoading}
+              disabled={isLoading || !!passwordError || !!confirmPasswordError}
               className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
             >
               {isLoading ? "RESETTING PASSWORD..." : "CONTINUE"}

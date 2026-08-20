@@ -3,7 +3,7 @@ import StatisticsGrid from "./components/StatisticsGrid";
 import AchievementsList from "./components/AchievementsList";
 import MotivationCard from "./components/MotivationCard";
 import QuickStats from "./components/QuickStats";
-import ShareProfile from "./components/ShareProfile";
+// import ShareProfile from "./components/ShareProfile";
 import SubscriptionCard from "./components/SubscriptionCard";
 import RefillLivesCard from "./components/RefillLivesCard";
 
@@ -75,7 +75,7 @@ export default function ProfilePage({
         <div className="hidden lg:block space-y-8">
           <MotivationCard />
           <QuickStats profileData={profileData} />
-          <ShareProfile onShare={() => onNavigate("share-profile")} />
+          {/* <ShareProfile onShare={() => onNavigate("share-profile")} /> */}
           <SubscriptionCard />
           <RefillLivesCard />
         </div>
@@ -84,7 +84,7 @@ export default function ProfilePage({
       {/* Mobile Sidebar - appears below main content */}
       <div className="lg:hidden space-y-6 mt-4 pb-6">
         <QuickStats profileData={profileData} />
-        <ShareProfile onShare={() => onNavigate("share-profile")} />
+        {/* <ShareProfile onShare={() => onNavigate("share-profile")} /> */}
         <SubscriptionCard />
         <RefillLivesCard />
       </div>
