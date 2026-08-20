@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
-import { Edit, Share2, Settings } from "lucide-react";
+import { Edit, Settings } from "lucide-react";
+// import { Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -37,7 +38,7 @@ export default function HeaderSection({
   stats,
   onNavigateSettings,
   onNavigateEdit,
-  onShare,
+  // onShare,
   currentUser,
   profileData,
   isLoading,
@@ -96,11 +97,12 @@ export default function HeaderSection({
             <div className="hidden lg:flex flex-wrap gap-3 mt-6">
               <Button
                 onClick={onNavigateEdit}
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                className="bg-accent text-accent-foreground hover:bg-accent/90"
               >
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Profile
               </Button>
+              {/*
               <Button
                 onClick={onShare}
                 variant="outline"
@@ -109,13 +111,14 @@ export default function HeaderSection({
                 <Share2 className="w-4 h-4 mr-2" />
                 Share
               </Button>
+              */}
               <Button
                 onClick={onNavigateSettings}
                 variant="outline"
-                size="icon"
                 className="border-border hover:bg-muted"
               >
-                <Settings className="w-4 h-4" />
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
               </Button>
             </div>
           </div>
@@ -143,11 +146,12 @@ export default function HeaderSection({
         <div className="flex lg:hidden gap-3 mt-6">
           <Button
             onClick={onNavigateEdit}
-            className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+            className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90"
           >
             <Edit className="w-4 h-4 mr-2" />
             Edit
           </Button>
+          {/*
           <Button
             onClick={onShare}
             variant="outline"
@@ -156,13 +160,14 @@ export default function HeaderSection({
             <Share2 className="w-4 h-4 mr-2" />
             Share
           </Button>
+          */}
           <Button
             onClick={onNavigateSettings}
             variant="outline"
-            size="icon"
-            className="border-border hover:bg-muted"
+            className="flex-1 border-border hover:bg-muted"
           >
-            <Settings className="w-4 h-4" />
+            <Settings className="w-4 h-4 mr-2" />
+            Settings
           </Button>
         </div>
       </div>

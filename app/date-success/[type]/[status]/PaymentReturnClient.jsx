@@ -9,7 +9,18 @@ import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { captureDatePaymentOrder } from "@/services/api";
 import { toast } from "@/components/nakhlah/Toast";
-import { Home, RefreshCw, ShoppingBag } from "lucide-react";
+import {
+  Home,
+  RefreshCw,
+  ShoppingBag,
+  PartyPopper,
+  XCircle,
+} from "lucide-react";
+import {
+  ConfettiBurst,
+  DriftingLeaves,
+  ResultIconBadge,
+} from "@/components/nakhlah/ResultVisuals";
 
 export default function PaymentReturnClient() {
   const router = useRouter();
@@ -108,8 +119,9 @@ export default function PaymentReturnClient() {
         : "Payment needs attention";
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
+    <div className="relative min-h-screen bg-background flex items-center justify-center p-4 overflow-hidden">
+      {isSuccess ? <ConfettiBurst /> : !isLoading ? <DriftingLeaves /> : null}
+      <div className="relative w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -130,20 +142,21 @@ export default function PaymentReturnClient() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-card border border-border rounded-3xl p-8 md:p-12 text-center shadow-sm"
+          className="relative bg-card border border-border rounded-3xl p-8 md:p-12 text-center shadow-sm overflow-hidden"
         >
           <div className="lg:hidden flex justify-center mb-6">
             <FreshDateMascot mood={mascotMood} size="xxl" />
           </div>
 
           <div className="space-y-4">
-            {/* <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 text-accent">
-              {isLoading ? (
-                <RefreshCw className="w-8 h-8 animate-spin" />
-              ) : (
-                <ShoppingBag className="w-8 h-8" />
-              )}
-            </div> */}
+            {!isLoading && (
+              <ResultIconBadge
+                icon={
+                  isSuccess ? PartyPopper : isCanceled ? XCircle : RefreshCw
+                }
+                variant={isSuccess ? "success" : "failed"}
+              />
+            )}
 
             <h1 className="text-3xl md:text-5xl font-bold text-foreground">
               {title}
