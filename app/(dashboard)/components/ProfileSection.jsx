@@ -43,7 +43,14 @@ const formatJoinedDate = (dateInput) => {
 const navLinks = [
   { href: "/about", label: "About" },
   { href: "/store", label: "Store" },
-  { href: "/tips", label: "Learning tips and guides" },
+  {
+    href: "/payment-subscription-policy",
+    label: "Payment and Subscription Policy",
+  },
+  {
+    href: "/refund-cancellation-policy",
+    label: "Refund Policy",
+  },
   { href: "/faq", label: "FAQ" },
   { href: "/terms-and-conditions", label: "Terms and Conditions" },
   { href: "/privacy", label: "Privacy Policy" },

@@ -106,6 +106,35 @@ function renderNode(node, idx) {
       );
     }
 
+    case "autolink":
+    case "link": {
+      const href = node.fields?.url || node.url || "";
+      const safeHref = /^(https?:\/\/|mailto:)/i.test(href)
+        ? href
+        : href.startsWith("www.")
+          ? `https://${href}`
+          : "";
+      const linkText = (node.children || [])
+        .map((child) => child?.text || "")
+        .join("");
+
+      if (!safeHref) {
+        return <span key={idx}>{linkText}</span>;
+      }
+
+      return (
+        <a
+          key={idx}
+          href={safeHref}
+          target={safeHref.startsWith("mailto:") ? undefined : "_blank"}
+          rel={safeHref.startsWith("mailto:") ? undefined : "noreferrer"}
+          className="text-accent underline underline-offset-2 hover:opacity-80 break-all"
+        >
+          {linkText || safeHref}
+        </a>
+      );
+    }
+
     case "linebreak":
       return <br key={idx} />;
 
