@@ -14,13 +14,11 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
-import {
-  fetchUserOnboardingGlobals,
-  updateMyProfile,
-} from "@/services/api/auth";
+import { updateMyProfile } from "@/services/api/auth";
 import { toast } from "@/components/nakhlah/Toast";
 import { buildApiUrl } from "@/lib/api-config";
 import { useProfileStore } from "@/stores/useProfileStore";
+import { useOnboardingGlobalsStore } from "@/stores/useOnboardingGlobalsStore";
 import {
   NAME_MAX_LENGTH,
   PHONE_REGEX,
@@ -42,22 +40,19 @@ export default function EditProfilePage({
   const [contactError, setContactError] = useState("");
   const [nameError, setNameError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoadingOptions, setIsLoadingOptions] = useState(true);
-  const [onboardingOptions, setOnboardingOptions] = useState(null);
   const { data: session } = useSession();
   const previousPreviewUrl = useRef("");
+  const onboardingOptions = useOnboardingGlobalsStore((state) => state.data);
+  const isLoadingOptions = useOnboardingGlobalsStore(
+    (state) => state.isLoading,
+  );
+  const fetchOnboardingGlobals = useOnboardingGlobalsStore(
+    (state) => state.fetchOnboardingGlobals,
+  );
 
   useEffect(() => {
-    const loadOptions = async () => {
-      setIsLoadingOptions(true);
-      const result = await fetchUserOnboardingGlobals();
-      if (result.success) {
-        setOnboardingOptions(result.data);
-      }
-      setIsLoadingOptions(false);
-    };
-    loadOptions();
-  }, []);
+    fetchOnboardingGlobals();
+  }, [fetchOnboardingGlobals]);
 
   const initialFormData = useMemo(() => {
     if (!profileData || !onboardingOptions) {

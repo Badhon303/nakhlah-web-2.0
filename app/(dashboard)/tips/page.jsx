@@ -1,39 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { BookOpen, ChevronLeft, Lightbulb } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { getSessionToken } from "@/lib/authUtils";
-import { fetchHelpCenter } from "@/services/api/globals";
+import { useHelpCenterStore } from "@/stores/useHelpCenterStore";
 import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
 
 export default function TipsPage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const [guide, setGuide] = useState(null);
-  const [tips, setTips] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const helpCenterData = useHelpCenterStore((state) => state.data);
+  const isLoading = useHelpCenterStore((state) => state.isLoading);
+  const fetchHelpCenter = useHelpCenterStore((state) => state.fetchHelpCenter);
+  const guide = helpCenterData?.learningGuide ?? null;
+  const tips = helpCenterData?.learningTips ?? [];
 
   useEffect(() => {
-    const load = async () => {
-      setIsLoading(true);
-      const token = getSessionToken(session);
-      const result = await fetchHelpCenter(
-        { learningGuide: true, learningTips: true },
-        token,
-      );
-
-      if (result.success) {
-        setGuide(result.data?.learningGuide ?? null);
-        setTips(result.data?.learningTips ?? []);
-      }
-      setIsLoading(false);
-    };
-
-    load();
-  }, [session]);
+    fetchHelpCenter(getSessionToken(session));
+  }, [session, fetchHelpCenter]);
 
   return (
     <div className="min-h-[calc(100vh-6rem)] flex items-center justify-center px-4 py-8">

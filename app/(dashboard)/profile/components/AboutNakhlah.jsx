@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
-import { fetchAbout } from "@/services/api/globals";
+import { useAboutStore } from "@/stores/useAboutStore";
 import { useSession } from "next-auth/react";
 import { getSessionToken } from "@/lib/authUtils";
 
@@ -13,22 +13,14 @@ export default function AboutNakhlahPage({
   onNavigate,
   showNavigationItems = true,
 }) {
-  const [aboutData, setAboutData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const { data: session } = useSession();
+  const aboutData = useAboutStore((state) => state.data);
+  const isLoading = useAboutStore((state) => state.isLoading);
+  const fetchAbout = useAboutStore((state) => state.fetchAbout);
 
   useEffect(() => {
-    const load = async () => {
-      setIsLoading(true);
-      const token = getSessionToken(session);
-      const result = await fetchAbout(token);
-      if (result.success) {
-        setAboutData(result.data);
-      }
-      setIsLoading(false);
-    };
-    load();
-  }, [session]);
+    fetchAbout(getSessionToken(session));
+  }, [session, fetchAbout]);
 
   const aboutItems = [
     ...(showNavigationItems

@@ -199,7 +199,7 @@ export function ProfileSection() {
             <TooltipProvider>
               <div className="flex flex-wrap gap-2 mt-2">
                 {earnedIcons.length ? (
-                  earnedIcons.map((item) => (
+                  earnedIcons.map((item, index) => (
                     <Tooltip key={item.key}>
                       <TooltipTrigger asChild>
                         <div className="w-9 h-9 rounded-full bg-white/40 flex items-center justify-center overflow-hidden border border-white/30 cursor-help transition-colors hover:border-primary/50">
@@ -223,10 +223,10 @@ export function ProfileSection() {
                       <TooltipContent
                         side="bottom"
                         sideOffset={6}
-                        collisionPadding={24}
-                        align="center"
+                        collisionPadding={8}
+                        align={index < earnedIcons.length / 2 ? "start" : "end"}
                         avoidCollisions
-                        className="bg-foreground text-background max-w-[200px] break-words"
+                        className="w-max max-w-[min(200px,calc(100vw-16px))] whitespace-normal break-words bg-foreground text-background"
                       >
                         <p className="text-sm font-medium">{item.label}</p>
                       </TooltipContent>
