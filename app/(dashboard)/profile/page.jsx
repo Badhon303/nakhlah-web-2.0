@@ -10,7 +10,7 @@ import ContactUsPage from "./components/ContactUs";
 import AllAchievementsPage from "./components/AllAchievements";
 import TermsAndConditionsPage from "./components/TermsAndConditions";
 import PrivacyPolicyPage from "./components/PrivacyPolicy";
-import LearningTipsGuidesPage from "./components/LearningTipsGuides";
+import PolicyDocumentPage from "./components/PolicyDocument";
 import ProfilePage from "./ProfilePage";
 import SettingsPage from "./SettingsPage";
 import EditProfilePage from "./components/EditProfile";
@@ -44,7 +44,8 @@ const VALID_VIEWS = new Set([
   "about-nakhlah",
   "terms-and-conditions",
   "privacy-policy",
-  "learning-tips",
+  "payment-subscription-policy",
+  "refund-cancellation-policy",
   "payment",
 ]);
 
@@ -189,7 +190,6 @@ function ProfileAndSettingsContent() {
           <HelpCenterPage
             onBack={() => setActiveView("settings")}
             onNavigateContact={() => setActiveView("contact-us")}
-            onNavigateLearningTips={() => setActiveView("learning-tips")}
           />
         );
       case "contact-us":
@@ -213,9 +213,21 @@ function ProfileAndSettingsContent() {
         return (
           <PrivacyPolicyPage onBack={() => setActiveView("about-nakhlah")} />
         );
-      case "learning-tips":
+      case "payment-subscription-policy":
         return (
-          <LearningTipsGuidesPage onBack={() => setActiveView("help-center")} />
+          <PolicyDocumentPage
+            onBack={() => setActiveView("about-nakhlah")}
+            policyKey="paymentAndSubscriptionPolicy"
+            title="Payment & Subscription Policy"
+          />
+        );
+      case "refund-cancellation-policy":
+        return (
+          <PolicyDocumentPage
+            onBack={() => setActiveView("about-nakhlah")}
+            policyKey="refundPolicyAndCancellationPolicy"
+            title="Refund & Cancellation Policy"
+          />
         );
       default:
         return (
