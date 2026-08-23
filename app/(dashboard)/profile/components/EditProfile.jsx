@@ -241,7 +241,7 @@ export default function EditProfilePage({
   };
 
   return (
-    <div className="max-w-2xl mx-auto py-6">
+    <div className="max-w-4xl mx-auto py-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

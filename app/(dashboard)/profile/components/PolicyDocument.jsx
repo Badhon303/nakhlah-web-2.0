@@ -29,13 +29,13 @@ export default function PolicyDocumentPage({
       className={
         standalone
           ? "min-h-[calc(100vh-6rem)] flex items-center justify-center px-4 py-8"
-          : "max-w-2xl mx-auto"
+          : "max-w-4xl mx-auto"
       }
     >
       <div
         className={
           standalone
-            ? "w-full max-w-3xl bg-card rounded-3xl border border-border shadow-lg p-5 md:p-6"
+            ? "w-full max-w-4xl bg-card rounded-3xl border border-border shadow-lg p-5 md:p-6"
             : "bg-transparent lg:bg-card rounded-none lg:rounded-2xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-6"
         }
       >

@@ -28,7 +28,7 @@ export default function HelpCenterPage({ onBack, onNavigateContact }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-3xl bg-card rounded-3xl border border-border shadow-lg p-5 md:p-6"
+        className="w-full max-w-4xl bg-card rounded-3xl border border-border shadow-lg p-5 md:p-6"
       >
         {/* Header */}
         <div className="flex items-center gap-3 mb-6 md:mb-7">
