@@ -25,11 +25,11 @@ import { registerUser } from "@/lib/authUtils";
 import {
   fetchCurrentUser,
   fetchMyProfile,
-  fetchUserOnboardingGlobals,
   refreshAccessToken,
   createUserProfile,
   updateMyProfile,
 } from "@/services/api/auth";
+import { useOnboardingGlobalsStore } from "@/stores/useOnboardingGlobalsStore";
 import { signIn } from "next-auth/react";
 import { toast } from "@/components/nakhlah/Toast";
 import { buildApiUrl } from "@/lib/api-config";
@@ -199,9 +199,21 @@ export default function Onboarding() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
-  const [onboardingData, setOnboardingData] = useState(null);
-  const [isLoadingOnboarding, setIsLoadingOnboarding] = useState(true);
-  const [loadingError, setLoadingError] = useState("");
+  const rawOnboardingData = useOnboardingGlobalsStore((state) => state.data);
+  const isLoadingGlobals = useOnboardingGlobalsStore(
+    (state) => state.isLoading,
+  );
+  const globalsError = useOnboardingGlobalsStore((state) => state.error);
+  const fetchOnboardingGlobals = useOnboardingGlobalsStore(
+    (state) => state.fetchOnboardingGlobals,
+  );
+  const onboardingData = useMemo(
+    () => normalizeOnboardingData(rawOnboardingData),
+    [rawOnboardingData],
+  );
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const isLoadingOnboarding = isCheckingAuth || isLoadingGlobals;
+  const loadingError = globalsError || "";
   const [isRegistering, setIsRegistering] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -240,8 +252,7 @@ export default function Onboarding() {
   };
 
   const loadOnboardingData = async () => {
-    setIsLoadingOnboarding(true);
-    setLoadingError("");
+    setIsCheckingAuth(true);
 
     // Check auth status
     try {
@@ -253,23 +264,13 @@ export default function Onboarding() {
       setIsAuthenticated(false);
     }
 
-    let result = await fetchUserOnboardingGlobals();
+    setIsCheckingAuth(false);
 
-    if (!result.success) {
-      const token = await getActiveAccessToken();
-      if (token) {
-        result = await fetchUserOnboardingGlobals(token);
-      }
-    }
-
-    if (!result.success || !result.data) {
-      setLoadingError(result.error || "Failed to load onboarding data");
-      setIsLoadingOnboarding(false);
-      return;
-    }
-
-    setOnboardingData(normalizeOnboardingData(result.data));
-    setIsLoadingOnboarding(false);
+    // The onboarding option lists rarely change, so this is served from the
+    // shared store's cache after the first successful fetch (this session).
+    await fetchOnboardingGlobals({
+      resolveFallbackToken: getActiveAccessToken,
+    });
   };
 
   useEffect(() => {

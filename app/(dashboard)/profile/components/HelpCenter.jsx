@@ -1,8 +1,9 @@
 "use client";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronDown, Search } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
-import { fetchHelpCenter } from "@/services/api/globals";
+import { useState, useEffect } from "react";
+import { useHelpCenterStore } from "@/stores/useHelpCenterStore";
+import HighlightedText from "@/components/nakhlah/HighlightedText";
 import { useSession } from "next-auth/react";
 import { getSessionToken } from "@/lib/authUtils";
 
@@ -13,32 +14,17 @@ export default function HelpCenterPage({
 }) {
   const [expandedFaq, setExpandedFaq] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [faqs, setFaqs] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { data: session } = useSession();
+  const helpCenterData = useHelpCenterStore((state) => state.data);
+  const isLoading = useHelpCenterStore((state) => state.isLoading);
+  const fetchHelpCenter = useHelpCenterStore((state) => state.fetchHelpCenter);
+  const faqs = helpCenterData?.faq ?? [];
 
   useEffect(() => {
-    const load = async () => {
-      setIsLoading(true);
-      const token = getSessionToken(session);
-      const result = await fetchHelpCenter({ faq: true }, token);
-      if (result.success) {
-        setFaqs(result.data?.faq ?? []);
-      }
-      setIsLoading(false);
-    };
-    load();
-  }, [session]);
+    fetchHelpCenter(getSessionToken(session));
+  }, [session, fetchHelpCenter]);
 
-  const filteredFaqs = useMemo(() => {
-    if (!searchQuery.trim()) return faqs;
-    const q = searchQuery.toLowerCase();
-    return faqs.filter(
-      (f) =>
-        f.question?.toLowerCase().includes(q) ||
-        f.answer?.toLowerCase().includes(q),
-    );
-  }, [faqs, searchQuery]);
+  const visibleFaqs = faqs;
 
   return (
     <div className="min-h-[calc(100vh-6rem)] px-4 py-6 lg:py-8 lg:flex lg:items-center lg:justify-center">
@@ -101,15 +87,13 @@ export default function HelpCenterPage({
               </div>
             ))}
           </div>
-        ) : filteredFaqs.length === 0 ? (
+        ) : visibleFaqs.length === 0 ? (
           <div className="py-8 text-center text-muted-foreground text-sm">
-            {searchQuery
-              ? "No FAQs match your search."
-              : "No FAQs available at the moment."}
+            No FAQs available at the moment.
           </div>
         ) : (
           <div className="space-y-2">
-            {filteredFaqs.map((faq, index) => (
+            {visibleFaqs.map((faq, index) => (
               <motion.div
                 key={faq.id || index}
                 initial={{ opacity: 0, y: 10 }}
@@ -124,7 +108,7 @@ export default function HelpCenterPage({
                   className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-all"
                 >
                   <span className="text-left font-medium text-foreground">
-                    {faq.question}
+                    <HighlightedText text={faq.question} query={searchQuery} />
                   </span>
                   <ChevronDown
                     className={`w-5 h-5 text-muted-foreground flex-shrink-0 ml-2 transition-transform ${
@@ -134,7 +118,7 @@ export default function HelpCenterPage({
                 </button>
                 {expandedFaq === index && (
                   <div className="px-4 pb-4 text-sm text-muted-foreground leading-relaxed">
-                    {faq.answer}
+                    <HighlightedText text={faq.answer} query={searchQuery} />
                   </div>
                 )}
               </motion.div>
