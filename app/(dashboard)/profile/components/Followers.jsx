@@ -4,52 +4,52 @@ import { Button } from "@/components/ui/button";
 
 export default function FollowersPage({ onBack }) {
   const followers = [
-    { 
-      name: "Georgette Strobel", 
-      username: "@georgette", 
-      avatar: "GS", 
+    {
+      name: "Georgette Strobel",
+      username: "@georgette",
+      avatar: "GS",
       following: false,
-      color: "from-accent to-accent"
+      color: "from-accent to-accent",
     },
-    { 
-      name: "Maraldo Wriganton", 
-      username: "@maraldo", 
-      avatar: "MW", 
+    {
+      name: "Maraldo Wriganton",
+      username: "@maraldo",
+      avatar: "MW",
       following: true,
-      color: "from-accent to-accent"
+      color: "from-accent to-accent",
     },
-    { 
-      name: "Freida Varnes", 
-      username: "@freida", 
-      avatar: "FV", 
+    {
+      name: "Freida Varnes",
+      username: "@freida",
+      avatar: "FV",
       following: false,
-      color: "from-accent to-accent"
+      color: "from-accent to-accent",
     },
-    { 
-      name: "Edgar Torrey", 
-      username: "@edgar", 
-      avatar: "ET", 
+    {
+      name: "Edgar Torrey",
+      username: "@edgar",
+      avatar: "ET",
       following: true,
-      color: "from-accent to-accent"
+      color: "from-accent to-accent",
     },
-    { 
-      name: "Annabel Rohan", 
-      username: "@annabel", 
-      avatar: "AR", 
+    {
+      name: "Annabel Rohan",
+      username: "@annabel",
+      avatar: "AR",
       following: true,
-      color: "from-accent to-accent"
+      color: "from-accent to-accent",
     },
-    { 
-      name: "Merrill Kervin", 
-      username: "@merrill", 
-      avatar: "MK", 
+    {
+      name: "Merrill Kervin",
+      username: "@merrill",
+      avatar: "MK",
       following: false,
-      color: "from-accent to-accent"
+      color: "from-accent to-accent",
     },
   ];
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -81,19 +81,26 @@ export default function FollowersPage({ onBack }) {
               className="flex items-center justify-between p-4 bg-muted/20 rounded-xl border border-border/30 hover:bg-muted/50 transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${follower.color} flex items-center justify-center text-white font-bold text-sm`}>
+                <div
+                  className={`w-12 h-12 rounded-full bg-gradient-to-br ${follower.color} flex items-center justify-center text-white font-bold text-sm`}
+                >
                   {follower.avatar}
                 </div>
                 <div>
-                  <div className="font-semibold text-foreground">{follower.name}</div>
-                  <div className="text-sm text-muted-foreground">{follower.username}</div>
+                  <div className="font-semibold text-foreground">
+                    {follower.name}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {follower.username}
+                  </div>
                 </div>
               </div>
               <Button
                 size="sm"
-                className={follower.following 
-                  ? "bg-muted hover:bg-muted/80 text-foreground border border-border" 
-                  : "bg-gradient-accent hover:bg-gradient-accent/90 text-accent-foreground"
+                className={
+                  follower.following
+                    ? "bg-muted hover:bg-muted/80 text-foreground border border-border"
+                    : "bg-gradient-accent hover:bg-gradient-accent/90 text-accent-foreground"
                 }
               >
                 {follower.following ? (

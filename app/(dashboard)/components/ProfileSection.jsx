@@ -52,6 +52,7 @@ const navLinks = [
     label: "Refund Policy",
   },
   { href: "/faq", label: "FAQ" },
+  { href: "/contact-us", label: "Contact Us" },
   { href: "/terms-and-conditions", label: "Terms and Conditions" },
   { href: "/privacy", label: "Privacy Policy" },
 ];
@@ -273,6 +274,14 @@ export function ProfileSection() {
             {link.label}
           </Link>
         ))}
+      </div>
+      <div className="!mt-6 flex justify-center lg:hidden">
+        <Link
+          href="/contact-us"
+          className="text-xs font-bold uppercase text-slate-700 hover:text-primary"
+        >
+          Contact Us
+        </Link>
       </div>
     </div>
   );

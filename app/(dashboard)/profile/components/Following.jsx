@@ -4,40 +4,40 @@ import { Button } from "@/components/ui/button";
 
 export default function FollowingPage({ onBack }) {
   const following = [
-    { 
-      name: "Alfonso Schuessler", 
-      username: "@alfonso", 
-      avatar: "AS", 
-      color: "from-accent to-accent"
+    {
+      name: "Alfonso Schuessler",
+      username: "@alfonso",
+      avatar: "AS",
+      color: "from-accent to-accent",
     },
-    { 
-      name: "Jamee Eusebio", 
-      username: "@jamee", 
-      avatar: "JE", 
-      color: "from-accent to-accent"
+    {
+      name: "Jamee Eusebio",
+      username: "@jamee",
+      avatar: "JE",
+      color: "from-accent to-accent",
     },
-    { 
-      name: "Rosalie Ehrman", 
-      username: "@rosalie", 
-      avatar: "RE", 
-      color: "from-accent to-accent"
+    {
+      name: "Rosalie Ehrman",
+      username: "@rosalie",
+      avatar: "RE",
+      color: "from-accent to-accent",
     },
-    { 
-      name: "Sarah Mitchell", 
-      username: "@sarah", 
-      avatar: "SM", 
-      color: "from-accent to-accent"
+    {
+      name: "Sarah Mitchell",
+      username: "@sarah",
+      avatar: "SM",
+      color: "from-accent to-accent",
     },
-    { 
-      name: "John Davis", 
-      username: "@john", 
-      avatar: "JD", 
-      color: "from-accent to-accent"
+    {
+      name: "John Davis",
+      username: "@john",
+      avatar: "JD",
+      color: "from-accent to-accent",
     },
   ];
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -69,12 +69,18 @@ export default function FollowingPage({ onBack }) {
               className="flex items-center justify-between p-4 bg-muted/20 rounded-xl border border-border/30 hover:bg-muted/50 transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${person.color} flex items-center justify-center text-white font-bold text-sm`}>
+                <div
+                  className={`w-12 h-12 rounded-full bg-gradient-to-br ${person.color} flex items-center justify-center text-white font-bold text-sm`}
+                >
                   {person.avatar}
                 </div>
                 <div>
-                  <div className="font-semibold text-foreground">{person.name}</div>
-                  <div className="text-sm text-muted-foreground">{person.username}</div>
+                  <div className="font-semibold text-foreground">
+                    {person.name}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {person.username}
+                  </div>
                 </div>
               </div>
               <Button

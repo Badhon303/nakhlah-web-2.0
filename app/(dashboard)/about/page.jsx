@@ -52,7 +52,7 @@ export default function AboutPage() {
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-3xl bg-card rounded-3xl border border-border shadow-lg p-5 md:p-6"
+        className="w-full max-w-4xl bg-card rounded-3xl border border-border shadow-lg p-5 md:p-6"
       >
         <div className="flex items-center gap-3 mb-7">
           <button
