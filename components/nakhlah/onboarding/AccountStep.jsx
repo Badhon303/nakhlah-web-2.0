@@ -97,10 +97,10 @@ export function AccountStep({
             value={localEmail}
             onChange={(e) => handleEmailChange(e.target.value)}
             className={cn(
-              "w-full px-4 py-3 rounded-xl border bg-transparent outline-none",
+              "h-12 w-full rounded-xl border bg-transparent px-4 outline-none",
               emailError
                 ? "border-destructive focus:ring-2 focus:ring-destructive/40"
-                : "border-border",
+                : "border-input",
             )}
             placeholder="Put your email"
             type="email"
@@ -119,10 +119,10 @@ export function AccountStep({
               value={localPassword}
               onChange={(e) => handlePasswordChange(e.target.value)}
               className={cn(
-                "w-full px-4 py-3 pr-12 rounded-xl border bg-transparent outline-none",
+                "h-12 w-full rounded-xl border bg-transparent px-4 pr-12 outline-none",
                 passwordError
                   ? "border-destructive focus:ring-2 focus:ring-destructive/40"
-                  : "border-border",
+                  : "border-input",
               )}
               placeholder="Choose a secure password"
               type={showPassword ? "text" : "password"}
@@ -153,10 +153,10 @@ export function AccountStep({
               value={localConfirmPassword}
               onChange={(e) => handleConfirmPasswordChange(e.target.value)}
               className={cn(
-                "w-full px-4 py-3 pr-12 rounded-xl border bg-transparent outline-none",
+                "h-12 w-full rounded-xl border bg-transparent px-4 pr-12 outline-none",
                 confirmPasswordError
                   ? "border-destructive focus:ring-2 focus:ring-destructive/40"
-                  : "border-border",
+                  : "border-input",
               )}
               placeholder="Re-enter your password"
               type={showConfirmPassword ? "text" : "password"}

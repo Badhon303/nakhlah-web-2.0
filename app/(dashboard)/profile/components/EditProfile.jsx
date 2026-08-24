@@ -13,6 +13,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
+import PhoneInput, {
+  isValidPhoneNumber,
+  parsePhoneNumber,
+} from "react-phone-number-input/input";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { updateMyProfile } from "@/services/api/auth";
 import { toast } from "@/components/nakhlah/Toast";
@@ -20,10 +24,15 @@ import { buildApiUrl } from "@/lib/api-config";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { useOnboardingGlobalsStore } from "@/stores/useOnboardingGlobalsStore";
 import {
-  NAME_MAX_LENGTH,
-  PHONE_REGEX,
-  PHONE_ERROR_MESSAGE,
-} from "@/lib/validation";
+  CountryPicker,
+  getCountryCodeByName,
+  getCountryName,
+} from "@/components/nakhlah/onboarding/CountryPicker";
+import { NAME_MAX_LENGTH } from "@/lib/validation";
+import { cn } from "@/lib/utils";
+
+const FIELD_CLASS =
+  "w-full h-12 px-4 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground";
 
 const MAX_FILE_SIZE = 300 * 1024;
 
@@ -40,8 +49,11 @@ export default function EditProfilePage({
   const [contactError, setContactError] = useState("");
   const [nameError, setNameError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [countryPickerCode, setCountryPickerCode] = useState("");
+  const [phoneCountryCode, setPhoneCountryCode] = useState("");
   const { data: session } = useSession();
   const previousPreviewUrl = useRef("");
+  const hasInitializedCountryCodes = useRef(false);
   const onboardingOptions = useOnboardingGlobalsStore((state) => state.data);
   const isLoadingOptions = useOnboardingGlobalsStore(
     (state) => state.isLoading,
@@ -109,16 +121,54 @@ export default function EditProfilePage({
     };
   }, []);
 
+  // Resolve library country codes from the saved country name / phone number
+  // once, after profile + onboarding data have both loaded.
+  useEffect(() => {
+    if (hasInitializedCountryCodes.current) return;
+    if (!profileData || !onboardingOptions) return;
+    hasInitializedCountryCodes.current = true;
+
+    const nameCode = getCountryCodeByName(initialFormData.country);
+    const phoneParsed = initialFormData.contactNumber
+      ? parsePhoneNumber(initialFormData.contactNumber)?.country
+      : "";
+
+    setCountryPickerCode(nameCode);
+    setPhoneCountryCode(phoneParsed || nameCode || "");
+  }, [profileData, onboardingOptions, initialFormData]);
+
+  const validateContact = (value) =>
+    value && !isValidPhoneNumber(value)
+      ? "Enter a valid phone number for the selected country."
+      : "";
+
+  const handleContactChange = (value = "") => {
+    if (value === (formData.contactNumber || "")) return;
+
+    setLocalChanges((prev) => ({ ...prev, contactNumber: value }));
+    setContactError(value ? validateContact(value) : "");
+  };
+
+  const handleContactBlur = () => {
+    setContactError(validateContact(formData.contactNumber));
+  };
+
+  const handlePhoneCountryChange = (nextCode) => {
+    if (nextCode === phoneCountryCode) return;
+    setPhoneCountryCode(nextCode);
+    if (formData.contactNumber) {
+      setLocalChanges((prev) => ({ ...prev, contactNumber: "" }));
+      setContactError("");
+    }
+  };
+
+  const handleCountryPickerChange = (nextCode) => {
+    setCountryPickerCode(nextCode);
+    handleChange("country", getCountryName(nextCode));
+  };
+
   const handleChange = (field, value) => {
     setLocalChanges((prev) => ({ ...prev, [field]: value }));
-
-    if (field === "contactNumber") {
-      const error =
-        value.trim() && !PHONE_REGEX.test(value.trim())
-          ? PHONE_ERROR_MESSAGE
-          : "";
-      setContactError(error);
-    }
 
     if (field === "fullName") {
       let error = "";
@@ -315,7 +365,7 @@ export default function EditProfilePage({
               type="text"
               value={formData.fullName}
               onChange={(e) => handleChange("fullName", e.target.value)}
-              className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground"
+              className={FIELD_CLASS}
             />
             {nameError && (
               <p className="text-xs text-destructive mt-1">{nameError}</p>
@@ -326,12 +376,39 @@ export default function EditProfilePage({
             <label className="block text-sm font-medium text-muted-foreground mb-2">
               Phone Number
             </label>
-            <input
-              type="tel"
-              value={formData.contactNumber}
-              onChange={(e) => handleChange("contactNumber", e.target.value)}
-              className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground"
-            />
+            <div
+              className={cn(
+                "flex items-stretch rounded-xl border bg-muted/30 ring-offset-background transition-colors focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+                contactError
+                  ? "border-destructive focus-within:ring-destructive/40"
+                  : "border-border",
+              )}
+            >
+              <CountryPicker
+                value={phoneCountryCode}
+                onChange={handlePhoneCountryChange}
+                showCallingCode
+                placeholder="Code"
+                variant="embedded"
+                triggerClassName="w-[124px] rounded-l-xl border-r border-border"
+              />
+              <PhoneInput
+                country={phoneCountryCode || undefined}
+                international={phoneCountryCode ? true : undefined}
+                smartCaret={false}
+                value={formData.contactNumber || undefined}
+                onChange={handleContactChange}
+                onBlur={handleContactBlur}
+                disabled={!phoneCountryCode}
+                inputMode="tel"
+                autoComplete="tel"
+                aria-label="Phone number"
+                className="flex h-12 min-w-0 flex-1 rounded-r-xl border-0 bg-transparent px-4 text-base placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                placeholder={
+                  phoneCountryCode ? "Phone number" : "Select a country code"
+                }
+              />
+            </div>
             {contactError && (
               <p className="text-xs text-destructive mt-1">{contactError}</p>
             )}
@@ -341,24 +418,13 @@ export default function EditProfilePage({
             <label className="block text-sm font-medium text-muted-foreground mb-2">
               Country
             </label>
-            <div className="relative">
-              <select
-                value={formData.country}
-                onChange={(e) => handleChange("country", e.target.value)}
-                disabled={isLoadingOptions}
-                className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
-              >
-                <option value="">Select country</option>
-                {(onboardingOptions?.Country?.countryList || []).map(
-                  (option) => (
-                    <option key={option.id} value={option.countryName}>
-                      {option.countryName}
-                    </option>
-                  ),
-                )}
-              </select>
-              <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
-            </div>
+            <CountryPicker
+              value={countryPickerCode}
+              onChange={handleCountryPickerChange}
+              placeholder="Select country"
+              disabled={isLoadingOptions}
+              triggerClassName="bg-muted/30 border-border"
+            />
           </div>
 
           <div>
@@ -370,7 +436,7 @@ export default function EditProfilePage({
                 value={formData.age}
                 onChange={(e) => handleChange("age", e.target.value)}
                 disabled={isLoadingOptions}
-                className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
+                className={cn(FIELD_CLASS, "appearance-none pr-10")}
               >
                 <option value="">Select age</option>
                 {(onboardingOptions?.age?.ageList || []).map((option) => (
@@ -394,7 +460,7 @@ export default function EditProfilePage({
                   handleChange("languageStrength", e.target.value)
                 }
                 disabled={isLoadingOptions}
-                className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
+                className={cn(FIELD_CLASS, "appearance-none pr-10")}
               >
                 <option value="">Select language strength</option>
                 {(onboardingOptions?.languageStrength?.strengthsList || []).map(
@@ -420,7 +486,7 @@ export default function EditProfilePage({
                   handleChange("goalTime", Number(e.target.value))
                 }
                 disabled={isLoadingOptions}
-                className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
+                className={cn(FIELD_CLASS, "appearance-none pr-10")}
               >
                 <option value={0}>Select daily goal</option>
                 {(onboardingOptions?.Goal?.goalList || []).map((option) => (
@@ -442,7 +508,7 @@ export default function EditProfilePage({
                 value={formData.purpose}
                 onChange={(e) => handleChange("purpose", e.target.value)}
                 disabled={isLoadingOptions}
-                className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
+                className={cn(FIELD_CLASS, "appearance-none pr-10")}
               >
                 <option value="">Select purpose</option>
                 {(onboardingOptions?.purpose?.purposeList || []).map(
@@ -466,7 +532,7 @@ export default function EditProfilePage({
                 value={formData.userSource}
                 onChange={(e) => handleChange("userSource", e.target.value)}
                 disabled={isLoadingOptions}
-                className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
+                className={cn(FIELD_CLASS, "appearance-none pr-10")}
               >
                 <option value="">Select source</option>
                 {(onboardingOptions?.userSource?.sourceList || []).map(

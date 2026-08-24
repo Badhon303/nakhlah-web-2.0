@@ -193,11 +193,10 @@ export default function ContactUsPage({ onBack }) {
               );
             })}
           </div>
-          <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
+          <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
             Got a question, found a bug, or just want to say hi? We&apos;d love
-            to hear from you. Reach us on social media, drop us an email, or
-            send a message using the form below and we&apos;ll get back to you
-            as soon as we can.
+            to hear from you. Drop us an email, or send a message using the form
+            below and we&apos;ll get back to you as soon as we can.
           </p>
         </div>
 
@@ -254,7 +253,7 @@ export default function ContactUsPage({ onBack }) {
                   value={form.name}
                   onChange={(e) => handleChange("name", e.target.value)}
                   onBlur={() => handleBlur("name")}
-                  placeholder="Jane Doe"
+                  placeholder="Enter your name"
                   className={`w-full px-4 py-3 bg-muted/30 border rounded-xl focus:outline-none focus:ring-2 text-foreground ${
                     errors.name
                       ? "border-destructive focus:ring-destructive/40"
@@ -275,7 +274,7 @@ export default function ContactUsPage({ onBack }) {
                   value={form.email}
                   onChange={(e) => handleChange("email", e.target.value)}
                   onBlur={() => handleBlur("email")}
-                  placeholder="jane@example.com"
+                  placeholder="Enter your email"
                   className={`w-full px-4 py-3 bg-muted/30 border rounded-xl focus:outline-none focus:ring-2 text-foreground ${
                     errors.email
                       ? "border-destructive focus:ring-destructive/40"
