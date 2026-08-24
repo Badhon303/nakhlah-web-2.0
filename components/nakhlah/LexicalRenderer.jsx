@@ -71,10 +71,19 @@ function renderNode(node, idx) {
       const children = (node.children || []).map((child, i) =>
         renderNode(child, i),
       );
-      const isEmpty = !node.children || node.children.length === 0;
+      const hasVisibleChild = (node.children || []).some(
+        (child) =>
+          child?.type === "linebreak" ||
+          (child?.type === "text" &&
+            typeof child.text === "string" &&
+            child.text.trim().length > 0),
+      );
+      const isEmpty = !hasVisibleChild;
       const hasBlockChild = (node.children || []).some((child) =>
         ["horizontalrule", "list"].includes(child?.type),
       );
+
+      if (isEmpty && !hasBlockChild) return null;
 
       if (hasBlockChild) {
         return (
@@ -99,8 +108,9 @@ function renderNode(node, idx) {
 
     case "text": {
       const content = node.text || "";
+      const parsedStyle = parseStyleString(node.style);
       return (
-        <span key={idx} style={parseStyleString(node.style)}>
+        <span key={idx} style={{ ...parsedStyle, whiteSpace: "pre-wrap" }}>
           {applyTextFormat(node.format || 0, content)}
         </span>
       );
@@ -126,8 +136,7 @@ function renderNode(node, idx) {
         <a
           key={idx}
           href={safeHref}
-          target={safeHref.startsWith("mailto:") ? undefined : "_blank"}
-          rel={safeHref.startsWith("mailto:") ? undefined : "noreferrer"}
+          target="_self"
           className="text-accent underline underline-offset-2 hover:opacity-80 break-all"
         >
           {linkText || safeHref}
