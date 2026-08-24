@@ -5,24 +5,24 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Camera, CheckCircle2 } from "lucide-react";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input/input";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import { CountryPicker } from "@/components/nakhlah/onboarding/CountryPicker";
 import { cn } from "@/lib/utils";
-import {
-  NAME_MAX_LENGTH,
-  PHONE_REGEX,
-  PHONE_ERROR_MESSAGE,
-} from "@/lib/validation";
+import { NAME_MAX_LENGTH } from "@/lib/validation";
 
 const MAX_FILE_SIZE = 300 * 1024;
 
 export function ProfileInfoStep({
   fullName,
   contactNumber,
+  countryCode,
   profilePicture,
   onChange,
 }) {
   const [localName, setLocalName] = useState(fullName || "");
   const [localContact, setLocalContact] = useState(contactNumber || "");
+  const [localCountry, setLocalCountry] = useState(countryCode || "");
   const [localPicture, setLocalPicture] = useState(profilePicture || null);
   const [fileError, setFileError] = useState("");
   const [contactError, setContactError] = useState("");
@@ -41,18 +41,52 @@ export function ProfileInfoStep({
     };
   }, [previewUrl]);
 
-  const handleContactChange = (value) => {
+  useEffect(() => {
+    const nextCountry = countryCode || "";
+    setLocalCountry((currentCountry) =>
+      currentCountry === nextCountry ? currentCountry : nextCountry,
+    );
+  }, [countryCode]);
+
+  const validateContact = (value) =>
+    value && !isValidPhoneNumber(value)
+      ? "Enter a valid phone number for the selected country."
+      : "";
+
+  const handleContactChange = (value = "") => {
     setLocalContact(value);
 
-    const error =
-      value.trim() && !PHONE_REGEX.test(value.trim())
-        ? PHONE_ERROR_MESSAGE
-        : "";
+    const error = value ? validateContact(value) : "";
     setContactError(error);
 
+    if (value !== localContact || error !== contactError) {
+      onChange({
+        contactNumber: value,
+        contactError: error,
+      });
+    }
+  };
+
+  const handleContactBlur = () => {
+    const error = validateContact(localContact);
+    setContactError(error);
+    onChange({ contactError: error });
+  };
+
+  const handleCountryChange = (nextCountry) => {
+    if (nextCountry === localCountry) return;
+
+    setLocalCountry(nextCountry);
+    const shouldResetContact = Boolean(
+      localContact && nextCountry !== localCountry,
+    );
+    const nextContact = shouldResetContact ? "" : localContact;
+    setLocalContact(nextContact);
+    setContactError("");
     onChange({
-      contactNumber: value,
-      contactError: error,
+      countryCode: nextCountry,
+      contactNumber: nextContact,
+      contactError: "",
     });
   };
 
@@ -130,7 +164,7 @@ export function ProfileInfoStep({
             value={localName}
             onChange={(e) => handleNameChange(e.target.value)}
             className={cn(
-              "rounded-xl",
+              "h-12 rounded-xl px-4",
               nameError &&
                 "border-destructive focus-visible:ring-destructive/40",
             )}
@@ -145,16 +179,42 @@ export function ProfileInfoStep({
           <label className="block text-sm text-muted-foreground mb-1">
             Contact number
           </label>
-          <Input
-            value={localContact}
-            onChange={(e) => handleContactChange(e.target.value)}
+          <div
             className={cn(
-              "rounded-xl",
-              contactError &&
-                "border-destructive focus-visible:ring-destructive/40",
+              "flex items-stretch rounded-xl border bg-background ring-offset-background transition-colors focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+              contactError
+                ? "border-destructive focus-within:ring-destructive/40"
+                : "border-input",
             )}
-            placeholder="Your contact number"
-          />
+          >
+            <CountryPicker
+              value={localCountry}
+              onChange={handleCountryChange}
+              showCallingCode
+              placeholder="Code"
+              variant="embedded"
+              triggerClassName="w-[124px] rounded-l-xl border-r border-input"
+            />
+            <PhoneInput
+              country={localCountry || undefined}
+              international={localCountry ? true : undefined}
+              smartCaret={false}
+              value={localContact || undefined}
+              onChange={handleContactChange}
+              onBlur={handleContactBlur}
+              disabled={!localCountry}
+              inputMode="tel"
+              autoComplete="tel"
+              aria-label="Contact number"
+              className="flex h-12 min-w-0 flex-1 rounded-r-xl border-0 bg-transparent px-4 text-base placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+              placeholder={
+                localCountry ? "Phone number" : "Select a country code"
+              }
+            />
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Choose the country code, then enter the rest of your number.
+          </p>
           {contactError ? (
             <p className="text-xs text-destructive mt-1">{contactError}</p>
           ) : null}

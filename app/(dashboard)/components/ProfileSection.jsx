@@ -45,11 +45,11 @@ const navLinks = [
   { href: "/store", label: "Store" },
   {
     href: "/payment-subscription-policy",
-    label: "Payment and Subscription Policy",
+    label: "Payment and Subscription",
   },
   {
     href: "/refund-cancellation-policy",
-    label: "Refund Policy",
+    label: "Refund and Cancellation",
   },
   { href: "/faq", label: "FAQ" },
   { href: "/contact-us", label: "Contact Us" },
@@ -231,10 +231,9 @@ export function ProfileSection() {
                       <TooltipContent
                         side="bottom"
                         sideOffset={6}
-                        collisionPadding={8}
-                        align={index < earnedIcons.length / 2 ? "start" : "end"}
-                        avoidCollisions
-                        className="w-max max-w-[min(200px,calc(100vw-16px))] whitespace-normal break-words bg-foreground text-background"
+                        // align="start"
+                        avoidCollisions={false}
+                        className="w-max max-w-none whitespace-nowrap overflow-visible bg-foreground text-background"
                       >
                         <p className="text-sm font-medium">{item.label}</p>
                       </TooltipContent>
@@ -264,12 +263,12 @@ export function ProfileSection() {
           </div>
         </div>
       )}
-      <div className="!mt-8 hidden lg:flex flex-wrap justify-center gap-x-4 gap-y-2">
+      <div className="!mt-6 hidden lg:flex flex-wrap justify-center gap-x-4 gap-y-[6px]">
         {navLinks.map((link) => (
           <Link
             key={link.href}
             href={link.href}
-            className="text-xs font-bold uppercase text-slate-700 hover:text-primary"
+            className="text-sm font-bold text-slate-700 hover:text-primary"
           >
             {link.label}
           </Link>

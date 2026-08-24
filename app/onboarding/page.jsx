@@ -12,6 +12,7 @@ import { ProficiencyStep } from "@/components/nakhlah/onboarding/ProficiencyStep
 import { GoalStep } from "@/components/nakhlah/onboarding/GoalStep";
 import { PurposeStep } from "@/components/nakhlah/onboarding/PurposeStep";
 import { CountryStep } from "@/components/nakhlah/onboarding/CountryStep";
+import { getCountryName } from "@/components/nakhlah/onboarding/CountryPicker";
 import { UserSourceStep } from "@/components/nakhlah/onboarding/UserSourceStep";
 import { InterestsStep } from "@/components/nakhlah/onboarding/InterestsStep";
 import { ProfileInfoStep } from "@/components/nakhlah/onboarding/ProfileInfoStep";
@@ -188,6 +189,7 @@ export default function Onboarding() {
   const [interests, setInterests] = useState([]);
   const [fullName, setFullName] = useState("");
   const [contactNumber, setContactNumber] = useState("");
+  const [phoneCountry, setPhoneCountry] = useState("");
   const [profilePicture, setProfilePicture] = useState(null);
   const [profileFileError, setProfileFileError] = useState("");
   const [profileContactError, setProfileContactError] = useState("");
@@ -323,9 +325,9 @@ export default function Onboarding() {
     const selectedPurpose = onboardingData?.purpose?.purposeList?.find(
       (item) => item.id === purpose,
     );
-    const selectedCountry = onboardingData?.Country?.countryList?.find(
-      (item) => item.id === country,
-    );
+    const selectedCountry = country
+      ? { countryCode: country, countryName: getCountryName(country) }
+      : null;
     const selectedSource = onboardingData?.userSource?.sourceList?.find(
       (item) => item.id === userSource,
     );
@@ -427,6 +429,7 @@ export default function Onboarding() {
         break;
       case 4: // Country
         setCountry("");
+        setPhoneCountry("");
         break;
       case 5: // Source
         setUserSource("");
@@ -546,6 +549,7 @@ export default function Onboarding() {
         interests,
         fullName,
         contactNumber,
+        phoneCountry,
         age,
         email,
         completed: true,
@@ -566,6 +570,7 @@ export default function Onboarding() {
     if (fields.fullName !== undefined) setFullName(fields.fullName);
     if (fields.contactNumber !== undefined)
       setContactNumber(fields.contactNumber);
+    if (fields.countryCode !== undefined) setPhoneCountry(fields.countryCode);
     if (fields.profilePicture !== undefined)
       setProfilePicture(fields.profilePicture);
     if (fields.fileError !== undefined) setProfileFileError(fields.fileError);
@@ -621,10 +626,11 @@ export default function Onboarding() {
         return (
           <CountryStep
             title={onboardingData?.Country?.countryNameTop}
-            countries={onboardingData?.Country?.countryList || []}
             selectedCountry={country}
-            onSelect={setCountry}
-            getMediaUrl={getMediaUrl}
+            onSelect={(countryCode) => {
+              setCountry(countryCode);
+              setPhoneCountry(countryCode);
+            }}
           />
         );
       case 5:
@@ -654,6 +660,7 @@ export default function Onboarding() {
           <ProfileInfoStep
             fullName={fullName}
             contactNumber={contactNumber}
+            countryCode={phoneCountry || country}
             profilePicture={profilePicture}
             onChange={handleProfileInfoChange}
           />
