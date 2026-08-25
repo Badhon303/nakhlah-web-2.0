@@ -82,9 +82,9 @@ export default function AboutPage() {
           <div className="space-y-8">
             {sections.map((section) => (
               <section key={section.key}>
-                <h2 className="text-xl font-semibold text-foreground mb-3">
+                {/* <h2 className="text-xl font-semibold text-foreground mb-3">
                   {section.title}
-                </h2>
+                </h2> */}
                 <LexicalRenderer
                   lexicalJson={aboutData[section.key]}
                   className="text-base"
