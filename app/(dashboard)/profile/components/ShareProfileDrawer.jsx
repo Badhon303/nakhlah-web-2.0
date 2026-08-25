@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { FaWhatsapp, FaTwitter, FaFacebook, FaEnvelope } from "react-icons/fa";
+import { FaWhatsapp, FaFacebook, FaEnvelope } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 
 export default function ShareProfileDrawer({ open, onClose }) {
   const [copied, setCopied] = useState(false);
@@ -22,9 +23,9 @@ export default function ShareProfileDrawer({ open, onClose }) {
       action: () => {},
     },
     {
-      icon: FaTwitter,
-      label: "Twitter",
-      color: "bg-sky-500",
+      icon: FaXTwitter,
+      label: "X",
+      color: "bg-black",
       action: () => {},
     },
     {

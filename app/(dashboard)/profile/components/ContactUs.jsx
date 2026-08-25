@@ -7,11 +7,11 @@ import {
   MessageCircle,
   Globe,
   Facebook,
-  Twitter,
   Instagram,
   Send,
   Loader2,
 } from "lucide-react";
+import { FaXTwitter } from "react-icons/fa6";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/nakhlah/Toast";
@@ -47,9 +47,9 @@ const socialMethods = [
     color: "from-blue-600 to-blue-700",
   },
   {
-    icon: Twitter,
-    title: "Twitter",
-    color: "from-sky-500 to-sky-600",
+    icon: FaXTwitter,
+    title: "X",
+    color: "from-neutral-800 to-black",
   },
   {
     icon: Instagram,
