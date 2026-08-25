@@ -12,6 +12,7 @@ import { ProficiencyStep } from "@/components/nakhlah/onboarding/ProficiencyStep
 import { GoalStep } from "@/components/nakhlah/onboarding/GoalStep";
 import { PurposeStep } from "@/components/nakhlah/onboarding/PurposeStep";
 import { CountryStep } from "@/components/nakhlah/onboarding/CountryStep";
+import { getCountryName } from "@/components/nakhlah/onboarding/CountryPicker";
 import { UserSourceStep } from "@/components/nakhlah/onboarding/UserSourceStep";
 import { InterestsStep } from "@/components/nakhlah/onboarding/InterestsStep";
 import { ProfileInfoStep } from "@/components/nakhlah/onboarding/ProfileInfoStep";
@@ -25,11 +26,11 @@ import { registerUser } from "@/lib/authUtils";
 import {
   fetchCurrentUser,
   fetchMyProfile,
-  fetchUserOnboardingGlobals,
   refreshAccessToken,
   createUserProfile,
   updateMyProfile,
 } from "@/services/api/auth";
+import { useOnboardingGlobalsStore } from "@/stores/useOnboardingGlobalsStore";
 import { signIn } from "next-auth/react";
 import { toast } from "@/components/nakhlah/Toast";
 import { buildApiUrl } from "@/lib/api-config";
@@ -188,6 +189,7 @@ export default function Onboarding() {
   const [interests, setInterests] = useState([]);
   const [fullName, setFullName] = useState("");
   const [contactNumber, setContactNumber] = useState("");
+  const [phoneCountry, setPhoneCountry] = useState("");
   const [profilePicture, setProfilePicture] = useState(null);
   const [profileFileError, setProfileFileError] = useState("");
   const [profileContactError, setProfileContactError] = useState("");
@@ -199,9 +201,21 @@ export default function Onboarding() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
-  const [onboardingData, setOnboardingData] = useState(null);
-  const [isLoadingOnboarding, setIsLoadingOnboarding] = useState(true);
-  const [loadingError, setLoadingError] = useState("");
+  const rawOnboardingData = useOnboardingGlobalsStore((state) => state.data);
+  const isLoadingGlobals = useOnboardingGlobalsStore(
+    (state) => state.isLoading,
+  );
+  const globalsError = useOnboardingGlobalsStore((state) => state.error);
+  const fetchOnboardingGlobals = useOnboardingGlobalsStore(
+    (state) => state.fetchOnboardingGlobals,
+  );
+  const onboardingData = useMemo(
+    () => normalizeOnboardingData(rawOnboardingData),
+    [rawOnboardingData],
+  );
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const isLoadingOnboarding = isCheckingAuth || isLoadingGlobals;
+  const loadingError = globalsError || "";
   const [isRegistering, setIsRegistering] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -240,8 +254,7 @@ export default function Onboarding() {
   };
 
   const loadOnboardingData = async () => {
-    setIsLoadingOnboarding(true);
-    setLoadingError("");
+    setIsCheckingAuth(true);
 
     // Check auth status
     try {
@@ -253,23 +266,13 @@ export default function Onboarding() {
       setIsAuthenticated(false);
     }
 
-    let result = await fetchUserOnboardingGlobals();
+    setIsCheckingAuth(false);
 
-    if (!result.success) {
-      const token = await getActiveAccessToken();
-      if (token) {
-        result = await fetchUserOnboardingGlobals(token);
-      }
-    }
-
-    if (!result.success || !result.data) {
-      setLoadingError(result.error || "Failed to load onboarding data");
-      setIsLoadingOnboarding(false);
-      return;
-    }
-
-    setOnboardingData(normalizeOnboardingData(result.data));
-    setIsLoadingOnboarding(false);
+    // The onboarding option lists rarely change, so this is served from the
+    // shared store's cache after the first successful fetch (this session).
+    await fetchOnboardingGlobals({
+      resolveFallbackToken: getActiveAccessToken,
+    });
   };
 
   useEffect(() => {
@@ -322,9 +325,9 @@ export default function Onboarding() {
     const selectedPurpose = onboardingData?.purpose?.purposeList?.find(
       (item) => item.id === purpose,
     );
-    const selectedCountry = onboardingData?.Country?.countryList?.find(
-      (item) => item.id === country,
-    );
+    const selectedCountry = country
+      ? { countryCode: country, countryName: getCountryName(country) }
+      : null;
     const selectedSource = onboardingData?.userSource?.sourceList?.find(
       (item) => item.id === userSource,
     );
@@ -426,6 +429,7 @@ export default function Onboarding() {
         break;
       case 4: // Country
         setCountry("");
+        setPhoneCountry("");
         break;
       case 5: // Source
         setUserSource("");
@@ -545,6 +549,7 @@ export default function Onboarding() {
         interests,
         fullName,
         contactNumber,
+        phoneCountry,
         age,
         email,
         completed: true,
@@ -565,6 +570,7 @@ export default function Onboarding() {
     if (fields.fullName !== undefined) setFullName(fields.fullName);
     if (fields.contactNumber !== undefined)
       setContactNumber(fields.contactNumber);
+    if (fields.countryCode !== undefined) setPhoneCountry(fields.countryCode);
     if (fields.profilePicture !== undefined)
       setProfilePicture(fields.profilePicture);
     if (fields.fileError !== undefined) setProfileFileError(fields.fileError);
@@ -620,10 +626,11 @@ export default function Onboarding() {
         return (
           <CountryStep
             title={onboardingData?.Country?.countryNameTop}
-            countries={onboardingData?.Country?.countryList || []}
             selectedCountry={country}
-            onSelect={setCountry}
-            getMediaUrl={getMediaUrl}
+            onSelect={(countryCode) => {
+              setCountry(countryCode);
+              setPhoneCountry(countryCode);
+            }}
           />
         );
       case 5:
@@ -653,6 +660,7 @@ export default function Onboarding() {
           <ProfileInfoStep
             fullName={fullName}
             contactNumber={contactNumber}
+            countryCode={phoneCountry || country}
             profilePicture={profilePicture}
             onChange={handleProfileInfoChange}
           />

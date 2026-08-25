@@ -10,7 +10,7 @@ export default function GeneralSettingsPage({ onBack }) {
   ];
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -41,8 +41,12 @@ export default function GeneralSettingsPage({ onBack }) {
               className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-all rounded-lg group"
             >
               <div className="text-left">
-                <div className="font-medium text-foreground">{setting.label}</div>
-                <div className="text-sm text-muted-foreground">{setting.value}</div>
+                <div className="font-medium text-foreground">
+                  {setting.label}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {setting.value}
+                </div>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
             </motion.button>

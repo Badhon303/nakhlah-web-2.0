@@ -1,38 +1,28 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, FileText } from "lucide-react";
 import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
-import { fetchLegalDocuments } from "@/services/api/globals";
+import { useLegalDocumentsStore } from "@/stores/useLegalDocumentsStore";
 import { useSession } from "next-auth/react";
 import { getSessionToken } from "@/lib/authUtils";
 
 export default function TermsAndConditionsPage({ onBack }) {
-  const [content, setContent] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
   const { data: session } = useSession();
+  const legalData = useLegalDocumentsStore((state) => state.data);
+  const isLoading = useLegalDocumentsStore((state) => state.isLoading);
+  const error = useLegalDocumentsStore((state) => state.error);
+  const fetchLegalDocuments = useLegalDocumentsStore(
+    (state) => state.fetchLegalDocuments,
+  );
+  const content = legalData?.termsAndConditions ?? null;
 
   useEffect(() => {
-    const load = async () => {
-      setIsLoading(true);
-      const token = getSessionToken(session);
-      const result = await fetchLegalDocuments(
-        { termsAndConditions: true },
-        token,
-      );
-      if (result.success) {
-        setContent(result.data?.termsAndConditions ?? null);
-      } else {
-        setError(result.error);
-      }
-      setIsLoading(false);
-    };
-    load();
-  }, [session]);
+    fetchLegalDocuments(getSessionToken(session));
+  }, [session, fetchLegalDocuments]);
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

@@ -42,7 +42,7 @@ export default function ChallengesHome() {
             onClick={() => setActiveTab(tab.id)}
             className={`px-6 py-2 rounded-full text-sm font-semibold transition-all w-full lg:w-fit ${
               activeTab === tab.id
-                ? "bg-primary text-primary-foreground shadow-lg"
+                ? "bg-accent text-accent-foreground shadow-lg"
                 : "bg-card text-muted-foreground hover:bg-muted border border-border"
             }`}
           >

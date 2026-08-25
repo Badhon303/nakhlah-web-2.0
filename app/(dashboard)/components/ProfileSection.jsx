@@ -43,8 +43,16 @@ const formatJoinedDate = (dateInput) => {
 const navLinks = [
   { href: "/about", label: "About" },
   { href: "/store", label: "Store" },
-  { href: "/tips", label: "Learning tips and guides" },
+  {
+    href: "/payment-subscription-policy",
+    label: "Payment and Subscription",
+  },
+  {
+    href: "/refund-cancellation-policy",
+    label: "Refund and Cancellation",
+  },
   { href: "/faq", label: "FAQ" },
+  { href: "/contact-us", label: "Contact Us" },
   { href: "/terms-and-conditions", label: "Terms and Conditions" },
   { href: "/privacy", label: "Privacy Policy" },
 ];
@@ -199,7 +207,7 @@ export function ProfileSection() {
             <TooltipProvider>
               <div className="flex flex-wrap gap-2 mt-2">
                 {earnedIcons.length ? (
-                  earnedIcons.map((item) => (
+                  earnedIcons.map((item, index) => (
                     <Tooltip key={item.key}>
                       <TooltipTrigger asChild>
                         <div className="w-9 h-9 rounded-full bg-white/40 flex items-center justify-center overflow-hidden border border-white/30 cursor-help transition-colors hover:border-primary/50">
@@ -223,10 +231,9 @@ export function ProfileSection() {
                       <TooltipContent
                         side="bottom"
                         sideOffset={6}
-                        collisionPadding={24}
-                        align="center"
-                        avoidCollisions
-                        className="bg-foreground text-background max-w-[200px] break-words"
+                        // align="start"
+                        avoidCollisions={false}
+                        className="w-max max-w-none whitespace-nowrap overflow-visible bg-foreground text-background"
                       >
                         <p className="text-sm font-medium">{item.label}</p>
                       </TooltipContent>
@@ -256,16 +263,24 @@ export function ProfileSection() {
           </div>
         </div>
       )}
-      <div className="!mt-8 hidden lg:flex flex-wrap justify-center gap-x-4 gap-y-2">
+      <div className="!mt-6 hidden lg:flex flex-wrap justify-center gap-x-4 gap-y-[6px]">
         {navLinks.map((link) => (
           <Link
             key={link.href}
             href={link.href}
-            className="text-xs font-bold uppercase text-slate-700 hover:text-primary"
+            className="text-sm font-bold text-slate-700 hover:text-primary"
           >
             {link.label}
           </Link>
         ))}
+      </div>
+      <div className="!mt-6 flex justify-center lg:hidden">
+        <Link
+          href="/contact-us"
+          className="text-xs font-bold uppercase text-slate-700 hover:text-primary"
+        >
+          Contact Us
+        </Link>
       </div>
     </div>
   );

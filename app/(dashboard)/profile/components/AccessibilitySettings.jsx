@@ -16,7 +16,7 @@ export default function AccessibilitySettingsPage({ onBack }) {
   });
 
   const toggleAccessibility = (key) => {
-    setAccessibility(prev => ({ ...prev, [key]: !prev[key] }));
+    setAccessibility((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const accessibilityItems = [
@@ -31,7 +31,7 @@ export default function AccessibilitySettingsPage({ onBack }) {
   ];
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -47,7 +47,9 @@ export default function AccessibilitySettingsPage({ onBack }) {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Accessibility</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              Accessibility
+            </h1>
           </div>
         </div>
 
