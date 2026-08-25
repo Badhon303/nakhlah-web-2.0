@@ -30,6 +30,7 @@ import { useRouter } from "next/navigation";
 import { Crown } from "@/components/icons/Crown";
 import { DatesIcon } from "@/components/icons/PublicAssetIcons";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import PurchaseBlockedModal from "@/components/nakhlah/PurchaseBlockedModal";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { useSubscriptionPlansStore } from "@/stores/useSubscriptionPlansStore";
 import {
@@ -119,6 +120,9 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
   const [showConfirmSwitch, setShowConfirmSwitch] = useState(false);
   const [showConfirmCancel, setShowConfirmCancel] = useState(false);
   const [pendingSwitchPlan, setPendingSwitchPlan] = useState(null);
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
+
+  const isGuestUser = session?.user?.email === "guest01@example.com";
 
   const subscriptionPlans = useSubscriptionPlansStore((state) => state.plans);
   const fetchSubscriptionPlans = useSubscriptionPlansStore(
@@ -193,6 +197,10 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
 
   const startSubscriptionCheckout = async (plan) => {
     if (!requireAuth()) return;
+    if (isGuestUser) {
+      setShowBlockedModal(true);
+      return;
+    }
 
     if (!plan) {
       toast.error("Please select a subscription plan.");
@@ -695,6 +703,13 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+
+          <PurchaseBlockedModal
+            open={showBlockedModal}
+            onOpenChange={setShowBlockedModal}
+            title="Purchasing Unavailable"
+            message="Purchasing dates and subscriptions is blocked in this environment. To make a purchase, please log in with a registered account."
+          />
         </motion.div>
       )}
     </div>

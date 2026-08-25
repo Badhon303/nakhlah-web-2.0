@@ -126,12 +126,12 @@ export function Navbar() {
             >
               <Image
                 src="/icons/logout.125f3808.svg"
-                alt="Logout"
+                alt="Exit System"
                 width={24}
                 height={24}
                 className="h-6 w-6"
               />
-              <span>Logout</span>
+              <span>Exit System</span>
             </button>
           </div>
         </div>
@@ -195,13 +195,13 @@ export function Navbar() {
           >
             <Image
               src="/icons/logout.125f3808.svg"
-              alt="Logout"
+              alt="Exit System"
               width={24}
               height={24}
               className="h-5 w-5"
             />
             <span className="text-[10px] font-medium truncate w-full text-center">
-              Logout
+              Exit
             </span>
           </button>
         </div>

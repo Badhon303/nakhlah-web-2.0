@@ -7,10 +7,14 @@ import { getUserKey } from "@/lib/userKey";
 import { refillPalmTrees } from "@/services/api";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { toast } from "@/components/nakhlah/Toast";
+import { useIsGuest } from "@/hooks/useIsGuest";
+import PurchaseBlockedModal from "@/components/nakhlah/PurchaseBlockedModal";
 
 export default function RefillLivesCard() {
   const router = useRouter();
   const { data: session } = useSession();
+  const { isGuest } = useIsGuest();
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
   const [isRefilling, setIsRefilling] = useState(false);
   const fetchProfile = useProfileStore((state) => state.fetchMyProfile);
   const profile = useProfileStore((state) => state.profile);
@@ -20,6 +24,10 @@ export default function RefillLivesCard() {
   );
 
   const handleRefill = async () => {
+    if (isGuest) {
+      setShowBlockedModal(true);
+      return;
+    }
     if (palmTreesCount >= 5) {
       toast.info("You already have full Palm Trees.");
       return;
@@ -87,6 +95,13 @@ export default function RefillLivesCard() {
           </Button>
         </div>
       </div>
+
+      <PurchaseBlockedModal
+        open={showBlockedModal}
+        onOpenChange={setShowBlockedModal}
+        title="Palm Tree Refill Unavailable"
+        message="Refilling Palm Trees is blocked in this environment."
+      />
     </div>
   );
 }

@@ -14,6 +14,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { fetchUserDailyQuest } from "@/services/api";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
+import { useIsGuest } from "@/hooks/useIsGuest";
+import PurchaseBlockedModal from "@/components/nakhlah/PurchaseBlockedModal";
 
 const missionIcons = [InjazStarIcon, DatesIcon, Bullseye, StreakIcon];
 
@@ -25,9 +27,11 @@ const toTitleCase = (value = "") =>
 export default function DailyMissionUpdate() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { isGuest } = useIsGuest();
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [dailyQuestState, setDailyQuestState] = useState([]);
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
 
   useEffect(() => {
     const loadDailyMission = async () => {
@@ -97,6 +101,10 @@ export default function DailyMissionUpdate() {
   const missions = useMemo(() => dailyQuestState, [dailyQuestState]);
 
   const handleContinue = () => {
+    if (isGuest) {
+      setShowBlockedModal(true);
+      return;
+    }
     router.push("/lesson/streak-update");
   };
 
@@ -220,6 +228,13 @@ export default function DailyMissionUpdate() {
           CONTINUE
         </Button>
       </div>
+
+      <PurchaseBlockedModal
+        open={showBlockedModal}
+        onOpenChange={setShowBlockedModal}
+        title="Daily Mission Unavailable"
+        message="Daily missions are blocked in this environment."
+      />
     </div>
   );
 }

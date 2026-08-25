@@ -10,6 +10,8 @@ import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
 import { useDailyQuestStore } from "@/stores/useDailyQuestStore";
+import { useIsGuest } from "@/hooks/useIsGuest";
+import PurchaseBlockedModal from "@/components/nakhlah/PurchaseBlockedModal";
 
 const isQuestCompleted = (quest) => {
   const completedByStatus = (quest?.status || "").toLowerCase() === "completed";
@@ -22,6 +24,8 @@ const isQuestCompleted = (quest) => {
 export function DailyQuests() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { isGuest } = useIsGuest();
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
   const dailyQuests = useDailyQuestStore((store) => store.homeDailyQuests);
   const isLoading = useDailyQuestStore((store) => store.isLoading);
   const fetchDailyQuests = useDailyQuestStore(
@@ -59,6 +63,10 @@ export function DailyQuests() {
   const handleClaimQuest = async (quest) => {
     if (!quest) return;
     if (isQuestCompleted(quest)) return;
+    if (isGuest) {
+      handleBlocked();
+      return;
+    }
 
     const token = getSessionToken(session);
     if (!token) return;
@@ -80,10 +88,18 @@ export function DailyQuests() {
     }
   };
 
+  const handleBlocked = () => setShowBlockedModal(true);
+
   const menuOptions = [
     {
       label: "View Challenges",
-      onClick: () => router.push("/challenge?tab=target"),
+      onClick: () => {
+        if (isGuest) {
+          handleBlocked();
+          return;
+        }
+        router.push("/challenge?tab=target");
+      },
     },
   ];
 
@@ -166,6 +182,13 @@ export function DailyQuests() {
           )}
         </ul>
       </AnimatePresence>
+
+      <PurchaseBlockedModal
+        open={showBlockedModal}
+        onOpenChange={setShowBlockedModal}
+        title="Daily Quest Unavailable"
+        message="Daily quests are blocked in this environment."
+      />
     </div>
   );
 }

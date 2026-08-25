@@ -20,6 +20,8 @@ import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { hasOpenedGiftBox } from "@/lib/gamification";
 import { useDailyQuestStore } from "@/stores/useDailyQuestStore";
 import { useLessonStore } from "@/stores/useLessonStore";
+import { useIsGuest } from "@/hooks/useIsGuest";
+import PurchaseBlockedModal from "@/components/nakhlah/PurchaseBlockedModal";
 
 const sortByOrder = (items, key) =>
   [...(items || [])].sort((a, b) => (a?.[key] || 0) - (b?.[key] || 0));
@@ -56,7 +58,9 @@ export function LessonSelectionPopup({
     Boolean(isTaskGiftBox && isCompleted),
   );
   const [giftRewards, setGiftRewards] = useState(null);
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
   const { data: session, status } = useSession();
+  const { isGuest } = useIsGuest();
 
   useEffect(() => {
     if (!open || !taskId) return;
@@ -132,8 +136,14 @@ export function LessonSelectionPopup({
         ? "Select an available block to begin"
         : "Complete previous tasks to unlock";
 
+  const firstLessonId = lessons[0]?.id;
+
   const handleLessonClick = async (lesson) => {
     if (lesson.isLocked) return;
+    if (isGuest && lesson.id !== firstLessonId) {
+      setShowBlockedModal(true);
+      return;
+    }
 
     sessionStorage.setItem("selectedLessonId", lesson.id);
     sessionStorage.setItem("selectedNodeId", taskId);
@@ -484,72 +494,73 @@ export function LessonSelectionPopup({
 
   // Regular Lesson Selection layout
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg p-0 gap-0 border-border [&>button]:hidden rounded-2xl overflow-hidden shadow-lg border-2">
-        {/* Simple Header */}
-        <div className="bg-accent p-5 text-center relative">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors p-1"
-          >
-            <X className="w-6 h-6" />
-          </button>
-          <DialogTitle className="text-2xl font-black text-white tracking-wide">
-            Choose a Lesson
-          </DialogTitle>
-          <p className="text-white/90 font-medium text-sm mt-1">
-            {isLocked
-              ? "Lesson is locked"
-              : isCompleted
-                ? "All lessons unlocked"
-                : isCurrent
-                  ? "Start learning"
-                  : "Complete previous lessons first"}
-          </p>
-        </div>
-
-        {/* Lessons Grid (Tighter Spacing) */}
-        <div className="p-6 bg-card">
-          {isLoading ? (
-            <div className="grid grid-cols-2 gap-4">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <div
-                  key={`lesson-skeleton-${index}`}
-                  className="relative p-5 rounded-2xl border-4 border-border/60 bg-background/70"
-                >
-                  <div className="w-24 h-24 mx-auto rounded-2xl bg-muted animate-pulse" />
-                  <div className="mt-4 h-4 w-3/4 mx-auto rounded bg-muted animate-pulse" />
-                  <div className="mt-2 h-3 w-1/2 mx-auto rounded bg-muted/80 animate-pulse" />
-                </div>
-              ))}
-            </div>
-          ) : loadError ? (
-            <p className="text-sm font-semibold text-destructive text-center py-4">
-              {loadError}
+    <>
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-lg p-0 gap-0 border-border [&>button]:hidden rounded-2xl overflow-hidden shadow-lg border-2">
+          {/* Simple Header */}
+          <div className="bg-accent p-5 text-center relative">
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors p-1"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <DialogTitle className="text-2xl font-black text-white tracking-wide">
+              Choose a Lesson
+            </DialogTitle>
+            <p className="text-white/90 font-medium text-sm mt-1">
+              {isLocked
+                ? "Lesson is locked"
+                : isCompleted
+                  ? "All lessons unlocked"
+                  : isCurrent
+                    ? "Start learning"
+                    : "Complete previous lessons first"}
             </p>
-          ) : (
-            <div className="grid grid-cols-2 gap-4">
-              {lessons.map((lesson) => {
-                const lessonIcon = lesson.isExam ? (
-                  <img
-                    src="/icons/Quiz1.svg"
-                    alt="Quiz"
-                    className="w-20 h-20 object-contain"
-                  />
-                ) : (
-                  <img
-                    src="/icons/Lesson.svg"
-                    alt="Lesson"
-                    className="w-20 h-20 object-contain"
-                  />
-                );
+          </div>
 
-                return (
-                  <button
-                    key={lesson.id}
-                    onClick={() => handleLessonClick(lesson)}
-                    disabled={lesson.isLocked}
-                    className={`
+          {/* Lessons Grid (Tighter Spacing) */}
+          <div className="p-6 bg-card">
+            {isLoading ? (
+              <div className="grid grid-cols-2 gap-4">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div
+                    key={`lesson-skeleton-${index}`}
+                    className="relative p-5 rounded-2xl border-4 border-border/60 bg-background/70"
+                  >
+                    <div className="w-24 h-24 mx-auto rounded-2xl bg-muted animate-pulse" />
+                    <div className="mt-4 h-4 w-3/4 mx-auto rounded bg-muted animate-pulse" />
+                    <div className="mt-2 h-3 w-1/2 mx-auto rounded bg-muted/80 animate-pulse" />
+                  </div>
+                ))}
+              </div>
+            ) : loadError ? (
+              <p className="text-sm font-semibold text-destructive text-center py-4">
+                {loadError}
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                {lessons.map((lesson) => {
+                  const lessonIcon = lesson.isExam ? (
+                    <img
+                      src="/icons/Quiz1.svg"
+                      alt="Quiz"
+                      className="w-20 h-20 object-contain"
+                    />
+                  ) : (
+                    <img
+                      src="/icons/Lesson.svg"
+                      alt="Lesson"
+                      className="w-20 h-20 object-contain"
+                    />
+                  );
+
+                  return (
+                    <button
+                      key={lesson.id}
+                      onClick={() => handleLessonClick(lesson)}
+                      disabled={lesson.isLocked}
+                      className={`
                       relative p-5 rounded-2xl border-4 transition-all
                       flex flex-col items-center justify-center gap-3 group
                       ${
@@ -561,53 +572,61 @@ export function LessonSelectionPopup({
                       }
                       ${!lesson.isLocked && "active:scale-95"}
                     `}
-                  >
-                    {/* Small Status Overlays */}
-                    {lesson.isLocked && (
-                      <div className="absolute top-2 right-2">
-                        <Lock size="sm" variant="silver" />
-                      </div>
-                    )}
-                    {lesson.isCompleted && !lesson.isLocked && (
-                      <div className="absolute top-2 right-2 text-emerald-500">
-                        <CheckCircle2 className="w-6 h-6 fill-emerald-100" />
-                      </div>
-                    )}
+                    >
+                      {/* Small Status Overlays */}
+                      {lesson.isLocked && (
+                        <div className="absolute top-2 right-2">
+                          <Lock size="sm" variant="silver" />
+                        </div>
+                      )}
+                      {lesson.isCompleted && !lesson.isLocked && (
+                        <div className="absolute top-2 right-2 text-emerald-500">
+                          <CheckCircle2 className="w-6 h-6 fill-emerald-100" />
+                        </div>
+                      )}
 
-                    {/* Extra Large Icon */}
-                    <div
-                      className={`
+                      {/* Extra Large Icon */}
+                      <div
+                        className={`
                         w-24 h-24 flex items-center justify-center
                         ${lesson.isLocked ? "grayscale opacity-50" : ""}
                         transition-transform group-hover:scale-105 duration-200
                       `}
-                    >
-                      {lessonIcon}
-                    </div>
+                      >
+                        {lessonIcon}
+                      </div>
 
-                    {/* Lesson Title */}
-                    <p
-                      className={`
+                      {/* Lesson Title */}
+                      <p
+                        className={`
                         text-md font-bold text-center tracking-tight leading-tight px-1
                         ${lesson.isLocked ? "text-muted-foreground" : "text-foreground"}
                       `}
-                    >
-                      {lesson.title}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+                      >
+                        {lesson.title}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
-          {/* Info Text */}
-          {footerText ? (
-            <p className="text-xs font-semibold text-muted-foreground/80 text-center mt-5 uppercase tracking-wider">
-              {footerText}
-            </p>
-          ) : null}
-        </div>
-      </DialogContent>
-    </Dialog>
+            {/* Info Text */}
+            {footerText ? (
+              <p className="text-xs font-semibold text-muted-foreground/80 text-center mt-5 uppercase tracking-wider">
+                {footerText}
+              </p>
+            ) : null}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <PurchaseBlockedModal
+        open={showBlockedModal}
+        onOpenChange={setShowBlockedModal}
+        title="Lesson Unavailable"
+        message="This lesson is not available in this environment. Start with the first lesson."
+      />
+    </>
   );
 }

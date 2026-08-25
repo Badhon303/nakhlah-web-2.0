@@ -26,6 +26,8 @@ import { getUserKey } from "@/lib/userKey";
 import { useDailyQuestStore } from "@/stores/useDailyQuestStore";
 import { useAchievementsStore } from "@/stores/useAchievementsStore";
 import { fetchCurrentUser, fetchMyProfile } from "@/services/api";
+import { useIsGuest } from "@/hooks/useIsGuest";
+import PurchaseBlockedModal from "@/components/nakhlah/PurchaseBlockedModal";
 
 const VALID_VIEWS = new Set([
   "profile",
@@ -55,7 +57,13 @@ function ProfileAndSettingsContent() {
   const [currentUser, setCurrentUser] = useState(null);
   const [profileData, setProfileData] = useState(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
+  const [blockedModalTitle, setBlockedModalTitle] = useState("Not Available");
+  const [blockedModalMessage, setBlockedModalMessage] = useState(
+    "This feature is blocked in this environment.",
+  );
   const { data: session, status } = useSession();
+  const { isGuest } = useIsGuest();
   const achievementsData = useAchievementsStore((s) => s.achievements);
   const fetchAchievements = useAchievementsStore((s) => s.fetchAchievements);
   const clearAchievements = useAchievementsStore((s) => s.clear);
@@ -64,6 +72,15 @@ function ProfileAndSettingsContent() {
   const claimQuestIfAvailable = useDailyQuestStore(
     (store) => store.claimQuestIfAvailable,
   );
+
+  const BLOCKED_PROFILE_VIEWS = new Set([
+    "edit-profile",
+    "all-achievements",
+    "find-friends",
+    "followers",
+    "following",
+    "share-profile",
+  ]);
 
   useEffect(() => {
     const requestedView = searchParams.get("view");
@@ -112,8 +129,18 @@ function ProfileAndSettingsContent() {
     }
   };
 
+  const showBlocked = (title, message) => {
+    setBlockedModalTitle(title);
+    setBlockedModalMessage(message);
+    setShowBlockedModal(true);
+  };
+
   const handleNavigate = (view) => {
     if (view === "share-profile") {
+      if (isGuest) {
+        showBlocked("Not Available", "Sharing is blocked in this environment.");
+        return;
+      }
       setShowShareDrawer(true);
       const token = getSessionToken(session);
       if (token && isSessionValid(session)) {
@@ -126,6 +153,11 @@ function ProfileAndSettingsContent() {
     } else if (view === "payment") {
       setActiveView("profile");
       router.push("/store");
+    } else if (isGuest && BLOCKED_PROFILE_VIEWS.has(view)) {
+      showBlocked(
+        "Not Available",
+        "This feature is blocked in this environment.",
+      );
     } else {
       setActiveView(view);
     }
@@ -259,6 +291,13 @@ function ProfileAndSettingsContent() {
       <ShareProfileDrawer
         open={showShareDrawer}
         onClose={() => setShowShareDrawer(false)}
+      />
+
+      <PurchaseBlockedModal
+        open={showBlockedModal}
+        onOpenChange={setShowBlockedModal}
+        title={blockedModalTitle}
+        message={blockedModalMessage}
       />
     </div>
   );

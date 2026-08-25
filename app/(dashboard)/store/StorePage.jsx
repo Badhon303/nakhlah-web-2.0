@@ -37,6 +37,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { toast } from "@/components/nakhlah/Toast";
+import PurchaseBlockedModal from "@/components/nakhlah/PurchaseBlockedModal";
 import {
   createDatePaymentOrder,
   createSubscriptionPayment,
@@ -55,7 +56,10 @@ export default function StorePage() {
   const [isCanceling, setIsCanceling] = useState(false);
   const [showConfirmCancel, setShowConfirmCancel] = useState(false);
   const [showSubscriptionDetails, setShowSubscriptionDetails] = useState(false);
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
   const shouldRefetchDates = searchParams.get("refetch") === "dates";
+
+  const isGuestUser = session?.user?.email === "guest01@example.com";
 
   const loadCurrentSubscription = async () => {
     if (!isSessionValid(session)) return;
@@ -102,6 +106,10 @@ export default function StorePage() {
 
   const handleDateCheckout = async (pkg) => {
     if (!requireAuth()) return;
+    if (isGuestUser) {
+      setShowBlockedModal(true);
+      return;
+    }
 
     setCheckoutId(`dates:${pkg.id}`);
     const result = await createDatePaymentOrder(
@@ -146,6 +154,11 @@ export default function StorePage() {
   };
 
   const startSubscriptionCheckout = async (plan) => {
+    if (isGuestUser) {
+      setShowBlockedModal(true);
+      return;
+    }
+
     setCheckoutId(`premium:${plan.id}`);
     const result = await createSubscriptionPayment(
       plan,
@@ -236,6 +249,10 @@ export default function StorePage() {
 
   const handleResubscribe = async (plan) => {
     if (!requireAuth()) return;
+    if (isGuestUser) {
+      setShowBlockedModal(true);
+      return;
+    }
 
     const newPlanId = plan?.id || currentSubscription?.plan?.id;
     if (!newPlanId) {
@@ -829,6 +846,13 @@ export default function StorePage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      <PurchaseBlockedModal
+        open={showBlockedModal}
+        onOpenChange={setShowBlockedModal}
+        title="Purchasing Unavailable"
+        message="Purchasing dates and subscriptions is blocked in this environment. To make a purchase, please log in with a registered account."
+      />
     </div>
   );
 }

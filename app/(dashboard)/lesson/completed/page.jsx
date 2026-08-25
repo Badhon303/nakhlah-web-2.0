@@ -8,6 +8,8 @@ import { DatesIcon, InjazStarIcon } from "@/components/icons/PublicAssetIcons";
 import { Bullseye } from "@/components/icons/BullsEye";
 import { NotoStopwatch } from "@/components/icons/NotoStopwatch";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import { useIsGuest } from "@/hooks/useIsGuest";
+import PurchaseBlockedModal from "@/components/nakhlah/PurchaseBlockedModal";
 
 function formatTime(totalSeconds) {
   const clamped = Math.max(0, Number(totalSeconds) || 0);
@@ -44,6 +46,8 @@ function calculateAccuracyPercentage({
 
 export default function LessonCompleted() {
   const router = useRouter();
+  const { isGuest } = useIsGuest();
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
   const [progressData] = useState(() => {
     if (typeof window === "undefined") {
       return null;
@@ -127,6 +131,10 @@ export default function LessonCompleted() {
   ];
 
   const handleContinue = () => {
+    if (isGuest) {
+      setShowBlockedModal(true);
+      return;
+    }
     router.push("/lesson/daily-mission");
   };
 
@@ -257,6 +265,13 @@ export default function LessonCompleted() {
           CONTINUE
         </Button>
       </div>
+
+      <PurchaseBlockedModal
+        open={showBlockedModal}
+        onOpenChange={setShowBlockedModal}
+        title="Next Step Unavailable"
+        message="Continuing to the next step is blocked in this environment."
+      />
     </div>
   );
 }

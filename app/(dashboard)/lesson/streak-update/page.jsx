@@ -9,10 +9,14 @@ import { useSession } from "next-auth/react";
 import { fetchLearnerStreak } from "@/services/api";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getCurrentStreakCount, getMissedDaysCount } from "@/lib/streakUtils";
+import { useIsGuest } from "@/hooks/useIsGuest";
+import PurchaseBlockedModal from "@/components/nakhlah/PurchaseBlockedModal";
 
 export default function StreakUpdate() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { isGuest } = useIsGuest();
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [missedDays, setMissedDays] = useState(0);
 
@@ -35,6 +39,10 @@ export default function StreakUpdate() {
   }, [session, status]);
 
   const handleContinue = () => {
+    if (isGuest) {
+      setShowBlockedModal(true);
+      return;
+    }
     router.push("/lesson/five-days-straight");
   };
 
@@ -126,6 +134,13 @@ export default function StreakUpdate() {
           CONTINUE
         </Button>
       </div>
+
+      <PurchaseBlockedModal
+        open={showBlockedModal}
+        onOpenChange={setShowBlockedModal}
+        title="Daily Mission Unavailable"
+        message="Daily missions are blocked in this environment."
+      />
     </div>
   );
 }

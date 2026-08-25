@@ -12,7 +12,7 @@ export function LogoutButton({
   className = "",
   redirectTo = "/auth/login",
   showIcon = true,
-  children = "Logout",
+  children = "Exit System",
 }) {
   const router = useRouter();
 
@@ -30,11 +30,7 @@ export function LogoutButton({
   };
 
   return (
-    <Button
-      variant={variant}
-      onClick={handleLogout}
-      className={className}
-    >
+    <Button variant={variant} onClick={handleLogout} className={className}>
       {showIcon && <LogOut className="w-4 h-4 mr-2" />}
       {children}
     </Button>

@@ -10,12 +10,16 @@ import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { useDatePackagesStore } from "@/stores/useDatePackagesStore";
 import { createDatePaymentOrder } from "@/services/api";
 import { toast } from "@/components/nakhlah/Toast";
+import PurchaseBlockedModal from "@/components/nakhlah/PurchaseBlockedModal";
 import { ArrowLeft } from "lucide-react";
 
 export default function GemsPurchase({ onBack }) {
   const router = useRouter();
   const { data: session } = useSession();
   const [checkoutId, setCheckoutId] = useState(null);
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
+
+  const isGuestUser = session?.user?.email === "guest01@example.com";
 
   const datePackages = useDatePackagesStore((state) => state.packages);
   const fetchDatePackages = useDatePackagesStore(
@@ -37,9 +41,16 @@ export default function GemsPurchase({ onBack }) {
 
   const handlePackageSelect = async (pkg) => {
     if (!requireAuth()) return;
+    if (isGuestUser) {
+      setShowBlockedModal(true);
+      return;
+    }
 
     setCheckoutId(pkg.id);
-    const result = await createDatePaymentOrder(pkg.id, getSessionToken(session));
+    const result = await createDatePaymentOrder(
+      pkg.id,
+      getSessionToken(session),
+    );
 
     if (!result.success) {
       setCheckoutId(null);
@@ -154,6 +165,13 @@ export default function GemsPurchase({ onBack }) {
               ))}
         </div>
       </motion.div>
+
+      <PurchaseBlockedModal
+        open={showBlockedModal}
+        onOpenChange={setShowBlockedModal}
+        title="Purchasing Unavailable"
+        message="Purchasing dates and subscriptions is blocked in this environment. To make a purchase, please log in with a registered account."
+      />
     </div>
   );
 }

@@ -127,7 +127,7 @@ export default function SettingsPage({ onBack, onNavigate }) {
           })}
         </div>
 
-        {/* Logout Button */}
+        {/* Exit System Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -142,7 +142,7 @@ export default function SettingsPage({ onBack, onNavigate }) {
               <LogOut className="w-5 h-5 text-red-500 dark:text-red-400" />
             </div>
             <span className="font-medium text-red-500 dark:text-red-400">
-              Logout
+              Exit System
             </span>
           </button>
         </motion.div>
