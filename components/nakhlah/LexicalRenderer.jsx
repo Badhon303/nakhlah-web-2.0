@@ -137,7 +137,7 @@ function renderNode(node, idx) {
           key={idx}
           href={safeHref}
           target="_self"
-          className="text-accent underline underline-offset-2 hover:opacity-80 break-all"
+          className="text-accent no-underline hover:opacity-80 break-all"
         >
           {linkText || safeHref}
         </a>
