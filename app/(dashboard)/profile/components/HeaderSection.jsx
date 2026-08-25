@@ -88,7 +88,6 @@ export default function HeaderSection({
             <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
               {isLoading ? "Loading..." : fullName}
             </h1>
-            <p className="text-muted-foreground mb-4">{email}</p>
             <p className="text-sm text-muted-foreground">
               {joined ? `Joined on ${joined}` : ""}
             </p>
