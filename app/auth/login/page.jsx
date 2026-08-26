@@ -48,7 +48,7 @@ export default function Login() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md flex flex-col items-center text-center gap-8"
+        className="w-full max-w-xl flex flex-col items-center text-center gap-8"
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
@@ -58,14 +58,14 @@ export default function Login() {
           <LogoAnimation className="w-56" />
         </motion.div>
 
-        <p className="text-xl text-muted-foreground max-w-md">
-          Learn languages whenever and wherever you want
+        <p className="text-xl text-muted-foreground max-w-xl">
+          A smarter and more engaging way to learn Arabic
         </p>
 
         <Button
           onClick={handleStartLearning}
           disabled={isLoading}
-          className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
+          className="bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
         >
           {isLoading ? "STARTING..." : "START LEARNING"}
         </Button>
