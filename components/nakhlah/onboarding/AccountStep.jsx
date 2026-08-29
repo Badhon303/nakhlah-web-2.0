@@ -11,12 +11,22 @@ import {
   PASSWORD_ERROR_MESSAGE,
 } from "@/lib/validation";
 
-export function AccountStep({ email, password = "", onChange }) {
+export function AccountStep({
+  email,
+  password = "",
+  confirmPassword = "",
+  onChange,
+}) {
   const [localEmail, setLocalEmail] = useState(email || "");
   const [localPassword, setLocalPassword] = useState(password || "");
+  const [localConfirmPassword, setLocalConfirmPassword] = useState(
+    confirmPassword || "",
+  );
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
   const handleEmailChange = (value) => {
     setLocalEmail(value);
@@ -32,7 +42,27 @@ export function AccountStep({ email, password = "", onChange }) {
         ? PASSWORD_ERROR_MESSAGE
         : "";
     setPasswordError(error);
-    onChange({ password: value, passwordError: error });
+    const nextConfirmError =
+      localConfirmPassword && localConfirmPassword !== value
+        ? "Passwords do not match."
+        : "";
+    setConfirmPasswordError(nextConfirmError);
+    onChange({
+      password: value,
+      passwordError: error,
+      confirmPasswordError: nextConfirmError,
+    });
+  };
+
+  const handleConfirmPasswordChange = (value) => {
+    const error =
+      value && value !== localPassword ? "Passwords do not match." : "";
+    setLocalConfirmPassword(value);
+    setConfirmPasswordError(error);
+    onChange({
+      confirmPassword: value,
+      confirmPasswordError: error,
+    });
   };
 
   return (
@@ -67,10 +97,10 @@ export function AccountStep({ email, password = "", onChange }) {
             value={localEmail}
             onChange={(e) => handleEmailChange(e.target.value)}
             className={cn(
-              "w-full px-4 py-3 rounded-xl border bg-transparent outline-none",
+              "h-12 w-full rounded-xl border bg-transparent px-4 outline-none",
               emailError
                 ? "border-destructive focus:ring-2 focus:ring-destructive/40"
-                : "border-border",
+                : "border-input",
             )}
             placeholder="Put your email"
             type="email"
@@ -89,10 +119,10 @@ export function AccountStep({ email, password = "", onChange }) {
               value={localPassword}
               onChange={(e) => handlePasswordChange(e.target.value)}
               className={cn(
-                "w-full px-4 py-3 pr-12 rounded-xl border bg-transparent outline-none",
+                "h-12 w-full rounded-xl border bg-transparent px-4 pr-12 outline-none",
                 passwordError
                   ? "border-destructive focus:ring-2 focus:ring-destructive/40"
-                  : "border-border",
+                  : "border-input",
               )}
               placeholder="Choose a secure password"
               type={showPassword ? "text" : "password"}
@@ -111,6 +141,42 @@ export function AccountStep({ email, password = "", onChange }) {
           </div>
           {passwordError ? (
             <p className="text-xs text-destructive mt-1">{passwordError}</p>
+          ) : null}
+        </div>
+
+        <div className="bg-card border border-border p-4 rounded-2xl">
+          <label className="block text-sm text-muted-foreground mb-1">
+            Confirm password
+          </label>
+          <div className="relative">
+            <input
+              value={localConfirmPassword}
+              onChange={(e) => handleConfirmPasswordChange(e.target.value)}
+              className={cn(
+                "h-12 w-full rounded-xl border bg-transparent px-4 pr-12 outline-none",
+                confirmPasswordError
+                  ? "border-destructive focus:ring-2 focus:ring-destructive/40"
+                  : "border-input",
+              )}
+              placeholder="Re-enter your password"
+              type={showConfirmPassword ? "text" : "password"}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+          {confirmPasswordError ? (
+            <p className="text-xs text-destructive mt-1">
+              {confirmPasswordError}
+            </p>
           ) : null}
         </div>
 

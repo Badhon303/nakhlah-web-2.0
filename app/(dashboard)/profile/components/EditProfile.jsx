@@ -13,6 +13,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "@/lib/auth-client";
+import PhoneInput, {
+  isValidPhoneNumber,
+  parsePhoneNumber,
+} from "react-phone-number-input/input";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import {
   fetchUserOnboardingGlobals,
@@ -21,36 +25,56 @@ import {
 import { toast } from "@/components/nakhlah/Toast";
 import { buildApiUrl } from "@/lib/api-config";
 import { useProfileStore } from "@/stores/useProfileStore";
+import {
+  CountryPicker,
+  getCountryCodeByName,
+  getCountryName,
+} from "@/components/nakhlah/onboarding/CountryPicker";
+import { NAME_MAX_LENGTH } from "@/lib/validation";
+import { cn } from "@/lib/utils";
+import Image from "next/image";
+
+const FIELD_CLASS =
+  "w-full h-12 px-4 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground";
 
 const MAX_FILE_SIZE = 300 * 1024;
+
+const toE164 = (value, defaultCountry) => {
+  if (!value) return "";
+  try {
+    const parsed = parsePhoneNumber(value, defaultCountry || undefined);
+    return parsed?.number || "";
+  } catch {
+    return "";
+  }
+};
 
 export default function EditProfilePage({
   onBack,
   currentUser,
   profileData,
   onProfileUpdated,
-  startEditing = false,
 }) {
   const [localChanges, setLocalChanges] = useState({});
   const [profilePicture, setProfilePicture] = useState(null);
   const [picturePreview, setPicturePreview] = useState("");
   const [fileError, setFileError] = useState("");
   const [contactError, setContactError] = useState("");
+  const [nameError, setNameError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [countryPickerCode, setCountryPickerCode] = useState("");
+  const [phoneCountryCode, setPhoneCountryCode] = useState("");
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
   const [onboardingOptions, setOnboardingOptions] = useState(null);
-  const [isEditing, setIsEditing] = useState(startEditing);
-  const fromProfile = startEditing;
   const { data: session } = useSession();
   const previousPreviewUrl = useRef("");
+  const hasInitializedCountryCodes = useRef(false);
 
   useEffect(() => {
     const loadOptions = async () => {
       setIsLoadingOptions(true);
       const result = await fetchUserOnboardingGlobals();
-      if (result.success) {
-        setOnboardingOptions(result.data);
-      }
+      if (result.success) setOnboardingOptions(result.data);
       setIsLoadingOptions(false);
     };
     loadOptions();
@@ -88,7 +112,10 @@ export default function EditProfilePage({
 
     return {
       fullName: profileData?.fullName || "",
-      contactNumber: profileData?.contactNumber || "",
+      contactNumber: toE164(
+        profileData?.contactNumber,
+        getCountryCodeByName(onboardInfo.country),
+      ),
       country: onboardInfo.country || "",
       age: onboardInfo.age || "",
       purpose: onboardInfo.purpose || "",
@@ -111,10 +138,67 @@ export default function EditProfilePage({
     };
   }, []);
 
+  // Resolve library country codes from the saved country name / phone number
+  // once, after profile + onboarding data have both loaded.
+  useEffect(() => {
+    if (hasInitializedCountryCodes.current) return;
+    if (!profileData || !onboardingOptions) return;
+    hasInitializedCountryCodes.current = true;
+
+    const nameCode = getCountryCodeByName(initialFormData.country);
+    const phoneParsed = initialFormData.contactNumber
+      ? parsePhoneNumber(initialFormData.contactNumber)?.country
+      : "";
+
+    queueMicrotask(() => {
+      setCountryPickerCode(nameCode);
+      setPhoneCountryCode(phoneParsed || nameCode || "");
+    });
+  }, [profileData, onboardingOptions, initialFormData]);
+
+  const validateContact = (value) =>
+    value && !isValidPhoneNumber(value)
+      ? "Enter a valid phone number for the selected country."
+      : "";
+
+  const handleContactChange = (value = "") => {
+    if (value === (formData.contactNumber || "")) return;
+
+    setLocalChanges((prev) => ({ ...prev, contactNumber: value }));
+    setContactError(value ? validateContact(value) : "");
+  };
+
+  const handleContactBlur = () => {
+    setContactError(validateContact(formData.contactNumber));
+  };
+
+  const handlePhoneCountryChange = (nextCode) => {
+    if (nextCode === phoneCountryCode) return;
+    setPhoneCountryCode(nextCode);
+    if (formData.contactNumber) {
+      setLocalChanges((prev) => ({ ...prev, contactNumber: "" }));
+      setContactError("");
+    }
+  };
+
+  const handleCountryPickerChange = (nextCode) => {
+    setCountryPickerCode(nextCode);
+    handleChange("country", getCountryName(nextCode));
+  };
+
   const handleChange = (field, value) => {
     setLocalChanges((prev) => ({ ...prev, [field]: value }));
-    if (field === "contactNumber") {
-      setContactError("");
+
+    if (field === "fullName") {
+      let error = "";
+      if (value.trim()) {
+        if (value.trim().length < 2) {
+          error = "Full name must be at least 2 characters.";
+        } else if (value.trim().length > NAME_MAX_LENGTH) {
+          error = `Full name must be under ${NAME_MAX_LENGTH} characters.`;
+        }
+      }
+      setNameError(error);
     }
   };
 
@@ -179,13 +263,8 @@ export default function EditProfilePage({
       return;
     }
 
-    if (
-      !formData.fullName.trim() ||
-      !formData.contactNumber.trim() ||
-      contactError ||
-      fileError
-    ) {
-      toast.error("Please fill in all required fields correctly");
+    if (nameError || contactError || fileError) {
+      toast.error("Please fix the highlighted fields before updating");
       return;
     }
 
@@ -226,50 +305,12 @@ export default function EditProfilePage({
       onProfileUpdated(refreshResult?.profile || result.profile);
     }
 
-    if (fromProfile) {
-      toast.success("Profile updated successfully");
-      onBack();
-      return;
-    }
-
-    if (previousPreviewUrl.current) {
-      URL.revokeObjectURL(previousPreviewUrl.current);
-      previousPreviewUrl.current = "";
-    }
-    setProfilePicture(null);
-    setPicturePreview("");
-    setLocalChanges({});
-    setIsEditing(false);
     toast.success("Profile updated successfully");
-  };
-
-  const handleCancel = () => {
-    if (fromProfile) {
-      onBack();
-      return;
-    }
-
-    setLocalChanges({});
-    if (previousPreviewUrl.current) {
-      URL.revokeObjectURL(previousPreviewUrl.current);
-      previousPreviewUrl.current = "";
-    }
-    setProfilePicture(null);
-    setPicturePreview("");
-    setFileError("");
-    setContactError("");
-    setIsEditing(false);
-  };
-
-  const handleEdit = () => {
-    setLocalChanges({});
-    setFileError("");
-    setContactError("");
-    setIsEditing(true);
+    onBack();
   };
 
   return (
-    <div className="max-w-2xl mx-auto py-6">
+    <div className="max-w-4xl mx-auto py-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -296,7 +337,7 @@ export default function EditProfilePage({
           <div className="relative">
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-3xl font-bold text-white overflow-hidden">
               {getProfileImageUrl() ? (
-                <img
+                <Image
                   src={getProfileImageUrl()}
                   alt="Profile"
                   className="w-full h-full object-cover"
@@ -305,17 +346,15 @@ export default function EditProfilePage({
                 getInitials()
               )}
             </div>
-            {isEditing && (
-              <label className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center shadow-lg hover:bg-accent/90 transition-all cursor-pointer">
-                <Camera className="w-4 h-4" />
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-              </label>
-            )}
+            <label className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center shadow-lg hover:bg-accent/90 transition-all cursor-pointer">
+              <Camera className="w-4 h-4" />
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+            </label>
           </div>
         </div>
         {profilePicture && (
@@ -335,286 +374,215 @@ export default function EditProfilePage({
           </p>
         )}
 
-        {isEditing && (
-          <>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-2">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.fullName}
-                  onChange={(e) => handleChange("fullName", e.target.value)}
-                  className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground"
-                />
-              </div>
+        {/* Form Fields */}
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
+              Full Name
+            </label>
+            <input
+              type="text"
+              value={formData.fullName}
+              onChange={(e) => handleChange("fullName", e.target.value)}
+              className={FIELD_CLASS}
+            />
+            {nameError && (
+              <p className="text-xs text-destructive mt-1">{nameError}</p>
+            )}
+          </div>
 
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-2">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  value={formData.contactNumber}
-                  onChange={(e) =>
-                    handleChange("contactNumber", e.target.value)
-                  }
-                  className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground"
-                />
-                {contactError && (
-                  <p className="text-xs text-destructive mt-1">
-                    {contactError}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-2">
-                  Country
-                </label>
-                <div className="relative">
-                  <select
-                    value={formData.country}
-                    onChange={(e) => handleChange("country", e.target.value)}
-                    disabled={isLoadingOptions}
-                    className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
-                  >
-                    <option value="">Select country</option>
-                    {(onboardingOptions?.Country?.countryList || []).map(
-                      (option) => (
-                        <option key={option.id} value={option.countryName}>
-                          {option.countryName}
-                        </option>
-                      ),
-                    )}
-                  </select>
-                  <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-2">
-                  Age Range
-                </label>
-                <div className="relative">
-                  <select
-                    value={formData.age}
-                    onChange={(e) => handleChange("age", e.target.value)}
-                    disabled={isLoadingOptions}
-                    className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
-                  >
-                    <option value="">Select age</option>
-                    {(onboardingOptions?.age?.ageList || []).map((option) => (
-                      <option key={option.id} value={option.ageTitle}>
-                        {option.ageTitle}
-                      </option>
-                    ))}
-                  </select>
-                  <CalendarDays className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-2">
-                  Language Strength
-                </label>
-                <div className="relative">
-                  <select
-                    value={formData.languageStrength}
-                    onChange={(e) =>
-                      handleChange("languageStrength", e.target.value)
-                    }
-                    disabled={isLoadingOptions}
-                    className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
-                  >
-                    <option value="">Select language strength</option>
-                    {(
-                      onboardingOptions?.languageStrength?.strengthsList || []
-                    ).map((option) => (
-                      <option key={option.id} value={option.strengthsTitle}>
-                        {option.strengthsTitle}
-                      </option>
-                    ))}
-                  </select>
-                  <BookOpen className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-2">
-                  Daily Study Target
-                </label>
-                <div className="relative">
-                  <select
-                    value={formData.goalTime}
-                    onChange={(e) =>
-                      handleChange("goalTime", Number(e.target.value))
-                    }
-                    disabled={isLoadingOptions}
-                    className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
-                  >
-                    <option value={0}>Select daily goal</option>
-                    {(onboardingOptions?.Goal?.goalList || []).map((option) => (
-                      <option key={option.id} value={Number(option.goalTime)}>
-                        {option.goalTime} minutes
-                      </option>
-                    ))}
-                  </select>
-                  <Clock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-2">
-                  Purpose
-                </label>
-                <div className="relative">
-                  <select
-                    value={formData.purpose}
-                    onChange={(e) => handleChange("purpose", e.target.value)}
-                    disabled={isLoadingOptions}
-                    className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
-                  >
-                    <option value="">Select purpose</option>
-                    {(onboardingOptions?.purpose?.purposeList || []).map(
-                      (option) => (
-                        <option key={option.id} value={option.purposeTitle}>
-                          {option.purposeTitle}
-                        </option>
-                      ),
-                    )}
-                  </select>
-                  <Target className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-2">
-                  How did you learn about Nakhlah
-                </label>
-                <div className="relative">
-                  <select
-                    value={formData.userSource}
-                    onChange={(e) => handleChange("userSource", e.target.value)}
-                    disabled={isLoadingOptions}
-                    className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground appearance-none"
-                  >
-                    <option value="">Select source</option>
-                    {(onboardingOptions?.userSource?.sourceList || []).map(
-                      (option) => (
-                        <option key={option.id} value={option.sourceName}>
-                          {option.sourceName}
-                        </option>
-                      ),
-                    )}
-                  </select>
-                  <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
-                </div>
-              </div>
-            </div>
-
-            {/* Action Button */}
-            <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <Button
-                type="button"
-                onClick={handleCancel}
-                disabled={isSubmitting}
-                className="w-full bg-muted text-foreground hover:bg-muted/80 py-6 text-lg font-semibold"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                onClick={handleUpdate}
-                disabled={
-                  isSubmitting ||
-                  isLoadingOptions ||
-                  !formData.fullName.trim() ||
-                  !formData.contactNumber.trim() ||
-                  !!contactError ||
-                  !!fileError
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
+              Phone Number
+            </label>
+            <div
+              className={cn(
+                "flex items-stretch rounded-xl border bg-muted/30 ring-offset-background transition-colors focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+                contactError
+                  ? "border-destructive focus-within:ring-destructive/40"
+                  : "border-border",
+              )}
+            >
+              <CountryPicker
+                value={phoneCountryCode}
+                onChange={handlePhoneCountryChange}
+                showCallingCode
+                placeholder="Code"
+                variant="embedded"
+                triggerClassName="rounded-l-xl border-r border-border"
+              />
+              <PhoneInput
+                country={phoneCountryCode || undefined}
+                international={phoneCountryCode ? true : undefined}
+                smartCaret={false}
+                value={formData.contactNumber || undefined}
+                onChange={handleContactChange}
+                onBlur={handleContactBlur}
+                disabled={!phoneCountryCode}
+                inputMode="tel"
+                autoComplete="tel"
+                aria-label="Phone number"
+                className="flex h-12 min-w-0 flex-1 rounded-r-xl border-0 bg-transparent px-4 text-base placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                placeholder={
+                  phoneCountryCode ? "Phone number" : "Select a country code"
                 }
-                className="w-full bg-gradient-to-r from-violet-500 to-indigo-500 text-white py-6 text-lg font-semibold"
-              >
-                {isSubmitting ? "Saving..." : "Save Changes"}
-              </Button>
+              />
             </div>
-          </>
-        )}
+            {contactError && (
+              <p className="text-xs text-destructive mt-1">{contactError}</p>
+            )}
+          </div>
 
-        {!isEditing && (
-          <>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 py-3 border-b border-border last:border-0">
-                <span className="text-sm text-muted-foreground">Full Name</span>
-                <span className="font-medium text-foreground sm:text-right">
-                  {formData.fullName || "—"}
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 py-3 border-b border-border last:border-0">
-                <span className="text-sm text-muted-foreground">
-                  Phone Number
-                </span>
-                <span className="font-medium text-foreground sm:text-right">
-                  {formData.contactNumber || "—"}
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 py-3 border-b border-border last:border-0">
-                <span className="text-sm text-muted-foreground">Country</span>
-                <span className="font-medium text-foreground sm:text-right">
-                  {formData.country || "—"}
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 py-3 border-b border-border last:border-0">
-                <span className="text-sm text-muted-foreground">Age Range</span>
-                <span className="font-medium text-foreground sm:text-right">
-                  {formData.age || "—"}
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 py-3 border-b border-border last:border-0">
-                <span className="text-sm text-muted-foreground">
-                  Language Strength
-                </span>
-                <span className="font-medium text-foreground sm:text-right">
-                  {formData.languageStrength || "—"}
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 py-3 border-b border-border last:border-0">
-                <span className="text-sm text-muted-foreground">
-                  Daily Study Target
-                </span>
-                <span className="font-medium text-foreground sm:text-right">
-                  {formData.goalTime ? `${formData.goalTime} minutes` : "—"}
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 py-3 border-b border-border last:border-0">
-                <span className="text-sm text-muted-foreground">Purpose</span>
-                <span className="font-medium text-foreground sm:text-right">
-                  {formData.purpose || "—"}
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 py-3 border-b border-border last:border-0">
-                <span className="text-sm text-muted-foreground">
-                  How did you learn about Nakhlah
-                </span>
-                <span className="font-medium text-foreground sm:text-right">
-                  {formData.userSource || "—"}
-                </span>
-              </div>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
+              Country
+            </label>
+            <CountryPicker
+              value={countryPickerCode}
+              onChange={handleCountryPickerChange}
+              placeholder="Select country"
+              disabled={isLoadingOptions}
+              triggerClassName="bg-muted/30 border-border"
+            />
+          </div>
 
-            <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <Button
-                type="button"
-                onClick={handleEdit}
-                className="w-full bg-gradient-to-r from-violet-500 to-indigo-500 text-white py-6 text-lg font-semibold"
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
+              Age Range
+            </label>
+            <div className="relative">
+              <select
+                value={formData.age}
+                onChange={(e) => handleChange("age", e.target.value)}
+                disabled={isLoadingOptions}
+                className={cn(FIELD_CLASS, "appearance-none pr-10")}
               >
-                Edit Profile
-              </Button>
+                <option value="">Select age</option>
+                {(onboardingOptions?.age?.ageList || []).map((option) => (
+                  <option key={option.id} value={option.ageTitle}>
+                    {option.ageTitle}
+                  </option>
+                ))}
+              </select>
+              <CalendarDays className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
             </div>
-          </>
-        )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
+              Language Strength
+            </label>
+            <div className="relative">
+              <select
+                value={formData.languageStrength}
+                onChange={(e) =>
+                  handleChange("languageStrength", e.target.value)
+                }
+                disabled={isLoadingOptions}
+                className={cn(FIELD_CLASS, "appearance-none pr-10")}
+              >
+                <option value="">Select language strength</option>
+                {(onboardingOptions?.languageStrength?.strengthsList || []).map(
+                  (option) => (
+                    <option key={option.id} value={option.strengthsTitle}>
+                      {option.strengthsTitle}
+                    </option>
+                  ),
+                )}
+              </select>
+              <BookOpen className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
+              Daily Study Target
+            </label>
+            <div className="relative">
+              <select
+                value={formData.goalTime}
+                onChange={(e) =>
+                  handleChange("goalTime", Number(e.target.value))
+                }
+                disabled={isLoadingOptions}
+                className={cn(FIELD_CLASS, "appearance-none pr-10")}
+              >
+                <option value={0}>Select daily goal</option>
+                {(onboardingOptions?.Goal?.goalList || []).map((option) => (
+                  <option key={option.id} value={Number(option.goalTime)}>
+                    {option.goalTime} minutes
+                  </option>
+                ))}
+              </select>
+              <Clock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
+              Purpose
+            </label>
+            <div className="relative">
+              <select
+                value={formData.purpose}
+                onChange={(e) => handleChange("purpose", e.target.value)}
+                disabled={isLoadingOptions}
+                className={cn(FIELD_CLASS, "appearance-none pr-10")}
+              >
+                <option value="">Select purpose</option>
+                {(onboardingOptions?.purpose?.purposeList || []).map(
+                  (option) => (
+                    <option key={option.id} value={option.purposeTitle}>
+                      {option.purposeTitle}
+                    </option>
+                  ),
+                )}
+              </select>
+              <Target className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
+              How did you learn about Nakhlah
+            </label>
+            <div className="relative">
+              <select
+                value={formData.userSource}
+                onChange={(e) => handleChange("userSource", e.target.value)}
+                disabled={isLoadingOptions}
+                className={cn(FIELD_CLASS, "appearance-none pr-10")}
+              >
+                <option value="">Select source</option>
+                {(onboardingOptions?.userSource?.sourceList || []).map(
+                  (option) => (
+                    <option key={option.id} value={option.sourceName}>
+                      {option.sourceName}
+                    </option>
+                  ),
+                )}
+              </select>
+              <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+            </div>
+          </div>
+        </div>
+
+        {/* Action Button */}
+        <div className="mt-8">
+          <Button
+            onClick={handleUpdate}
+            disabled={
+              isSubmitting ||
+              isLoadingOptions ||
+              !!nameError ||
+              !!contactError ||
+              !!fileError
+            }
+            className="w-full bg-gradient-to-r from-violet-500 to-indigo-500 text-white py-6 text-lg font-semibold"
+          >
+            {isSubmitting ? "Updating..." : "Update Profile"}
+          </Button>
+        </div>
       </motion.div>
     </div>
   );

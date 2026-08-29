@@ -55,6 +55,8 @@ export function InterestsStep({
                     alt={
                       interest?.interestPicture?.alt || interest.interestTitle
                     }
+                    width={48}
+                    height={48}
                     className="w-full h-full object-contain"
                   />
                 ) : (

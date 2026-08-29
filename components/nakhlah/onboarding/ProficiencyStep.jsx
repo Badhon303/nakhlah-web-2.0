@@ -51,6 +51,8 @@ export function ProficiencyStep({
                   <Image
                     src={getMediaUrl(level.strengthsMedia.url)}
                     alt={level?.strengthsMedia?.alt || level.strengthsTitle}
+                    width={48}
+                    height={48}
                     className="w-full h-full object-contain"
                   />
                 ) : (

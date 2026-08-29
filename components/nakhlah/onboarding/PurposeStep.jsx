@@ -49,6 +49,8 @@ export function PurposeStep({
                 <Image
                   src={getMediaUrl(purpose.purposeMedia.url)}
                   alt={purpose?.purposeMedia?.alt || purpose.purposeTitle}
+                  width={48}
+                  height={48}
                   className="w-full h-full object-contain"
                 />
               ) : (

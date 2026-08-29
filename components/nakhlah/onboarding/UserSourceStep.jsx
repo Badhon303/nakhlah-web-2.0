@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
@@ -38,7 +37,7 @@ export function UserSourceStep({
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="flex flex-wrap justify-center gap-4">
         {sources.map((option, index) => {
           const isSelected = selectedSource === option.id;
           return (
@@ -49,7 +48,7 @@ export function UserSourceStep({
               transition={{ delay: index * 0.1 }}
               onClick={() => handleSourceSelect(option.id)}
               className={cn(
-                "relative flex flex-col items-center gap-3 p-6 rounded-2xl border-2 transition-all duration-300",
+                "relative flex w-[calc((100%-2rem)/2)] sm:w-[calc((100%-2rem)/3)] shrink-0 flex-col items-center gap-3 rounded-2xl border-2 p-4 transition-all duration-300",
                 "hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
                 isSelected
                   ? "border-accent bg-accent/10 shadow-accent-glow"
@@ -62,6 +61,8 @@ export function UserSourceStep({
                     src={getMediaUrl(option.sourcePicture.url)}
                     alt={option?.sourcePicture?.alt || option.sourceName}
                     className="w-full h-full object-contain"
+                    width={48}
+                    height={48}
                   />
                 ) : (
                   <span className="text-2xl">🔗</span>

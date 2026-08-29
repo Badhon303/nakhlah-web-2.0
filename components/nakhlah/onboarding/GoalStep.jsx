@@ -51,6 +51,8 @@ export function GoalStep({
                   <Image
                     src={getMediaUrl(goal.goalMedia.url)}
                     alt={goal?.goalMedia?.alt || `${value} minutes`}
+                    width={48}
+                    height={48}
                     className="w-full h-full object-contain"
                   />
                 ) : (
