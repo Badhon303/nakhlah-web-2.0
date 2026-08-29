@@ -20,6 +20,8 @@ import { fetchCurrentSubscription, refillPalmTrees } from "@/services/api";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { Infinity as InfinityIcon } from "lucide-react";
 import { useStreakStore } from "@/stores/useStreakStore";
+import { useGamificationStockStore } from "@/stores/useGamificationStockStore";
+import { usePalmRefillCountdown } from "@/hooks/usePalmRefillCountdown";
 import { toast } from "@/components/nakhlah/Toast";
 import {
   buildStreakActivities,
@@ -41,6 +43,15 @@ export function UserStats() {
   const streakData = useStreakStore((state) => state.streakData);
   const fetchStreak = useStreakStore((state) => state.fetchLearnerStreak);
   const clearStreak = useStreakStore((state) => state.clear);
+  const gamificationPalmUpdatedAt = useGamificationStockStore(
+    (state) => state.palmUpdatedAt,
+  );
+  const gamificationPalmStock = useGamificationStockStore(
+    (state) => state.palmStock,
+  );
+  const fetchGamificationStock = useGamificationStockStore(
+    (state) => state.fetchGamificationStock,
+  );
 
   const loadStats = useCallback(
     async (forceRefresh = false) => {
@@ -60,6 +71,8 @@ export function UserStats() {
         fetchStreak({ token, userKey, forceRefresh }),
         fetchCurrentSubscription(token).catch(() => ({ success: false })),
       ]);
+
+      void fetchGamificationStock({ token, userKey, forceRefresh });
 
       if (subscriptionResult?.success) {
         setCurrentSubscription(subscriptionResult.subscription);
@@ -149,6 +162,12 @@ export function UserStats() {
     : palmTreesCount >= 5
       ? "You have full Palm Trees"
       : `You have ${palmTreesCount} Palm Trees`;
+
+  const { formatted: palmRefillCountdown } = usePalmRefillCountdown(
+    gamificationPalmUpdatedAt,
+    palmTreesCount,
+    5,
+  );
 
   const handleMobileClick = (stat) => {
     setMobileOpenCard(mobileOpenCard === stat ? null : stat);
@@ -441,6 +460,11 @@ export function UserStats() {
                       <p className="text-sm font-semibold">
                         {palmTreesMessage}
                       </p>
+                      {palmRefillCountdown && palmTreesCount < 5 && (
+                        <p className="text-sm text-muted-foreground">
+                          Next Palm Tree: {palmRefillCountdown}
+                        </p>
+                      )}
                       <p className="text-sm text-muted-foreground">
                         Keep on learning
                       </p>
@@ -523,6 +547,11 @@ export function UserStats() {
                       ))}
                     </div>
                     <p className="text-sm font-semibold">{palmTreesMessage}</p>
+                    {palmRefillCountdown && palmTreesCount < 5 && (
+                      <p className="text-sm text-muted-foreground">
+                        Next Palm Tree: {palmRefillCountdown}
+                      </p>
+                    )}
                     <p className="text-sm text-muted-foreground">
                       Keep on learning
                     </p>

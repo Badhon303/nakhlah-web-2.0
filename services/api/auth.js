@@ -890,3 +890,36 @@ export async function resetPassword(token, password) {
 //         };
 //     }
 // }
+
+export async function fetchGamificationStocks(token) {
+    try {
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        const { response } = await fetchWithAuthRetry("/api/user-profile/gamification-stocks", {
+            method: "GET",
+            token,
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to load gamification stocks"));
+        }
+
+        return {
+            success: true,
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch gamification stocks error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to load gamification stocks",
+        };
+    }
+}

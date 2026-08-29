@@ -1,11 +1,14 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useSession } from "@/lib/auth-client";
 import { Navbar } from "./Navbar";
 
 export default function ConditionalNavbar() {
   const pathname = usePathname();
-  const hideNavbar =
+  const { status } = useSession();
+
+  const isAuthPage =
     pathname === "/onboarding" ||
     pathname === "/get-started" ||
     pathname.startsWith("/auth/") ||
@@ -14,7 +17,7 @@ export default function ConditionalNavbar() {
     pathname === "/lessons" ||
     pathname.startsWith("/lessons/");
 
-  if (hideNavbar) return null;
+  if (isAuthPage || status !== "authenticated") return null;
 
   return <Navbar />;
 }

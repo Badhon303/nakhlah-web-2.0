@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
@@ -28,6 +29,42 @@ const mobileIconMap = {
 
 export function Navbar() {
   const pathname = usePathname();
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+  const viewportHeightRef = useRef(0);
+
+  useEffect(() => {
+    const visualViewport = window.visualViewport;
+    if (!visualViewport) return undefined;
+
+    viewportHeightRef.current = Math.max(
+      window.innerHeight,
+      visualViewport.height,
+    );
+
+    const updateKeyboardState = () => {
+      const viewportHeight = visualViewport.height;
+      const isMobileViewport = window.innerWidth < 1024;
+
+      if (viewportHeight > viewportHeightRef.current - 50) {
+        viewportHeightRef.current = viewportHeight;
+      }
+
+      const keyboardHasReducedViewport =
+        viewportHeight < viewportHeightRef.current - 150;
+      setIsKeyboardOpen(isMobileViewport && keyboardHasReducedViewport);
+    };
+
+    updateKeyboardState();
+    visualViewport.addEventListener("resize", updateKeyboardState);
+    window.addEventListener("resize", updateKeyboardState);
+
+    return () => {
+      visualViewport.removeEventListener("resize", updateKeyboardState);
+      window.removeEventListener("resize", updateKeyboardState);
+    };
+  }, []);
+
+  if (isKeyboardOpen) return null;
 
   // /settings renders the profile shell, so keep Profile highlighted there.
   const isNavItemActive = (path) =>

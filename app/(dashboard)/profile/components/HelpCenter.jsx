@@ -6,11 +6,7 @@ import { fetchHelpCenter } from "@/services/api/globals";
 import { useSession } from "@/lib/auth-client";
 import { getSessionToken } from "@/lib/authUtils";
 
-export default function HelpCenterPage({
-  onBack,
-  onNavigateContact,
-  onNavigateLearningTips,
-}) {
+export default function HelpCenterPage({ onBack, onNavigateContact }) {
   const [expandedFaq, setExpandedFaq] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [faqs, setFaqs] = useState([]);
@@ -66,12 +62,6 @@ export default function HelpCenterPage({
           <div className="px-4 py-2 rounded-lg font-medium bg-accent text-accent-foreground">
             FAQ
           </div>
-          <button
-            onClick={() => onNavigateLearningTips && onNavigateLearningTips()}
-            className="px-4 py-2 rounded-lg font-medium bg-muted/30 text-muted-foreground hover:bg-muted/50 transition-all"
-          >
-            Learning Tips &amp; Guides
-          </button>
           <button
             onClick={() => onNavigateContact && onNavigateContact()}
             className="px-4 py-2 rounded-lg font-medium bg-muted/30 text-muted-foreground hover:bg-muted/50 transition-all"

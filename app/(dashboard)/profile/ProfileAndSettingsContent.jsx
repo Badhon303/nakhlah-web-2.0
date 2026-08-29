@@ -7,12 +7,12 @@ import ContactUsPage from "./components/ContactUs";
 import AllAchievementsPage from "./components/AllAchievements";
 import TermsAndConditionsPage from "./components/TermsAndConditions";
 import PrivacyPolicyPage from "./components/PrivacyPolicy";
-import LearningTipsGuidesPage from "./components/LearningTipsGuides";
 import ProfilePage from "./ProfilePage";
 import SettingsPage from "./SettingsPage";
 import EditProfilePage from "./components/EditProfile";
 import ShareProfileDrawer from "./components/ShareProfileDrawer";
 import AboutNakhlahPage from "./components/AboutNakhlah";
+import PolicyDocumentPage from "./components/PolicyDocument";
 import { useSession } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
@@ -32,8 +32,9 @@ const VALID_VIEWS = new Set([
   "about-nakhlah",
   "terms-and-conditions",
   "privacy-policy",
-  "learning-tips",
   "payment",
+  "payment-subscription-policy",
+  "refund-cancellation-policy",
 ]);
 
 export default function ProfileAndSettingsContent({ basePath, defaultView }) {
@@ -55,7 +56,9 @@ export default function ProfileAndSettingsContent({ basePath, defaultView }) {
   // of syncing via an effect, which would trigger cascading renders.
   const requestedView = searchParams.get("view");
   const activeView =
-    requestedView && VALID_VIEWS.has(requestedView) ? requestedView : defaultView;
+    requestedView && VALID_VIEWS.has(requestedView)
+      ? requestedView
+      : defaultView;
   const startEditingProfile =
     activeView === "edit-profile"
       ? searchParams.get("startEditing") === "true"
@@ -182,7 +185,6 @@ export default function ProfileAndSettingsContent({ basePath, defaultView }) {
           <HelpCenterPage
             onBack={() => router.push(`${basePath}?view=settings`)}
             onNavigateContact={() => handleNavigate("contact-us")}
-            onNavigateLearningTips={() => handleNavigate("learning-tips")}
           />
         );
       case "contact-us":
@@ -211,10 +213,28 @@ export default function ProfileAndSettingsContent({ basePath, defaultView }) {
             onBack={() => router.push(`${basePath}?view=about-nakhlah`)}
           />
         );
-      case "learning-tips":
+      case "payment-subscription-policy":
         return (
-          <LearningTipsGuidesPage
-            onBack={() => router.push(`${basePath}?view=help-center`)}
+          <PolicyDocumentPage
+            onBack={() => router.push(`${basePath}?view=about-nakhlah`)}
+            policyKey="paymentAndSubscriptionPolicy"
+            title="Payment & Subscription Policy"
+          />
+        );
+      case "refund-cancellation-policy":
+        return (
+          <PolicyDocumentPage
+            onBack={() => router.push(`${basePath}?view=about-nakhlah`)}
+            policyKey="refundPolicyAndCancellationPolicy"
+            title="Refund & Cancellation Policy"
+          />
+        );
+      case "payment":
+        return (
+          <ProfilePage
+            onNavigate={handleNavigate}
+            currentUser={currentUser}
+            profileData={profileData}
           />
         );
       default:
