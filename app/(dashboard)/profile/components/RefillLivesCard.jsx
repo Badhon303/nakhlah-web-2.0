@@ -1,23 +1,35 @@
-import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
 import { refillPalmTrees } from "@/services/api";
-import { useProfileStore } from "@/stores/useProfileStore";
+import { useGamificationStockStore } from "@/stores/useGamificationStockStore";
 import { toast } from "@/components/nakhlah/Toast";
+import PalmRefillPanel from "@/components/nakhlah/PalmRefillPanel";
 
 export default function RefillLivesCard() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [isRefilling, setIsRefilling] = useState(false);
-  const fetchProfile = useProfileStore((state) => state.fetchMyProfile);
-  const profile = useProfileStore((state) => state.profile);
-
-  const palmTreesCount = Number(
-    profile?.gamificationStock?.palm?.palmStock ?? 5,
+  const fetchGamificationStock = useGamificationStockStore(
+    (state) => state.fetchGamificationStock,
   );
+  const palmStock = useGamificationStockStore((state) => state.palmStock);
+  const palmUpdatedAt = useGamificationStockStore(
+    (state) => state.palmUpdatedAt,
+  );
+  const dateStock = useGamificationStockStore((state) => state.dateStock);
+
+  const palmTreesCount = Number(palmStock ?? 5);
+
+  useEffect(() => {
+    if (status !== "authenticated" || !isSessionValid(session)) return;
+    const token = getSessionToken(session);
+    if (!token) return;
+
+    fetchGamificationStock({ token, userKey: getUserKey(session) });
+  }, [status, session, fetchGamificationStock]);
 
   const handleRefill = async () => {
     if (palmTreesCount >= 5) {
@@ -44,7 +56,11 @@ export default function RefillLivesCard() {
         return;
       }
 
-      await fetchProfile(token, true, getUserKey(session));
+      await fetchGamificationStock({
+        token,
+        userKey: getUserKey(session),
+        forceRefresh: true,
+      });
       toast.success(result.message || "Palm Trees refilled successfully.");
     } finally {
       setIsRefilling(false);
@@ -53,40 +69,18 @@ export default function RefillLivesCard() {
 
   return (
     <div className="rounded-2xl bg-card shadow-lg border border-border overflow-hidden p-6">
-      <div className="">
-        <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
-          {/* <Heart className="w-5 h-5 text-destructive" /> */}
-          Refill Palm Trees
-        </h3>
-      </div>
-      <div className="">
-        <p className="text-sm text-muted-foreground mb-6">
-          Out of Palm Trees? Refill and continue learning without interruptions!
-        </p>
-        <div className="p-3 bg-muted rounded-lg border border-muted-foreground/50 text-sm mb-4">
-          <h5 className="font-medium mb-1">Quick Refill</h5>
-          <p>
-            Refill your Palm Trees with dates or unlock unlimited Palm Trees
-            with Pro
-          </p>
-        </div>
-        <div className="grid gap-2">
-          <Button
-            onClick={handleRefill}
-            variant="outline"
-            className="w-full"
-            disabled={isRefilling || palmTreesCount >= 5}
-          >
-            {isRefilling ? "Refilling..." : "Refill with Dates"}
-          </Button>
-          <Button
-            onClick={() => router.push("/store")}
-            className="w-full text-accent-foreground"
-          >
-            Go Pro (Unlimited)
-          </Button>
-        </div>
-      </div>
+      <PalmRefillPanel
+        title="Refill Palm Trees"
+        description="Out of Palm Trees? Refill and continue learning without interruptions!"
+        palmTreesCount={palmTreesCount}
+        maxPalmTrees={5}
+        mascotSize="lg"
+        onRefill={handleRefill}
+        isRefilling={isRefilling}
+        onGoPro={() => router.push("/store")}
+        palmUpdatedAt={palmUpdatedAt}
+        dateStock={dateStock}
+      />
     </div>
   );
 }

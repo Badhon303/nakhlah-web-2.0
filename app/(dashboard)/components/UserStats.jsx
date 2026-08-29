@@ -18,13 +18,14 @@ import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
 import { refillPalmTrees } from "@/services/api";
-import { useProfileStore } from "@/stores/useProfileStore";
+import { useGamificationStockStore } from "@/stores/useGamificationStockStore";
 import { useStreakStore } from "@/stores/useStreakStore";
 import { toast } from "@/components/nakhlah/Toast";
 import {
   buildStreakActivities,
   getCurrentStreakCount,
 } from "@/lib/streakUtils";
+import { usePalmRefillCountdown } from "@/hooks/usePalmRefillCountdown";
 
 const POPOVER_BASE =
   "w-80 rounded-xl bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 shadow-sm p-4 text-slate-900";
@@ -37,9 +38,17 @@ export function UserStats() {
   const [isRefillingPalmTrees, setIsRefillingPalmTrees] = useState(false);
   const hasForcedPalmRefreshRef = useRef(false);
   const { data: session, status } = useSession();
-  const profileData = useProfileStore((state) => state.profile);
-  const fetchProfile = useProfileStore((state) => state.fetchMyProfile);
-  const clearProfile = useProfileStore((state) => state.clear);
+  const palmStock = useGamificationStockStore((state) => state.palmStock);
+  const palmUpdatedAt = useGamificationStockStore(
+    (state) => state.palmUpdatedAt,
+  );
+  const dateStock = useGamificationStockStore((state) => state.dateStock);
+  const fetchGamificationStock = useGamificationStockStore(
+    (state) => state.fetchGamificationStock,
+  );
+  const clearGamificationStock = useGamificationStockStore(
+    (state) => state.clear,
+  );
   const streakData = useStreakStore((state) => state.streakData);
   const fetchStreak = useStreakStore((state) => state.fetchLearnerStreak);
   const clearStreak = useStreakStore((state) => state.clear);
@@ -48,7 +57,7 @@ export function UserStats() {
     async (forceRefresh = false) => {
       if (status === "loading") return;
       if (status === "unauthenticated" || !isSessionValid(session)) {
-        clearProfile();
+        clearGamificationStock();
         clearStreak();
         return;
       }
@@ -57,14 +66,12 @@ export function UserStats() {
       if (!token) return;
 
       const userKey = getUserKey(session);
-      const [profileResult] = await Promise.all([
-        fetchProfile(token, forceRefresh, userKey),
+      const [stockResult] = await Promise.all([
+        fetchGamificationStock({ token, userKey, forceRefresh }),
         fetchStreak({ token, userKey, forceRefresh }),
       ]);
 
-      const cachedPalmTrees = Number(
-        profileResult?.profile?.gamificationStock?.palm?.palmStock,
-      );
+      const cachedPalmTrees = Number(stockResult?.palmStock);
 
       if (
         Number.isFinite(cachedPalmTrees) &&
@@ -72,10 +79,17 @@ export function UserStats() {
         !hasForcedPalmRefreshRef.current
       ) {
         hasForcedPalmRefreshRef.current = true;
-        await fetchProfile(token, true, userKey);
+        await fetchGamificationStock({ token, userKey, forceRefresh: true });
       }
     },
-    [clearProfile, clearStreak, fetchProfile, fetchStreak, session, status],
+    [
+      clearGamificationStock,
+      clearStreak,
+      fetchGamificationStock,
+      fetchStreak,
+      session,
+      status,
+    ],
   );
 
   useEffect(() => {
@@ -108,8 +122,10 @@ export function UserStats() {
   }, [loadStats]);
 
   const streakCount = getCurrentStreakCount(streakData);
-  const datesCount = profileData?.gamificationStock?.dateStock ?? 0;
-  const palmTreesCount = profileData?.gamificationStock?.palm?.palmStock ?? 5;
+  const datesCount = dateStock ?? 0;
+  const palmTreesCount = palmStock ?? 5;
+  const { isFull: palmIsFull, formatted: palmRefillCountdown } =
+    usePalmRefillCountdown(palmUpdatedAt, palmTreesCount, 5);
   const streakActivities = useMemo(
     () =>
       buildStreakActivities(
@@ -362,7 +378,13 @@ export function UserStats() {
                     ))}
                   </div>
                   <p className="text-sm font-semibold">{palmTreesMessage}</p>
-                  <p className="text-sm text-slate-700">Keep on learning</p>
+                  {!palmIsFull && palmRefillCountdown ? (
+                    <p className="text-sm text-slate-700">
+                      Next Palm Tree in {palmRefillCountdown}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-slate-700">Keep on learning</p>
+                  )}
                 </div>
 
                 <div className="grid gap-2">
@@ -410,7 +432,13 @@ export function UserStats() {
                     ))}
                   </div>
                   <p className="text-sm font-semibold">{palmTreesMessage}</p>
-                  <p className="text-sm text-slate-700">Keep on learning</p>
+                  {!palmIsFull && palmRefillCountdown ? (
+                    <p className="text-sm text-slate-700">
+                      Next Palm Tree in {palmRefillCountdown}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-slate-700">Keep on learning</p>
+                  )}
                 </div>
 
                 <div className="grid gap-2">
