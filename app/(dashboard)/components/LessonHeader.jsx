@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { X } from "lucide-react";
 import { PalmIcon } from "@/components/icons/PublicAssetIcons";
 import { NotoStopwatch } from "@/components/icons/NotoStopwatch";
+import { usePalmRefillCountdown } from "@/hooks/usePalmRefillCountdown";
 
 function formatTime(totalSeconds) {
   const clamped = Math.max(0, totalSeconds);
@@ -20,11 +21,14 @@ export default function LessonHeader({
   elapsedSeconds = 0,
   palmTrees = 5,
   maxPalmTrees = 5,
+  palmUpdatedAt = null,
 }) {
   const normalizedProgress = useMemo(
     () => Math.max(0, Math.min(100, progressPercentage || 0)),
     [progressPercentage],
   );
+  const { isFull: palmIsFull, formatted: palmRefillCountdown } =
+    usePalmRefillCountdown(palmUpdatedAt, palmTrees, maxPalmTrees);
 
   return (
     <div className="border-b border-border">
@@ -33,14 +37,21 @@ export default function LessonHeader({
         <div className="flex sm:hidden flex-col gap-2.5 pt-1">
           {/* Mobile row 1: palm trees left, timer right */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-card border border-border">
-              {Array.from({ length: maxPalmTrees }).map((_, index) => (
-                <PalmIcon
-                  key={index}
-                  size="sm"
-                  className={index < palmTrees ? "opacity-100" : "opacity-30"}
-                />
-              ))}
+            <div className="flex flex-col items-start gap-1">
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-card border border-border">
+                {Array.from({ length: maxPalmTrees }).map((_, index) => (
+                  <PalmIcon
+                    key={index}
+                    size="sm"
+                    className={index < palmTrees ? "opacity-100" : "opacity-30"}
+                  />
+                ))}
+              </div>
+              {!palmIsFull && palmRefillCountdown ? (
+                <span className="text-[10px] font-semibold text-muted-foreground pl-1">
+                  Next in {palmRefillCountdown}
+                </span>
+              ) : null}
             </div>
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-card border border-border">
               <NotoStopwatch size="xs" />
@@ -82,14 +93,21 @@ export default function LessonHeader({
               style={{ width: `${normalizedProgress}%` }}
             />
           </div>
-          <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-card border border-border">
-            {Array.from({ length: maxPalmTrees }).map((_, index) => (
-              <PalmIcon
-                key={index}
-                size="sm"
-                className={index < palmTrees ? "opacity-100" : "opacity-30"}
-              />
-            ))}
+          <div className="flex flex-col items-start gap-1">
+            <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-card border border-border">
+              {Array.from({ length: maxPalmTrees }).map((_, index) => (
+                <PalmIcon
+                  key={index}
+                  size="sm"
+                  className={index < palmTrees ? "opacity-100" : "opacity-30"}
+                />
+              ))}
+            </div>
+            {!palmIsFull && palmRefillCountdown ? (
+              <span className="text-[11px] font-semibold text-muted-foreground pl-1">
+                Next in {palmRefillCountdown}
+              </span>
+            ) : null}
           </div>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-card border border-border">
             <NotoStopwatch size="xs" />

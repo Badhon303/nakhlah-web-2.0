@@ -381,6 +381,7 @@ export default function LessonPage({ routeLessonId = "" }) {
     (state) => state.clearLessonSelection,
   );
   const fetchProfile = useProfileStore((state) => state.fetchMyProfile);
+  const profileData = useProfileStore((state) => state.profile);
 
   const [questions, setQuestions] = useState([]);
   const [lessonRefreshKey, setLessonRefreshKey] = useState(0);
@@ -642,8 +643,15 @@ export default function LessonPage({ routeLessonId = "" }) {
     if (isLoading) return;
     if (palmTrees <= 0) {
       setShowPalmRefillPrompt(true);
+      // Refresh in the background (not awaited) so the depleted overlay's
+      // refill countdown has an accurate `palmUpdatedAt` without slowing
+      // down the answer-checking flow that triggered this.
+      const token = getSessionToken(session);
+      if (token) {
+        void fetchProfile(token, true, getUserKey(session));
+      }
     }
-  }, [palmTrees, isLoading]);
+  }, [palmTrees, isLoading, session, fetchProfile]);
 
   useEffect(() => {
     totalAnswerAttemptsRef.current = totalAnswerAttempts;
@@ -2273,6 +2281,8 @@ export default function LessonPage({ routeLessonId = "" }) {
           isRefilling={isRefillingFromError}
           onGoPro={() => router.push("/store")}
           onExit={handleLeaveLesson}
+          palmUpdatedAt={profileData?.gamificationStock?.palm?.palmUpdatedAt}
+          dateStock={profileData?.gamificationStock?.dateStock ?? 0}
         />
       )}
     </div>
