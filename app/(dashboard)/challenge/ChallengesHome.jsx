@@ -63,6 +63,17 @@ export default function ChallengesHome() {
 
   return (
     <div className="container mx-auto max-w-3xl px-4 pb-8 pt-4 lg:max-w-7xl lg:py-6">
+      <section className="mb-6 max-w-2xl">
+        <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-5xl">
+          Master your{" "}
+          <span className="text-gradient-accent">daily targets.</span>
+        </h1>
+        <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
+          Complete challenges, collect badges, and keep your learning streak
+          alive.
+        </p>
+      </section>
+
       {/* Tabs */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}

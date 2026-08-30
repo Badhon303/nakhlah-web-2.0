@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import LeavingDialog from "./leaving/page";
 import { LessonResultHandler } from "../components/ResultHandler";
 import LessonHeader from "../components/LessonHeader";
+import PalmTreesDepletedOverlay from "./PalmTreesDepletedOverlay";
 import { useAudio } from "@/hooks/use-audio";
 import { ArabicTooltip } from "@/components/nakhlah/ArabicTooltip";
 import LogoAnimation from "@/components/icons/Logo";
@@ -379,6 +380,7 @@ export default function LessonPage() {
     (state) => state.clearLessonSelection,
   );
   const fetchProfile = useProfileStore((state) => state.fetchMyProfile);
+  const profileData = useProfileStore((state) => state.profile);
 
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -386,6 +388,7 @@ export default function LessonPage() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showExitDialog, setShowExitDialog] = useState(false);
+  const [showPalmRefillPrompt, setShowPalmRefillPrompt] = useState(false);
   const [isCorrect, setIsCorrect] = useState(null);
   const [palmTrees, setPalmTrees] = useState(5);
   const [hasWrongAnswer, setHasWrongAnswer] = useState(false);
@@ -443,6 +446,18 @@ export default function LessonPage() {
   useEffect(() => {
     sessionRef.current = session;
   }, [session]);
+
+  // Block interaction the instant Palm Trees hit zero mid-lesson.
+  useEffect(() => {
+    if (isLoading) return;
+    if (palmTrees <= 0) {
+      setShowPalmRefillPrompt(true);
+      const token = getSessionToken(session);
+      if (token) {
+        void fetchProfile(token, true, getUserKey(session));
+      }
+    }
+  }, [palmTrees, isLoading, session, fetchProfile]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -1151,9 +1166,7 @@ export default function LessonPage() {
 
   const goToNext = async () => {
     if (!hasPalmTrees) {
-      toast.error(
-        "No Palm Trees left. Refill Palm Trees to continue this lesson.",
-      );
+      setShowPalmRefillPrompt(true);
       return;
     }
 
@@ -1282,7 +1295,7 @@ export default function LessonPage() {
   const handleCheckAnswer = async () => {
     if (!currentQuestion) return;
     if (!hasPalmTrees) {
-      toast.error("No Palm Trees left. Refill Palm Trees to answer questions.");
+      setShowPalmRefillPrompt(true);
       return;
     }
 
@@ -1447,6 +1460,8 @@ export default function LessonPage() {
       }
 
       await fetchProfile(token, true, getUserKey(session));
+      setPalmTrees(5);
+      setShowPalmRefillPrompt(false);
       toast.success(
         refillResult.message || "Palm Trees refilled successfully.",
       );
@@ -1603,6 +1618,17 @@ export default function LessonPage() {
             onLeave={handleLeaveLesson}
           />
         </div>
+      )}
+
+      {showPalmRefillPrompt && (
+        <PalmTreesDepletedOverlay
+          onRefill={handleRefillFromErrorState}
+          isRefilling={isRefillingFromError}
+          onGoPro={() => router.push("/store")}
+          onExit={handleLeaveLesson}
+          palmUpdatedAt={profileData?.gamificationStock?.palm?.palmUpdatedAt}
+          dateStock={profileData?.gamificationStock?.dateStock ?? 0}
+        />
       )}
 
       <div

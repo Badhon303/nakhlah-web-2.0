@@ -4,9 +4,19 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import { useIsDesktop } from "@/hooks/use-desktop";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 
 export default function LeavingDialog({ onCancel, onLeave }) {
   const router = useRouter();
+  const isDesktop = useIsDesktop();
 
   const handleKeepLearning = () => {
     router.back();
@@ -21,7 +31,7 @@ export default function LeavingDialog({ onCancel, onLeave }) {
     router.push("/");
   };
 
-  return (
+  return isDesktop ? (
     <div className="absolute inset-0 z-40 bg-background/20 backdrop-blur-sm flex items-center justify-center p-4">
       {" "}
       <motion.div
@@ -77,8 +87,7 @@ export default function LeavingDialog({ onCancel, onLeave }) {
             </Button>
             <Button
               onClick={handleLeave}
-              variant="ghost"
-              className="w-full h-12 text-destructive hover:bg-destructive/10 font-semibold text-lg rounded-xl"
+              className="w-full h-12 bg-destructive text-destructive-foreground hover:brightness-110 font-semibold text-lg rounded-xl"
             >
               Yes, Leave Now
             </Button>
@@ -86,5 +95,37 @@ export default function LeavingDialog({ onCancel, onLeave }) {
         </div>
       </motion.div>
     </div>
+  ) : (
+    <Drawer open onOpenChange={(nextOpen) => !nextOpen && onCancel?.()}>
+      <DrawerContent className="mx-auto max-w-md rounded-t-3xl pb-[var(--sab)]">
+        <DrawerHeader className="items-center gap-3 px-6 pt-6 text-center sm:text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent/10 text-accent mb-2">
+            <FreshDateMascot mood="sad" size="xl" />
+          </div>
+          <DrawerTitle className="text-xl font-bold text-foreground">
+            Leaving Already?
+          </DrawerTitle>
+          <DrawerDescription className="text-sm leading-relaxed text-muted-foreground">
+            Are you sure you want to leave the lesson? Your progress won&apos;t
+            be saved.
+          </DrawerDescription>
+        </DrawerHeader>
+
+        <DrawerFooter className="gap-3 px-6 pb-8">
+          <Button
+            onClick={onCancel}
+            className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
+          >
+            Keep Learning
+          </Button>
+          <Button
+            onClick={handleLeave}
+            className="w-full h-12 bg-destructive text-destructive-foreground hover:brightness-110 font-semibold text-lg rounded-xl"
+          >
+            Yes, Leave Now
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

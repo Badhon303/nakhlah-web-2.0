@@ -70,7 +70,7 @@ export function GemsPurchase() {
               onClick={() => handlePurchase(pkg.id, pkg.price)}
               className={`w-full font-semibold ${
                 pkg.popular
-                  ? "bg-primary hover:bg-primary/90"
+                  ? "bg-secondary hover:bg-secondary/90 text-secondary-foreground"
                   : "bg-accent hover:bg-accent/90"
               }`}
             >

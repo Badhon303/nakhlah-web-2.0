@@ -117,7 +117,7 @@ export default function SettingsPage({ onBack, onNavigate }) {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.05 * index, duration: 0.3 }}
-                className="w-full flex items-center justify-between p-4 hover:bg-muted/50 dark:hover:bg-muted/50 transition-all group rounded-xl cursor-pointer"
+                className="w-full flex items-center justify-between py-4 px-0 hover:bg-muted/50 dark:hover:bg-muted/50 transition-all group rounded-xl cursor-pointer"
                 onClick={() => {
                   if (!item.toggle && item.action) {
                     onNavigate(item.action);
@@ -161,7 +161,7 @@ export default function SettingsPage({ onBack, onNavigate }) {
         >
           <button
             onClick={() => setShowLogoutConfirm(true)}
-            className="w-full flex items-center justify-center gap-3 p-4 hover:bg-destructive/10 dark:hover:bg-destructive/20 transition-all rounded-xl group"
+            className="w-full flex items-center justify-center gap-3 py-4 px-0 hover:bg-destructive/10 dark:hover:bg-destructive/20 transition-all rounded-xl group"
           >
             <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center transition-colors">
               <LogOut className="w-5 h-5 text-red-500 dark:text-red-400" />

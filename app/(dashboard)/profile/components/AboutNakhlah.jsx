@@ -139,7 +139,7 @@ export default function AboutNakhlahPage({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.05 * index, duration: 0.3 }}
                 onClick={item.action}
-                className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-all rounded-lg group"
+                className="w-full flex items-center justify-between py-4 hover:bg-muted/50 transition-all rounded-lg group"
               >
                 <span className="font-medium text-foreground">
                   {item.label}

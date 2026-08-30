@@ -160,6 +160,8 @@ export function LessonResultHandler({
                   src={isCorrect ? ICONS.correct : ICONS.wrong}
                   alt={isCorrect ? "Correct" : "Wrong"}
                   className="w-10 h-10 sm:w-14 sm:h-14 shrink-0 object-contain drop-shadow-sm"
+                  width={56}
+                  height={56}
                 />
                 <div className="min-w-0">
                   <h3 className="text-base sm:text-xl font-black leading-tight text-white">

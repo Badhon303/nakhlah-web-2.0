@@ -1,8 +1,8 @@
 "use client";
 
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { MailCheck } from "lucide-react";
 
 export default function ForgotPasswordSuccessPage() {
   return (
@@ -47,24 +47,19 @@ export default function ForgotPasswordSuccessPage() {
             </p>
           </motion.div>
 
-          {/* Decorative Elements */}
-          <div className="mt-8 flex justify-center gap-2">
-            <motion.div
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ repeat: Infinity, duration: 2, delay: 0 }}
-              className="w-2 h-2 rounded-full bg-accent"
-            />
-            <motion.div
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ repeat: Infinity, duration: 2, delay: 0.2 }}
-              className="w-2 h-2 rounded-full bg-accent/70"
-            />
-            <motion.div
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ repeat: Infinity, duration: 2, delay: 0.4 }}
-              className="w-2 h-2 rounded-full bg-accent"
-            />
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.4 }}
+            className="mt-8"
+          >
+            <Link
+              href="/auth/login"
+              className="text-sm text-accent hover:underline font-semibold"
+            >
+              Back to Login
+            </Link>
+          </motion.div>
         </div>
       </motion.div>
     </div>

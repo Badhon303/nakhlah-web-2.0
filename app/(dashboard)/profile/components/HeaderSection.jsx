@@ -96,7 +96,7 @@ export default function HeaderSection({
             <div className="hidden lg:flex flex-wrap gap-3 mt-6">
               <Button
                 onClick={onNavigateEdit}
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                className="bg-accent text-accent-foreground hover:bg-accent/90"
               >
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Profile
@@ -145,7 +145,7 @@ export default function HeaderSection({
         <div className="flex lg:hidden gap-3 mt-6">
           <Button
             onClick={onNavigateEdit}
-            className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+            className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90"
           >
             <Edit className="w-4 h-4 mr-2" />
             Edit
@@ -163,7 +163,7 @@ export default function HeaderSection({
           <Button
             onClick={onNavigateSettings}
             variant="outline"
-            className="border-border hover:bg-muted"
+            className="flex-1 border-border hover:bg-muted"
           >
             <Settings className="w-4 h-4 mr-2" />
             Settings

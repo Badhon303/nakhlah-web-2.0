@@ -12,7 +12,7 @@ const buttonVariants = cva(
         default:
           "bg-accent text-accent-foreground shadow-accent hover:brightness-110 hover:shadow-lg",
         primary:
-          "bg-primary text-primary-foreground shadow-md hover:brightness-105 hover:shadow-lg",
+          "bg-secondary text-secondary-foreground shadow-md hover:brightness-105 hover:shadow-lg",
         secondary:
           "bg-secondary text-secondary-foreground shadow-md hover:brightness-105 hover:shadow-lg",
         destructive:
@@ -21,8 +21,7 @@ const buttonVariants = cva(
           "border-2 border-border bg-background text-foreground hover:bg-muted hover:border-accent",
         ghost:
           "text-foreground hover:bg-muted/50 dark:hover:bg-muted/10 hover:text-accent",
-        link:
-          "text-accent underline-offset-4 hover:underline",
+        link: "text-accent underline-offset-4 hover:underline",
       },
       size: {
         default: "h-12 px-6 py-3",
@@ -36,7 +35,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 const Button = React.forwardRef(
@@ -49,7 +48,7 @@ const Button = React.forwardRef(
         {...props}
       />
     );
-  }
+  },
 );
 Button.displayName = "Button";
 

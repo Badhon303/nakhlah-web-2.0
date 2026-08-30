@@ -236,7 +236,7 @@ export default function ContactUsPage({ onBack }) {
         </div>
 
         {/* Message Form */}
-        <div className="bg-transparent lg:bg-card/60 border-0 lg:border lg:border-border rounded-none lg:rounded-2xl p-0 lg:p-6">
+        {/* <div className="bg-transparent lg:bg-card/60 border-0 lg:border lg:border-border rounded-none lg:rounded-2xl p-0 lg:p-6">
           <h2 className="text-lg font-bold text-foreground mb-1">
             Send us a message
           </h2>
@@ -355,7 +355,7 @@ export default function ContactUsPage({ onBack }) {
               )}
             </Button>
           </form>
-        </div>
+        </div> */}
       </motion.div>
     </div>
   );

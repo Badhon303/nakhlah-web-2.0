@@ -48,7 +48,7 @@ export default function ProfilePage({
   const resolvedStats = profileData ? dynamicStats : stats;
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
+    <div className=" mx-auto py-6 max-w-7xl">
       <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
         <div className="lg:col-span-2 space-y-6 lg:space-y-8">
           <HeaderSection

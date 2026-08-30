@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Trophy } from "@/components/icons/Trophy";
 import { useSession } from "@/lib/auth-client";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
@@ -246,20 +245,16 @@ export default function Leaderboard({ onViewProfile }) {
     <div className="min-h-screen">
       <div className=" container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
-        {/* <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-6"
-        >
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-foreground md:text-4xl">
-              Leaderboard
-            </h1>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center">
-              <Trophy />
-            </div>
-          </div>
-        </motion.div> */}
+        <section className="mb-6 max-w-2xl">
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-5xl">
+            Rise through the{" "}
+            <span className="text-gradient-accent">ranks.</span>
+          </h1>
+          <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
+            Compete with learners and earn your place at the top of the
+            leaderboard.
+          </p>
+        </section>
 
         {/* Top 3 Podium */}
         <motion.div

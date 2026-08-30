@@ -1,8 +1,5 @@
 /**
- * Client-side helper for the Contact Us form. Unlike the other services in
- * this folder, this hits our own Next.js route (app/api/contact/route.js)
- * rather than the external Nakhlah API, since the Resend integration lives
- * inside this app.
+ * Client-side helper for the Contact Us form.
  */
 export async function submitContactForm({ name, email, subject, message }) {
     try {

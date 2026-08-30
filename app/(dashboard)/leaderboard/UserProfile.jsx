@@ -138,7 +138,7 @@ export default function UserProfilePage({ user, onBack }) {
 
           {/* Action Buttons - Mobile */}
           <div className="flex lg:hidden gap-3 p-6 pt-0">
-            <Button className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-base font-semibold rounded-2xl">
+            <Button className="flex-1 bg-secondary hover:bg-secondary/90 text-secondary-foreground py-6 text-base font-semibold rounded-2xl">
               Follow
             </Button>
             <Button

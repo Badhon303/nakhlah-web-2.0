@@ -56,7 +56,7 @@ export default function AllAchievementsPage({
   const inProgressCount = Math.max(achievements.length - unlockedCount, 0);
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-4xl">
+    <div className="container mx-auto py-6 max-w-4xl">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
