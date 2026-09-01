@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
 export default function SubscriptionCard() {
-    const router = useRouter();
-  
+  const router = useRouter();
+
   return (
-    <div className="rounded-2xl bg-card shadow-lg border border-border overflow-hidden p-6">
+    <div className="rounded-none bg-transparent shadow-none border-0 overflow-hidden p-0 lg:rounded-2xl lg:bg-card lg:shadow-lg lg:border lg:border-border lg:p-6">
       <div className="">
         <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
           {/* <Crown className="w-5 h-5" /> */}
@@ -21,7 +21,10 @@ export default function SubscriptionCard() {
           <h5 className="font-medium mb-1">What You Get</h5>
           <p>Unlimited lessons, no ads, and exclusive content</p>
         </div>
-        <Button onClick={() => router.push("/store")} className="w-full text-accent-foreground">
+        <Button
+          onClick={() => router.push("/store")}
+          className="w-full text-accent-foreground"
+        >
           Upgrade to Pro
         </Button>
       </div>

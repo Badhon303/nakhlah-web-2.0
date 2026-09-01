@@ -9,13 +9,8 @@ import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { captureDatePaymentOrder } from "@/services/api";
 import { toast } from "@/components/nakhlah/Toast";
-import {
-  Home,
-  RefreshCw,
-  ShoppingBag,
-  PartyPopper,
-  XCircle,
-} from "lucide-react";
+import PaymentCancelledView from "@/components/nakhlah/PaymentCancelledView";
+import { Home, RefreshCw, ShoppingBag, PartyPopper } from "lucide-react";
 import {
   ConfettiBurst,
   DriftingLeaves,
@@ -110,13 +105,42 @@ export default function PaymentReturnClient() {
 
   const isLoading = captureState.status === "loading";
   const isSuccess = captureState.status === "success";
-  const title = isCanceled
-    ? "Payment canceled"
-    : isLoading
-      ? "Confirming payment"
-      : isSuccess
-        ? "Payment successful!"
-        : "Payment needs attention";
+  const title = isLoading
+    ? "Confirming payment"
+    : isSuccess
+      ? "Payment successful!"
+      : "Payment needs attention";
+
+  if (isCanceled) {
+    return (
+      <PaymentCancelledView
+        eyebrow={
+          isDatePayment ? "Date package checkout" : "Subscription checkout"
+        }
+        title={
+          isDatePayment
+            ? "Your Date purchase was canceled."
+            : "Your subscription checkout was canceled."
+        }
+        description={
+          isDatePayment
+            ? "Your Date balance was not changed. Choose another package or return when you need an extra boost."
+            : "Your membership was not changed. You can review the available plans and try again anytime."
+        }
+        primaryLabel={
+          isDatePayment ? "Choose another package" : "Choose another plan"
+        }
+        onPrimary={() =>
+          router.push(
+            isDatePayment
+              ? "/store?refetch=dates"
+              : "/store?refetch=subscription",
+          )
+        }
+        onHome={() => router.push("/")}
+      />
+    );
+  }
 
   return (
     <div className="relative min-h-screen bg-background flex items-center justify-center p-4 overflow-hidden">
@@ -132,9 +156,7 @@ export default function PaymentReturnClient() {
           <h2 className="text-2xl font-bold text-foreground text-center max-w-md">
             {isSuccess
               ? "Your dates are on the way!"
-              : isCanceled
-                ? "Maybe next time!"
-                : "Confirming your payment..."}
+              : "Confirming your payment..."}
           </h2>
         </motion.div>
 
@@ -151,9 +173,7 @@ export default function PaymentReturnClient() {
           <div className="space-y-4">
             {!isLoading && (
               <ResultIconBadge
-                icon={
-                  isSuccess ? PartyPopper : isCanceled ? XCircle : RefreshCw
-                }
+                icon={isSuccess ? PartyPopper : RefreshCw}
                 variant={isSuccess ? "success" : "failed"}
               />
             )}
@@ -192,18 +212,15 @@ export default function PaymentReturnClient() {
             </Button>
 
             <Button
-              variant={isCanceled ? "default" : "outline"}
-              className={
-                isCanceled
-                  ? "bg-accent hover:bg-accent/90 text-accent-foreground"
-                  : ""
-              }
+              variant="outline"
               onClick={() =>
-                router.push(isCanceled ? "/store?refetch=dates" : "/store")
+                router.push(
+                  isSuccess ? "/store?refetch=dates&payment=success" : "/store",
+                )
               }
             >
               <ShoppingBag className="w-4 h-4 mr-2" />
-              {isCanceled ? "Choose Another Package" : "Buy More Dates"}
+              Buy More Dates
             </Button>
           </div>
         </motion.div>

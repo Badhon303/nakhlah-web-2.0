@@ -68,13 +68,14 @@ export default function RefillLivesCard() {
   };
 
   return (
-    <div className="rounded-2xl bg-card shadow-lg border border-border overflow-hidden p-6">
+    <div className="rounded-none bg-transparent shadow-none border-0 overflow-hidden p-0 lg:rounded-2xl lg:bg-card lg:shadow-lg lg:border lg:border-border lg:p-6">
       <PalmRefillPanel
         title="Refill Palm Trees"
         description="Out of Palm Trees? Refill and continue learning without interruptions!"
         palmTreesCount={palmTreesCount}
         maxPalmTrees={5}
         mascotSize="lg"
+        showMascot={false}
         onRefill={handleRefill}
         isRefilling={isRefilling}
         onGoPro={() => router.push("/store")}
