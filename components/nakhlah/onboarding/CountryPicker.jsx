@@ -57,6 +57,7 @@ export function CountryPicker({
   onChange,
   placeholder = "Select a country",
   showCallingCode = false,
+  showCallingCodeInList = true,
   disabled = false,
   hasError = false,
   variant = "bordered",
@@ -121,7 +122,13 @@ export function CountryPicker({
         )}
       >
         <Command>
-          <CommandInput placeholder="Search country or calling code..." />
+          <CommandInput
+            placeholder={
+              showCallingCodeInList
+                ? "Search country or calling code..."
+                : "Search country..."
+            }
+          />
           <CommandList className="max-h-[min(320px,55vh)]">
             <CommandEmpty>No country found.</CommandEmpty>
             <CommandGroup>
@@ -139,9 +146,11 @@ export function CountryPicker({
                   <span className="min-w-0 flex-1 truncate font-medium">
                     {country.name}
                   </span>
-                  <span className="text-xs text-muted-foreground transition-colors group-hover:text-accent-foreground group-data-[selected=true]:text-accent-foreground">
-                    +{country.callingCode}
-                  </span>
+                  {showCallingCodeInList ? (
+                    <span className="text-xs text-muted-foreground transition-colors group-hover:text-accent-foreground group-data-[selected=true]:text-accent-foreground">
+                      +{country.callingCode}
+                    </span>
+                  ) : null}
                   <Check
                     className={cn(
                       "h-4 w-4 text-accent",

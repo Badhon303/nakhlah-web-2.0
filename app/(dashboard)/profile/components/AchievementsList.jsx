@@ -46,8 +46,26 @@ export default function AchievementsList({
 
       <div className="space-y-4">
         {isLoading && (
-          <div className="p-4 bg-muted/30 rounded-xl border border-border/30 text-sm text-muted-foreground">
-            Loading achievements...
+          <div className="space-y-4">
+            {[...Array(5)].map((_, index) => (
+              <div
+                key={`achievement-skeleton-${index}`}
+                className="flex items-center gap-3 rounded-xl border border-border/30 bg-muted/30 p-4"
+              >
+                <div className="h-12 w-12 shrink-0 animate-pulse rounded-xl bg-muted" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div
+                    className="h-4 animate-pulse rounded bg-muted"
+                    style={{ width: `${58 + (index % 3) * 12}%` }}
+                  />
+                  <div
+                    className="h-3 animate-pulse rounded bg-muted/70"
+                    style={{ width: `${72 - (index % 2) * 12}%` }}
+                  />
+                </div>
+                <div className="h-5 w-5 shrink-0 animate-pulse rounded-full bg-muted" />
+              </div>
+            ))}
           </div>
         )}
 

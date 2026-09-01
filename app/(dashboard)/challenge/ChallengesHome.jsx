@@ -4,59 +4,63 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import DailyMissions from "./target/DailyMissions";
 import BadgesList from "./badges/BadgesList";
-import { LockKey } from "@/components/icons/Lock-Key";
+
+const tabs = [
+  { id: "target", label: "Target" },
+  { id: "badges", label: "Badges" },
+];
 
 export default function ChallengesHome() {
   const [activeTab, setActiveTab] = useState("target");
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between mb-6"
-      >
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-bold text-foreground md:text-4xl">
-            Challenges
-          </h1>
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center">
-            <LockKey />
-          </div>
-        </div>
-      </motion.div>
+    <div className="container mx-auto max-w-3xl px-4 py-6 lg:max-w-7xl">
+      <section className="mb-6 max-w-4xl">
+        <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-5xl">
+          Master your{" "}
+          <span className="text-gradient-accent">daily targets.</span>
+        </h1>
+        <p className="mt-4 max-w-4xl text-base leading-7 text-muted-foreground sm:text-lg">
+          Complete challenges, collect badges, and keep your learning streak
+          alive.
+        </p>
+      </section>
 
+      {/* Tabs */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="flex gap-2 mb-8 mx-auto justify-center lg:justify-start"
+        transition={{ delay: 0.05 }}
+        className="mb-6 grid grid-cols-2 gap-3 lg:max-w-sm"
+        role="tablist"
       >
-        {[
-          { id: "target", label: "Target" },
-          { id: "badges", label: "Badges" },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-6 py-2 rounded-full text-sm font-semibold transition-all w-full lg:w-fit ${
-              activeTab === tab.id
-                ? "bg-accent text-accent-foreground shadow-lg"
-                : "bg-card text-muted-foreground hover:bg-muted border border-border"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => setActiveTab(tab.id)}
+              className={`rounded-full border-2 px-6 py-2.5 text-sm font-bold transition-all active:scale-[0.98] ${
+                isActive
+                  ? "border-accent bg-accent text-accent-foreground shadow-accent"
+                  : "border-accent/40 bg-transparent text-accent hover:border-accent"
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </motion.div>
 
       {/* Content */}
       <motion.div
         key={activeTab}
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25 }}
+        transition={{ duration: 0.22 }}
       >
         {activeTab === "target" ? <DailyMissions /> : <BadgesList />}
       </motion.div>

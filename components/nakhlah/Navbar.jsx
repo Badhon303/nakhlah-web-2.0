@@ -61,7 +61,7 @@ export function Navbar() {
           "hidden lg:flex flex-col fixed top-0 left-0 h-full w-64 border-r border-border/50 p-6 overflow-y-auto",
           isHomePage
             ? "bg-transparent backdrop-blur-sm"
-            : "bg-card/95 backdrop-blur-md",
+            : "bg-background backdrop-blur-md",
         )}
       >
         <div className="flex flex-col gap-8">
@@ -148,7 +148,7 @@ export function Navbar() {
           "lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t px-2",
           isHomePage
             ? "bg-white/30 dark:bg-white/10 backdrop-blur-md border-white/40 dark:border-white/20"
-            : "bg-card/95 backdrop-blur-md border-border",
+            : "bg-background backdrop-blur-md border-border",
         )}
       >
         <div className="flex items-center justify-between py-2 gap-1">

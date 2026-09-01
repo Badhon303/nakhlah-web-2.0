@@ -6,6 +6,7 @@ import { useHelpCenterStore } from "@/stores/useHelpCenterStore";
 import HighlightedText from "@/components/nakhlah/HighlightedText";
 import { useSession } from "next-auth/react";
 import { getSessionToken } from "@/lib/authUtils";
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
 export default function HelpCenterPage({ onBack, onNavigateContact }) {
   const [expandedFaq, setExpandedFaq] = useState(null);
@@ -23,7 +24,7 @@ export default function HelpCenterPage({ onBack, onNavigateContact }) {
   const visibleFaqs = faqs;
 
   return (
-    <div className="min-h-[calc(100vh-6rem)] px-4 py-6 lg:py-8 lg:flex lg:items-center lg:justify-center">
+    <div className="max-w-4xl mx-auto py-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -70,13 +71,7 @@ export default function HelpCenterPage({ onBack, onNavigateContact }) {
 
         {/* FAQ List */}
         {isLoading ? (
-          <div className="space-y-2">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="border border-border rounded-xl p-4">
-                <div className="h-4 bg-muted/50 rounded animate-pulse w-3/4" />
-              </div>
-            ))}
-          </div>
+          <DocumentLoadingSkeleton />
         ) : visibleFaqs.length === 0 ? (
           <div className="py-8 text-center text-muted-foreground text-sm">
             No FAQs available at the moment.

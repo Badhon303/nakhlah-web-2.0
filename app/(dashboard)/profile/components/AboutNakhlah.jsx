@@ -7,6 +7,7 @@ import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
 import { useAboutStore } from "@/stores/useAboutStore";
 import { useSession } from "next-auth/react";
 import { getSessionToken } from "@/lib/authUtils";
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
 export default function AboutNakhlahPage({
   onBack,
@@ -33,6 +34,14 @@ export default function AboutNakhlahPage({
             label: "Privacy Policy",
             action: () => onNavigate?.("privacy-policy"),
           },
+          {
+            label: "Payment & Subscription Policy",
+            action: () => onNavigate?.("payment-subscription-policy"),
+          },
+          {
+            label: "Refund & Cancellation Policy",
+            action: () => onNavigate?.("refund-cancellation-policy"),
+          },
         ]
       : []),
     ...(aboutData?.websiteUrl
@@ -52,7 +61,7 @@ export default function AboutNakhlahPage({
   ];
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto py-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -93,14 +102,8 @@ export default function AboutNakhlahPage({
 
         {/* About Content */}
         {isLoading ? (
-          <div className="space-y-2 mb-8 px-1">
-            {[...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className="h-4 bg-muted/50 rounded animate-pulse"
-                style={{ width: `${90 - i * 8}%` }}
-              />
-            ))}
+          <div className="mb-8 px-1">
+            <DocumentLoadingSkeleton />
           </div>
         ) : aboutData?.about ? (
           <motion.div

@@ -1,7 +1,7 @@
 import { Calendar } from "lucide-react";
 import BadgeCard from "./BadgeCard";
 
-export default function BadgeSection({ section }) {
+export default function BadgeSection({ section, currentInjaz = 0 }) {
   return (
     <div className="space-y-4">
       {/* Section header */}
@@ -27,7 +27,11 @@ export default function BadgeSection({ section }) {
       {/* Grid on desktop, list on mobile */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {section.badges.map((badge) => (
-          <BadgeCard key={badge.key || badge.title} badge={badge} />
+          <BadgeCard
+            key={badge.key || badge.title}
+            badge={badge}
+            currentInjaz={currentInjaz}
+          />
         ))}
       </div>
     </div>

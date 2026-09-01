@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 import { getSessionToken } from "@/lib/authUtils";
 import { useLegalDocumentsStore } from "@/stores/useLegalDocumentsStore";
 import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
 export default function TermsAndConditionsRoutePage() {
   const router = useRouter();
@@ -46,11 +47,7 @@ export default function TermsAndConditionsRoutePage() {
         </div>
 
         {isLoading ? (
-          <div className="space-y-3">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-4 bg-muted/40 rounded animate-pulse" />
-            ))}
-          </div>
+          <DocumentLoadingSkeleton />
         ) : content ? (
           <LexicalRenderer lexicalJson={content} className="text-base" />
         ) : (

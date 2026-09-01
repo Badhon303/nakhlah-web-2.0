@@ -12,10 +12,13 @@ const getIconUrl = (url) => {
   return `${API_URL}${url}`;
 };
 
-export default function BadgeCard({ badge }) {
+export default function BadgeCard({ badge, currentInjaz = 0 }) {
   const iconUrl = getIconUrl(badge.icon?.url || badge.icon);
   const injazTarget = Number(badge.injazTarget ?? badge.xp) || 0;
   const isEarned = Boolean(badge.earned);
+  const remainingInjaz = Math.max(0, injazTarget - currentInjaz);
+  const progress =
+    injazTarget > 0 ? Math.min(100, (currentInjaz / injazTarget) * 100) : 0;
 
   return (
     <div
@@ -27,7 +30,7 @@ export default function BadgeCard({ badge }) {
     >
       <div className="flex items-center gap-4 p-4">
         {/* Badge Icon */}
-        <div className="w-14 h-14 rounded-full flex items-center justify-center bg-gradient-to-br from-primary to-accent shadow-lg overflow-hidden">
+        <div className="w-14 h-14 rounded-full flex items-center justify-center bg-transparent overflow-hidden">
           {iconUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -36,7 +39,7 @@ export default function BadgeCard({ badge }) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <Medal size="md" className="text-white" />
+            <Medal size="md" className="text-accent" />
           )}
         </div>
 
@@ -60,6 +63,22 @@ export default function BadgeCard({ badge }) {
           <ChevronRight className="w-5 h-5 text-muted-foreground mr-2 transition-opacity opacity-0 group-hover:opacity-100" />
         ) : null}
       </div>
+
+      {!isEarned && (
+        <div className="px-4 pb-4">
+          <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-accent transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {remainingInjaz.toLocaleString()} Injaz to go
+            <span aria-hidden="true"> · </span>
+            {injazTarget.toLocaleString()} needed to unlock
+          </p>
+        </div>
+      )}
     </div>
   );
 }

@@ -111,7 +111,11 @@ export function CountryStep({ title, selectedCountry, onSelect }) {
           <MapPin className="h-4 w-4 text-accent" />
           Search every country
         </label>
-        <CountryPicker value={selectedCountry} onChange={onSelect} />
+        <CountryPicker
+          value={selectedCountry}
+          onChange={onSelect}
+          showCallingCodeInList={false}
+        />
         <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
           Search by country name or international calling code.
         </p>

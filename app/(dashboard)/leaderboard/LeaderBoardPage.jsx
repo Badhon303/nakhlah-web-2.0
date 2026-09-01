@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy } from "@/components/icons/Trophy";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
@@ -67,30 +66,25 @@ export default function Leaderboard({ onViewProfile }) {
 
   return (
     <div className="min-h-screen">
-      <div className="container mx-auto px-4 py-10 max-w-7xl">
+      <div className="container mx-auto max-w-3xl px-4 py-6 lg:max-w-7xl">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-6"
-        >
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-foreground md:text-4xl">
-              Leaderboard
-            </h1>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center">
-              <Trophy />
-            </div>
-          </div>
-          {/* Search removed */}
-        </motion.div>
+        <section className="mb-6 max-w-4xl">
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-5xl">
+            Rise through the{" "}
+            <span className="text-gradient-accent">ranks.</span>
+          </h1>
+          <p className="mt-4 max-w-4xl text-base leading-7 text-muted-foreground sm:text-lg">
+            Compete with learners and earn your place at the top of the
+            leaderboard.
+          </p>
+        </section>
 
         {/* Top 3 Podium */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="relative mb-8 flex items-end justify-center gap-4 lg:gap-8 mt-8"
+          className="relative mb-8 mt-10 flex items-end justify-center gap-2 sm:gap-4 lg:gap-8"
         >
           {/* Second Place */}
           <div className="flex flex-col items-center">
@@ -122,7 +116,7 @@ export default function Leaderboard({ onViewProfile }) {
                 {topThree[1]?.injaz} Injaz
               </p>
             </div>
-            <div className="w-24 lg:w-32 h-24 bg-gradient-to-b from-gray-300 to-gray-400 rounded-t-2xl mt-2 flex items-center justify-center">
+            <div className="w-24 sm:w-28 lg:w-32 h-24 bg-gradient-to-b from-violet-500 to-violet-600 rounded-t-2xl mt-2 flex items-center justify-center">
               <span className="text-4xl font-bold text-white/80">2</span>
             </div>
           </div>
@@ -157,7 +151,7 @@ export default function Leaderboard({ onViewProfile }) {
                 {topThree[0]?.injaz} Injaz
               </p>
             </div>
-            <div className="w-28 lg:w-36 h-32 bg-gradient-to-b from-violet-400 to-violet-500 rounded-t-2xl mt-2 flex items-center justify-center shadow-lg">
+            <div className="w-28 sm:w-32 lg:w-36 h-32 bg-gradient-to-b from-violet-400 to-violet-500 rounded-t-2xl mt-2 flex items-center justify-center shadow-lg">
               <span className="text-5xl font-bold text-white/90">1</span>
             </div>
           </div>
@@ -192,7 +186,7 @@ export default function Leaderboard({ onViewProfile }) {
                 {topThree[2]?.injaz} Injaz
               </p>
             </div>
-            <div className="w-24 lg:w-32 h-20 bg-gradient-to-b from-amber-600 to-amber-700 rounded-t-2xl mt-2 flex items-center justify-center">
+            <div className="w-24 sm:w-28 lg:w-32 h-20 bg-gradient-to-b from-violet-600 to-violet-700 rounded-t-2xl mt-2 flex items-center justify-center">
               <span className="text-4xl font-bold text-white/80">3</span>
             </div>
           </div>
@@ -203,7 +197,7 @@ export default function Leaderboard({ onViewProfile }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="lg:space-y-3"
+          className="space-y-2 lg:space-y-3"
         >
           {isLoading ? (
             <div className="space-y-3">

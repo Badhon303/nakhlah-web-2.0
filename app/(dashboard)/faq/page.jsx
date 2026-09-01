@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 import { getSessionToken } from "@/lib/authUtils";
 import { useHelpCenterStore } from "@/stores/useHelpCenterStore";
 import HighlightedText from "@/components/nakhlah/HighlightedText";
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
 export default function FaqPage() {
   const router = useRouter();
@@ -26,7 +27,7 @@ export default function FaqPage() {
   const visibleFaqs = faqs;
 
   return (
-    <div className="min-h-[calc(100vh-6rem)] flex items-center justify-center px-4 py-8">
+    <div className="max-w-4xl mx-auto px-4 py-6">
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
@@ -54,14 +55,7 @@ export default function FaqPage() {
         </div>
 
         {isLoading ? (
-          <div className="space-y-2">
-            {[...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className="h-14 rounded-xl bg-muted/40 animate-pulse"
-              />
-            ))}
-          </div>
+          <DocumentLoadingSkeleton />
         ) : visibleFaqs.length === 0 ? (
           <p className="py-8 text-center text-muted-foreground">
             No FAQs available at the moment.
