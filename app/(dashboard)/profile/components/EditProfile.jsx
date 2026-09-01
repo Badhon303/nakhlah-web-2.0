@@ -422,6 +422,7 @@ export default function EditProfilePage({
               value={countryPickerCode}
               onChange={handleCountryPickerChange}
               placeholder="Select country"
+              showCallingCodeInList={false}
               disabled={isLoadingOptions}
               triggerClassName="bg-muted/30 border-border"
             />

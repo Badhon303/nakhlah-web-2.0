@@ -6,6 +6,7 @@ import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
 import { useHelpCenterStore } from "@/stores/useHelpCenterStore";
 import { useSession } from "next-auth/react";
 import { getSessionToken } from "@/lib/authUtils";
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
 export default function PolicyDocumentPage({
   onBack,
@@ -27,9 +28,7 @@ export default function PolicyDocumentPage({
   return (
     <div
       className={
-        standalone
-          ? "min-h-[calc(100vh-6rem)] flex items-center justify-center px-4 py-8"
-          : "max-w-4xl mx-auto"
+        standalone ? "max-w-4xl mx-auto px-4 py-6" : "max-w-2xl mx-auto py-6"
       }
     >
       <div
@@ -50,15 +49,7 @@ export default function PolicyDocumentPage({
         </div>
 
         {isLoading ? (
-          <div className="space-y-3">
-            {[...Array(6)].map((_, index) => (
-              <div
-                key={index}
-                className="h-4 bg-muted/50 rounded animate-pulse"
-                style={{ width: `${85 - (index % 5) * 5}%` }}
-              />
-            ))}
-          </div>
+          <DocumentLoadingSkeleton />
         ) : error ? (
           <div className="py-8 text-center text-muted-foreground text-sm">
             Failed to load content. Please try again later.

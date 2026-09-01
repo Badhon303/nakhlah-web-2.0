@@ -9,6 +9,7 @@ import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
 import { getSessionToken } from "@/lib/authUtils";
 import { useAboutStore } from "@/stores/useAboutStore";
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
 const SECTION_CONFIG = [
   { key: "about", title: "About" },
@@ -48,7 +49,7 @@ export default function AboutPage() {
   );
 
   return (
-    <div className="min-h-[calc(100vh-6rem)] flex items-center justify-center px-4 py-8">
+    <div className="max-w-4xl mx-auto px-4 py-6">
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
@@ -69,15 +70,7 @@ export default function AboutPage() {
         </div>
 
         {isLoading ? (
-          <div className="space-y-2">
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="h-4 bg-muted/40 rounded animate-pulse"
-                style={{ width: `${90 - (i % 6) * 7}%` }}
-              />
-            ))}
-          </div>
+          <DocumentLoadingSkeleton />
         ) : sections.length > 0 ? (
           <div className="space-y-8">
             {sections.map((section) => (

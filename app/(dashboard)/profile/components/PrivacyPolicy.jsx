@@ -1,11 +1,12 @@
 "use client";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ShieldCheck } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
 import { useLegalDocumentsStore } from "@/stores/useLegalDocumentsStore";
 import { useSession } from "next-auth/react";
 import { getSessionToken } from "@/lib/authUtils";
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
 export default function PrivacyPolicyPage({ onBack }) {
   const { data: session } = useSession();
@@ -22,7 +23,7 @@ export default function PrivacyPolicyPage({ onBack }) {
   }, [session, fetchLegalDocuments]);
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto py-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -37,27 +38,12 @@ export default function PrivacyPolicyPage({ onBack }) {
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-500 flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground">
-              Privacy Policy
-            </h1>
-          </div>
+          <h1 className="text-2xl font-bold text-foreground">Privacy Policy</h1>
         </div>
 
         {/* Content */}
         {isLoading ? (
-          <div className="space-y-3">
-            {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="h-4 bg-muted/50 rounded animate-pulse"
-                style={{ width: `${85 - i * 5}%` }}
-              />
-            ))}
-          </div>
+          <DocumentLoadingSkeleton />
         ) : error ? (
           <div className="py-8 text-center text-muted-foreground text-sm">
             <p>Failed to load content. Please try again later.</p>

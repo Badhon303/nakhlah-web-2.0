@@ -37,6 +37,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { toast } from "@/components/nakhlah/Toast";
+import Confetti from "@/components/nakhlah/Confetti";
+import StoreVisual from "./StoreVisual";
 import {
   createDatePaymentOrder,
   createSubscriptionPayment,
@@ -55,6 +57,7 @@ export default function StorePage() {
   const [isCanceling, setIsCanceling] = useState(false);
   const [showConfirmCancel, setShowConfirmCancel] = useState(false);
   const [showSubscriptionDetails, setShowSubscriptionDetails] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
   const shouldRefetchDates = searchParams.get("refetch") === "dates";
 
   const loadCurrentSubscription = async () => {
@@ -99,6 +102,13 @@ export default function StorePage() {
       setIsLoadingCurrent(false);
     }
   }, [fetchDatePackages, fetchSubscriptionPlans, shouldRefetchDates, session]);
+
+  useEffect(() => {
+    if (!shouldRefetchDates) return undefined;
+    setShowConfetti(true);
+    const timeoutId = setTimeout(() => setShowConfetti(false), 2000);
+    return () => clearTimeout(timeoutId);
+  }, [shouldRefetchDates]);
 
   const handleDateCheckout = async (pkg) => {
     if (!requireAuth()) return;
@@ -259,11 +269,33 @@ export default function StorePage() {
     window.location.assign(result.approvalUrl);
   };
 
+  const subscriptionIsActive = isSubscriptionActive;
+  const subscriptionIsEnding = isSubscriptionCancelling;
+  const hasEndedSubscription = currentSubscription?.status === "cancelled";
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-10 max-w-5xl space-y-14">
+      <Confetti active={showConfetti} />
+      <StoreVisual
+        datePackages={datePackages}
+        subscriptionPlans={subscriptionPlans}
+        isLoadingDates={isLoadingDates}
+        isLoadingPlans={isLoadingPlans}
+        datesError={datesError}
+        isLoadingCurrent={isLoadingCurrent}
+        currentSubscription={currentSubscription}
+        checkoutId={checkoutId}
+        subscriptionIsActive={subscriptionIsActive}
+        subscriptionIsEnding={subscriptionIsEnding}
+        hasEndedSubscription={hasEndedSubscription}
+        onDateCheckout={handleDateCheckout}
+        onSubscriptionCheckout={handleSubscriptionCheckout}
+        onShowSubscriptionDetails={() => setShowSubscriptionDetails(true)}
+        onRetryDates={() => fetchDatePackages({ forceRefresh: true })}
+      />
+      <div>
         {/* ── Date Packages ── */}
-        <section>
+        <section className="hidden">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 items-end">
             {isLoadingDates ? (
               [...Array(3)].map((_, i) => (
@@ -352,7 +384,7 @@ export default function StorePage() {
         </section>
 
         {/* ── Get Unlimited Lives ── */}
-        <section className="pt-6">
+        <section className="hidden">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
