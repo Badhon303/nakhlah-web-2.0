@@ -31,7 +31,7 @@ export default function FaqPage() {
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-4xl bg-card rounded-3xl border border-border shadow-lg p-5 md:p-6"
+        className="w-full max-w-4xl bg-transparent lg:bg-card rounded-none lg:rounded-3xl border-0 lg:border lg:border-border shadow-none lg:shadow-lg p-0 lg:p-6"
       >
         <div className="flex items-center gap-3 mb-6">
           <button
@@ -65,7 +65,7 @@ export default function FaqPage() {
             {visibleFaqs.map((faq, index) => (
               <div
                 key={faq.id || index}
-                className="rounded-xl border border-border overflow-hidden"
+                className="rounded-xl border border-border max-lg:border-x-0 max-lg:border-t-0 max-lg:rounded-none overflow-hidden"
               >
                 <button
                   onClick={() =>

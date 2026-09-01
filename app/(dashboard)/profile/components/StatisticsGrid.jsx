@@ -91,7 +91,7 @@ export default function StatisticsGrid({ profileData, achievementsData = [] }) {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.1 * index, duration: 0.3 }}
-                className={`${stat.bg} rounded-xl lg:rounded-2xl p-4 lg:p-6 hover:shadow-sm lg:hover:shadow-md transition-all cursor-pointer border border-border/30`}
+                className={`${stat.bg} max-lg:bg-transparent max-lg:rounded-none max-lg:border-x-0 max-lg:border-t-0 rounded-xl lg:rounded-2xl p-4 lg:p-6 hover:shadow-sm lg:hover:shadow-md transition-all cursor-pointer border border-border/30`}
               >
                 <IconComponent
                   size="sm"

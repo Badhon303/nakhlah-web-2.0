@@ -143,12 +143,12 @@ export default function ContactUsPage({ onBack }) {
   };
 
   return (
-    <div className="min-h-[calc(100vh-6rem)] px-4 py-6 lg:py-8 lg:flex lg:items-center lg:justify-center">
+    <div className="max-w-2xl mx-auto py-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-4xl bg-card rounded-3xl border border-border shadow-lg p-5 md:p-6"
+        className="w-full max-w-2xl bg-transparent lg:bg-card rounded-none lg:rounded-3xl border-0 lg:border lg:border-border shadow-none lg:shadow-lg p-0 lg:p-6"
       >
         {/* Header */}
         <div className="flex items-center gap-3 mb-6 md:mb-7">
@@ -234,7 +234,7 @@ export default function ContactUsPage({ onBack }) {
         </div>
 
         {/* Message Form */}
-        <div className="rounded-2xl border border-border bg-card/60 p-5 md:p-6">
+        <div className="rounded-none border-0 bg-transparent p-0 lg:rounded-2xl lg:border lg:border-border lg:bg-card/60 lg:p-6">
           <h2 className="text-lg font-bold text-foreground mb-1">
             Send us a message
           </h2>

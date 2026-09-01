@@ -49,7 +49,18 @@ export default function StoreVisual({
             you need an extra boost.
           </p>
         </div>
-        {!isLoadingCurrent && currentSubscription ? (
+        {isLoadingCurrent ? (
+          <div
+            aria-hidden="true"
+            className="flex h-24 w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 lg:w-60"
+          >
+            <div className="min-w-0 flex-1 space-y-2">
+              <div className="h-3 w-24 animate-pulse rounded bg-muted" />
+              <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+              <div className="h-3 w-20 animate-pulse rounded bg-muted" />
+            </div>
+          </div>
+        ) : currentSubscription ? (
           <button
             type="button"
             onClick={onShowSubscriptionDetails}
@@ -77,7 +88,7 @@ export default function StoreVisual({
         ) : null}
       </section>
 
-      <section className="overflow-hidden rounded-3xl border border-accent/20 bg-card shadow-lg">
+      <section className="overflow-hidden rounded-none border-0 bg-transparent shadow-none lg:rounded-3xl lg:border lg:border-accent/20 lg:bg-card lg:shadow-lg">
         <div className="grid lg:grid-cols-[0.93fr_1.07fr]">
           <div className="relative bg-gradient-accent p-7 text-accent-foreground sm:p-9 lg:p-10">
             <div className="absolute -right-10 -top-12 h-48 w-48 rounded-full border-[28px] border-white/10" />
@@ -194,7 +205,7 @@ export default function StoreVisual({
                           </p>
                         </div>
                         <div className="mt-auto pt-5">
-                          {isCurrent || isEnding || isEnded ? (
+                          {isCurrent || isEnding ? (
                             <Button
                               variant="outline"
                               onClick={onShowSubscriptionDetails}

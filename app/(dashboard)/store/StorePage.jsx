@@ -47,8 +47,18 @@ import {
   fetchCurrentSubscription,
 } from "@/services/api";
 
+const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
+
+const isActiveSubscription = (subscription) =>
+  Boolean(
+    subscription &&
+    ACTIVE_SUBSCRIPTION_STATUSES.has(
+      String(subscription.status || "").toLowerCase(),
+    ),
+  );
+
 export default function StorePage() {
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const searchParams = useSearchParams();
   const [checkoutId, setCheckoutId] = useState(null);
   const [currentSubscription, setCurrentSubscription] = useState(null);
@@ -58,7 +68,10 @@ export default function StorePage() {
   const [showConfirmCancel, setShowConfirmCancel] = useState(false);
   const [showSubscriptionDetails, setShowSubscriptionDetails] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const shouldRefetchDates = searchParams.get("refetch") === "dates";
+  const refetchTarget = searchParams.get("refetch");
+  const shouldRefetchDates = refetchTarget === "dates";
+  const shouldRefetchSubscription = refetchTarget === "subscription";
+  const isSuccessfulReturn = searchParams.get("payment") === "success";
 
   const loadCurrentSubscription = async () => {
     if (!isSessionValid(session)) return;
@@ -94,21 +107,30 @@ export default function StorePage() {
 
   useEffect(() => {
     fetchDatePackages({ forceRefresh: shouldRefetchDates });
-    fetchSubscriptionPlans({ forceRefresh: shouldRefetchDates });
+    fetchSubscriptionPlans({
+      forceRefresh: shouldRefetchDates || shouldRefetchSubscription,
+    });
 
     if (isSessionValid(session)) {
+      setIsLoadingCurrent(true);
       loadCurrentSubscription().then(() => setIsLoadingCurrent(false));
     } else {
       setIsLoadingCurrent(false);
     }
-  }, [fetchDatePackages, fetchSubscriptionPlans, shouldRefetchDates, session]);
+  }, [
+    fetchDatePackages,
+    fetchSubscriptionPlans,
+    shouldRefetchDates,
+    shouldRefetchSubscription,
+    session,
+  ]);
 
   useEffect(() => {
-    if (!shouldRefetchDates) return undefined;
+    if (!isSuccessfulReturn) return undefined;
     setShowConfetti(true);
     const timeoutId = setTimeout(() => setShowConfetti(false), 2000);
     return () => clearTimeout(timeoutId);
-  }, [shouldRefetchDates]);
+  }, [isSuccessfulReturn]);
 
   const handleDateCheckout = async (pkg) => {
     if (!requireAuth()) return;
@@ -131,8 +153,7 @@ export default function StorePage() {
   const handleSubscriptionCheckout = async (plan) => {
     if (!requireAuth()) return;
 
-    const canSwitch =
-      currentSubscription && currentSubscription.status !== "cancelled";
+    const canSwitch = isActiveSubscription(currentSubscription);
 
     if (canSwitch && currentSubscription.plan?.id === plan.id) {
       if (currentSubscription.cancelAtPeriodEnd) {
@@ -183,6 +204,7 @@ export default function StorePage() {
     if (!switchResult.success) {
       setIsCanceling(false);
       setCheckoutId(null);
+      setPendingSwitchPlan(null);
       toast.error(switchResult.error || "Failed to switch plan.");
       return;
     }
@@ -200,17 +222,19 @@ export default function StorePage() {
   };
 
   const isSubscriptionActive =
-    currentSubscription &&
-    currentSubscription.status !== "cancelled" &&
+    isActiveSubscription(currentSubscription) &&
     !currentSubscription.cancelAtPeriodEnd;
 
   const isSubscriptionCancelling =
-    currentSubscription &&
-    currentSubscription.status !== "cancelled" &&
+    isActiveSubscription(currentSubscription) &&
     currentSubscription.cancelAtPeriodEnd;
 
   const promptCancelSubscription = () => {
     if (!requireAuth()) return;
+    if (!isActiveSubscription(currentSubscription)) {
+      toast.info("This subscription is no longer active.");
+      return;
+    }
     if (!currentSubscription?.id) {
       toast.error("No active subscription found.");
       return;
@@ -271,7 +295,9 @@ export default function StorePage() {
 
   const subscriptionIsActive = isSubscriptionActive;
   const subscriptionIsEnding = isSubscriptionCancelling;
-  const hasEndedSubscription = currentSubscription?.status === "cancelled";
+  const hasEndedSubscription =
+    Boolean(currentSubscription) && !isActiveSubscription(currentSubscription);
+  const isSubscriptionLoading = sessionStatus === "loading" || isLoadingCurrent;
 
   return (
     <div className="min-h-screen bg-background">
@@ -282,7 +308,7 @@ export default function StorePage() {
         isLoadingDates={isLoadingDates}
         isLoadingPlans={isLoadingPlans}
         datesError={datesError}
-        isLoadingCurrent={isLoadingCurrent}
+        isLoadingCurrent={isSubscriptionLoading}
         currentSubscription={currentSubscription}
         checkoutId={checkoutId}
         subscriptionIsActive={subscriptionIsActive}
@@ -752,35 +778,34 @@ export default function StorePage() {
                 </div>
               )} */}
 
-              {currentSubscription?.status !== "cancelled" &&
-                !currentSubscription?.cancelAtPeriodEnd && (
-                  <div className="rounded-2xl bg-red-50 dark:bg-red-950/30 border-2 border-red-200 dark:border-red-900 p-4 space-y-3">
-                    <div>
-                      <p className="text-sm text-red-900 dark:text-red-100 font-semibold mb-1">
-                        Cancel subscription
-                      </p>
-                      <p className="text-xs text-red-800 dark:text-red-200 leading-relaxed">
-                        If you cancel, you will keep premium access until{" "}
-                        {currentSubscription?.currentPeriodEnd
-                          ? new Date(
-                              currentSubscription.currentPeriodEnd,
-                            ).toLocaleDateString()
-                          : "the end of your billing period"}
-                        . After that, your subscription will not renew.
-                      </p>
-                    </div>
-                    <Button
-                      onClick={() => {
-                        setShowSubscriptionDetails(false);
-                        promptCancelSubscription();
-                      }}
-                      disabled={isCanceling}
-                      className="w-full bg-red-600 hover:bg-red-700 text-white"
-                    >
-                      {isCanceling ? "Canceling..." : "Cancel Subscription"}
-                    </Button>
+              {isSubscriptionActive && (
+                <div className="rounded-2xl bg-red-50 dark:bg-red-950/30 border-2 border-red-200 dark:border-red-900 p-4 space-y-3">
+                  <div>
+                    <p className="text-sm text-red-900 dark:text-red-100 font-semibold mb-1">
+                      Cancel subscription
+                    </p>
+                    <p className="text-xs text-red-800 dark:text-red-200 leading-relaxed">
+                      If you cancel, you will keep premium access until{" "}
+                      {currentSubscription?.currentPeriodEnd
+                        ? new Date(
+                            currentSubscription.currentPeriodEnd,
+                          ).toLocaleDateString()
+                        : "the end of your billing period"}
+                      . After that, your subscription will not renew.
+                    </p>
                   </div>
-                )}
+                  <Button
+                    onClick={() => {
+                      setShowSubscriptionDetails(false);
+                      promptCancelSubscription();
+                    }}
+                    disabled={isCanceling}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    {isCanceling ? "Canceling..." : "Cancel Subscription"}
+                  </Button>
+                </div>
+              )}
 
               {/* {currentSubscription?.cancelAtPeriodEnd &&
                 currentSubscription?.status !== "cancelled" && (

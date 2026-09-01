@@ -70,7 +70,7 @@ export default function AchievementsList({
         )}
 
         {!isLoading && !compactAchievements.length && (
-          <div className="p-4 bg-muted/30 rounded-xl border border-border/30 text-sm text-muted-foreground">
+          <div className="p-4 bg-muted/30 max-lg:bg-transparent max-lg:rounded-none max-lg:border-x-0 max-lg:border-t-0 rounded-xl border border-border/30 text-sm text-muted-foreground">
             No achievements available yet.
           </div>
         )}
@@ -82,7 +82,7 @@ export default function AchievementsList({
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 * index + 0.4, duration: 0.5 }}
-              className="flex items-center gap-3 p-4 bg-muted/30 rounded-xl border border-border/30"
+              className="flex items-center gap-3 p-4 bg-muted/30 max-lg:bg-transparent max-lg:rounded-none max-lg:border-x-0 max-lg:border-t-0 rounded-xl border border-border/30"
             >
               <div className="relative shrink-0">
                 {achievement.unitIcon ? (

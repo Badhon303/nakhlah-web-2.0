@@ -18,6 +18,7 @@ export default function PalmRefillPanel({
   palmTreesCount = 0,
   maxPalmTrees = 5,
   mascotSize = "xxxl",
+  showMascot = true,
   onRefill,
   isRefilling = false,
   onGoPro,
@@ -36,14 +37,16 @@ export default function PalmRefillPanel({
       transition={{ duration: 0.3 }}
       className="w-full max-w-md mx-auto text-center"
     >
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="flex justify-center mb-4"
-      >
-        <FreshDateMascot mood="sad" size={mascotSize} />
-      </motion.div>
+      {showMascot ? (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-4 flex justify-center"
+        >
+          <FreshDateMascot mood="sad" size={mascotSize} />
+        </motion.div>
+      ) : null}
 
       <motion.h2
         initial={{ opacity: 0, y: 10 }}
