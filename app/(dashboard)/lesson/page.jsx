@@ -1186,6 +1186,13 @@ export default function LessonPage({ routeLessonId = "" }) {
     const isSkipped = isCorrect === null && isScored;
 
     if (isSkipped) {
+      if (currentIndex === totalQuestions - 1) {
+        toast.info(
+          "This is the last question. Answer it to complete the lesson.",
+        );
+        return;
+      }
+
       setQuestions((prev) => {
         const nextList = [...prev];
         const skippedQuestion = nextList[currentIndex];
@@ -1638,7 +1645,7 @@ export default function LessonPage({ routeLessonId = "" }) {
       <div
         className={`flex-1 flex justify-center p-3 sm:p-4 ${
           questionType === "pair_matching"
-            ? "items-start overflow-x-hidden"
+            ? "items-center overflow-x-hidden"
             : "items-center"
         }`}
       >
@@ -1804,7 +1811,7 @@ export default function LessonPage({ routeLessonId = "" }) {
             {questionType === "true_false" && (
               <>
                 <div>
-                  <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground">
+                  <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground text-center">
                     True or False?
                   </p>
                 </div>
@@ -1922,76 +1929,80 @@ export default function LessonPage({ routeLessonId = "" }) {
                     {fillBlankQuestionParts.hasBlank ? (
                       <>
                         <span>{fillBlankQuestionParts.before}</span>
-                        <span className="inline-flex w-[140px] sm:w-[180px] h-[1.35em] align-middle justify-center items-center border-b-2 border-foreground/40 overflow-hidden leading-none flex-shrink-0">
-                          <AnimatePresence mode="wait">
-                            {fillBlankAnswer ? (
-                              <motion.span
-                                key={fillBlankAnswer}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -6 }}
-                                transition={{
-                                  duration: 0.18,
-                                  ease: "easeOut",
-                                }}
-                                className="inline-block text-foreground truncate leading-none"
-                              >
-                                {fillBlankAnswer}
-                              </motion.span>
-                            ) : (
-                              <motion.span
-                                key="blank"
-                                initial={{ opacity: 0, y: 6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -4 }}
-                                transition={{
-                                  duration: 0.16,
-                                  ease: "easeOut",
-                                }}
-                                className="inline-block text-muted-foreground leading-none"
-                              >
-                                {fillBlankQuestionParts.blank}
-                              </motion.span>
-                            )}
-                          </AnimatePresence>
+                        <span className="inline-flex w-[150px] sm:w-[180px] h-[1.8em] items-center justify-center border-b-2 border-foreground/40 pb-1 overflow-hidden leading-none flex-shrink-0">
+                          <div className="w-full flex items-center justify-center">
+                            <AnimatePresence mode="wait">
+                              {fillBlankAnswer ? (
+                                <motion.span
+                                  key={fillBlankAnswer}
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -6 }}
+                                  transition={{
+                                    duration: 0.18,
+                                    ease: "easeOut",
+                                  }}
+                                  className="block w-full text-center text-foreground whitespace-nowrap leading-normal"
+                                >
+                                  {fillBlankAnswer}
+                                </motion.span>
+                              ) : (
+                                <motion.span
+                                  key="blank"
+                                  initial={{ opacity: 0, y: 6 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -4 }}
+                                  transition={{
+                                    duration: 0.16,
+                                    ease: "easeOut",
+                                  }}
+                                  className="block w-full text-center text-muted-foreground whitespace-nowrap leading-normal"
+                                >
+                                  {fillBlankQuestionParts.blank}
+                                </motion.span>
+                              )}
+                            </AnimatePresence>
+                          </div>
                         </span>
                         <span>{fillBlankQuestionParts.after}</span>
                       </>
                     ) : (
                       <>
                         <span>{fillBlankQuestionParts.before}</span>
-                        <span className="inline-flex w-[140px] sm:w-[180px] h-[1.35em] align-middle justify-center items-center border-b-2 border-foreground/40 overflow-hidden leading-none flex-shrink-0">
-                          <AnimatePresence mode="wait">
-                            {fillBlankAnswer ? (
-                              <motion.span
-                                key={fillBlankAnswer}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -6 }}
-                                transition={{
-                                  duration: 0.18,
-                                  ease: "easeOut",
-                                }}
-                                className="inline-block text-foreground truncate leading-none"
-                              >
-                                {fillBlankAnswer}
-                              </motion.span>
-                            ) : (
-                              <motion.span
-                                key="blank-fallback"
-                                initial={{ opacity: 0, y: 6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -4 }}
-                                transition={{
-                                  duration: 0.16,
-                                  ease: "easeOut",
-                                }}
-                                className="inline-block text-muted-foreground leading-none"
-                              >
-                                {fillBlankQuestionParts.blank || ""}
-                              </motion.span>
-                            )}
-                          </AnimatePresence>
+                        <span className="inline-flex w-[150px] sm:w-[180px] h-[1.8em] items-center justify-center border-b-2 border-foreground/40 pb-1 overflow-hidden leading-none flex-shrink-0">
+                          <div className="w-full flex items-center justify-center">
+                            <AnimatePresence mode="wait">
+                              {fillBlankAnswer ? (
+                                <motion.span
+                                  key={fillBlankAnswer}
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -6 }}
+                                  transition={{
+                                    duration: 0.18,
+                                    ease: "easeOut",
+                                  }}
+                                  className="block w-full text-center text-foreground whitespace-nowrap leading-normal"
+                                >
+                                  {fillBlankAnswer}
+                                </motion.span>
+                              ) : (
+                                <motion.span
+                                  key="blank-fallback"
+                                  initial={{ opacity: 0, y: 6 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -4 }}
+                                  transition={{
+                                    duration: 0.16,
+                                    ease: "easeOut",
+                                  }}
+                                  className="block w-full text-center text-muted-foreground whitespace-nowrap leading-normal"
+                                >
+                                  {fillBlankQuestionParts.blank || ""}
+                                </motion.span>
+                              )}
+                            </AnimatePresence>
+                          </div>
                         </span>
                       </>
                     )}
@@ -2129,7 +2140,7 @@ export default function LessonPage({ routeLessonId = "" }) {
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+                <div className="grid grid-cols-2 gap-2 sm:gap-4">
                   <div className="w-full">
                     <div className="bg-card border border-border rounded-xl sm:rounded-2xl p-3 sm:p-4 flex flex-col overflow-hidden">
                       <div className="space-y-2.5 sm:space-y-4 pr-1">

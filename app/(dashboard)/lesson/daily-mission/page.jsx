@@ -161,7 +161,11 @@ export default function DailyMissionUpdate() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 + index * 0.1 }}
-                  className="bg-transparent border border-accent/20 rounded-2xl p-4"
+                  className={`rounded-2xl border p-4 transition-colors ${
+                    mission.completed
+                      ? "border-accent/40 bg-accent/5"
+                      : "bg-transparent border-accent/20"
+                  }`}
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4 min-w-0">
@@ -172,20 +176,36 @@ export default function DailyMissionUpdate() {
                         <p
                           className={`font-bold text-left ${
                             mission.completed
-                              ? "line-through text-muted-foreground"
+                              ? "text-accent"
                               : "text-foreground"
                           }`}
                         >
                           {mission.label}
                         </p>
-                        <p className="text-xs text-left text-muted-foreground mt-1">
+                        <p
+                          className={`text-xs text-left mt-1 ${
+                            mission.completed
+                              ? "text-accent/80"
+                              : "text-muted-foreground"
+                          }`}
+                        >
                           {mission.completed ? "Completed" : "In progress"}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       {mission.completed ? (
-                        <CheckCircle2 className="w-5 h-5 text-accent" />
+                        <motion.div
+                          initial={{ scale: 0.75, opacity: 0.5 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{
+                            duration: 0.35,
+                            delay: 0.15 + index * 0.1,
+                          }}
+                          className="text-accent"
+                        >
+                          <CheckCircle2 className="w-5 h-5" />
+                        </motion.div>
                       ) : (
                         <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/40" />
                       )}
