@@ -226,7 +226,7 @@ export function LessonSelectionPopup({
   if (isTaskGiftBox) {
     return (
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-md p-0 gap-0 border-border [&>button]:hidden rounded-2xl overflow-hidden shadow-xl border-2 bg-gradient-to-b from-accent/5 to-accent/10">
+        <DialogContent className="w-[calc(100%-2rem)] sm:w-full sm:max-w-md p-0 gap-0 border-border [&>button]:hidden rounded-2xl overflow-hidden shadow-xl border-2 bg-gradient-to-b from-accent/5 to-accent/10">
           <div className="bg-accent p-4 text-center relative">
             <button
               onClick={onClose}
@@ -485,16 +485,16 @@ export function LessonSelectionPopup({
   // Regular Lesson Selection layout
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg p-0 gap-0 border-border [&>button]:hidden rounded-2xl overflow-hidden shadow-lg border-2">
+      <DialogContent className="w-[calc(100%-2rem)] sm:w-full sm:max-w-lg p-0 gap-0 border-border [&>button]:hidden rounded-2xl overflow-hidden shadow-lg border-2">
         {/* Simple Header */}
-        <div className="bg-accent p-5 text-center relative">
+        <div className="bg-accent p-3 sm:p-5 text-center relative">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors p-1"
           >
             <X className="w-6 h-6" />
           </button>
-          <DialogTitle className="text-2xl font-black text-white tracking-wide">
+          <DialogTitle className="text-xl sm:text-2xl font-black text-white tracking-wide">
             Choose a Lesson
           </DialogTitle>
           <p className="text-white/90 font-medium text-sm mt-1">
@@ -509,17 +509,17 @@ export function LessonSelectionPopup({
         </div>
 
         {/* Lessons Grid (Tighter Spacing) */}
-        <div className="p-6 bg-card">
+        <div className="p-4 sm:p-6 bg-card">
           {isLoading ? (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {Array.from({ length: 4 }).map((_, index) => (
                 <div
                   key={`lesson-skeleton-${index}`}
-                  className="relative p-5 rounded-2xl border-4 border-border/60 bg-background/70"
+                  className="relative p-3 sm:p-5 rounded-xl sm:rounded-2xl border-2 sm:border-4 border-border/60 bg-background/70"
                 >
-                  <div className="w-24 h-24 mx-auto rounded-2xl bg-muted animate-pulse" />
-                  <div className="mt-4 h-4 w-3/4 mx-auto rounded bg-muted animate-pulse" />
-                  <div className="mt-2 h-3 w-1/2 mx-auto rounded bg-muted/80 animate-pulse" />
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto rounded-2xl bg-muted animate-pulse" />
+                  <div className="mt-3 sm:mt-4 h-3 sm:h-4 w-3/4 mx-auto rounded bg-muted animate-pulse" />
+                  <div className="mt-1 sm:mt-2 h-2.5 sm:h-3 w-1/2 mx-auto rounded bg-muted/80 animate-pulse" />
                 </div>
               ))}
             </div>
@@ -528,19 +528,19 @@ export function LessonSelectionPopup({
               {loadError}
             </p>
           ) : (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
               {lessons.map((lesson) => {
                 const lessonIcon = lesson.isExam ? (
                   <img
                     src="/icons/Quiz1.svg"
                     alt="Quiz"
-                    className="w-20 h-20 object-contain"
+                    className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
                   />
                 ) : (
                   <img
                     src="/icons/Lesson.svg"
                     alt="Lesson"
-                    className="w-20 h-20 object-contain"
+                    className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
                   />
                 );
 
@@ -550,8 +550,8 @@ export function LessonSelectionPopup({
                     onClick={() => handleLessonClick(lesson)}
                     disabled={lesson.isLocked}
                     className={`
-                      relative p-5 rounded-2xl border-4 transition-all
-                      flex flex-col items-center justify-center gap-3 group
+                      relative p-3 sm:p-5 rounded-2xl border-4 transition-all
+                      flex flex-col items-center justify-center gap-2 sm:gap-3 group
                       ${
                         lesson.isLocked
                           ? "bg-muted border-muted-foreground/20 cursor-not-allowed opacity-75"
@@ -577,7 +577,7 @@ export function LessonSelectionPopup({
                     {/* Extra Large Icon */}
                     <div
                       className={`
-                        w-24 h-24 flex items-center justify-center
+                        w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center
                         ${lesson.isLocked ? "grayscale opacity-50" : ""}
                         transition-transform group-hover:scale-105 duration-200
                       `}
@@ -588,7 +588,7 @@ export function LessonSelectionPopup({
                     {/* Lesson Title */}
                     <p
                       className={`
-                        text-md font-bold text-center tracking-tight leading-tight px-1
+                        text-sm sm:text-md font-bold text-center tracking-tight leading-tight px-1
                         ${lesson.isLocked ? "text-muted-foreground" : "text-foreground"}
                       `}
                     >

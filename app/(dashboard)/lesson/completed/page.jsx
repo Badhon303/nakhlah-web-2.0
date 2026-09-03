@@ -146,7 +146,12 @@ export default function LessonCompleted() {
             transition={{ delay: 0.3, duration: 0.5 }}
             className="flex justify-center mb-6"
           >
-            <FreshDateMascot mood="celebrating" size="xxxl" />
+            <div className="block md:hidden">
+              <FreshDateMascot mood="celebrating" size="xxl" />
+            </div>
+            <div className="hidden md:block">
+              <FreshDateMascot mood="celebrating" size="xxxl" />
+            </div>
           </motion.div>
 
           {/* Title */}
@@ -187,23 +192,23 @@ export default function LessonCompleted() {
           </motion.div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-3 gap-3 mb-8 px-4">
+          <div className="grid grid-cols-3 gap-3 mb-8 px-2 sm:px-4">
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className={`rounded-2xl overflow-hidden border-2 ${stat.border} bg-white`}
+                className={`flex flex-col rounded-2xl overflow-hidden border-2 ${stat.border} bg-white`}
               >
                 {/* Header */}
-                <div className={`${stat.header} py-2`}>
-                  <p className="text-white font-bold text-base text-center truncate">
+                <div className={`${stat.header} py-2 shrink-0`}>
+                  <p className="px-1 flex items-center justify-center text-white font-bold text-sm sm:text-base text-center">
                     {stat.label}
                   </p>
                 </div>
 
                 {/* Body */}
-                <div className="flex items-center justify-center gap-2 py-4">
+                <div className="flex-1 flex items-center justify-center gap-2 py-4">
                   {stat.icon}
-                  <span className="text-xl font-extrabold text-slate-900">
+                  <span className="text-base sm:text-xl font-extrabold text-slate-900">
                     {stat.value}
                   </span>
                 </div>
