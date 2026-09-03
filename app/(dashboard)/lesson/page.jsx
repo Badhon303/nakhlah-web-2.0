@@ -413,6 +413,7 @@ export default function LessonPage({ routeLessonId = "" }) {
   const [selectedFillBlankOptionId, setSelectedFillBlankOptionId] =
     useState(null);
   const [fillBlankAnswer, setFillBlankAnswer] = useState("");
+  const [activeLearnTooltip, setActiveLearnTooltip] = useState(null);
 
   const [selectedTokens, setSelectedTokens] = useState([]);
   const [availableTokens, setAvailableTokens] = useState([]);
@@ -932,6 +933,7 @@ export default function LessonPage({ routeLessonId = "" }) {
     setSelectedTrueFalse(null);
     setSelectedFillBlankOptionId(null);
     setFillBlankAnswer("");
+    setActiveLearnTooltip(null);
     setSelectedTokens([]);
     setSelectedLeft(null);
     setSelectedRight(null);
@@ -1207,6 +1209,7 @@ export default function LessonPage({ routeLessonId = "" }) {
       setSelectedTrueFalse(null);
       setSelectedFillBlankOptionId(null);
       setFillBlankAnswer("");
+      setActiveLearnTooltip(null);
       setSelectedTokens([]);
       setSelectedLeft(null);
       setSelectedRight(null);
@@ -1717,6 +1720,10 @@ export default function LessonPage({ routeLessonId = "" }) {
                                   <ArabicTooltip
                                     text={word}
                                     pronunciation={pronunciation}
+                                    isOpen={activeLearnTooltip === index}
+                                    onOpenChange={(next) =>
+                                      setActiveLearnTooltip(next ? index : null)
+                                    }
                                   />
                                   {isLast ? "" : " "}
                                 </span>
