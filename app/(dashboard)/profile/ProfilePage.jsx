@@ -6,6 +6,7 @@ import QuickStats from "./components/QuickStats";
 // import ShareProfile from "./components/ShareProfile";
 import SubscriptionCard from "./components/SubscriptionCard";
 import RefillLivesCard from "./components/RefillLivesCard";
+import { DailyQuests } from "../components/DailyQuests";
 
 export default function ProfilePage({
   onNavigate,
@@ -48,9 +49,9 @@ export default function ProfilePage({
   const resolvedStats = profileData ? dynamicStats : stats;
 
   return (
-    <div className="container mx-auto max-w-3xl px-0 lg:px-4 py-6 lg:max-w-7xl">
-      <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
-        <div className="lg:col-span-2 space-y-6 lg:space-y-8">
+    <main className="container mx-auto max-w-3xl py-6 lg:max-w-7xl px-4 lg:py-8">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-8">
+        <div className="min-w-0 space-y-6 lg:space-y-8">
           <HeaderSection
             stats={resolvedStats}
             onNavigateSettings={() => onNavigate("settings")}
@@ -72,22 +73,23 @@ export default function ProfilePage({
         </div>
 
         {/* Sidebar - Only on Desktop */}
-        <div className="hidden lg:block space-y-8">
+        <aside className="hidden space-y-6 lg:block">
           <MotivationCard />
           <QuickStats profileData={profileData} />
           {/* <ShareProfile onShare={() => onNavigate("share-profile")} /> */}
           <SubscriptionCard />
           <RefillLivesCard />
-        </div>
+        </aside>
       </div>
 
       {/* Mobile Sidebar - appears below main content */}
-      <div className="lg:hidden space-y-6 mt-4 pb-6">
+      <div className="mt-6 space-y-6 pb-6 lg:hidden">
+        <DailyQuests variant="profile" />
         <QuickStats profileData={profileData} />
         {/* <ShareProfile onShare={() => onNavigate("share-profile")} /> */}
         <SubscriptionCard />
         <RefillLivesCard />
       </div>
-    </div>
+    </main>
   );
 }

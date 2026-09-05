@@ -55,23 +55,25 @@ export default function HeaderSection({
   const initials = getInitials(fullName, email);
 
   return (
-    <motion.div
+    <motion.section
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="mb-8"
+      className="overflow-hidden rounded-none border-0 bg-transparent shadow-none lg:rounded-3xl lg:border lg:border-accent/20 lg:bg-card lg:shadow-sm"
     >
-      <div className="bg-transparent lg:bg-card rounded-none lg:rounded-2xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-8">
-        <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">
+      <div className="relative overflow-hidden bg-gradient-accent px-5 py-7 text-accent-foreground sm:px-7 sm:py-8">
+        <div className="absolute -right-12 -top-16 h-44 w-44 rounded-full border-[28px] border-white/10" />
+        <div className="absolute -bottom-16 right-28 h-32 w-32 rounded-full bg-white/[0.06]" />
+        <div className="relative flex flex-col items-center gap-5 sm:flex-row sm:gap-6">
           {/* Avatar */}
-          <div className="relative">
-            <div className="w-28 h-28 lg:w-32 lg:h-32 rounded-full bg-gradient-to-br from-primary via-accent to-palm-green">
-              <div className="w-full h-full rounded-full bg-gradient-to-br from-primary/80 to-accent/80 overflow-hidden flex items-center justify-center text-3xl lg:text-4xl font-bold text-primary-foreground">
+          <div className="relative shrink-0">
+            <div className="h-28 w-28 rounded-3xl border-4 border-white/80 bg-white/20 p-0.5 shadow-xl sm:h-32 sm:w-32">
+              <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-[1.25rem] bg-card/20 text-3xl font-extrabold text-white sm:text-4xl">
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
                     alt={fullName}
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover"
                   />
                 ) : (
                   initials
@@ -84,40 +86,37 @@ export default function HeaderSection({
           </div>
 
           {/* Profile Info */}
-          <div className="flex-1 text-center lg:text-left">
-            <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
+          <div className="min-w-0 flex-1 text-center sm:text-left">
+            <h1 className="truncate text-3xl font-extrabold tracking-tight text-white">
               {isLoading ? "Loading..." : fullName}
             </h1>
-            <p className="text-muted-foreground mb-4">{email}</p>
-            <p className="text-sm text-muted-foreground">
-              {joined ? `Joined on ${joined}` : ""}
+            <p className="mt-1 truncate text-sm font-medium text-white/85 sm:text-base">
+              {email}
+            </p>
+            <p className="mt-1 text-sm text-white/70">
+              {joined ? `Learning with Nakhlah since ${joined}` : ""}
             </p>
 
-            {/* Action Buttons - Only on Desktop */}
-            <div className="hidden lg:flex flex-wrap gap-3 mt-6">
+            {/* Action Buttons */}
+            <div className="mt-5 flex justify-center gap-3 sm:justify-start">
               <Button
                 onClick={onNavigateEdit}
-                className="bg-accent text-accent-foreground hover:bg-accent/90"
+                className="h-10 rounded-xl bg-white px-4 font-bold text-accent shadow-sm hover:bg-white/90"
               >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Profile
+                <Edit className="mr-2 h-4 w-4" />
+                Edit profile
               </Button>
               {/*
-              <Button
-                onClick={onShare}
-                variant="outline"
-                className="border-border hover:bg-muted"
-              >
-                <Share2 className="w-4 h-4 mr-2" />
+              <Button onClick={onShare} variant="outline">
+                <Share2 className="mr-2 h-4 w-4" />
                 Share
               </Button>
               */}
               <Button
                 onClick={onNavigateSettings}
-                variant="outline"
-                className="border-border hover:bg-muted"
+                className="h-10 rounded-xl border border-white/25 bg-white/10 px-4 font-bold text-white shadow-none hover:bg-white/20"
               >
-                <Settings className="w-4 h-4 mr-2" />
+                <Settings className="mr-2 h-4 w-4" />
                 Settings
               </Button>
             </div>
@@ -141,36 +140,7 @@ export default function HeaderSection({
             ))}
           </div> */}
         </div>
-
-        {/* Mobile Action Buttons */}
-        <div className="flex lg:hidden gap-3 mt-6">
-          <Button
-            onClick={onNavigateEdit}
-            className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90"
-          >
-            <Edit className="w-4 h-4 mr-2" />
-            Edit
-          </Button>
-          {/*
-          <Button
-            onClick={onShare}
-            variant="outline"
-            className="flex-1 border-border hover:bg-muted"
-          >
-            <Share2 className="w-4 h-4 mr-2" />
-            Share
-          </Button>
-          */}
-          <Button
-            onClick={onNavigateSettings}
-            variant="outline"
-            className="flex-1 border-border hover:bg-muted"
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Settings
-          </Button>
-        </div>
       </div>
-    </motion.div>
+    </motion.section>
   );
 }

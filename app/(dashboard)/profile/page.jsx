@@ -193,7 +193,12 @@ function ProfileAndSettingsContent() {
           />
         );
       case "contact-us":
-        return <ContactUsPage onBack={() => setActiveView("help-center")} />;
+        return (
+          <ContactUsPage
+            onBack={() => setActiveView("settings")}
+            onNavigateFaq={() => setActiveView("help-center")}
+          />
+        );
       case "general":
         return <GeneralSettingsPage onBack={() => setActiveView("settings")} />;
       case "about-nakhlah":
@@ -250,7 +255,7 @@ function ProfileAndSettingsContent() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="px-4 sm:px-5 lg:px-0"
+          className="px-0"
         >
           {renderView()}
         </motion.div>

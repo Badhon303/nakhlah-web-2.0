@@ -88,6 +88,13 @@ export default function EditProfilePage({
     const { strengthsList = [] } = onboardingOptions?.languageStrength || {};
 
     const onboardInfo = profileData?.onboardInfo || {};
+    const savedContactNumber = String(profileData?.contactNumber || "").trim();
+    const phoneCountry = getCountryCodeByName(onboardInfo.country || "");
+    const normalizedContactNumber = savedContactNumber.startsWith("+")
+      ? parsePhoneNumber(savedContactNumber)?.number || ""
+      : phoneCountry
+        ? parsePhoneNumber(savedContactNumber, phoneCountry)?.number || ""
+        : "";
     const savedUserSource = String(onboardInfo.userSource || "").toLowerCase();
     const sourceMatch = sourceList.find(
       (s) => String(s.sourceName || "").toLowerCase() === savedUserSource,
@@ -98,7 +105,7 @@ export default function EditProfilePage({
 
     return {
       fullName: profileData?.fullName || "",
-      contactNumber: profileData?.contactNumber || "",
+      contactNumber: normalizedContactNumber,
       country: onboardInfo.country || "",
       age: onboardInfo.age || "",
       purpose: onboardInfo.purpose || "",

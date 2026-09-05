@@ -74,7 +74,7 @@ const orbitPositions = socialMethods.map((_, index) => {
 
 const INITIAL_FORM = { name: "", email: "", subject: "", message: "" };
 
-export default function ContactUsPage({ onBack }) {
+export default function ContactUsPage({ onBack, onNavigateFaq }) {
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -143,12 +143,12 @@ export default function ContactUsPage({ onBack }) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto py-6">
+    <div className="max-w-4xl mx-auto py-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-2xl bg-transparent lg:bg-card rounded-none lg:rounded-3xl border-0 lg:border lg:border-border shadow-none lg:shadow-lg p-0 lg:p-6"
+        className="w-full bg-transparent lg:bg-card rounded-none lg:rounded-3xl border-0 lg:border lg:border-border shadow-none lg:shadow-lg p-0 lg:p-6"
       >
         {/* Header */}
         <div className="flex items-center gap-3 mb-6 md:mb-7">
@@ -159,6 +159,19 @@ export default function ContactUsPage({ onBack }) {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <h1 className="text-3xl font-bold text-foreground">Contact Us</h1>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-3 mb-5 md:mb-6 flex-wrap">
+          <button
+            onClick={() => onNavigateFaq?.()}
+            className="min-w-28 px-4 py-2 rounded-lg text-center font-medium text-muted-foreground hover:bg-muted/50 dark:hover:bg-muted/20 transition-all"
+          >
+            FAQ
+          </button>
+          <div className="min-w-28 px-4 py-2 rounded-lg text-center font-medium bg-accent text-accent-foreground">
+            Contact us
+          </div>
         </div>
 
         {/* Hero: mascot with social links orbiting around it */}
