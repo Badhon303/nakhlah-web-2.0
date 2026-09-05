@@ -6,5 +6,10 @@ import ContactUsPage from "../profile/components/ContactUs";
 export default function ContactUsRoutePage() {
   const router = useRouter();
 
-  return <ContactUsPage onBack={() => router.push("/faq")} />;
+  return (
+    <ContactUsPage
+      onBack={() => router.push("/faq")}
+      onNavigateFaq={() => router.push("/faq")}
+    />
+  );
 }

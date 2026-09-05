@@ -29,7 +29,7 @@ export default function HelpCenterPage({ onBack, onNavigateContact }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-2xl bg-transparent lg:bg-card rounded-none lg:rounded-3xl border-0 lg:border lg:border-border shadow-none lg:shadow-lg p-0 lg:p-6"
+        className="w-full bg-transparent lg:bg-card rounded-none lg:rounded-3xl border-0 lg:border lg:border-border shadow-none lg:shadow-lg p-0 lg:p-6"
       >
         {/* Header */}
         <div className="flex items-center gap-3 mb-6 md:mb-7">
@@ -46,12 +46,12 @@ export default function HelpCenterPage({ onBack, onNavigateContact }) {
 
         {/* Tabs */}
         <div className="flex gap-3 mb-5 md:mb-6 flex-wrap">
-          <div className="px-4 py-2 rounded-lg font-medium bg-accent text-accent-foreground">
+          <div className="min-w-28 px-4 py-2 rounded-lg text-center font-medium bg-accent text-accent-foreground">
             FAQ
           </div>
           <button
             onClick={() => onNavigateContact && onNavigateContact()}
-            className="px-4 py-2 rounded-lg font-medium bg-muted/30 text-muted-foreground hover:bg-muted/50 transition-all"
+            className="min-w-28 px-4 py-2 rounded-lg text-center font-medium text-muted-foreground hover:bg-muted/50 dark:hover:bg-muted/20 transition-all"
           >
             Contact us
           </button>

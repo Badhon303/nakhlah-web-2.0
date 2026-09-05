@@ -28,86 +28,77 @@ export default function StatisticsGrid({ profileData, achievementsData = [] }) {
       icon: StreakIcon,
       value: `${tasksCompleted}`,
       label: "Tasks Completed Today",
-      color: "text-primary",
-      bg: "bg-muted/30",
     },
     {
       icon: Calendar,
       value: `${lessonsCompleted}`,
       label: "Lessons Completed Today",
-      color: "text-primary",
-      bg: "bg-muted/30",
     },
     {
       icon: DatesIcon,
       value: totalDates.toLocaleString(),
       label: "Total Dates",
-      color: "text-primary",
-      bg: "bg-muted/30",
     },
     {
       icon: InjazStarIcon,
       value: totalXp.toLocaleString(),
       label: "Total Injaz Gained",
-      color: "text-primary",
-      bg: "bg-muted/30",
     },
     {
       icon: Bullseye,
       value: `${achievementsUnlocked}`,
       label: "Achievements Unlocked",
-      color: "text-primary",
-      bg: "bg-muted/30",
     },
     {
       icon: Medal,
       value: `${badgesEarned}`,
       label: "Badges Earned",
-      color: "text-primary",
-      bg: "bg-muted/30",
     },
   ];
 
   return (
-    <motion.div
+    <motion.section
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1, duration: 0.5 }}
-      className="bg-transparent lg:bg-card rounded-none lg:rounded-2xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-6"
+      className="overflow-hidden rounded-none border-0 bg-transparent shadow-none lg:rounded-3xl lg:border lg:border-accent/20 lg:bg-card lg:shadow-sm"
     >
-      <div className="lg:p-6 mb-4 lg:mb-6">
-        <h3 className="flex items-center gap-2 text-xl font-semibold">
-          Your Statistics
-          <BarChart size="sm" className="text-foreground" />
-        </h3>
-      </div>
-      <div className="">
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
-          {userStats.map((stat, index) => {
-            const IconComponent = stat.icon;
-            return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.1 * index, duration: 0.3 }}
-                className={`${stat.bg} max-lg:bg-transparent max-lg:rounded-none max-lg:border-x-0 max-lg:border-t-0 rounded-xl lg:rounded-2xl p-4 lg:p-6 hover:shadow-sm lg:hover:shadow-md transition-all cursor-pointer border border-border/30`}
-              >
-                <IconComponent
-                  size="sm"
-                  className={`${stat.color} mb-2 lg:mb-3`}
-                />
-                <div className="text-xl lg:text-2xl font-bold text-foreground mb-1">
-                  {stat.value}
-                </div>
-                <div className="text-xs lg:text-sm text-muted-foreground">
-                  {stat.label}
-                </div>
-              </motion.div>
-            );
-          })}
+      <div className="flex items-center justify-between gap-5 border-b border-border px-5 py-5 text-foreground sm:px-7">
+        <div>
+          <h3 className="text-xl font-extrabold text-foreground">
+            Your statistics
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            A clear view of what you have accomplished so far.
+          </p>
         </div>
+        {/* <BarChart size="lg" className="shrink-0 text-white" /> */}
       </div>
-    </motion.div>
+      <div className="grid grid-cols-2 divide-x divide-y divide-border sm:grid-cols-3">
+        {userStats.map((stat, index) => {
+          const IconComponent = stat.icon;
+          return (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, scale: 0.94 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.05 * index, duration: 0.3 }}
+              className="group min-h-40 bg-transparent p-5 transition-colors hover:bg-muted/50 dark:hover:bg-muted/20 lg:bg-card sm:p-6"
+            >
+              <IconComponent
+                size="lg"
+                className="text-accent transition-transform group-hover:scale-105"
+              />
+              <p className="mt-5 text-2xl font-extrabold tracking-tight text-foreground">
+                {stat.value}
+              </p>
+              <p className="mt-1 text-sm font-medium leading-5 text-muted-foreground">
+                {stat.label}
+              </p>
+            </motion.div>
+          );
+        })}
+      </div>
+    </motion.section>
   );
 }

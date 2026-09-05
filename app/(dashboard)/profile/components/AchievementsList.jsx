@@ -13,8 +13,16 @@ const getMediaUrl = (url) => {
   return `${API_URL}${url}`;
 };
 
-const resolveCardColor = (isAchieved) =>
-  isAchieved ? "text-accent-foreground" : "text-muted-foreground";
+const AchievementIcon = ({ achievement }) =>
+  achievement.unitIcon ? (
+    <img
+      src={getMediaUrl(achievement.unitIcon?.url || achievement.unitIcon)}
+      alt={achievement.title || "Unit icon"}
+      className="h-14 w-14 rounded-xl object-cover"
+    />
+  ) : (
+    <Medal size="lg" />
+  );
 
 export default function AchievementsList({
   onViewAll,
@@ -24,99 +32,104 @@ export default function AchievementsList({
   const compactAchievements = achievements.slice(0, 5);
 
   return (
-    <motion.div
+    <motion.section
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.5 }}
-      className="space-y-4 bg-transparent lg:bg-card rounded-none lg:rounded-2xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-6"
+      className="overflow-hidden rounded-none border-0 bg-transparent shadow-none lg:rounded-3xl lg:border lg:border-accent/20 lg:bg-card lg:shadow-sm"
     >
-      <div className="flex items-center justify-between lg:p-6 mb-4 lg:mb-6">
-        <h3 className="flex items-center gap-2 text-xl font-semibold">
-          Achievements
-          <Medal size="sm" />
-        </h3>
-        <button
-          onClick={onViewAll}
-          className="text-sm text-accent hover:text-accent/80 transition-colors flex items-center gap-1 font-medium"
-        >
-          View All
-          <ChevronRight className="w-4 h-4" />
-        </button>
+      <div className="flex items-center justify-between gap-5 border-b border-border px-5 py-5 text-foreground sm:px-7">
+        <div>
+          <h3 className="text-xl font-extrabold text-foreground">
+            Achievements
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            The moments that mark your learning progress.
+          </p>
+        </div>
+        {/* <Medal size="lg" className="shrink-0 text-white" /> */}
       </div>
 
-      <div className="space-y-4">
+      <div className="sm:p-6">
         {isLoading && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {[...Array(5)].map((_, index) => (
               <div
                 key={`achievement-skeleton-${index}`}
-                className="flex items-center gap-3 rounded-xl border border-border/30 bg-muted/30 p-4"
+                className="flex h-24 items-center gap-4 rounded-2xl border border-border p-4"
               >
-                <div className="h-12 w-12 shrink-0 animate-pulse rounded-xl bg-muted" />
-                <div className="min-w-0 flex-1 space-y-2">
-                  <div
-                    className="h-4 animate-pulse rounded bg-muted"
-                    style={{ width: `${58 + (index % 3) * 12}%` }}
-                  />
-                  <div
-                    className="h-3 animate-pulse rounded bg-muted/70"
-                    style={{ width: `${72 - (index % 2) * 12}%` }}
-                  />
+                <div className="h-14 w-14 shrink-0 animate-pulse rounded-xl bg-muted" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-2/5 animate-pulse rounded bg-muted" />
+                  <div className="h-3 w-3/4 animate-pulse rounded bg-muted" />
                 </div>
-                <div className="h-5 w-5 shrink-0 animate-pulse rounded-full bg-muted" />
               </div>
             ))}
           </div>
         )}
 
         {!isLoading && !compactAchievements.length && (
-          <div className="p-4 bg-muted/30 max-lg:bg-transparent max-lg:rounded-none max-lg:border-x-0 max-lg:border-t-0 rounded-xl border border-border/30 text-sm text-muted-foreground">
-            No achievements available yet.
+          <div className="rounded-2xl border border-dashed border-border p-10 text-center">
+            <Medal size="xl" className="mx-auto opacity-60" />
+            <p className="mt-3 font-extrabold text-foreground">
+              Your first achievement is waiting
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Complete lessons to begin building your collection.
+            </p>
           </div>
         )}
 
-        {!isLoading &&
-          compactAchievements.map((achievement, index) => (
-            <motion.div
-              key={achievement.id || `${achievement.achievementTitle}-${index}`}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 * index + 0.4, duration: 0.5 }}
-              className="flex items-center gap-3 p-4 bg-muted/30 max-lg:bg-transparent max-lg:rounded-none max-lg:border-x-0 max-lg:border-t-0 rounded-xl border border-border/30"
-            >
-              <div className="relative shrink-0">
-                {achievement.unitIcon ? (
-                  <img
-                    src={getMediaUrl(
-                      achievement.unitIcon?.url || achievement.unitIcon,
-                    )}
-                    alt={achievement.title || "Unit icon"}
-                    className="w-12 h-12 rounded-xl object-cover"
-                  />
+        {!isLoading && compactAchievements.length > 0 && (
+          <div className="space-y-3">
+            {compactAchievements.map((achievement, index) => (
+              <motion.article
+                key={
+                  achievement.id || `${achievement.achievementTitle}-${index}`
+                }
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.07 * index, duration: 0.35 }}
+                className="group relative flex items-center gap-4 overflow-hidden rounded-none border-x-0 border-t-0 border-b border-border p-4 transition-colors hover:bg-muted/50 dark:hover:bg-muted/20 lg:rounded-2xl lg:border"
+              >
+                {achievement.achieved ? (
+                  <span className="absolute inset-y-0 left-0 w-1 bg-accent" />
+                ) : null}
+                <span className="shrink-0 transition-transform group-hover:scale-105">
+                  <AchievementIcon achievement={achievement} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h4 className="font-extrabold text-foreground">
+                      {achievement.achievementTitle || "Achievement"}
+                    </h4>
+                    <span className="rounded-full border border-border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                      Level {achievement.levelOrder || "-"}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm leading-5 text-muted-foreground">
+                    Unit {achievement.unitOrder || "-"}:{" "}
+                    {achievement.title || "Untitled Unit"}
+                  </p>
+                </div>
+                {achievement.achieved ? (
+                  <AchievementTick />
                 ) : (
-                  <Medal size="md" />
+                  <Lock className="h-5 w-5 shrink-0 text-muted-foreground" />
                 )}
-              </div>
+              </motion.article>
+            ))}
 
-              <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-sm">
-                  {achievement.achievementTitle || "Achievement"}
-                </h4>
-                <p className="text-xs text-muted-foreground mb-2">
-                  Level {achievement.levelOrder || "-"}, Unit{" "}
-                  {achievement.unitOrder || "-"}:{" "}
-                  {achievement.title || "Untitled Unit"}
-                </p>
-              </div>
-
-              {achievement.achieved ? (
-                <AchievementTick />
-              ) : (
-                <Lock className="w-5 h-5 text-muted-foreground" />
-              )}
-            </motion.div>
-          ))}
+            <button
+              onClick={onViewAll}
+              className="group flex w-full items-center justify-center gap-2 rounded-xl border border-border py-3 text-sm font-bold text-foreground transition-colors hover:bg-muted/50 dark:hover:bg-muted/20"
+            >
+              View all achievements
+              <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </button>
+          </div>
+        )}
       </div>
-    </motion.div>
+    </motion.section>
   );
 }

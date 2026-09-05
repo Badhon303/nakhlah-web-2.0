@@ -68,20 +68,32 @@ export default function RefillLivesCard() {
   };
 
   return (
-    <div className="rounded-none bg-transparent shadow-none border-0 overflow-hidden p-0 lg:rounded-2xl lg:bg-card lg:shadow-lg lg:border lg:border-border lg:p-6">
-      <PalmRefillPanel
-        title="Refill Palm Trees"
-        description="Out of Palm Trees? Refill and continue learning without interruptions!"
-        palmTreesCount={palmTreesCount}
-        maxPalmTrees={5}
-        mascotSize="lg"
-        showMascot={false}
-        onRefill={handleRefill}
-        isRefilling={isRefilling}
-        onGoPro={() => router.push("/store")}
-        palmUpdatedAt={palmUpdatedAt}
-        dateStock={dateStock}
-      />
-    </div>
+    <section className="overflow-hidden rounded-none border-0 bg-transparent shadow-none lg:rounded-2xl lg:border lg:border-accent/20 lg:bg-card lg:shadow-sm">
+      <div className="border-b border-border px-5 py-4 text-foreground">
+        <h3 className="text-xl font-extrabold text-foreground">
+          Refill Palm Trees
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Stay ready for your next lesson.
+        </p>
+      </div>
+      <div className="p-4">
+        <PalmRefillPanel
+          title="Refill Palm Trees"
+          description="Out of Palm Trees? Refill and continue learning without interruptions!"
+          palmTreesCount={palmTreesCount}
+          maxPalmTrees={5}
+          mascotSize="lg"
+          showMascot={false}
+          showHeader={false}
+          compact
+          onRefill={handleRefill}
+          isRefilling={isRefilling}
+          onGoPro={() => router.push("/store")}
+          palmUpdatedAt={palmUpdatedAt}
+          dateStock={dateStock}
+        />
+      </div>
+    </section>
   );
 }

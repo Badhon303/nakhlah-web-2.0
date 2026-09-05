@@ -43,13 +43,18 @@ export default function QuickStats({ profileData }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2, duration: 0.5 }}
-      className="bg-transparent lg:bg-card rounded-none lg:rounded-2xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-6"
+      className="overflow-hidden rounded-none border-0 bg-transparent shadow-none lg:rounded-2xl lg:border lg:border-accent/20 lg:bg-card lg:shadow-sm"
     >
-      <div className="mb-4 lg:mb-6">
-        <h3 className="text-xl font-semibold">Streak Overview</h3>
+      <div className="border-b border-border px-5 py-4 text-foreground">
+        <h3 className="text-xl font-extrabold text-foreground">
+          Streak overview
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Your consistency across recent learning days.
+        </p>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         {quickStats.map((stat, index) => {
           const IconComponent = stat.icon;
           return (
@@ -58,15 +63,17 @@ export default function QuickStats({ profileData }) {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 * index + 0.3, duration: 0.5 }}
-              className="flex items-center justify-between p-4 bg-muted/30 max-lg:bg-transparent max-lg:rounded-none max-lg:border-x-0 max-lg:border-t-0 rounded-xl border border-border/30 hover:bg-muted/50 transition-all cursor-pointer"
+              className="flex items-center justify-between gap-3 rounded-xl border border-transparent p-3.5 transition-colors hover:bg-muted/50 dark:hover:bg-muted/20"
             >
-              <div className="flex items-center gap-3">
-                <IconComponent size="sm" />
-                <span className="text-muted-foreground font-medium">
+              <div className="flex min-w-0 items-center gap-3">
+                <IconComponent size="md" className="shrink-0 text-accent" />
+                <span className="truncate text-sm font-medium text-muted-foreground">
                   {stat.label}
                 </span>
               </div>
-              <span className="font-bold text-foreground">{stat.value}</span>
+              <span className="shrink-0 text-sm font-extrabold text-foreground">
+                {stat.value}
+              </span>
             </motion.div>
           );
         })}

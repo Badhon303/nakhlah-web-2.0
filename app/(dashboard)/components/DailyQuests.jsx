@@ -19,8 +19,9 @@ const isQuestCompleted = (quest) => {
   return completedByStatus || completedByProgress;
 };
 
-export function DailyQuests() {
+export function DailyQuests({ variant = "home" }) {
   const router = useRouter();
+  const isProfileVariant = variant === "profile";
   const { data: session, status } = useSession();
   const dailyQuests = useDailyQuestStore((store) => store.homeDailyQuests);
   const isLoading = useDailyQuestStore((store) => store.isLoading);
@@ -89,36 +90,106 @@ export function DailyQuests() {
 
   if (isLoading) {
     return (
-      <div className="p-4 rounded-xl bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
+      <div
+        className={
+          isProfileVariant
+            ? "overflow-hidden rounded-none border-0 bg-transparent shadow-none"
+            : "p-4 rounded-xl bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 shadow-sm"
+        }
+      >
+        <div
+          className={
+            isProfileVariant
+              ? "flex items-center justify-between border-b border-border px-5 py-4 text-foreground"
+              : "flex items-center justify-between mb-4"
+          }
+        >
           <div>
-            <h2 className="text-lg font-bold text-slate-900">Daily Quests</h2>
-            <p className="text-xs text-slate-700">
+            <h2
+              className={`font-extrabold ${
+                isProfileVariant
+                  ? "text-xl text-foreground"
+                  : "text-lg text-slate-900"
+              }`}
+            >
+              Daily Quests
+            </h2>
+            <p
+              className={`text-xs ${
+                isProfileVariant ? "text-muted-foreground" : "text-slate-700"
+              }`}
+            >
               Complete tasks to earn rewards
             </p>
           </div>
-          <CardMenuOptions options={menuOptions} />
+          <CardMenuOptions
+            options={menuOptions}
+            className={
+              isProfileVariant ? "text-foreground hover:bg-muted/50" : ""
+            }
+          />
         </div>
-        <div className="text-xs text-slate-600">Loading quests...</div>
+        <div
+          className={`p-4 text-xs ${
+            isProfileVariant ? "text-muted-foreground" : "text-slate-600"
+          }`}
+        >
+          Loading quests...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 rounded-xl bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
+    <div
+      className={
+        isProfileVariant
+          ? "overflow-hidden rounded-none border-0 bg-transparent shadow-none"
+          : "p-4 rounded-xl bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 shadow-sm"
+      }
+    >
+      <div
+        className={
+          isProfileVariant
+            ? "flex items-center justify-between border-b border-border px-5 py-4 text-foreground"
+            : "flex items-center justify-between mb-4"
+        }
+      >
         <div>
-          <h2 className="text-lg font-bold text-slate-900">Daily Quests</h2>
-          <p className="text-xs text-slate-700">
+          <h2
+            className={`font-extrabold ${
+              isProfileVariant
+                ? "text-xl text-foreground"
+                : "text-lg text-slate-900"
+            }`}
+          >
+            Daily Quests
+          </h2>
+          <p
+            className={`text-xs ${
+              isProfileVariant ? "text-muted-foreground" : "text-slate-700"
+            }`}
+          >
             Complete tasks to earn rewards
           </p>
         </div>
-        <CardMenuOptions options={menuOptions} />
+        <CardMenuOptions
+          options={menuOptions}
+          className={
+            isProfileVariant ? "text-foreground hover:bg-muted/50" : ""
+          }
+        />
       </div>
       <AnimatePresence initial={false}>
-        <ul className="space-y-2">
+        <ul className={isProfileVariant ? "space-y-2" : "space-y-2"}>
           {dailyQuests.length === 0 ? (
-            <li className="text-xs text-slate-700">No daily quests yet</li>
+            <li
+              className={`p-4 text-xs ${
+                isProfileVariant ? "text-muted-foreground" : "text-slate-700"
+              }`}
+            >
+              No daily quests yet
+            </li>
           ) : (
             dailyQuests.map((quest, index) => (
               <motion.li
@@ -127,9 +198,13 @@ export function DailyQuests() {
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ delay: index * 0.05 }}
                 key={quest.key}
-                className="flex items-center justify-between bg-white/40 rounded-lg p-2 border border-white/30"
+                className={
+                  isProfileVariant
+                    ? "flex items-center justify-between gap-3 border-b border-border bg-transparent p-3.5"
+                    : "flex items-center justify-between rounded-lg border border-white/30 bg-white/40 p-2"
+                }
               >
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 items-center gap-3">
                   <div className="w-6 h-6 flex items-center justify-center">
                     {quest.iconUrl && (
                       <img
@@ -139,7 +214,15 @@ export function DailyQuests() {
                       />
                     )}
                   </div>
-                  <span className="text-slate-800">{quest.label}</span>
+                  <span
+                    className={
+                      isProfileVariant
+                        ? "text-sm font-medium text-foreground"
+                        : "text-slate-800"
+                    }
+                  >
+                    {quest.label}
+                  </span>
                 </div>
                 {isQuestCompleted(quest) ? (
                   <CheckCircle2 className="text-emerald-500" />
@@ -150,7 +233,11 @@ export function DailyQuests() {
                       handleClaimQuest(quest);
                     }}
                     disabled={claimingQuestKey === quest.key}
-                    className="flex items-center justify-center text-slate-500 hover:text-primary disabled:opacity-50"
+                    className={`flex items-center justify-center disabled:opacity-50 ${
+                      isProfileVariant
+                        ? "text-muted-foreground hover:text-accent"
+                        : "text-slate-500 hover:text-primary"
+                    }`}
                     aria-label="Check progress"
                     title="Check progress"
                   >

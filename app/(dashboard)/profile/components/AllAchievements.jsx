@@ -13,20 +13,6 @@ const getMediaUrl = (url) => {
   return `${API_URL}${url}`;
 };
 
-const levelColorClasses = [
-  "bg-violet text-white",
-  "bg-palm-green text-white",
-  "bg-primary text-primary-foreground",
-  "bg-amber-500 text-white",
-];
-
-function getLevelChip(levelOrder) {
-  if (!Number.isFinite(levelOrder) || levelOrder <= 0) {
-    return levelColorClasses[0];
-  }
-  return levelColorClasses[(levelOrder - 1) % levelColorClasses.length];
-}
-
 export default function AllAchievementsPage({
   onBack,
   achievements = [],
@@ -56,81 +42,83 @@ export default function AllAchievementsPage({
   const inProgressCount = Math.max(achievements.length - unlockedCount, 0);
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-4xl">
-      <motion.div
+    <div className="container px-4 mx-auto max-w-4xl py-6">
+      <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="bg-transparent lg:bg-card rounded-none lg:rounded-2xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-6"
+        className="overflow-hidden rounded-none border-0 bg-transparent shadow-none lg:rounded-3xl lg:border lg:border-accent/20 lg:bg-card lg:shadow-sm"
       >
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <button
-            onClick={onBack}
-            className="inline-flex items-center justify-center rounded-full hover:bg-muted h-10 w-10"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              All Achievements
-              <Medal />
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {unlockedCount} unlocked • {inProgressCount} in progress
-            </p>
+        <div className="relative overflow-hidden border-b border-border px-5 py-6 text-foreground sm:px-7">
+          <div className="absolute -right-14 -top-20 h-44 w-44 rounded-full border-[28px] border-white/10" />
+          <div className="relative flex items-center gap-4">
+            <button
+              onClick={onBack}
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted/50 dark:hover:bg-muted/20"
+              aria-label="Back to profile"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl font-extrabold text-foreground">
+                All achievements
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {unlockedCount} unlocked · {inProgressCount} in progress
+              </p>
+            </div>
+            <Medal size="lg" className="hidden shrink-0 text-accent sm:block" />
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="rounded-xl border border-border p-6 text-center text-muted-foreground">
-            Loading achievements...
-          </div>
-        ) : !groupedAchievements.length ? (
-          <div className="rounded-xl border border-border p-6 text-center text-muted-foreground">
-            No achievements available yet.
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {groupedAchievements.map((group) => (
-              <section key={`level-${group.level}`} className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-foreground">
-                    Level {group.level || "-"}
-                  </h2>
-                  <span className="text-xs text-muted-foreground">
-                    {group.items.filter((item) => item.achieved).length}/
-                    {group.items.length} unlocked
-                  </span>
-                </div>
+        <div className="p-4 sm:p-6">
+          {isLoading ? (
+            <div className="space-y-3">
+              {[...Array(6)].map((_, index) => (
+                <div
+                  key={`achievement-skeleton-${index}`}
+                  className="h-24 animate-pulse rounded-2xl border border-border bg-muted/50"
+                />
+              ))}
+            </div>
+          ) : !groupedAchievements.length ? (
+            <div className="rounded-2xl border border-dashed border-border p-10 text-center text-muted-foreground">
+              No achievements available yet.
+            </div>
+          ) : (
+            <div className="space-y-7">
+              {groupedAchievements.map((group) => (
+                <section key={`level-${group.level}`}>
+                  <div className="mb-3 flex items-center justify-between gap-3 px-1">
+                    <h2 className="text-base font-extrabold text-foreground">
+                      Level {group.level || "-"}
+                    </h2>
+                    <span className="text-xs font-semibold text-muted-foreground">
+                      {group.items.filter((item) => item.achieved).length}/
+                      {group.items.length} unlocked
+                    </span>
+                  </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  {group.items.map((achievement, index) => {
-                    const isUnlocked = Boolean(achievement.achieved);
-                    return (
-                      <motion.div
-                        key={
-                          achievement.id ||
-                          `${achievement.achievementTitle}-${index}`
-                        }
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.04 * index, duration: 0.25 }}
-                        className={`relative p-5 rounded-xl border-2 transition-all ${
-                          isUnlocked
-                            ? "bg-muted/30 border-accent shadow-lg shadow-accent/20"
-                            : "bg-muted/10 border-border/50"
-                        }`}
-                      >
-                        {!isUnlocked && (
-                          <div className="absolute top-3 right-3">
-                            <Lock className="w-4 h-4 text-muted-foreground" />
-                          </div>
-                        )}
-
-                        <div className="flex items-start gap-4 mb-3">
+                  <div className="overflow-hidden rounded-none border-x-0 border-y divide-y divide-border lg:rounded-2xl lg:border">
+                    {group.items.map((achievement, index) => {
+                      const isUnlocked = Boolean(achievement.achieved);
+                      return (
+                        <motion.article
+                          key={
+                            achievement.id ||
+                            `${achievement.achievementTitle}-${index}`
+                          }
+                          initial={{ opacity: 0, x: -12 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.04 * index, duration: 0.25 }}
+                          className="group relative flex items-center gap-4 p-4 transition-colors hover:bg-muted/50 dark:hover:bg-muted/20 sm:p-5"
+                        >
+                          {isUnlocked ? (
+                            <span className="absolute inset-y-0 left-0 w-1 bg-accent" />
+                          ) : null}
                           <div
-                            className={`relative shrink-0 ${!isUnlocked ? "opacity-60" : ""}`}
+                            className={`shrink-0 transition-transform group-hover:scale-105 ${!isUnlocked ? "opacity-60 grayscale" : ""}`}
                           >
                             {achievement.unitIcon ? (
                               <img
@@ -139,44 +127,47 @@ export default function AllAchievementsPage({
                                     achievement.unitIcon,
                                 )}
                                 alt={achievement.title || "Unit icon"}
-                                className="w-14 h-14 rounded-xl object-cover"
+                                className="h-14 w-14 rounded-xl object-cover"
                               />
                             ) : (
-                              <Medal size="md" />
-                            )}
-                            {isUnlocked && (
-                              <AchievementTick className="absolute -bottom-1 -right-1" />
+                              <Medal size="lg" />
                             )}
                           </div>
 
-                          <div className="flex-1 min-w-0 space-y-1">
-                            <h4 className="font-bold text-base break-words">
-                              {achievement.achievementTitle || "Achievement"}
-                            </h4>
-                            <p className="text-xs text-muted-foreground">
-                              Unit {achievement.unitOrder || "-"}:{" "}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="font-extrabold text-foreground">
+                                {achievement.achievementTitle || "Achievement"}
+                              </h3>
+                              <span className="rounded-full border border-border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                                Unit {achievement.unitOrder || "-"}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-sm text-muted-foreground">
                               {achievement.title || "Untitled Unit"}
                             </p>
                             {achievement.unitDescription ? (
-                              <p className="text-xs text-muted-foreground line-clamp-2">
+                              <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
                                 {achievement.unitDescription}
                               </p>
                             ) : null}
                           </div>
-                        </div>
 
-                        <div className="text-xs font-medium text-muted-foreground">
-                          Status: {isUnlocked ? "Unlocked" : "Locked"}
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
-          </div>
-        )}
-      </motion.div>
+                          {isUnlocked ? (
+                            <AchievementTick />
+                          ) : (
+                            <Lock className="h-5 w-5 shrink-0 text-muted-foreground" />
+                          )}
+                        </motion.article>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
+        </div>
+      </motion.section>
     </div>
   );
 }
