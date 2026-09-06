@@ -14,7 +14,7 @@ let package = Package(
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.4.2"),
         .package(name: "CapacitorApp", path: "..\..\..\node_modules\.pnpm\@capacitor+app@8.1.1_@capacitor+core@8.4.2\node_modules\@capacitor\app"),
         .package(name: "CapacitorStatusBar", path: "..\..\..\node_modules\.pnpm\@capacitor+status-bar@8.0.3_@capacitor+core@8.4.2\node_modules\@capacitor\status-bar"),
-        .package(name: "CapawesomeCapacitorGoogleSignIn", path: "..\..\..\node_modules\.pnpm\@capawesome+capacitor-googl_624d7b65ce2b7a8b3a8faf30e2800a7a\node_modules\@capawesome\capacitor-google-sign-in"),
+        .package(name: "CapawesomeCapacitorGoogleSignIn", path: "..\..\..\node_modules\.pnpm\@capawesome+capacitor-googl_2fdcfbc24827794bffcff6b52da3eb2d\node_modules\@capawesome\capacitor-google-sign-in"),
         .package(name: "RevenuecatPurchasesCapacitor", path: "..\..\..\node_modules\.pnpm\@revenuecat+purchases-capacitor@13.2.3_@capacitor+core@8.4.2\node_modules\@revenuecat\purchases-capacitor")
     ],
     targets: [
