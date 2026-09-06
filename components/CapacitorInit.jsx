@@ -16,6 +16,9 @@ export default function CapacitorInit() {
         const { Capacitor, SystemBars } = await import("@capacitor/core");
         if (!Capacitor?.isNativePlatform?.()) return;
 
+        const isIOS = Capacitor.getPlatform?.() === "ios";
+        document.documentElement.classList.toggle("ios", isIOS);
+
         // Android 15+ enforces edge-to-edge and ignores statusBarColor /
         // setOverlaysWebView, so the bars are only styled here and the layout
         // keeps clear of them via the injected --safe-area-inset-* variables.
@@ -43,6 +46,7 @@ export default function CapacitorInit() {
 
     return () => {
       cancelled = true;
+      document.documentElement.classList.remove("ios");
       if (backButtonListener) {
         backButtonListener.remove();
       }

@@ -17,6 +17,10 @@
   --sar: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
 }
 
+html.ios {
+  --sab: 0px;
+}
+
 @layer utilities {
   .safe-area-top {
     padding-top: var(--sat);
