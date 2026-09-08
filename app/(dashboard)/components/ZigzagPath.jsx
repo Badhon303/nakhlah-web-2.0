@@ -1,9 +1,9 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { Circle } from "./Circle";
 import { GateBanner } from "@/components/nakhlah/GateBanner";
+import { JourneyCompleteCelebration } from "./JourneyCompleteCelebration";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Lock, FileText } from "lucide-react";
 
 const PATH_CENTER = 50;
 const PATH_AMPLITUDE = 25;
@@ -31,6 +31,11 @@ export function ZigzagPath({ lessons, levels, isLoading = false }) {
     currentSectionLessons.find((lesson) => lesson.isCurrent) ||
     currentSectionLessons.find((lesson) => !lesson.isLocked) ||
     currentSectionLessons[0];
+
+  // Whether every lesson across the whole journey has been completed, i.e.
+  // there's genuinely nothing left to unlock right now.
+  const isJourneyComplete =
+    !isLoading && lessons.length > 0 && lessons.every((l) => l.isCompleted);
 
   const getPosition = (index) => {
     const x = PATH_CENTER + Math.sin(index * PATH_FREQUENCY) * PATH_AMPLITUDE;
@@ -160,20 +165,8 @@ export function ZigzagPath({ lessons, levels, isLoading = false }) {
 
   return (
     <div className="relative lg:max-w-3xl mx-auto pt-4">
-      {/* Section unlocker placeholder - future content sits at the top */}
-      <div className="mb-8 flex justify-center">
-        <div className="bg-card border-2 border-dashed border-border rounded-xl p-6 w-full max-w-md text-center">
-          <div className="flex justify-center mb-3">
-            <Lock className="w-6 h-6 text-muted-foreground" />
-          </div>
-          <h3 className="text-lg font-bold text-foreground mb-2">
-            Next Section Locked
-          </h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Complete the current section to unlock the next one.
-          </p>
-        </div>
-      </div>
+      {/* Journey completion is the only status shown above the path. */}
+      {isJourneyComplete ? <JourneyCompleteCelebration /> : null}
 
       {/* Lessons grouped by level - bottom-to-top: level 1 sits at the bottom */}
       <div className="relative flex flex-col-reverse">
