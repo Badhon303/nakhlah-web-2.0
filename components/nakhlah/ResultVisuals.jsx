@@ -110,17 +110,21 @@ export function ConfettiBurst({
   );
 }
 
-function buildConfettiRain(count) {
+function buildConfettiRain(count, totalDurationSeconds = 18) {
   return Array.from({ length: count }).map((_, index) => {
     const duration = 5 + Math.random() * 4;
     const isStrip = index % 3 === 0;
+    const delay = -Math.random() * duration;
+    const visibleDuration = totalDurationSeconds + Math.abs(delay);
+    const repeats = Math.max(1, Math.ceil(visibleDuration / duration));
     return {
       id: index,
       left: Math.random() * 100,
       width: isStrip ? 18 : 10 + Math.random() * 7,
       height: isStrip ? 7 : 9 + Math.random() * 7,
       duration,
-      delay: -Math.random() * duration,
+      delay,
+      repeats,
       drift: (Math.random() - 0.5) * 100,
       rotate: 240 + Math.random() * 480,
       tone: CONFETTI_TONES[index % CONFETTI_TONES.length],
@@ -129,12 +133,12 @@ function buildConfettiRain(count) {
   });
 }
 
-export function ConfettiRain({ count = 52, className = "" }) {
+export function ConfettiRain({ count = 52, duration = 18, className = "" }) {
   const [particles, setParticles] = useState([]);
 
   useEffect(() => {
-    setParticles(buildConfettiRain(count));
-  }, [count]);
+    setParticles(buildConfettiRain(count, duration));
+  }, [count, duration]);
 
   return (
     <div
@@ -161,7 +165,7 @@ export function ConfettiRain({ count = 52, className = "" }) {
           transition={{
             duration: particle.duration,
             delay: particle.delay,
-            repeat: Infinity,
+            repeat: particle.repeats,
             ease: "linear",
             times: [0, 0.08, 0.5, 0.9, 1],
           }}
