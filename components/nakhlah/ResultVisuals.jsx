@@ -110,6 +110,67 @@ export function ConfettiBurst({
   );
 }
 
+function buildConfettiRain(count) {
+  return Array.from({ length: count }).map((_, index) => {
+    const duration = 5 + Math.random() * 4;
+    const isStrip = index % 3 === 0;
+    return {
+      id: index,
+      left: Math.random() * 100,
+      width: isStrip ? 18 : 10 + Math.random() * 7,
+      height: isStrip ? 7 : 9 + Math.random() * 7,
+      duration,
+      delay: -Math.random() * duration,
+      drift: (Math.random() - 0.5) * 100,
+      rotate: 240 + Math.random() * 480,
+      tone: CONFETTI_TONES[index % CONFETTI_TONES.length],
+      shape: CONFETTI_SHAPES[index % CONFETTI_SHAPES.length],
+    };
+  });
+}
+
+export function ConfettiRain({ count = 52, className = "" }) {
+  const [particles, setParticles] = useState([]);
+
+  useEffect(() => {
+    setParticles(buildConfettiRain(count));
+  }, [count]);
+
+  return (
+    <div
+      aria-hidden="true"
+      className={`pointer-events-none fixed inset-0 z-[60] overflow-hidden motion-reduce:hidden ${className}`}
+    >
+      {particles.map((particle) => (
+        <motion.span
+          key={particle.id}
+          className={`absolute ${particle.tone} ${particle.shape}`}
+          style={{
+            left: `${particle.left}%`,
+            top: "-6%",
+            width: particle.width,
+            height: particle.height,
+          }}
+          initial={{ y: "-10vh", x: 0, rotate: 0, opacity: 0 }}
+          animate={{
+            y: "116vh",
+            x: [0, particle.drift, particle.drift * 0.35],
+            rotate: particle.rotate,
+            opacity: [0, 1, 1, 1, 0],
+          }}
+          transition={{
+            duration: particle.duration,
+            delay: particle.delay,
+            repeat: Infinity,
+            ease: "linear",
+            times: [0, 0.08, 0.5, 0.9, 1],
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function buildDriftingLeaves(count) {
   return Array.from({ length: count }).map((_, index) => ({
     id: index,

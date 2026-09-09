@@ -36,8 +36,10 @@ import {
   createSubscriptionPayment,
   fetchCurrentSubscription,
   cancelSubscription,
+  createTapSubscriptionCharge,
 } from "@/services/api";
 import { toast } from "@/components/nakhlah/Toast";
+import PaymentGatewayDialog from "@/components/nakhlah/PaymentGatewayDialog";
 
 const premiumFeatures = [
   {
@@ -119,6 +121,8 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
   const [showConfirmSwitch, setShowConfirmSwitch] = useState(false);
   const [showConfirmCancel, setShowConfirmCancel] = useState(false);
   const [pendingSwitchPlan, setPendingSwitchPlan] = useState(null);
+  const [pendingCheckoutPlan, setPendingCheckoutPlan] = useState(null);
+  const [showGatewayDialog, setShowGatewayDialog] = useState(false);
 
   const subscriptionPlans = useSubscriptionPlansStore((state) => state.plans);
   const fetchSubscriptionPlans = useSubscriptionPlansStore(
@@ -191,27 +195,50 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
     }
   };
 
-  const startSubscriptionCheckout = async (plan) => {
-    if (!requireAuth()) return;
-
+  const executeSubscriptionCheckout = async (plan, gateway) => {
     if (!plan) {
       toast.error("Please select a subscription plan.");
       return;
     }
 
     setCheckoutPlanId(plan.id);
-    const result = await createSubscriptionPayment(
-      plan,
-      getSessionToken(session),
-    );
+    const result =
+      gateway === "tap"
+        ? await createTapSubscriptionCharge(plan, getSessionToken(session))
+        : await createSubscriptionPayment(plan, getSessionToken(session));
 
     if (!result.success) {
       setCheckoutPlanId(null);
-      toast.error(result.error || "Unable to start PayPal subscription.");
+      toast.error(
+        result.error ||
+          (gateway === "tap"
+            ? "Unable to start Tap subscription."
+            : "Unable to start PayPal subscription."),
+      );
       return;
     }
 
-    window.location.assign(result.approvalUrl);
+    window.location.assign(result.approvalUrl || result.transactionUrl);
+  };
+
+  const openGatewayDialog = (plan) => {
+    setPendingCheckoutPlan(plan);
+    setShowGatewayDialog(true);
+  };
+
+  const handleGatewaySelect = async (gateway) => {
+    if (!pendingCheckoutPlan) return;
+
+    setShowGatewayDialog(false);
+    const plan = pendingCheckoutPlan;
+    setPendingCheckoutPlan(null);
+
+    await executeSubscriptionCheckout(plan, gateway);
+  };
+
+  const closeGatewayDialog = () => {
+    setShowGatewayDialog(false);
+    setPendingCheckoutPlan(null);
   };
 
   const isSubscriptionActive =
@@ -291,7 +318,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
       toast.success("Previous subscription canceled. Starting new checkout...");
     }
 
-    await startSubscriptionCheckout(pendingSwitchPlan);
+    openGatewayDialog(pendingSwitchPlan);
     setPendingSwitchPlan(null);
   };
 
@@ -315,7 +342,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
       return;
     }
 
-    startSubscriptionCheckout(selectedPlanDetails);
+    openGatewayDialog(selectedPlanDetails);
   };
 
   const handleNext = () => {
@@ -453,7 +480,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
               Choose a subscription plan
             </h2>
             <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
-              Select a plan and we’ll open PayPal checkout directly.
+              Select a plan and we’ll open secure checkout directly.
             </p>
           </motion.div>
 
@@ -605,12 +632,12 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
               }
             >
               {checkoutPlanId
-                ? "Opening PayPal..."
+                ? "Opening checkout..."
                 : currentSubscription &&
                     currentSubscription.status !== "cancelled" &&
                     currentSubscription.plan?.id !== selectedPlanDetails?.id
                   ? "Switch Plan"
-                  : "Continue with PayPal"}
+                  : "Continue to Checkout"}
             </Button>
           </div>
 
@@ -697,6 +724,26 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
           </AlertDialog>
         </motion.div>
       )}
+      <PaymentGatewayDialog
+        open={showGatewayDialog}
+        onClose={closeGatewayDialog}
+        onSelect={handleGatewaySelect}
+        title="Start Subscription"
+        description="Choose how you'd like to pay to continue to secure checkout."
+        summary={
+          pendingCheckoutPlan ? (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {pendingCheckoutPlan.duration}
+              </p>
+              <p className="mt-1 text-3xl font-extrabold text-foreground">
+                {pendingCheckoutPlan.price}
+              </p>
+            </div>
+          ) : null
+        }
+        disabled={checkoutPlanId !== null}
+      />
     </div>
   );
 }

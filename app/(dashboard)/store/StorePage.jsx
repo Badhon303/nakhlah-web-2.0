@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/tooltip";
 import { toast } from "@/components/nakhlah/Toast";
 import Confetti from "@/components/nakhlah/Confetti";
+import PaymentGatewayDialog from "@/components/nakhlah/PaymentGatewayDialog";
 import StoreVisual from "./StoreVisual";
 import {
   createDatePaymentOrder,
@@ -45,6 +46,8 @@ import {
   cancelSubscription,
   switchSubscription,
   fetchCurrentSubscription,
+  createTapDateCharge,
+  createTapSubscriptionCharge,
 } from "@/services/api";
 
 const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
@@ -61,6 +64,8 @@ export default function StorePage() {
   const { data: session, status: sessionStatus } = useSession();
   const searchParams = useSearchParams();
   const [checkoutId, setCheckoutId] = useState(null);
+  const [pendingCheckout, setPendingCheckout] = useState(null);
+  const [showGatewayDialog, setShowGatewayDialog] = useState(false);
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [isLoadingCurrent, setIsLoadingCurrent] = useState(true);
   const [pendingSwitchPlan, setPendingSwitchPlan] = useState(null);
@@ -89,8 +94,103 @@ export default function StorePage() {
     return true;
   };
 
-  const redirectToPayPal = (approvalUrl) => {
-    window.location.assign(approvalUrl);
+  const redirectToCheckout = (url) => {
+    window.location.assign(url);
+  };
+
+  const handleDateCheckout = (pkg) => {
+    if (!requireAuth()) return;
+    setPendingCheckout({ type: "dates", item: pkg });
+    setShowGatewayDialog(true);
+  };
+
+  const handleSubscriptionCheckout = (plan) => {
+    if (!requireAuth()) return;
+
+    const canSwitch = isActiveSubscription(currentSubscription);
+
+    if (canSwitch && currentSubscription.plan?.id === plan.id) {
+      if (currentSubscription.cancelAtPeriodEnd) {
+        toast.info(
+          `You can resubscribe to this plan after ${new Date(
+            currentSubscription.currentPeriodEnd,
+          ).toLocaleDateString()}.`,
+        );
+      } else {
+        toast.info("You already have this plan.");
+      }
+      return;
+    }
+
+    if (canSwitch && currentSubscription.plan?.id !== plan.id) {
+      setPendingSwitchPlan(plan);
+      return;
+    }
+
+    setPendingCheckout({ type: "subscription", item: plan });
+    setShowGatewayDialog(true);
+  };
+
+  const executeDateCheckout = async (pkg, gateway) => {
+    setCheckoutId(`dates:${pkg.id}`);
+
+    const result =
+      gateway === "tap"
+        ? await createTapDateCharge(pkg.id, getSessionToken(session))
+        : await createDatePaymentOrder(pkg.id, getSessionToken(session));
+
+    if (!result.success) {
+      setCheckoutId(null);
+      toast.error(
+        result.error ||
+          (gateway === "tap"
+            ? "Unable to start Tap checkout."
+            : "Unable to start PayPal checkout."),
+      );
+      return;
+    }
+
+    redirectToCheckout(result.approvalUrl || result.transactionUrl);
+  };
+
+  const executeSubscriptionCheckout = async (plan, gateway) => {
+    setCheckoutId(`premium:${plan.id}`);
+    const result =
+      gateway === "tap"
+        ? await createTapSubscriptionCharge(plan, getSessionToken(session))
+        : await createSubscriptionPayment(plan, getSessionToken(session));
+
+    if (!result.success) {
+      setCheckoutId(null);
+      toast.error(
+        result.error ||
+          (gateway === "tap"
+            ? "Unable to start Tap subscription."
+            : "Unable to start PayPal subscription."),
+      );
+      return;
+    }
+
+    redirectToCheckout(result.approvalUrl || result.transactionUrl);
+  };
+
+  const handleGatewaySelect = async (gateway) => {
+    if (!pendingCheckout) return;
+
+    setShowGatewayDialog(false);
+    const checkout = pendingCheckout;
+    setPendingCheckout(null);
+
+    if (checkout.type === "dates") {
+      await executeDateCheckout(checkout.item, gateway);
+    } else {
+      await executeSubscriptionCheckout(checkout.item, gateway);
+    }
+  };
+
+  const closeGatewayDialog = () => {
+    setShowGatewayDialog(false);
+    setPendingCheckout(null);
   };
 
   const datePackages = useDatePackagesStore((state) => state.packages);
@@ -131,66 +231,6 @@ export default function StorePage() {
     const timeoutId = setTimeout(() => setShowConfetti(false), 2000);
     return () => clearTimeout(timeoutId);
   }, [isSuccessfulReturn]);
-
-  const handleDateCheckout = async (pkg) => {
-    if (!requireAuth()) return;
-
-    setCheckoutId(`dates:${pkg.id}`);
-    const result = await createDatePaymentOrder(
-      pkg.id,
-      getSessionToken(session),
-    );
-
-    if (!result.success) {
-      setCheckoutId(null);
-      toast.error(result.error || "Unable to start PayPal checkout.");
-      return;
-    }
-
-    redirectToPayPal(result.approvalUrl);
-  };
-
-  const handleSubscriptionCheckout = async (plan) => {
-    if (!requireAuth()) return;
-
-    const canSwitch = isActiveSubscription(currentSubscription);
-
-    if (canSwitch && currentSubscription.plan?.id === plan.id) {
-      if (currentSubscription.cancelAtPeriodEnd) {
-        toast.info(
-          `You can resubscribe to this plan after ${new Date(
-            currentSubscription.currentPeriodEnd,
-          ).toLocaleDateString()}.`,
-        );
-      } else {
-        toast.info("You already have this plan.");
-      }
-      return;
-    }
-
-    if (canSwitch && currentSubscription.plan?.id !== plan.id) {
-      setPendingSwitchPlan(plan);
-      return;
-    }
-
-    await startSubscriptionCheckout(plan);
-  };
-
-  const startSubscriptionCheckout = async (plan) => {
-    setCheckoutId(`premium:${plan.id}`);
-    const result = await createSubscriptionPayment(
-      plan,
-      getSessionToken(session),
-    );
-
-    if (!result.success) {
-      setCheckoutId(null);
-      toast.error(result.error || "Unable to start PayPal subscription.");
-      return;
-    }
-
-    redirectToPayPal(result.approvalUrl);
-  };
 
   const handleConfirmSwitch = async () => {
     if (!pendingSwitchPlan) return;
@@ -268,7 +308,7 @@ export default function StorePage() {
     setIsCanceling(false);
   };
 
-  const handleResubscribe = async (plan) => {
+  const handleResubscribe = (plan) => {
     if (!requireAuth()) return;
 
     const newPlanId = plan?.id || currentSubscription?.plan?.id;
@@ -278,19 +318,11 @@ export default function StorePage() {
     }
 
     // Fully cancelled subscriptions need a fresh checkout, not a switch.
-    setCheckoutId(`premium:${newPlanId}`);
-    const result = await createSubscriptionPayment(
-      plan || currentSubscription?.plan,
-      getSessionToken(session),
-    );
-
-    if (!result.success) {
-      setCheckoutId(null);
-      toast.error(result.error || "Unable to resubscribe.");
-      return;
-    }
-
-    window.location.assign(result.approvalUrl);
+    setPendingCheckout({
+      type: "subscription",
+      item: plan || currentSubscription?.plan,
+    });
+    setShowGatewayDialog(true);
   };
 
   const subscriptionIsActive = isSubscriptionActive;
@@ -318,6 +350,30 @@ export default function StorePage() {
         onSubscriptionCheckout={handleSubscriptionCheckout}
         onShowSubscriptionDetails={() => setShowSubscriptionDetails(true)}
         onRetryDates={() => fetchDatePackages({ forceRefresh: true })}
+      />
+      <PaymentGatewayDialog
+        open={showGatewayDialog}
+        onClose={closeGatewayDialog}
+        onSelect={handleGatewaySelect}
+        title={
+          pendingCheckout?.type === "dates" ? "Buy Dates" : "Start Subscription"
+        }
+        description="Choose how you'd like to pay to continue to secure checkout."
+        summary={
+          pendingCheckout ? (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {pendingCheckout.type === "dates"
+                  ? `${pendingCheckout.item.amount} Dates`
+                  : pendingCheckout.item.duration}
+              </p>
+              <p className="mt-1 text-3xl font-extrabold text-foreground">
+                {pendingCheckout.item.price}
+              </p>
+            </div>
+          ) : null
+        }
+        disabled={checkoutId !== null}
       />
       <div>
         {/* ── Date Packages ── */}

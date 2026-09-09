@@ -8,14 +8,17 @@ import { useRouter } from "next/navigation";
 import { DatesIcon } from "@/components/icons/PublicAssetIcons";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { useDatePackagesStore } from "@/stores/useDatePackagesStore";
-import { createDatePaymentOrder } from "@/services/api";
+import { createDatePaymentOrder, createTapDateCharge } from "@/services/api";
 import { toast } from "@/components/nakhlah/Toast";
+import PaymentGatewayDialog from "@/components/nakhlah/PaymentGatewayDialog";
 import { ArrowLeft } from "lucide-react";
 
 export default function GemsPurchase({ onBack }) {
   const router = useRouter();
   const { data: session } = useSession();
   const [checkoutId, setCheckoutId] = useState(null);
+  const [pendingPackage, setPendingPackage] = useState(null);
+  const [showGatewayDialog, setShowGatewayDialog] = useState(false);
 
   const datePackages = useDatePackagesStore((state) => state.packages);
   const fetchDatePackages = useDatePackagesStore(
@@ -35,19 +38,42 @@ export default function GemsPurchase({ onBack }) {
     return true;
   };
 
-  const handlePackageSelect = async (pkg) => {
+  const handlePackageSelect = (pkg) => {
     if (!requireAuth()) return;
+    setPendingPackage(pkg);
+    setShowGatewayDialog(true);
+  };
+
+  const executeCheckout = async (gateway) => {
+    if (!pendingPackage) return;
+
+    setShowGatewayDialog(false);
+    const pkg = pendingPackage;
+    setPendingPackage(null);
 
     setCheckoutId(pkg.id);
-    const result = await createDatePaymentOrder(pkg.id, getSessionToken(session));
+    const result =
+      gateway === "tap"
+        ? await createTapDateCharge(pkg.id, getSessionToken(session))
+        : await createDatePaymentOrder(pkg.id, getSessionToken(session));
 
     if (!result.success) {
       setCheckoutId(null);
-      toast.error(result.error || "Unable to start PayPal checkout.");
+      toast.error(
+        result.error ||
+          (gateway === "tap"
+            ? "Unable to start Tap checkout."
+            : "Unable to start PayPal checkout."),
+      );
       return;
     }
 
-    window.location.assign(result.approvalUrl);
+    window.location.assign(result.approvalUrl || result.transactionUrl);
+  };
+
+  const closeGatewayDialog = () => {
+    setShowGatewayDialog(false);
+    setPendingPackage(null);
   };
 
   const containerVariants = {
@@ -87,7 +113,7 @@ export default function GemsPurchase({ onBack }) {
             </h2>
           </div>
           <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
-            Choose a date package and we’ll open PayPal checkout directly.
+            Choose a date package and we’ll open secure checkout directly.
           </p>
         </div>
 
@@ -147,13 +173,35 @@ export default function GemsPurchase({ onBack }) {
                       disabled={checkoutId !== null}
                       className="w-full font-semibold h-10 bg-accent hover:bg-accent/90"
                     >
-                      {checkoutId === pkg.id ? "Opening PayPal..." : "Buy Now"}
+                      {checkoutId === pkg.id
+                        ? "Opening checkout..."
+                        : "Buy Now"}
                     </Button>
                   </div>
                 </motion.div>
               ))}
         </div>
       </motion.div>
+      <PaymentGatewayDialog
+        open={showGatewayDialog}
+        onClose={closeGatewayDialog}
+        onSelect={executeCheckout}
+        title="Buy Dates"
+        description="Choose how you'd like to pay to continue to secure checkout."
+        summary={
+          pendingPackage ? (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {pendingPackage.amount} Dates
+              </p>
+              <p className="mt-1 text-3xl font-extrabold text-foreground">
+                {pendingPackage.price}
+              </p>
+            </div>
+          ) : null
+        }
+        disabled={checkoutId !== null}
+      />
     </div>
   );
 }
