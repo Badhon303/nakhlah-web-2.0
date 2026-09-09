@@ -16,6 +16,7 @@ import { useSession } from "next-auth/react";
 import PhoneInput, {
   isValidPhoneNumber,
   parsePhoneNumber,
+  getCountryCallingCode,
 } from "react-phone-number-input/input";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { updateMyProfile } from "@/services/api/auth";
@@ -112,6 +113,16 @@ export default function EditProfilePage({
     () => ({ ...initialFormData, ...localChanges }),
     [initialFormData, localChanges],
   );
+
+  const phoneInputValue = useMemo(() => {
+    if (!formData.contactNumber || !phoneCountryCode) return undefined;
+    const callingCode = getCountryCallingCode(phoneCountryCode);
+    if (formData.contactNumber.startsWith("+")) return formData.contactNumber;
+    const digits = formData.contactNumber.replace(/\D/g, "");
+    if (digits.startsWith(callingCode)) return `+${digits}`;
+    const withoutLeadingZero = digits.replace(/^0+/, "");
+    return `+${callingCode}${withoutLeadingZero}`;
+  }, [formData.contactNumber, phoneCountryCode]);
 
   useEffect(() => {
     return () => {
@@ -390,13 +401,13 @@ export default function EditProfilePage({
                 showCallingCode
                 placeholder="Code"
                 variant="embedded"
-                triggerClassName="w-[124px] rounded-l-xl border-r border-border"
+                triggerClassName="shrink-0 rounded-l-xl border-r border-border"
               />
               <PhoneInput
                 country={phoneCountryCode || undefined}
                 international={phoneCountryCode ? true : undefined}
                 smartCaret={false}
-                value={formData.contactNumber || undefined}
+                value={phoneInputValue}
                 onChange={handleContactChange}
                 onBlur={handleContactBlur}
                 disabled={!phoneCountryCode}
