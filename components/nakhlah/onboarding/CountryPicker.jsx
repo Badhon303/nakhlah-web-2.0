@@ -28,6 +28,13 @@ export const COUNTRY_OPTIONS = getCountries()
   }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
+export const COUNTRY_NAME_OVERRIDES = {
+  TR: "Türkiye",
+};
+
+export const getCountryDisplayName = (countryCode) =>
+  COUNTRY_NAME_OVERRIDES[countryCode] || getCountryName(countryCode);
+
 export const getCountryName = (countryCode) => labels[countryCode] || "";
 
 export const getCountryCodeByName = (countryName) => {
@@ -106,7 +113,7 @@ export function CountryPicker({
               {selectedCountry
                 ? showCallingCode
                   ? `+${selectedCountry.callingCode}`
-                  : selectedCountry.name
+                  : getCountryDisplayName(selectedCountry.code)
                 : placeholder}
             </span>
           </span>
@@ -135,7 +142,7 @@ export function CountryPicker({
               {COUNTRY_OPTIONS.map((country) => (
                 <CommandItem
                   key={country.code}
-                  value={`${country.name} ${country.code} +${country.callingCode}`}
+                  value={`${country.name} ${getCountryDisplayName(country.code)} ${country.code} +${country.callingCode}`}
                   onSelect={() => {
                     onChange(country.code);
                     setOpen(false);
@@ -144,7 +151,7 @@ export function CountryPicker({
                 >
                   <CountryFlag countryCode={country.code} />
                   <span className="min-w-0 flex-1 truncate font-medium">
-                    {country.name}
+                    {getCountryDisplayName(country.code)}
                   </span>
                   {showCallingCodeInList ? (
                     <span className="text-xs text-muted-foreground transition-colors group-hover:text-accent-foreground group-data-[selected=true]:text-accent-foreground">

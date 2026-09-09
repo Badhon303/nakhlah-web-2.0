@@ -7,6 +7,7 @@ import {
   CountryFlag,
   COUNTRY_OPTIONS,
   CountryPicker,
+  getCountryDisplayName,
 } from "@/components/nakhlah/onboarding/CountryPicker";
 import { cn } from "@/lib/utils";
 
@@ -87,7 +88,7 @@ export function CountryStep({ title, selectedCountry, onSelect }) {
                     isSelected ? "text-accent" : "text-foreground",
                   )}
                 >
-                  {country.name}
+                  {getCountryDisplayName(country.code)}
                 </span>
                 {isSelected ? (
                   <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent">
