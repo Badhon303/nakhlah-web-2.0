@@ -81,7 +81,7 @@ export function CountryPicker({
           className={cn(
             "flex h-12 items-center gap-2 px-4 text-base ring-offset-background transition-colors focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
             isEmbedded
-              ? "shrink-0 bg-transparent hover:bg-muted/40"
+              ? "shrink-0 w-fit bg-transparent hover:bg-muted/40"
               : cn(
                   "w-full justify-between rounded-xl border bg-background hover:border-accent",
                   hasError
@@ -99,7 +99,7 @@ export function CountryPicker({
             )}
             <span
               className={cn(
-                "truncate text-left",
+                "whitespace-nowrap text-left",
                 isEmbedded && "font-semibold",
               )}
             >

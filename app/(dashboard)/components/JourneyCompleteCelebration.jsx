@@ -25,11 +25,10 @@ export function JourneyCompleteCelebration() {
             <Trophy size="xl" />
           </div>
           <h3 className="relative mb-2 text-lg font-bold text-slate-900 dark:text-white">
-            You&apos;ve completed the journey!
+            Congratulations!
           </h3>
           <p className="relative text-sm text-slate-700 dark:text-white/70">
-            Amazing work finishing every lesson. New content is on its way —
-            check back soon for more!
+            You’ve reached the end of your Nakhlah learning journey
           </p>
         </div>
       </motion.div>

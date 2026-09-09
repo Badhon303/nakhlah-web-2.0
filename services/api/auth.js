@@ -851,6 +851,191 @@ export async function switchSubscription(newPlanId, token) {
     }
 }
 
+const normalizeTransactionUrl = (data) => {
+    if (data?.transactionUrl) return data.transactionUrl;
+    if (data?.transaction?.url) return data.transaction.url;
+    if (data?.url) return data.url;
+    return "";
+};
+
+// ── Tap Payments ───────────────────────────────────────────────────────────
+// The frontend never holds the Tap secret key. These functions call backend
+// routes that create the Tap charge/authorize server-side and return the
+// hosted `transactionUrl` for the user to be redirected to. The capture routes
+// verify the charge status server-side before granting dates/subscription.
+
+export async function createTapDateCharge(packageId, token) {
+    try {
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        if (!packageId) {
+            throw new Error("Missing date package");
+        }
+
+        const { response } = await fetchWithAuthRetry("/api/payments/tap/dates/create-charge", {
+            method: "POST",
+            token,
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ packageId }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to start Tap checkout"));
+        }
+
+        const transactionUrl = normalizeTransactionUrl(data);
+
+        if (!transactionUrl) {
+            throw new Error("Tap transaction URL was not returned");
+        }
+
+        return {
+            success: true,
+            chargeId: data?.chargeId || data?.id || null,
+            transactionUrl,
+            data,
+        };
+    } catch (error) {
+        console.error("Create Tap date charge error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to start Tap checkout",
+        };
+    }
+}
+
+export async function captureTapDateCharge(tapId, token) {
+    try {
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        if (!tapId) {
+            throw new Error("Missing Tap charge id");
+        }
+
+        const { response } = await fetchWithAuthRetry("/api/payments/tap/dates/capture", {
+            method: "POST",
+            token,
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ tapId }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to confirm Tap payment"));
+        }
+
+        return {
+            success: true,
+            data,
+            message: data?.message || "Payment confirmed successfully",
+        };
+    } catch (error) {
+        console.error("Capture Tap date charge error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to confirm Tap payment",
+        };
+    }
+}
+
+export async function createTapSubscriptionCharge(planId, token) {
+    try {
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        const resolvedPlanId = planId?.id || planId;
+
+        if (!resolvedPlanId) {
+            throw new Error("Missing subscription plan");
+        }
+
+        const { response } = await fetchWithAuthRetry("/api/payments/tap/subscriptions/create-charge", {
+            method: "POST",
+            token,
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ planId: resolvedPlanId }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to start Tap subscription"));
+        }
+
+        const transactionUrl = normalizeTransactionUrl(data);
+
+        if (!transactionUrl) {
+            throw new Error("Tap transaction URL was not returned");
+        }
+
+        return {
+            success: true,
+            chargeId: data?.chargeId || data?.id || null,
+            transactionUrl,
+            data,
+        };
+    } catch (error) {
+        console.error("Create Tap subscription charge error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to start Tap subscription",
+        };
+    }
+}
+
+export async function captureTapSubscriptionCharge(tapId, token) {
+    try {
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        if (!tapId) {
+            throw new Error("Missing Tap charge id");
+        }
+
+        const { response } = await fetchWithAuthRetry("/api/payments/tap/subscriptions/capture", {
+            method: "POST",
+            token,
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ tapId }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to confirm Tap subscription"));
+        }
+
+        return {
+            success: true,
+            data,
+            message: data?.message || "Subscription confirmed successfully",
+        };
+    } catch (error) {
+        console.error("Capture Tap subscription charge error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to confirm Tap subscription",
+        };
+    }
+}
+
 export async function forgotPassword(email) {
     try {
         const response = await fetch(withApiUrl("/api/users/forgot-password"), {
