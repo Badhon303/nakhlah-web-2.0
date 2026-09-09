@@ -42,10 +42,8 @@ function GatewayOptions({ onSelect, disabled }) {
           type="button"
           disabled={disabled || option.disabled}
           onClick={() => onSelect(option.id)}
-          className={`group flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card px-4 py-6 transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
-            option.disabled
-              ? "opacity-50"
-              : "hover:border-accent/50 hover:shadow-md"
+          className={`group flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card px-4 py-6 transition-all disabled:cursor-not-allowed disabled:hover:border-border ${
+            option.disabled ? "" : "hover:border-accent/50 hover:shadow-md"
           }`}
         >
           <div className="flex h-14 w-full items-center justify-center">
