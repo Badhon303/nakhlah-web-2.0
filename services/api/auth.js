@@ -858,6 +858,130 @@ const normalizeTransactionUrl = (data) => {
     return "";
 };
 
+// ── Tap Sandbox R&D Mock ───────────────────────────────────────────────────
+// Temporary frontend-only bypass for Tap sandbox demos. While
+// USE_TAP_SANDBOX_MOCK is true, the exported Tap functions below short-circuit
+// to these helpers instead of the backend routes. Set it to false to restore
+// the real /api/payments/tap/* calls — no other changes needed.
+// NOTE: Sandbox keys only. Never put an sk_live_ key in client code.
+const USE_TAP_SANDBOX_MOCK = true;
+// Browsers can't call api.tap.company directly (no CORS headers), so the mock
+// goes through the local proxy at app/api/tap/[...path]/route.js, which
+// injects the secret key server-side. Set NEXT_PUBLIC_TAP_SANDBOX_SECRET_KEY
+// only if you point this back at "https://api.tap.company/v2".
+const TAP_SANDBOX_API_BASE = "/api/tap";
+const TAP_SANDBOX_SECRET_KEY =
+    process.env.NEXT_PUBLIC_TAP_SANDBOX_SECRET_KEY || "sk_test_...";
+const TAP_SANDBOX_AMOUNT = 10;
+const TAP_SANDBOX_CURRENCY = "USD";
+
+const tapSandboxHeaders = () => ({
+    Authorization: `Bearer ${TAP_SANDBOX_SECRET_KEY}`,
+    "Content-Type": "application/json",
+});
+
+const tapReturnUrl = (path) =>
+    `${typeof window !== "undefined"
+        ? window.location.origin
+        : "http://localhost:3000"
+    }${path}`;
+
+async function createTapSandboxCharge({ redirectPath, description, metadata }) {
+    try {
+        const response = await fetch(`${TAP_SANDBOX_API_BASE}/charges`, {
+            method: "POST",
+            headers: tapSandboxHeaders(),
+            body: JSON.stringify({
+                amount: TAP_SANDBOX_AMOUNT,
+                currency: TAP_SANDBOX_CURRENCY,
+                threeDSecure: true,
+                save_card: false,
+                description,
+                customer: {
+                    first_name: "Nakhlah",
+                    last_name: "Sandbox",
+                    email: "sandbox@nakhlah.test",
+                    phone: { country_code: "965", number: "50000000" },
+                },
+                metadata,
+                source: { id: "src_all" },
+                redirect: { url: tapReturnUrl(redirectPath) },
+            }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to start Tap checkout"));
+        }
+
+        const transactionUrl = normalizeTransactionUrl(data);
+        if (!transactionUrl) {
+            throw new Error("Tap transaction URL was not returned");
+        }
+
+        return {
+            success: true,
+            chargeId: data?.id || null,
+            transactionUrl,
+            data,
+        };
+    } catch (error) {
+        console.error("Tap sandbox charge error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to start Tap checkout",
+        };
+    }
+}
+
+async function captureTapSandboxCharge(tapId, fallbackMessage) {
+    if (!tapId) {
+        return { success: false, error: "Missing Tap charge id" };
+    }
+
+    let data = null;
+    try {
+        const response = await fetch(`${TAP_SANDBOX_API_BASE}/charges/${tapId}`, {
+            headers: tapSandboxHeaders(),
+        });
+        data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            return {
+                success: false,
+                error: toErrorMessage(data, "Failed to confirm Tap payment"),
+                data,
+            };
+        }
+    } catch (error) {
+        // Only unreachable-network failures (proxy down, CORS, offline) fall
+        // back to simulated success — a real Tap response always gets a real
+        // verdict so declined/expired charges surface correctly.
+        console.warn("Tap sandbox verify failed, simulating success:", error);
+        return {
+            success: true,
+            simulated: true,
+            data: {},
+            message: fallbackMessage,
+        };
+    }
+
+    const status = String(data?.status || "").toUpperCase();
+    if (!["CAPTURED", "PAID", "AUTHORIZED"].includes(status)) {
+        const reason = data?.response?.message
+            ? ` (${data.response.message})`
+            : "";
+        return {
+            success: false,
+            error: `Tap charge ${status || "UNKNOWN"}${reason}`,
+            data,
+        };
+    }
+
+    return { success: true, data, message: fallbackMessage };
+}
+
 // ── Tap Payments ───────────────────────────────────────────────────────────
 // The frontend never holds the Tap secret key. These functions call backend
 // routes that create the Tap charge/authorize server-side and return the
@@ -865,6 +989,13 @@ const normalizeTransactionUrl = (data) => {
 // verify the charge status server-side before granting dates/subscription.
 
 export async function createTapDateCharge(packageId, token) {
+    if (USE_TAP_SANDBOX_MOCK) {
+        return createTapSandboxCharge({
+            redirectPath: "/tap-success/dates",
+            description: `Nakhlah dates package ${packageId}`,
+            metadata: { type: "dates", packageId },
+        });
+    }
     try {
         if (!token) {
             throw new Error("Authentication required");
@@ -911,6 +1042,9 @@ export async function createTapDateCharge(packageId, token) {
 }
 
 export async function captureTapDateCharge(tapId, token) {
+    if (USE_TAP_SANDBOX_MOCK) {
+        return captureTapSandboxCharge(tapId, "Payment confirmed successfully");
+    }
     try {
         if (!token) {
             throw new Error("Authentication required");
@@ -950,6 +1084,14 @@ export async function captureTapDateCharge(tapId, token) {
 }
 
 export async function createTapSubscriptionCharge(planId, token) {
+    if (USE_TAP_SANDBOX_MOCK) {
+        const sandboxPlanId = planId?.id || planId;
+        return createTapSandboxCharge({
+            redirectPath: "/tap-success/subscription",
+            description: `Nakhlah premium subscription ${sandboxPlanId}`,
+            metadata: { type: "subscription", planId: sandboxPlanId },
+        });
+    }
     try {
         if (!token) {
             throw new Error("Authentication required");
@@ -998,6 +1140,12 @@ export async function createTapSubscriptionCharge(planId, token) {
 }
 
 export async function captureTapSubscriptionCharge(tapId, token) {
+    if (USE_TAP_SANDBOX_MOCK) {
+        return captureTapSandboxCharge(
+            tapId,
+            "Subscription confirmed successfully",
+        );
+    }
     try {
         if (!token) {
             throw new Error("Authentication required");

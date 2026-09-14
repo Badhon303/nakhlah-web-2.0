@@ -29,7 +29,7 @@ const GATEWAY_OPTIONS = [
     label: "Tap",
     description: "Card, KNET, mada & more",
     logo: "/tap-pay.png",
-    disabled: true,
+    disabled: false,
   },
 ];
 
