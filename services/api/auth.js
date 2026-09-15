@@ -886,13 +886,18 @@ const tapReturnUrl = (path) =>
         : "http://localhost:3000"
     }${path}`;
 
-async function createTapSandboxCharge({ redirectPath, description, metadata }) {
+async function createTapSandboxCharge({
+    redirectPath,
+    description,
+    metadata,
+    amount,
+}) {
     try {
         const response = await fetch(`${TAP_SANDBOX_API_BASE}/charges`, {
             method: "POST",
             headers: tapSandboxHeaders(),
             body: JSON.stringify({
-                amount: TAP_SANDBOX_AMOUNT,
+                amount: amount ?? TAP_SANDBOX_AMOUNT,
                 currency: TAP_SANDBOX_CURRENCY,
                 threeDSecure: true,
                 save_card: false,
@@ -988,12 +993,13 @@ async function captureTapSandboxCharge(tapId, fallbackMessage) {
 // hosted `transactionUrl` for the user to be redirected to. The capture routes
 // verify the charge status server-side before granting dates/subscription.
 
-export async function createTapDateCharge(packageId, token) {
+export async function createTapDateCharge(packageId, token, { amount } = {}) {
     if (USE_TAP_SANDBOX_MOCK) {
         return createTapSandboxCharge({
             redirectPath: "/tap-success/dates",
             description: `Nakhlah dates package ${packageId}`,
             metadata: { type: "dates", packageId },
+            amount,
         });
     }
     try {
@@ -1083,13 +1089,18 @@ export async function captureTapDateCharge(tapId, token) {
     }
 }
 
-export async function createTapSubscriptionCharge(planId, token) {
+export async function createTapSubscriptionCharge(
+    planId,
+    token,
+    { amount } = {},
+) {
     if (USE_TAP_SANDBOX_MOCK) {
         const sandboxPlanId = planId?.id || planId;
         return createTapSandboxCharge({
             redirectPath: "/tap-success/subscription",
             description: `Nakhlah premium subscription ${sandboxPlanId}`,
             metadata: { type: "subscription", planId: sandboxPlanId },
+            amount,
         });
     }
     try {

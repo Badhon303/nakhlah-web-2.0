@@ -136,7 +136,9 @@ export default function StorePage() {
 
     const result =
       gateway === "tap"
-        ? await createTapDateCharge(pkg.id, getSessionToken(session))
+        ? await createTapDateCharge(pkg.id, getSessionToken(session), {
+            amount: pkg?.raw?.price,
+          })
         : await createDatePaymentOrder(pkg.id, getSessionToken(session));
 
     if (!result.success) {
@@ -157,7 +159,9 @@ export default function StorePage() {
     setCheckoutId(`premium:${plan.id}`);
     const result =
       gateway === "tap"
-        ? await createTapSubscriptionCharge(plan, getSessionToken(session))
+        ? await createTapSubscriptionCharge(plan, getSessionToken(session), {
+            amount: plan?.raw?.price,
+          })
         : await createSubscriptionPayment(plan, getSessionToken(session));
 
     if (!result.success) {

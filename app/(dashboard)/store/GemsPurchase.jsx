@@ -54,7 +54,9 @@ export default function GemsPurchase({ onBack }) {
     setCheckoutId(pkg.id);
     const result =
       gateway === "tap"
-        ? await createTapDateCharge(pkg.id, getSessionToken(session))
+        ? await createTapDateCharge(pkg.id, getSessionToken(session), {
+            amount: pkg?.raw?.price,
+          })
         : await createDatePaymentOrder(pkg.id, getSessionToken(session));
 
     if (!result.success) {
