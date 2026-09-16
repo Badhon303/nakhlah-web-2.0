@@ -7,7 +7,7 @@ import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import {
   captureTapSubscriptionCharge,
   fetchCurrentSubscription,
-} from "@/services/api";
+} from "@/services/api/payment";
 import { toast } from "@/components/nakhlah/Toast";
 import PaymentResultView from "@/components/nakhlah/PaymentResultView";
 

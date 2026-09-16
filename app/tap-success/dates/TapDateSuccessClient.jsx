@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
-import { captureTapDateCharge } from "@/services/api";
+import { captureTapDateCharge } from "@/services/api/payment";
 import { toast } from "@/components/nakhlah/Toast";
 import PaymentResultView from "@/components/nakhlah/PaymentResultView";
 
