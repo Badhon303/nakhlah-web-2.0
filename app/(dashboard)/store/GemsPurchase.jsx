@@ -8,14 +8,24 @@ import { useRouter } from "next/navigation";
 import { DatesIcon } from "@/components/icons/PublicAssetIcons";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { useDatePackagesStore } from "@/stores/useDatePackagesStore";
-import { createDatePaymentOrder, createTapDateCharge } from "@/services/api";
+import {
+  createDatePaymentOrder,
+  createTapDateCharge,
+  confirmTapStcDateCharge,
+} from "@/services/api/payment";
 import { toast } from "@/components/nakhlah/Toast";
 import PaymentGatewayDialog from "@/components/nakhlah/PaymentGatewayDialog";
+import { useProfileStore } from "@/stores/useProfileStore";
+import { getUserKey } from "@/lib/userKey";
+import { getBillingCustomer } from "@/lib/billingCustomer";
 import { ArrowLeft } from "lucide-react";
 
 export default function GemsPurchase({ onBack }) {
   const router = useRouter();
   const { data: session } = useSession();
+  const profile = useProfileStore((state) => state.profile);
+  const fetchMyProfile = useProfileStore((state) => state.fetchMyProfile);
+  const billingCustomer = getBillingCustomer(profile, session);
   const [checkoutId, setCheckoutId] = useState(null);
   const [pendingPackage, setPendingPackage] = useState(null);
   const [showGatewayDialog, setShowGatewayDialog] = useState(false);
@@ -28,7 +38,10 @@ export default function GemsPurchase({ onBack }) {
 
   useEffect(() => {
     fetchDatePackages();
-  }, [fetchDatePackages]);
+    if (isSessionValid(session)) {
+      fetchMyProfile(getSessionToken(session), false, getUserKey(session));
+    }
+  }, [fetchDatePackages, fetchMyProfile, session]);
 
   const requireAuth = () => {
     if (!isSessionValid(session)) {
@@ -44,17 +57,39 @@ export default function GemsPurchase({ onBack }) {
     setShowGatewayDialog(true);
   };
 
-  const executeCheckout = async (gateway) => {
-    if (!pendingPackage) return;
+  const executeCheckout = async (gateway, options = {}) => {
+    if (!pendingPackage) {
+      return { success: false, error: "No date package selected" };
+    }
 
-    setShowGatewayDialog(false);
     const pkg = pendingPackage;
-    setPendingPackage(null);
-
     setCheckoutId(pkg.id);
+    if (gateway === "tap" && options.otp && options.chargeId) {
+      const result = await confirmTapStcDateCharge(
+        options.chargeId,
+        options.otp,
+        getSessionToken(session),
+      );
+
+      if (!result.success) {
+        setCheckoutId(null);
+        toast.error(result.error || "Unable to confirm STC Pay.");
+        return result;
+      }
+
+      setCheckoutId(null);
+      setShowGatewayDialog(false);
+      toast.success(result.message || "STC Pay confirmed successfully.");
+      window.location.assign("/store?refetch=dates&payment=success");
+      return result;
+    }
+
     const result =
       gateway === "tap"
-        ? await createTapDateCharge(pkg.id, getSessionToken(session))
+        ? await createTapDateCharge(pkg.id, getSessionToken(session), {
+            paymentMethod: options.paymentMethod || "card",
+            phoneNumber: options.phone,
+          })
         : await createDatePaymentOrder(pkg.id, getSessionToken(session));
 
     if (!result.success) {
@@ -65,10 +100,18 @@ export default function GemsPurchase({ onBack }) {
             ? "Unable to start Tap checkout."
             : "Unable to start PayPal checkout."),
       );
-      return;
+      return result;
     }
 
-    window.location.assign(result.approvalUrl || result.transactionUrl);
+    if (result.needsOtp) {
+      setCheckoutId(null);
+      return result;
+    }
+
+    const checkoutUrl = result.approvalUrl;
+    if (checkoutUrl) window.location.assign(checkoutUrl);
+    setCheckoutId(null);
+    return result;
   };
 
   const closeGatewayDialog = () => {
@@ -186,6 +229,10 @@ export default function GemsPurchase({ onBack }) {
         open={showGatewayDialog}
         onClose={closeGatewayDialog}
         onSelect={executeCheckout}
+        tapPaymentMethods
+        initialFirstName={billingCustomer.firstName}
+        initialLastName={billingCustomer.lastName}
+        initialPhone={billingCustomer.phoneNumber}
         title="Buy Dates"
         description="Choose how you'd like to pay to continue to secure checkout."
         summary={
