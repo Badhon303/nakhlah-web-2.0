@@ -8,6 +8,7 @@ import { DatesIcon, InjazStarIcon } from "@/components/icons/PublicAssetIcons";
 import { Bullseye } from "@/components/icons/BullsEye";
 import { NotoStopwatch } from "@/components/icons/NotoStopwatch";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import { persistUnlockedBadgeKeys, getPostCompletedPath } from "@/lib/lessonUnlockedBadges";
 
 function formatTime(totalSeconds) {
   const clamped = Math.max(0, Number(totalSeconds) || 0);
@@ -55,7 +56,9 @@ export default function LessonCompleted() {
     }
 
     try {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      persistUnlockedBadgeKeys(parsed);
+      return parsed;
     } catch {
       return null;
     } finally {
@@ -97,10 +100,6 @@ export default function LessonCompleted() {
     totalQuestions,
     correctAnswerAttempts,
   });
-  const addedBadges = Array.isArray(progressData?.badges?.added)
-    ? progressData.badges.added
-    : [];
-  const streakMessage = progressData?.streak?.message || "";
 
   const stats = [
     {
@@ -127,7 +126,7 @@ export default function LessonCompleted() {
   ];
 
   const handleContinue = () => {
-    router.push("/lesson/daily-mission");
+    router.push(getPostCompletedPath());
   };
 
   return (
@@ -144,7 +143,7 @@ export default function LessonCompleted() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="flex justify-center mb-6"
+            className="flex justify-center mb-4"
           >
             <div className="block md:hidden">
               <FreshDateMascot mood="celebrating" size="xxl" />
@@ -159,7 +158,7 @@ export default function LessonCompleted() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            className="text-4xl font-extrabold text-accent mb-8"
+            className="text-4xl font-extrabold text-accent mb-6"
           >
             Lesson completed!
           </motion.h1>
@@ -169,7 +168,7 @@ export default function LessonCompleted() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
-            className="mb-10 px-4 sm:px-0"
+            className="mb-6 px-4 sm:px-0"
           >
             <div className="max-w-sm mx-auto rounded-2xl overflow-hidden border-2 border-amber-400">
               {/* Header */}
@@ -192,7 +191,7 @@ export default function LessonCompleted() {
           </motion.div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-3 gap-3 mb-8 px-2 sm:px-4">
+          <div className="grid grid-cols-3 gap-3 mb-6 px-2 sm:px-4">
             {stats.map((stat) => (
               <div
                 key={stat.label}
@@ -215,26 +214,6 @@ export default function LessonCompleted() {
               </div>
             ))}
           </div>
-
-          {addedBadges.length > 0 && (
-            <div className="mb-8 px-4">
-              <div className="max-w-sm mx-auto rounded-2xl border border-border bg-card p-4 text-left">
-                <p className="text-sm font-bold text-foreground">
-                  Gifts earned
-                </p>
-                {addedBadges.length ? (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    New badges: {addedBadges.join(", ")}
-                  </p>
-                ) : null}
-                {/* {streakMessage ? (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {streakMessage}
-                  </p>
-                ) : null} */}
-              </div>
-            </div>
-          )}
 
           {/* Desktop Continue Button */}
           <motion.div

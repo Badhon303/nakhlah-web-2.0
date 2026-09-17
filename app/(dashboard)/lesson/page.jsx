@@ -29,8 +29,10 @@ import { resolveLessonCompletionDailyQuestParams } from "@/lib/gamification";
 import { useDailyQuestStore } from "@/stores/useDailyQuestStore";
 import { useLessonStore } from "@/stores/useLessonStore";
 import { useProfileStore } from "@/stores/useProfileStore";
+import { useJourneyStore } from "@/stores/useJourneyStore";
 import { getUserKey } from "@/lib/userKey";
 import { toast } from "@/components/nakhlah/Toast";
+import { persistUnlockedBadgeKeys, extractUnlockedBadgeKeys } from "@/lib/lessonUnlockedBadges";
 import PalmTreesDepletedOverlay from "./PalmTreesDepletedOverlay";
 
 import LessonLoadingView from "./loading/LessonLoadingView";
@@ -1133,10 +1135,8 @@ export default function LessonPage({ routeLessonId = "" }) {
             (Number.isFinite(itemInjaz) ? itemInjaz : 0),
           badges: {
             added: [
-              ...(Array.isArray(accumulator?.badges?.added)
-                ? accumulator.badges.added
-                : []),
-              ...(Array.isArray(item?.badges?.added) ? item.badges.added : []),
+              ...extractUnlockedBadgeKeys(accumulator),
+              ...extractUnlockedBadgeKeys(item),
             ],
             total: [
               ...(Array.isArray(accumulator?.badges?.total)
@@ -1163,10 +1163,16 @@ export default function LessonPage({ routeLessonId = "" }) {
         },
       }),
     );
+    persistUnlockedBadgeKeys(mergedClaimPayload);
 
     if (token && shouldInvalidateDailyQuestCache) {
       useDailyQuestStore.getState().invalidate();
     }
+
+    // Bust journey/profile caches now so home cannot serve pre-completion data
+    // even if the sessionStorage flag is missed (e.g. child effects race).
+    useJourneyStore.getState().invalidate();
+    useProfileStore.getState().invalidate();
 
     if (typeof window !== "undefined") {
       sessionStorage.setItem(JOURNEY_REFRESH_FLAG_KEY, "true");
