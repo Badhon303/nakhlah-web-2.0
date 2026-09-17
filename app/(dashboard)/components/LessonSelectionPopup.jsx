@@ -20,6 +20,10 @@ import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { hasOpenedGiftBox } from "@/lib/gamification";
 import { useDailyQuestStore } from "@/stores/useDailyQuestStore";
 import { useLessonStore } from "@/stores/useLessonStore";
+import { useJourneyStore } from "@/stores/useJourneyStore";
+import { useProfileStore } from "@/stores/useProfileStore";
+
+const JOURNEY_REFRESH_FLAG_KEY = "nakhlah:journey-needs-refresh";
 
 const sortByOrder = (items, key) =>
   [...(items || [])].sort((a, b) => (a?.[key] || 0) - (b?.[key] || 0));
@@ -198,6 +202,9 @@ export function LessonSelectionPopup({
           useDailyQuestStore.getState().invalidate();
         }
         if (typeof window !== "undefined") {
+          useJourneyStore.getState().invalidate();
+          useProfileStore.getState().invalidate();
+          sessionStorage.setItem(JOURNEY_REFRESH_FLAG_KEY, "true");
           window.dispatchEvent(new Event("nakhlah:journey-updated"));
         }
       }

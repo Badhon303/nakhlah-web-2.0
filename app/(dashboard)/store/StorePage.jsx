@@ -39,7 +39,7 @@ import {
   fetchCurrentSubscription,
   createTapDateCharge,
   createTapSubscriptionCharge,
-  confirmTapStcDateCharge,
+  // confirmTapStcDateCharge,
 } from "@/services/api/payment";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { getUserKey } from "@/lib/userKey";
@@ -134,31 +134,33 @@ export default function StorePage() {
   const executeDateCheckout = async (pkg, gateway, options = {}) => {
     setCheckoutId(`dates:${pkg.id}`);
 
-    if (gateway === "tap" && options.otp && options.chargeId) {
-      const result = await confirmTapStcDateCharge(
-        options.chargeId,
-        options.otp,
-        getSessionToken(session),
-      );
-
-      if (!result.success) {
-        setCheckoutId(null);
-        toast.error(result.error || "Unable to confirm STC Pay.");
-        return result;
-      }
-
-      setCheckoutId(null);
-      setShowGatewayDialog(false);
-      toast.success(result.message || "STC Pay confirmed successfully.");
-      window.location.assign("/store?refetch=dates&payment=success");
-      return result;
-    }
+    // STC Pay OTP (dates)
+    // if (gateway === "tap" && options.otp && options.chargeId) {
+    //   const result = await confirmTapStcDateCharge(
+    //     options.chargeId,
+    //     options.otp,
+    //     getSessionToken(session),
+    //   );
+    //
+    //   if (!result.success) {
+    //     setCheckoutId(null);
+    //     toast.error(result.error || "Unable to confirm STC Pay.");
+    //     return result;
+    //   }
+    //
+    //   setCheckoutId(null);
+    //   setShowGatewayDialog(false);
+    //   toast.success(result.message || "STC Pay confirmed successfully.");
+    //   window.location.assign("/store?refetch=dates&payment=success");
+    //   return result;
+    // }
 
     const result =
       gateway === "tap"
         ? await createTapDateCharge(pkg.id, getSessionToken(session), {
-            paymentMethod: options.paymentMethod || "card",
-            phoneNumber: options.phone,
+            paymentMethod: "card",
+            // paymentMethod: options.paymentMethod || "card",
+            // phoneNumber: options.phone,
           })
         : await createDatePaymentOrder(pkg.id, getSessionToken(session));
 
@@ -173,10 +175,10 @@ export default function StorePage() {
       return result;
     }
 
-    if (result.needsOtp) {
-      setCheckoutId(null);
-      return result;
-    }
+    // if (result.needsOtp) {
+    //   setCheckoutId(null);
+    //   return result;
+    // }
 
     const checkoutUrl = result.approvalUrl;
     if (checkoutUrl) redirectToCheckout(checkoutUrl);
@@ -428,7 +430,7 @@ export default function StorePage() {
         onClose={closeGatewayDialog}
         onSelect={handleGatewaySelect}
         tapCustomerRequired={pendingCheckout?.type === "subscription"}
-        tapPaymentMethods={pendingCheckout?.type === "dates"}
+        // tapPaymentMethods={pendingCheckout?.type === "dates"}
         initialFirstName={billingCustomer.firstName}
         initialLastName={billingCustomer.lastName}
         initialPhone={billingCustomer.phoneNumber}

@@ -401,32 +401,38 @@ const buildTapDateChargePayload = (
 ) => {
     const method = String(paymentMethod || "card").toLowerCase();
 
-    if (method === "stcpay") {
-        const number = normalizeSaudiMobile(phoneNumber);
-        if (!number) {
-            throw new Error("A valid STC Pay mobile number is required");
-        }
-        const phone = {
-            country_code: "966",
-            number,
-        };
+    // STC Pay (dates) — restore this branch with Card/STC UI later.
+    // if (method === "stcpay") {
+    //     const number = normalizeSaudiMobile(phoneNumber);
+    //     if (!number) {
+    //         throw new Error("A valid STC Pay mobile number is required");
+    //     }
+    //     const phone = {
+    //         country_code: "966",
+    //         number,
+    //     };
+    //
+    //     return {
+    //         packageId,
+    //         currency: "SAR",
+    //         source: {
+    //             id: "src_sa.stcpay",
+    //             phone,
+    //         },
+    //         phone,
+    //         phoneNumber: number,
+    //         phoneCountryCode: "966",
+    //     };
+    // }
 
-        return {
-            packageId,
-            currency: "SAR",
-            source: {
-                id: "src_sa.stcpay",
-                phone,
-            },
-            phone,
-            phoneNumber: number,
-            phoneCountryCode: "966",
-        };
-    }
+    void method;
+    void phoneNumber;
 
     return {
         packageId,
         source: "src_all",
+        // source: "src_card",
+
     };
 };
 
@@ -446,7 +452,10 @@ export async function createTapDateCharge(packageId, token, options = {}) {
         }
 
         const paymentMethod = String(options.paymentMethod || "card").toLowerCase();
-        const payload = buildTapDateChargePayload(packageId, options);
+        const payload = buildTapDateChargePayload(packageId, {
+            ...options,
+            paymentMethod: "card",
+        });
 
         const { response } = await fetchWithAuthRetry(
             "/api/payments/dates/tap/create-charge",
@@ -477,10 +486,13 @@ export async function createTapDateCharge(packageId, token, options = {}) {
         const status = String(
             data?.status || data?.data?.status || "INITIATED",
         ).toUpperCase();
-        const needsOtp =
-            paymentMethod === "stcpay" &&
-            Boolean(chargeId) &&
-            (status === "INITIATED" || !approvalUrl);
+        // STC Pay OTP (dates)
+        // const needsOtp =
+        //     paymentMethod === "stcpay" &&
+        //     Boolean(chargeId) &&
+        //     (status === "INITIATED" || !approvalUrl);
+        const needsOtp = false;
+        void paymentMethod;
 
         if (!needsOtp && !approvalUrl) {
             throw new Error("Tap approval URL was not returned");
@@ -505,6 +517,7 @@ export async function createTapDateCharge(packageId, token, options = {}) {
 }
 
 export async function confirmTapStcDateCharge(chargeId, otp, token) {
+    // STC Pay (dates) — unused while Card/STC selection is disabled.
     try {
         if (!token) {
             throw new Error("Authentication required");

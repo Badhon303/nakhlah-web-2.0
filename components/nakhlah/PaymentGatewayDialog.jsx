@@ -37,27 +37,28 @@ const GATEWAY_OPTIONS = [
   },
 ];
 
-const TAP_DATE_METHODS = [
-  { id: "card", label: "Card / Apple Pay" },
-  { id: "stcpay", label: "STC Pay" },
-];
+// STC Pay (dates) — restore TAP_DATE_METHODS + tapPaymentMethods UI later.
+// const TAP_DATE_METHODS = [
+//   { id: "card", label: "Card / Apple Pay" },
+//   { id: "stcpay", label: "STC Pay" },
+// ];
 
 function GatewayPicker({
   onConfirm,
   disabled,
   tapCustomerRequired,
-  tapPaymentMethods,
+  tapPaymentMethods, // STC dates: restore Card/STC badges with this flag
   initialFirstName = "",
   initialLastName = "",
   initialPhone = "",
 }) {
   const [selected, setSelected] = useState(null);
-  const [tapMethod, setTapMethod] = useState("card");
+  // const [tapMethod, setTapMethod] = useState("card");
   const [firstName, setFirstName] = useState(initialFirstName);
   const [lastName, setLastName] = useState(initialLastName);
   const [phone, setPhone] = useState(initialPhone);
-  const [otp, setOtp] = useState("");
-  const [stcChargeId, setStcChargeId] = useState("");
+  // const [otp, setOtp] = useState("");
+  // const [stcChargeId, setStcChargeId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -66,12 +67,15 @@ function GatewayPicker({
     .replace(/^966/, "")
     .replace(/^0/, "");
   const isTapPhoneValid = /^5\d{8}$/.test(normalizedPhone);
-  const showTapMethods = selected === "tap" && tapPaymentMethods;
-  const isStcPay = showTapMethods && tapMethod === "stcpay";
-  const waitingForOtp = Boolean(stcChargeId);
+  void tapPaymentMethods;
+  // Dates currently use Tap card checkout only (no Card/STC badges).
+  const showTapMethods = false; // selected === "tap" && tapPaymentMethods;
+  void showTapMethods;
+  const isStcPay = false; // showTapMethods && tapMethod === "stcpay";
+  const waitingForOtp = false; // Boolean(stcChargeId);
   const needsTapCustomerDetails =
     selected === "tap" && tapCustomerRequired;
-  const isTapCustomer = needsTapCustomerDetails || isStcPay;
+  const isTapCustomer = needsTapCustomerDetails; // || isStcPay;
   const resolvedFirstName = firstName.trim() || initialFirstName.trim();
   const resolvedLastName = lastName.trim() || initialLastName.trim();
   const needsNameInput =
@@ -81,7 +85,7 @@ function GatewayPicker({
     !needsTapCustomerDetails ||
     (Boolean(resolvedFirstName) && Boolean(resolvedLastName));
   const stcPhoneOk = !isStcPay || isTapPhoneValid;
-  const otpOk = !waitingForOtp || /^\d{4,8}$/.test(otp.trim());
+  const otpOk = true; // !waitingForOtp || /^\d{4,8}$/.test(otp.trim());
   const tapPhoneOk = !isTapCustomer || isTapPhoneValid;
   const canProceed =
     Boolean(selected) &&
@@ -99,7 +103,8 @@ function GatewayPicker({
       selected,
       selected === "tap"
         ? {
-            ...(showTapMethods ? { paymentMethod: tapMethod } : {}),
+            paymentMethod: "card",
+            // ...(showTapMethods ? { paymentMethod: tapMethod } : {}),
             ...(isTapCustomer
               ? {
                   phone: normalizedPhone,
@@ -112,9 +117,9 @@ function GatewayPicker({
                     : {}),
                 }
               : {}),
-            ...(waitingForOtp
-              ? { chargeId: stcChargeId, otp: otp.trim() }
-              : {}),
+            // ...(waitingForOtp
+            //   ? { chargeId: stcChargeId, otp: otp.trim() }
+            //   : {}),
           }
         : undefined,
     );
@@ -125,10 +130,10 @@ function GatewayPicker({
       return;
     }
 
-    if (result.needsOtp && result.chargeId) {
-      setStcChargeId(result.chargeId);
-      setOtp("");
-    }
+    // if (result.needsOtp && result.chargeId) {
+    //   setStcChargeId(result.chargeId);
+    //   setOtp("");
+    // }
   };
 
   return (
@@ -143,9 +148,9 @@ function GatewayPicker({
               disabled={disabled || option.disabled || isSubmitting}
               onClick={() => {
                 setSelected(option.id);
-                setTapMethod("card");
-                setStcChargeId("");
-                setOtp("");
+                // setTapMethod("card");
+                // setStcChargeId("");
+                // setOtp("");
                 setError("");
               }}
               className={`group relative flex flex-col items-center justify-center gap-3 rounded-2xl border bg-card px-4 py-6 transition-all disabled:cursor-not-allowed ${
@@ -180,6 +185,7 @@ function GatewayPicker({
         })}
       </div>
 
+      {/* STC Pay (dates): Card / Apple Pay vs STC Pay badges
       {showTapMethods && (
         <div className="mt-4 flex flex-col items-center text-center">
           <p className="mb-2 text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
@@ -212,6 +218,7 @@ function GatewayPicker({
           </div>
         </div>
       )}
+      */}
 
       {needsNameInput && (
         <div className="mx-auto mt-4 grid w-full max-w-sm gap-3 text-center">
@@ -260,7 +267,8 @@ function GatewayPicker({
             htmlFor="tap-customer-phone"
             className="mb-2 block text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground"
           >
-            {isStcPay ? "STC Pay mobile number" : "Mobile number to save your card"}
+            {"Mobile number to save your card"}
+            {/* {isStcPay ? "STC Pay mobile number" : "Mobile number to save your card"} */}
           </label>
           <div className="flex overflow-hidden rounded-md border border-input bg-background text-left focus-within:ring-2 focus-within:ring-ring">
             <span className="flex items-center border-r border-input px-3 text-sm font-semibold text-muted-foreground">
@@ -281,20 +289,21 @@ function GatewayPicker({
               Enter a valid Saudi mobile number beginning with 5.
             </p>
           )}
-          {tapCustomerRequired && !isStcPay && (
+          {tapCustomerRequired && (
             <p className="mt-1.5 text-xs text-muted-foreground">
               Required so Tap can save your card for the subscription.
             </p>
           )}
-          {isStcPay && !waitingForOtp && (
+          {/* {isStcPay && !waitingForOtp && (
             <p className="mt-1.5 text-xs text-muted-foreground">
               Use the STC Pay mobile number. Tap test numbers include
               554774102; test OTP is always 123456.
             </p>
-          )}
+          )} */}
         </div>
       )}
 
+      {/* STC Pay OTP (dates)
       {waitingForOtp && (
         <div className="mx-auto mt-4 w-full max-w-sm text-center">
           <label
@@ -319,6 +328,7 @@ function GatewayPicker({
           </p>
         </div>
       )}
+      */}
 
       {error && (
         <p className="mt-3 text-center text-sm font-medium text-destructive">
@@ -335,7 +345,8 @@ function GatewayPicker({
         {isSubmitting ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         ) : null}
-        {waitingForOtp ? "Confirm OTP" : "Proceed to Payment"}
+        {"Proceed to Payment"}
+        {/* {waitingForOtp ? "Confirm OTP" : "Proceed to Payment"} */}
         <ArrowRight className="ml-1 h-4 w-4" />
       </Button>
     </div>

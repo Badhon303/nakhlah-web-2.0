@@ -95,12 +95,9 @@ export function UserStats() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    // Read-only: LearnPage owns clearing this flag after journey/profile refresh.
     const shouldForceRefresh =
       sessionStorage.getItem(JOURNEY_REFRESH_FLAG_KEY) === "true";
-
-    if (shouldForceRefresh) {
-      sessionStorage.removeItem(JOURNEY_REFRESH_FLAG_KEY);
-    }
 
     loadStats(shouldForceRefresh);
   }, [loadStats]);
