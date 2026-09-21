@@ -25,7 +25,7 @@ export default function PaymentReturnClient() {
     status: isCanceled ? "canceled" : "loading",
     message: isCanceled
       ? "Your PayPal checkout was canceled, so no charge was completed."
-      : "Confirming your PayPal payment...",
+      : "We're checking the charge with PayPal. Nothing is unlocked until this finishes.",
   });
 
   useEffect(() => {

@@ -225,8 +225,8 @@ export function DailyQuests({ variant = "home" }) {
                   </span>
                 </div>
                 {isQuestCompleted(quest) ? (
-                  <CheckCircle2 className="text-emerald-500" />
-                ) : (
+            <CheckCircle2 className="shrink-0 fill-accent text-background" />
+          ) : (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

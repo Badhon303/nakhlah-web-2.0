@@ -434,6 +434,7 @@ export default function StorePage() {
         initialFirstName={billingCustomer.firstName}
         initialLastName={billingCustomer.lastName}
         initialPhone={billingCustomer.phoneNumber}
+        initialPhoneCountryCode={billingCustomer.phoneCountryCode}
         title={
           pendingCheckout?.type === "dates" ? "Buy Dates" : "Start Subscription"
         }
@@ -1030,7 +1031,7 @@ export default function StorePage() {
               {switchStep === "pay" ? (
                 <div className="mt-6 text-left">
                   <GatewayPicker
-                    key={`${pendingSwitchPlan?.id}-${billingCustomer.firstName}-${billingCustomer.lastName}-${billingCustomer.phoneNumber}`}
+                    key={`${pendingSwitchPlan?.id}-${billingCustomer.firstName}-${billingCustomer.lastName}-${billingCustomer.phoneCountryCode}-${billingCustomer.phoneNumber}`}
                     onConfirm={handleSwitchPayment}
                     disabled={isCanceling || checkoutId !== null}
                     tapCustomerRequired
@@ -1038,6 +1039,7 @@ export default function StorePage() {
                     initialFirstName={billingCustomer.firstName}
                     initialLastName={billingCustomer.lastName}
                     initialPhone={billingCustomer.phoneNumber}
+                    initialPhoneCountryCode={billingCustomer.phoneCountryCode}
                   />
                   <Button
                     type="button"

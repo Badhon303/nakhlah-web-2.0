@@ -56,11 +56,16 @@ export default function PaymentResultView({
   const copy = KIND_COPY[kind] || KIND_COPY.dates;
   const isSuccess = status === "success";
   const isLoading = status === "loading";
-  const mascotMood = status === "error" ? "sad" : "celebrating";
+  const isError = status === "error";
+  const mascotMood = isLoading
+    ? "thinking"
+    : isError
+      ? "sad"
+      : "celebrating";
 
   const headline = isLoading ? (
     <>
-      Confirming <span className="text-gradient-accent">your payment.</span>
+      Double-checking <span className="text-gradient-accent">your payment.</span>
     </>
   ) : isSuccess ? (
     copy.successHeadline
@@ -71,40 +76,54 @@ export default function PaymentResultView({
   );
 
   const subline = isLoading
-    ? `Hang tight — we're verifying the transaction with ${gateway}.`
+    ? `We're carefully verifying the transaction with ${gateway} before we unlock anything.`
     : isSuccess
       ? copy.successSubline
       : "The charge didn't complete, so nothing was taken from your account.";
 
   const heroTitle = isLoading
-    ? `Verifying with ${gateway}.`
+    ? "One moment while we check."
     : isSuccess
       ? "Payment received."
       : "No charge completed.";
 
   const heroSubtitle = isLoading
-    ? "This usually takes just a few seconds."
+    ? "We're confirming the result with the payment provider — this usually takes a few seconds."
     : isSuccess
       ? "Everything's confirmed on our side — you're all set."
       : "You can retry the confirmation or head back to the store.";
 
   const statusLabel = isLoading
-    ? "Verifying payment"
+    ? "Checking payment"
     : isSuccess
       ? "Payment confirmed"
       : "Payment unsuccessful";
 
   const statusTone = isLoading
-    ? "text-accent"
+    ? "text-muted-foreground"
     : isSuccess
       ? "text-secondary"
       : "text-destructive";
 
   const cardTitle = isLoading
-    ? "Confirming payment"
+    ? "Still verifying…"
     : isSuccess
       ? copy.successTitle
       : "Payment needs attention";
+
+  const railClass = isLoading
+    ? "bg-muted text-foreground"
+    : isError
+      ? "bg-destructive text-destructive-foreground"
+      : "bg-gradient-accent text-accent-foreground";
+
+  const railMutedText = isLoading
+    ? "text-muted-foreground"
+    : "text-white/85";
+
+  const railFooterText = isLoading
+    ? "text-muted-foreground"
+    : "text-white/75";
 
   const { CtaIcon } = copy;
 
@@ -128,20 +147,36 @@ export default function PaymentResultView({
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
-          className="overflow-hidden rounded-3xl border border-accent/20 bg-card shadow-lg"
+          className={`overflow-hidden rounded-3xl border bg-card shadow-lg ${
+            isLoading
+              ? "border-border"
+              : isError
+                ? "border-destructive/20"
+                : "border-accent/20"
+          }`}
         >
           <div className="grid lg:grid-cols-[0.85fr_1.15fr]">
-            <div className="relative flex min-h-52 flex-col justify-between overflow-hidden bg-gradient-accent p-7 text-accent-foreground sm:p-9 lg:min-h-80 lg:p-10">
-              <div className="absolute -right-12 -top-16 h-56 w-56 rounded-full border-[32px] border-white/10" />
+            <div
+              className={`relative flex min-h-52 flex-col justify-between overflow-hidden p-7 sm:p-9 lg:min-h-80 lg:p-10 ${railClass}`}
+            >
+              <div
+                className={`absolute -right-12 -top-16 h-56 w-56 rounded-full border-[32px] ${
+                  isLoading ? "border-foreground/5" : "border-white/10"
+                }`}
+              />
               <div className="relative">
                 <h2 className="mt-6 text-3xl font-extrabold leading-tight sm:text-4xl">
                   {heroTitle}
                 </h2>
-                <p className="mt-3 max-w-md text-sm leading-6 text-white/85 sm:text-base">
+                <p
+                  className={`mt-3 max-w-md text-sm leading-6 sm:text-base ${railMutedText}`}
+                >
                   {heroSubtitle}
                 </p>
               </div>
-              <div className="relative mt-8 flex items-center gap-2 text-xs font-semibold text-white/75">
+              <div
+                className={`relative mt-8 flex items-center gap-2 text-xs font-semibold ${railFooterText}`}
+              >
                 <ShieldCheck className="h-4 w-4" /> Secure checkout · Powered by{" "}
                 {gateway}
               </div>
@@ -158,13 +193,16 @@ export default function PaymentResultView({
                   {cardTitle}
                 </h2>
                 <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
-                  {message}
+                  {message ||
+                    (isLoading
+                      ? "We're waiting for confirmation from the payment provider. Nothing is unlocked until this finishes."
+                      : "")}
                 </p>
 
                 {isLoading ? (
                   <div className="mt-7 flex items-center gap-3 text-sm font-semibold text-muted-foreground">
                     <Loader2 className="h-5 w-5 animate-spin text-accent" />
-                    Talking to {gateway}…
+                    Checking with {gateway}…
                   </div>
                 ) : (
                   <div className="mt-7 flex flex-col gap-3 sm:flex-row">

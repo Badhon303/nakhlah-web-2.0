@@ -15,7 +15,8 @@ export default function TapDateSuccessClient() {
   const tapId = searchParams.get("tap_id") || "";
   const [captureState, setCaptureState] = useState({
     status: "loading",
-    message: "Confirming your Tap payment...",
+    message:
+      "We're checking the charge with Tap. Nothing is unlocked until this finishes.",
   });
 
   useEffect(() => {
