@@ -731,7 +731,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
                 {switchStep === "pay" ? (
                   <>
                     <GatewayPicker
-                      key={`${pendingSwitchPlan?.id}-${billingCustomer.firstName}-${billingCustomer.lastName}-${billingCustomer.phoneNumber}`}
+                      key={`${pendingSwitchPlan?.id}-${billingCustomer.firstName}-${billingCustomer.lastName}-${billingCustomer.phoneCountryCode}-${billingCustomer.phoneNumber}`}
                       onConfirm={handleSwitchPayment}
                       disabled={isCanceling}
                       tapCustomerRequired
@@ -739,6 +739,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
                       initialFirstName={billingCustomer.firstName}
                       initialLastName={billingCustomer.lastName}
                       initialPhone={billingCustomer.phoneNumber}
+                      initialPhoneCountryCode={billingCustomer.phoneCountryCode}
                     />
                     <Button
                       type="button"
@@ -856,6 +857,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
         initialFirstName={billingCustomer.firstName}
         initialLastName={billingCustomer.lastName}
         initialPhone={billingCustomer.phoneNumber}
+        initialPhoneCountryCode={billingCustomer.phoneCountryCode}
         title="Start Subscription"
         description="Choose how you'd like to pay to continue to secure checkout."
         summary={

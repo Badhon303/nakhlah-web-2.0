@@ -18,7 +18,8 @@ export default function TapSubscriptionSuccessClient() {
   const tapId = searchParams.get("tap_id") || "";
   const [captureState, setCaptureState] = useState({
     status: "loading",
-    message: "Confirming your Tap subscription...",
+    message:
+      "We're checking the subscription charge with Tap. Your plan won't change until this finishes.",
   });
 
   useEffect(() => {

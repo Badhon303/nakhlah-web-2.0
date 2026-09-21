@@ -235,6 +235,7 @@ export default function GemsPurchase({ onBack }) {
         initialFirstName={billingCustomer.firstName}
         initialLastName={billingCustomer.lastName}
         initialPhone={billingCustomer.phoneNumber}
+        initialPhoneCountryCode={billingCustomer.phoneCountryCode}
         title="Buy Dates"
         description="Choose how you'd like to pay to continue to secure checkout."
         summary={

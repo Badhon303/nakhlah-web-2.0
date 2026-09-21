@@ -31,7 +31,7 @@ export default function MissionCard({ mission, index = 0 }) {
       className={`flex items-center gap-4 rounded-2xl border bg-card p-4 shadow-sm transition-all ${
         isActive
           ? "border-border hover:shadow-md"
-          : "border-border/60 opacity-60 grayscale"
+          : "border-border/60"
       }`}
     >
       <div className="flex h-11 w-11 shrink-0 items-center justify-center">
@@ -52,14 +52,14 @@ export default function MissionCard({ mission, index = 0 }) {
           <p
             className={`font-bold leading-snug ${
               completed
-                ? "text-muted-foreground line-through"
+                ? "text-foreground"
                 : "text-foreground"
             }`}
           >
             {mission.label}
           </p>
           {isActive && completed ? (
-            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 fill-accent text-background" />
           ) : null}
         </div>
 

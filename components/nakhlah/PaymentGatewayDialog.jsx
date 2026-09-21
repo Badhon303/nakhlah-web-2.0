@@ -1,7 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Check, Loader2 } from "lucide-react";
+import { useSession } from "next-auth/react";
+import {
+  getCountryCallingCode,
+  parsePhoneNumber,
+} from "react-phone-number-input";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input/input";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +25,34 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/drawer";
+import { CountryPicker } from "@/components/nakhlah/onboarding/CountryPicker";
+import { getSessionToken, isSessionValid } from "@/lib/authUtils";
+import { getUserKey } from "@/lib/userKey";
+import {
+  getBillingCustomer,
+  isoFromCallingCode,
+} from "@/lib/billingCustomer";
+import { useProfileStore } from "@/stores/useProfileStore";
+import { cn } from "@/lib/utils";
+
+function digitsOnly(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+function pickPrefill(propValue, profileValue) {
+  const fromProp = String(propValue || "").trim();
+  if (fromProp) return fromProp;
+  return String(profileValue || "").trim();
+}
+
+function callingCodeFromIso(iso) {
+  if (!iso) return "";
+  try {
+    return String(getCountryCallingCode(iso) || "");
+  } catch {
+    return "";
+  }
+}
 
 const GATEWAY_OPTIONS = [
   {
@@ -30,7 +64,7 @@ const GATEWAY_OPTIONS = [
   },
   {
     id: "tap",
-    label: "Tap",
+    label: "Choose Others",
     description: "Cards, wallets & local methods",
     logo: "/tap-pay.png",
     disabled: false,
@@ -51,22 +85,89 @@ function GatewayPicker({
   initialFirstName = "",
   initialLastName = "",
   initialPhone = "",
+  initialPhoneCountryCode = "",
 }) {
+  const { data: session, status: sessionStatus } = useSession();
+  const profile = useProfileStore((state) => state.profile);
+  const fetchMyProfile = useProfileStore((state) => state.fetchMyProfile);
+  const billingCustomer = getBillingCustomer(profile, session);
+
+  const resolvedInitialFirstName = pickPrefill(
+    initialFirstName,
+    billingCustomer.firstName,
+  );
+  const resolvedInitialLastName = pickPrefill(
+    initialLastName,
+    billingCustomer.lastName,
+  );
+  const resolvedInitialPhone = pickPrefill(
+    initialPhone,
+    billingCustomer.phoneNumber,
+  );
+  const resolvedInitialCountryCode = pickPrefill(
+    initialPhoneCountryCode,
+    billingCustomer.phoneCountryCode,
+  );
+  const resolvedInitialCountryIso =
+    billingCustomer.phoneCountryIso ||
+    isoFromCallingCode(resolvedInitialCountryCode);
+
+  const resolvedInitialE164 =
+    resolvedInitialCountryCode && resolvedInitialPhone
+      ? `+${digitsOnly(resolvedInitialCountryCode)}${digitsOnly(resolvedInitialPhone)}`
+      : "";
+
   const [selected, setSelected] = useState(null);
   // const [tapMethod, setTapMethod] = useState("card");
-  const [firstName, setFirstName] = useState(initialFirstName);
-  const [lastName, setLastName] = useState(initialLastName);
-  const [phone, setPhone] = useState(initialPhone);
+  const [firstName, setFirstName] = useState(resolvedInitialFirstName);
+  const [lastName, setLastName] = useState(resolvedInitialLastName);
+  const [phoneCountryIso, setPhoneCountryIso] = useState(
+    resolvedInitialCountryIso,
+  );
+  const [phoneE164, setPhoneE164] = useState(resolvedInitialE164);
   // const [otp, setOtp] = useState("");
   // const [stcChargeId, setStcChargeId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  const normalizedPhone = phone
-    .replace(/\D/g, "")
-    .replace(/^966/, "")
-    .replace(/^0/, "");
-  const isTapPhoneValid = /^5\d{8}$/.test(normalizedPhone);
+  useEffect(() => {
+    if (sessionStatus === "loading") return;
+    if (!isSessionValid(session)) return;
+    const token = getSessionToken(session);
+    if (!token) return;
+    fetchMyProfile(token, false, getUserKey(session));
+  }, [fetchMyProfile, session, sessionStatus]);
+
+  useEffect(() => {
+    setFirstName(resolvedInitialFirstName);
+    setLastName(resolvedInitialLastName);
+    setPhoneCountryIso(resolvedInitialCountryIso);
+    setPhoneE164(resolvedInitialE164);
+  }, [
+    resolvedInitialFirstName,
+    resolvedInitialLastName,
+    resolvedInitialCountryIso,
+    resolvedInitialE164,
+  ]);
+
+  const resolvedCountryCode =
+    callingCodeFromIso(phoneCountryIso) ||
+    digitsOnly(resolvedInitialCountryCode);
+  const normalizedPhone = (() => {
+    if (!phoneE164) return "";
+    try {
+      const parsed = parsePhoneNumber(phoneE164);
+      if (parsed?.nationalNumber) return String(parsed.nationalNumber);
+    } catch {
+      // fall through
+    }
+    return digitsOnly(phoneE164)
+      .replace(new RegExp(`^${resolvedCountryCode || "___"}`), "")
+      .replace(/^0/, "");
+  })();
+  const isTapPhoneValid = Boolean(
+    phoneCountryIso && phoneE164 && isValidPhoneNumber(phoneE164),
+  );
   void tapPaymentMethods;
   // Dates currently use Tap card checkout only (no Card/STC badges).
   const showTapMethods = false; // selected === "tap" && tapPaymentMethods;
@@ -76,11 +177,12 @@ function GatewayPicker({
   const needsTapCustomerDetails =
     selected === "tap" && tapCustomerRequired;
   const isTapCustomer = needsTapCustomerDetails; // || isStcPay;
-  const resolvedFirstName = firstName.trim() || initialFirstName.trim();
-  const resolvedLastName = lastName.trim() || initialLastName.trim();
+  const resolvedFirstName =
+    firstName.trim() || resolvedInitialFirstName.trim();
+  const resolvedLastName = lastName.trim() || resolvedInitialLastName.trim();
   const needsNameInput =
     needsTapCustomerDetails &&
-    (!initialFirstName.trim() || !initialLastName.trim());
+    (!resolvedInitialFirstName.trim() || !resolvedInitialLastName.trim());
   const tapNameOk =
     !needsTapCustomerDetails ||
     (Boolean(resolvedFirstName) && Boolean(resolvedLastName));
@@ -95,6 +197,12 @@ function GatewayPicker({
     otpOk &&
     !isSubmitting;
 
+  const handlePhoneCountryChange = (nextIso) => {
+    if (nextIso === phoneCountryIso) return;
+    setPhoneCountryIso(nextIso || "");
+    setPhoneE164("");
+  };
+
   const handleProceed = async () => {
     if (disabled || !canProceed) return;
     setError("");
@@ -108,7 +216,7 @@ function GatewayPicker({
             ...(isTapCustomer
               ? {
                   phone: normalizedPhone,
-                  phoneCountryCode: "966",
+                  phoneCountryCode: resolvedCountryCode,
                   ...(needsTapCustomerDetails
                     ? {
                         firstName: resolvedFirstName,
@@ -222,7 +330,7 @@ function GatewayPicker({
 
       {needsNameInput && (
         <div className="mx-auto mt-4 grid w-full max-w-sm gap-3 text-center">
-          {!initialFirstName.trim() && (
+          {!resolvedInitialFirstName.trim() && (
             <div>
               <label
                 htmlFor="tap-customer-first-name"
@@ -240,7 +348,7 @@ function GatewayPicker({
               />
             </div>
           )}
-          {!initialLastName.trim() && (
+          {!resolvedInitialLastName.trim() && (
             <div>
               <label
                 htmlFor="tap-customer-last-name"
@@ -270,23 +378,43 @@ function GatewayPicker({
             {"Mobile number to save your card"}
             {/* {isStcPay ? "STC Pay mobile number" : "Mobile number to save your card"} */}
           </label>
-          <div className="flex overflow-hidden rounded-md border border-input bg-background text-left focus-within:ring-2 focus-within:ring-ring">
-            <span className="flex items-center border-r border-input px-3 text-sm font-semibold text-muted-foreground">
-              +966
-            </span>
-            <Input
-              id="tap-customer-phone"
-              inputMode="tel"
-              value={phone}
+          <div
+            className={cn(
+              "flex items-stretch overflow-hidden rounded-md border bg-background text-left focus-within:ring-2 focus-within:ring-ring",
+              phoneE164 && !isTapPhoneValid
+                ? "border-destructive focus-within:ring-destructive/40"
+                : "border-input",
+            )}
+          >
+            <CountryPicker
+              value={phoneCountryIso}
+              onChange={handlePhoneCountryChange}
+              showCallingCode
+              placeholder="Code"
+              variant="embedded"
               disabled={isSubmitting}
-              onChange={(event) => setPhone(event.target.value)}
-              placeholder="5XXXXXXXX"
-              className="border-0 text-center focus-visible:ring-0"
+              triggerClassName="h-10 shrink-0 rounded-none border-r border-input"
+            />
+            <PhoneInput
+              id="tap-customer-phone"
+              country={phoneCountryIso || undefined}
+              international={phoneCountryIso ? true : undefined}
+              smartCaret={false}
+              value={phoneE164 || undefined}
+              onChange={(value) => setPhoneE164(value || "")}
+              disabled={isSubmitting || !phoneCountryIso}
+              inputMode="tel"
+              autoComplete="tel"
+              aria-label="Mobile number"
+              className="flex h-10 min-w-0 flex-1 border-0 bg-transparent px-3 text-center text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder={
+                phoneCountryIso ? "Phone number" : "Select a country code"
+              }
             />
           </div>
-          {phone && !isTapPhoneValid && (
+          {phoneE164 && !isTapPhoneValid && (
             <p className="mt-1.5 text-xs text-destructive">
-              Enter a valid Saudi mobile number beginning with 5.
+              Enter a valid mobile number for the selected country.
             </p>
           )}
           {tapCustomerRequired && (
@@ -363,6 +491,7 @@ export default function PaymentGatewayDialog({
   initialFirstName = "",
   initialLastName = "",
   initialPhone = "",
+  initialPhoneCountryCode = "",
   title = "Choose a payment method",
   description = "Select how you'd like to pay to continue to secure checkout.",
   summary,
@@ -377,7 +506,7 @@ export default function PaymentGatewayDialog({
 
   const picker = (
     <GatewayPicker
-      key={`${open}-${tapPaymentMethods}-${tapCustomerRequired}-${initialPhone}-${initialFirstName}-${initialLastName}`}
+      key={`${open}-${tapPaymentMethods}-${tapCustomerRequired}-${initialPhone}-${initialPhoneCountryCode}-${initialFirstName}-${initialLastName}`}
       onConfirm={handleConfirm}
       disabled={disabled}
       tapCustomerRequired={tapCustomerRequired}
@@ -385,6 +514,7 @@ export default function PaymentGatewayDialog({
       initialFirstName={initialFirstName}
       initialLastName={initialLastName}
       initialPhone={initialPhone}
+      initialPhoneCountryCode={initialPhoneCountryCode}
     />
   );
 
