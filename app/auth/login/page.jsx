@@ -23,6 +23,14 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  const handleGoogleSignIn = () => {
+    if (isLoading || isGoogleLoading) return;
+    setIsGoogleLoading(true);
+    clearProfile();
+    signIn("google", { callbackUrl: "/auth/social-redirect" });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -215,11 +223,8 @@ export default function Login() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  clearProfile();
-                  signIn("google", { callbackUrl: "/auth/social-redirect" });
-                }}
-                disabled={isLoading}
+                onClick={handleGoogleSignIn}
+                disabled={isLoading || isGoogleLoading}
                 className="w-full h-12 border-border hover:bg-accent/10 font-semibold text-foreground rounded-xl"
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">

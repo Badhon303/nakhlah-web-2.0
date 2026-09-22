@@ -7,42 +7,78 @@ import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { fetchMyProfile } from "@/services/api/auth";
 
+const SESSION_GRACE_MS = 2500;
+const SESSION_RETRY_MS = 400;
+
 export default function SocialRedirectPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const resolvedRef = useRef(false);
+  const startedAtRef = useRef(Date.now());
 
   useEffect(() => {
     if (resolvedRef.current) return;
+    if (status === "loading") return;
+
+    let cancelled = false;
+    let retryTimer;
+
+    const goLogin = (query = "") => {
+      if (resolvedRef.current || cancelled) return;
+      resolvedRef.current = true;
+      router.replace(`/auth/login${query}`);
+    };
 
     const resolveSocialProfile = async () => {
-      if (status === "loading") return;
+      if (resolvedRef.current || cancelled) return;
 
-      if (!isSessionValid(session)) {
+      // Backend social-login failed during the Google callback — definitive.
+      if (session?.error === "SocialLoginFailed") {
+        goLogin("?error=SocialLoginFailed");
+        return;
+      }
+
+      if (status === "authenticated" && isSessionValid(session)) {
+        const token = getSessionToken(session);
+        if (!token) {
+          goLogin("?error=SessionExpired");
+          return;
+        }
+
+        const profileResult = await fetchMyProfile(token);
+        if (resolvedRef.current || cancelled) return;
+
         resolvedRef.current = true;
-        router.replace("/auth/login");
+        if (profileResult.success && profileResult.profile) {
+          router.replace("/");
+          return;
+        }
+
+        router.replace("/onboarding?social=1");
         return;
       }
 
-      const token = getSessionToken(session);
-      if (!token) {
-        resolvedRef.current = true;
-        router.replace("/auth/login");
+      // After OAuth, the client session can briefly look empty before the
+      // JWT cookie is readable. Wait out a short grace window before failing.
+      const elapsed = Date.now() - startedAtRef.current;
+      if (elapsed < SESSION_GRACE_MS) {
+        retryTimer = setTimeout(resolveSocialProfile, SESSION_RETRY_MS);
         return;
       }
 
-      const profileResult = await fetchMyProfile(token);
-      resolvedRef.current = true;
-
-      if (profileResult.success && profileResult.profile) {
-        router.replace("/");
-        return;
-      }
-
-      router.replace("/onboarding?social=1");
+      goLogin(
+        status === "unauthenticated"
+          ? "?error=SocialLoginFailed"
+          : "?error=SessionExpired",
+      );
     };
 
     resolveSocialProfile();
+
+    return () => {
+      cancelled = true;
+      if (retryTimer) clearTimeout(retryTimer);
+    };
   }, [router, session, status]);
 
   return (
