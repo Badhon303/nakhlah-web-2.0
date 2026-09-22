@@ -3,7 +3,7 @@
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { fetchMyProfile } from "@/services/api/auth";
 
@@ -23,25 +23,30 @@ export default function SocialRedirectPage() {
     let cancelled = false;
     let retryTimer;
 
-    const goLogin = (query = "") => {
+    const goLogin = async (query = "") => {
       if (resolvedRef.current || cancelled) return;
       resolvedRef.current = true;
+      // Clear the half-broken Google JWT so login does not keep SocialLoginFailed.
+      await signOut({ redirect: false }).catch(() => {});
+      if (cancelled) return;
       router.replace(`/auth/login${query}`);
     };
 
     const resolveSocialProfile = async () => {
       if (resolvedRef.current || cancelled) return;
 
-      // Backend social-login failed during the Google callback — definitive.
       if (session?.error === "SocialLoginFailed") {
-        goLogin("?error=SocialLoginFailed");
+        const detail = encodeURIComponent(
+          session.errorMessage || "Google sign-in could not be completed.",
+        );
+        await goLogin(`?error=SocialLoginFailed&message=${detail}`);
         return;
       }
 
       if (status === "authenticated" && isSessionValid(session)) {
         const token = getSessionToken(session);
         if (!token) {
-          goLogin("?error=SessionExpired");
+          await goLogin("?error=SessionExpired");
           return;
         }
 
@@ -58,15 +63,13 @@ export default function SocialRedirectPage() {
         return;
       }
 
-      // After OAuth, the client session can briefly look empty before the
-      // JWT cookie is readable. Wait out a short grace window before failing.
       const elapsed = Date.now() - startedAtRef.current;
       if (elapsed < SESSION_GRACE_MS) {
         retryTimer = setTimeout(resolveSocialProfile, SESSION_RETRY_MS);
         return;
       }
 
-      goLogin(
+      await goLogin(
         status === "unauthenticated"
           ? "?error=SocialLoginFailed"
           : "?error=SessionExpired",
