@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,12 +11,24 @@ import { Eye, EyeOff } from "lucide-react";
 import { signIn } from "next-auth/react";
 import LogoAnimation from "@/components/icons/Logo";
 import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { queueToastAfterNavigation, toast } from "@/components/nakhlah/Toast";
 import { useProfileStore } from "@/stores/useProfileStore";
 
+function socialLoginErrorMessage(error, message) {
+  if (message) return message;
+  if (error === "SocialLoginFailed") {
+    return "Google sign-in failed. Please try again or use email login.";
+  }
+  if (error === "SessionExpired") {
+    return "Your session expired. Please sign in again.";
+  }
+  return error ? "Unable to sign in. Please try again." : "";
+}
+
 export default function Login() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const clearProfile = useProfileStore((state) => state.clear);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -24,6 +36,17 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    const message = searchParams.get("message");
+    const text = socialLoginErrorMessage(error, message);
+    if (!text) return;
+    toast.error(text);
+    // Drop query so refreshing does not re-toast.
+    router.replace("/auth/login", { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once per error query
+  }, [searchParams]);
 
   const handleGoogleSignIn = () => {
     if (isLoading || isGoogleLoading) return;
