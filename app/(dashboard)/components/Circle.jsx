@@ -54,11 +54,16 @@ export function Circle({
   const getIcon = () => {
     // Gift box / Mystery box
     if (isTrophy) {
+      const unlocked = !isLocked;
       return (
         <img
-          src="/icons/mystery_box_locked.svg"
-          alt="Mystery Box"
-          className={`${iconSizeClass} object-contain`}
+          src={
+            unlocked
+              ? "/icons/mystery_box_unlocked.svg"
+              : "/icons/mystery_box_locked.svg"
+          }
+          alt={unlocked ? "Mystery box unlocked" : "Mystery box locked"}
+          className={`${iconSizeClass} object-contain${unlocked ? " scale-110" : ""}`}
         />
       );
     }

@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
 import { ThemeToggle } from "./ThemeToggle";
 import { signOut } from "next-auth/react";
 
@@ -22,6 +24,17 @@ const navItems = [
 export function Navbar() {
   const pathname = usePathname();
   const isHomePage = pathname === "/";
+  const { resolvedTheme } = useTheme();
+  const [themeReady, setThemeReady] = useState(false);
+
+  useEffect(() => {
+    setThemeReady(true);
+  }, []);
+
+  const logoutIcon =
+    themeReady && resolvedTheme === "dark" && !isHomePage
+      ? "/icons/logout-white.svg"
+      : "/icons/logout.125f3808.svg";
 
   // Clicking a nav link (or the logo) to the route we're already on would
   // otherwise still trigger Next.js's default scroll-to-top behavior, even
@@ -125,7 +138,7 @@ export function Navbar() {
               )}
             >
               <Image
-                src="/icons/logout.125f3808.svg"
+                src={logoutIcon}
                 alt="Logout"
                 width={24}
                 height={24}
@@ -194,7 +207,7 @@ export function Navbar() {
             )}
           >
             <Image
-              src="/icons/logout.125f3808.svg"
+              src={logoutIcon}
               alt="Logout"
               width={24}
               height={24}
