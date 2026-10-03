@@ -7,14 +7,14 @@ if (signingPropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.fintechhub.nakhla"
+    namespace = "com.fintechhub.nakhlah"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.fintechhub.nakhla"
+        applicationId "com.fintechhub.nakhlah"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 6
-        versionName "1.0.6"
+        versionCode 9
+        versionName "1.0.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

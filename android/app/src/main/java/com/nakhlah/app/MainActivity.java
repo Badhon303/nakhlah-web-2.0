@@ -1,4 +1,4 @@
-package com.fintechhub.nakhla;
+package com.fintechhub.nakhlah;
 
 import com.getcapacitor.BridgeActivity;
 
