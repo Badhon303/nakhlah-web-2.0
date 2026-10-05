@@ -55,6 +55,13 @@ function safelyParseLessonSession(rawValue) {
   }
 }
 
+function readRouteLessonId() {
+  if (typeof window === "undefined") return "";
+  return (
+    new URLSearchParams(window.location.search).get("lessonId")?.trim() || ""
+  );
+}
+
 function clearPersistedLessonSession() {
   if (typeof window === "undefined") return;
 
@@ -508,6 +515,7 @@ export default function LessonPage() {
       }
 
       const lessonId =
+        readRouteLessonId() ||
         (storeSelectedLessonId || "").trim() ||
         sessionStorage.getItem("selectedLessonId")?.trim();
       const taskId =
@@ -691,6 +699,7 @@ export default function LessonPage() {
     if (isLoading || !questions.length) return;
 
     const lessonId =
+      readRouteLessonId() ||
       (storeSelectedLessonId || "").trim() ||
       sessionStorage.getItem("selectedLessonId")?.trim();
     const taskId =
@@ -1061,6 +1070,7 @@ export default function LessonPage() {
     setIsNavigatingToCompletion(true);
 
     const lessonId =
+      readRouteLessonId() ||
       (storeSelectedLessonId || "").trim() ||
       sessionStorage.getItem("selectedLessonId")?.trim();
     const token = getSessionToken(session);
@@ -1239,7 +1249,10 @@ export default function LessonPage() {
       return;
     }
 
-    const lessonId = sessionStorage.getItem("selectedLessonId")?.trim();
+    const lessonId =
+      readRouteLessonId() ||
+      (storeSelectedLessonId || "").trim() ||
+      sessionStorage.getItem("selectedLessonId")?.trim();
     const token = getSessionToken(session);
     const isReplayOfCompletedLesson =
       (selectedLessonStatus || "").trim().toLowerCase() === "completed";
@@ -1609,6 +1622,7 @@ export default function LessonPage() {
         elapsedSeconds={elapsedSeconds}
         palmTrees={palmTrees}
         maxPalmTrees={5}
+        palmUpdatedAt={profileData?.gamificationStock?.palm?.palmUpdatedAt}
       />
 
       {showExitDialog && (
@@ -1631,10 +1645,8 @@ export default function LessonPage() {
         />
       )}
 
-      <div
-        className={`flex-1 flex justify-center p-3 sm:p-4 items-center overflow-x-hidden`}
-      >
-        <div className="w-full max-w-4xl mx-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 sm:overflow-visible sm:p-4">
+        <div className="w-full max-w-4xl mx-auto sm:flex sm:min-h-full sm:flex-col sm:justify-center">
           <motion.div
             key={currentQuestion?.id || currentIndex}
             initial={{ opacity: 0, y: 20 }}
@@ -1668,7 +1680,7 @@ export default function LessonPage() {
 
                 <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 sm:gap-6 lg:gap-8">
                   <div className="w-full lg:w-2/5 flex justify-center">
-                    <div className="relative w-full max-w-[280px] sm:max-w-sm">
+                    <div className="relative w-full max-w-[min(9.5rem,22vh)] sm:max-w-sm">
                       <div className="relative aspect-square bg-gradient-to-br from-accent/20 to-primary/10 rounded-xl sm:rounded-2xl p-2">
                         {imageUrl ? (
                           <Image
@@ -1745,7 +1757,7 @@ export default function LessonPage() {
 
                 <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 sm:gap-6 lg:gap-8">
                   <div className="w-full lg:w-2/5 flex justify-center">
-                    <div className="relative w-full max-w-[280px] sm:max-w-sm">
+                    <div className="relative w-full max-w-[min(9.5rem,22vh)] sm:max-w-sm">
                       <div className="relative aspect-square bg-gradient-to-br from-accent/20 to-primary/10 rounded-xl sm:rounded-2xl p-2">
                         {imageUrl ? (
                           <Image

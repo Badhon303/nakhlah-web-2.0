@@ -37,6 +37,16 @@ const VALID_VIEWS = new Set([
   "refund-cancellation-policy",
 ]);
 
+const STEADY_VIEWS = new Set([
+  "help-center",
+  "contact-us",
+  "about-nakhlah",
+  "terms-and-conditions",
+  "privacy-policy",
+  "payment-subscription-policy",
+  "refund-cancellation-policy",
+]);
+
 export default function ProfileAndSettingsContent({ basePath, defaultView }) {
   const [showShareDrawer, setShowShareDrawer] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
@@ -133,6 +143,10 @@ export default function ProfileAndSettingsContent({ basePath, defaultView }) {
     }
   };
 
+  const returnToAbout = () => {
+    router.push(`${basePath}?view=about-nakhlah`, { scroll: false });
+  };
+
   const renderView = () => {
     switch (activeView) {
       case "profile":
@@ -184,13 +198,12 @@ export default function ProfileAndSettingsContent({ basePath, defaultView }) {
         return (
           <HelpCenterPage
             onBack={() => router.push(`${basePath}?view=settings`)}
-            onNavigateContact={() => handleNavigate("contact-us")}
           />
         );
       case "contact-us":
         return (
           <ContactUsPage
-            onBack={() => router.push(`${basePath}?view=help-center`)}
+            onBack={() => router.push(`${basePath}?view=settings`)}
           />
         );
 
@@ -204,19 +217,19 @@ export default function ProfileAndSettingsContent({ basePath, defaultView }) {
       case "terms-and-conditions":
         return (
           <TermsAndConditionsPage
-            onBack={() => router.push(`${basePath}?view=about-nakhlah`)}
+            onBack={returnToAbout}
           />
         );
       case "privacy-policy":
         return (
           <PrivacyPolicyPage
-            onBack={() => router.push(`${basePath}?view=about-nakhlah`)}
+            onBack={returnToAbout}
           />
         );
       case "payment-subscription-policy":
         return (
           <PolicyDocumentPage
-            onBack={() => router.push(`${basePath}?view=about-nakhlah`)}
+            onBack={returnToAbout}
             policyKey="paymentAndSubscriptionPolicy"
             title="Payment & Subscription Policy"
           />
@@ -224,7 +237,7 @@ export default function ProfileAndSettingsContent({ basePath, defaultView }) {
       case "refund-cancellation-policy":
         return (
           <PolicyDocumentPage
-            onBack={() => router.push(`${basePath}?view=about-nakhlah`)}
+            onBack={returnToAbout}
             policyKey="refundPolicyAndCancellationPolicy"
             title="Refund & Cancellation Policy"
           />
@@ -250,19 +263,25 @@ export default function ProfileAndSettingsContent({ basePath, defaultView }) {
     }
   };
 
+  const view = renderView();
+
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeView}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="px-4 lg:px-0"
-        >
-          {renderView()}
-        </motion.div>
-      </AnimatePresence>
+      {STEADY_VIEWS.has(activeView) ? (
+        view
+      ) : (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeView}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="px-0"
+          >
+            {view}
+          </motion.div>
+        </AnimatePresence>
+      )}
 
       <ShareProfileDrawer
         open={showShareDrawer}

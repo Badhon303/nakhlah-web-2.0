@@ -1,17 +1,9 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import Image from "next/image";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { CardMenuOptions } from "@/components/nakhlah/CardMenuOptions";
-import { useSession } from "@/lib/auth-client";
-import { getSessionToken, isSessionValid } from "@/lib/authUtils";
-import { getUserKey } from "@/lib/userKey";
-import { useDailyQuestStore } from "@/stores/useDailyQuestStore";
-import { useBadgesStore } from "@/stores/useBadgesStore";
-import { useProfileStore } from "@/stores/useProfileStore";
 import DailyMissions from "./target/DailyMissions";
 import BadgesList from "./badges/BadgesList";
 
@@ -22,53 +14,19 @@ const tabs = [
 
 export default function ChallengesHome() {
   const searchParams = useSearchParams();
-  const { data: session } = useSession();
   const requestedTab = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(
     requestedTab === "badges" ? "badges" : "target",
   );
 
-  const invalidateQuests = useDailyQuestStore((store) => store.invalidate);
-  const fetchDailyQuests = useDailyQuestStore(
-    (store) => store.fetchDailyQuests,
-  );
-  const invalidateBadges = useBadgesStore((store) => store.invalidate);
-  const fetchBadges = useBadgesStore((store) => store.fetchBadges);
-  const invalidateProfile = useProfileStore((store) => store.invalidate);
-  const fetchProfile = useProfileStore((store) => store.fetchMyProfile);
-
-  const handleRefresh = useCallback(() => {
-    if (!isSessionValid(session)) return;
-
-    const token = getSessionToken(session);
-    if (!token) return;
-
-    const userKey = getUserKey(session);
-    invalidateQuests();
-    invalidateBadges();
-    invalidateProfile();
-
-    void fetchDailyQuests({ token, userKey, forceRefresh: true });
-    void fetchBadges({ token, userKey, forceRefresh: true });
-    void fetchProfile(token, true, userKey);
-  }, [
-    fetchBadges,
-    fetchDailyQuests,
-    fetchProfile,
-    invalidateBadges,
-    invalidateProfile,
-    invalidateQuests,
-    session,
-  ]);
-
   return (
     <div className="container mx-auto max-w-3xl px-4 pb-8 pt-4 lg:max-w-7xl lg:py-6">
-      <section className="mb-6 max-w-2xl">
+      <section className="mb-6 max-w-4xl">
         <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-5xl">
           Master your{" "}
           <span className="text-gradient-accent">daily targets.</span>
         </h1>
-        <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
+        <p className="mt-4 max-w-4xl text-base leading-7 text-muted-foreground sm:text-lg">
           Complete challenges, collect badges, and keep your learning streak
           alive.
         </p>

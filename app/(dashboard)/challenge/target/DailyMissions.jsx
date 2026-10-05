@@ -100,7 +100,7 @@ export default function DailyMissions() {
       ) : (
         <ChallengeEmptyState
           title="Today's missions aren't ready"
-          description="Your daily missions are still being picked. Pull up the menu to refresh."
+          description="Your daily missions are still being picked. Check back soon."
         />
       )}
 

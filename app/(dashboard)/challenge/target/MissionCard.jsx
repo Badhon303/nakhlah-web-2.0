@@ -23,7 +23,7 @@ export default function MissionCard({ mission, index = 0 }) {
   const completedByProgress = target > 0 && current >= target;
   const isCompleted = completedByStatus || completedByProgress;
 
-  // Quests outside today's rotation are rendered black-and-white as a preview.
+  // Quests outside today's rotation are rendered muted as a preview.
   const isActive = mission.active !== false;
   const progress = target > 0 ? Math.min(100, (current / target) * 100) : 0;
 
@@ -34,9 +34,7 @@ export default function MissionCard({ mission, index = 0 }) {
       transition={{ delay: Math.min(index * 0.05, 0.3) }}
       className={cn(
         "flex items-center gap-4 rounded-2xl border bg-card p-4 shadow-sm transition-all",
-        isActive
-          ? "border-border hover:shadow-md"
-          : "border-border/60 opacity-60 grayscale",
+        isActive ? "border-border" : "border-border/60 opacity-80",
       )}
     >
       <div className="flex h-11 w-11 shrink-0 items-center justify-center">
@@ -54,18 +52,11 @@ export default function MissionCard({ mission, index = 0 }) {
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <p
-            className={cn(
-              "font-bold leading-snug",
-              isCompleted
-                ? "text-muted-foreground line-through"
-                : "text-foreground",
-            )}
-          >
+          <p className="min-w-0 break-words font-bold leading-snug text-foreground">
             {mission.label}
           </p>
           {isActive && isCompleted ? (
-            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 fill-accent text-background" />
           ) : null}
         </div>
 

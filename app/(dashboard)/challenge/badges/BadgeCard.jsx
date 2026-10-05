@@ -1,6 +1,6 @@
 "use client";
 
-import { Lock } from "lucide-react";
+import { CheckCircle2, Lock } from "lucide-react";
 import { Medal } from "@/components/icons/Medal";
 import { buildApiUrl } from "@/lib/api-config";
 import { cn } from "@/lib/utils";
@@ -20,61 +20,78 @@ export default function BadgeCard({ badge, currentInjaz = 0 }) {
     injazTarget > 0 ? Math.min(100, (currentInjaz / injazTarget) * 100) : 0;
 
   return (
-    <div className="flex items-center gap-4 border-b border-border/60 p-4 last:border-b-0">
-      <div
-        className={cn(
-          "flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full",
-          isEarned
-            ? "bg-gradient-to-br from-primary to-accent shadow-md"
-            : "bg-muted grayscale",
-        )}
-      >
-        {iconUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={iconUrl} alt="" className="h-full w-full object-cover" />
-        ) : (
-          <Medal
-            size="md"
-            className={isEarned ? "text-white" : "text-muted-foreground"}
-          />
-        )}
-      </div>
-
-      <div className="min-w-0 flex-1">
-        <p
+    <div
+      className={cn(
+        "rounded-2xl border bg-card shadow-sm transition-shadow",
+        isEarned ? "border-border" : "border-border/60",
+      )}
+    >
+      <div className="flex items-center gap-4 p-4">
+        <div
           className={cn(
-            "truncate font-bold",
-            isEarned ? "text-foreground" : "text-muted-foreground",
+            "flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full",
+            isEarned ? "bg-transparent" : "bg-muted grayscale",
           )}
         >
-          {badge.title}
-        </p>
+          {iconUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={iconUrl}
+              alt={badge.title}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <Medal
+              size="md"
+              className={isEarned ? "text-accent" : "text-muted-foreground"}
+            />
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <p
+            className={cn(
+              "mb-1 truncate font-bold",
+              isEarned ? "text-foreground" : "text-muted-foreground",
+            )}
+          >
+            {badge.title}
+          </p>
+
+          <div className="flex flex-wrap items-center gap-x-2 text-sm">
+            <span className="font-semibold text-accent">
+              {injazTarget.toLocaleString()} Injaz
+            </span>
+            <span aria-hidden="true" className="text-xs text-muted-foreground">
+              •
+            </span>
+            <span className="text-muted-foreground">
+              {isEarned ? "Unlocked" : "Target"}
+            </span>
+          </div>
+        </div>
 
         {isEarned ? (
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Unlocked
-            <span aria-hidden="true"> · </span>
-            {injazTarget.toLocaleString()} Injaz
-          </p>
+          <CheckCircle2 className="h-5 w-5 shrink-0 fill-accent text-background" />
         ) : (
-          <div className="mt-1.5 space-y-1.5">
-            <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full rounded-full bg-muted-foreground/50 transition-all duration-500"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {remaining.toLocaleString()} Injaz to go
-              <span aria-hidden="true"> · </span>
-              {injazTarget.toLocaleString()} needed
-            </p>
-          </div>
+          <Lock className="h-4 w-4 shrink-0 text-muted-foreground" />
         )}
       </div>
 
       {isEarned ? null : (
-        <Lock className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <div className="px-4 pb-4">
+          <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-accent transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {remaining.toLocaleString()} Injaz to go
+            <span aria-hidden="true"> · </span>
+            {injazTarget.toLocaleString()} needed to unlock
+          </p>
+        </div>
       )}
     </div>
   );

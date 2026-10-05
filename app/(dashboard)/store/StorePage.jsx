@@ -318,15 +318,15 @@ export default function StorePage() {
   return (
     <div className="min-h-screen bg-background">
       <Confetti active={showConfetti} />
-      <main className=" container mx-auto px-4 py-6 max-w-7xl space-y-6">
-        <section className="grid min-h-24 items-end gap-6 lg:grid-cols-[1fr_auto]">
-          <div className="max-w-2xl">
+      <main className="container mx-auto max-w-3xl space-y-6 px-4 pb-8 pt-4 lg:max-w-7xl lg:py-6">
+        <section className="grid items-start gap-6 lg:grid-cols-[1fr_auto]">
+          <div className="max-w-4xl">
             {/* <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-accent"><Sparkles className="h-3.5 w-3.5" /> Nakhlah Store</span> */}
             <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-5xl">
               Invest in your{" "}
               <span className="text-gradient-accent">learning rhythm.</span>
             </h1>
-            <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
+            <p className="mt-4 max-w-4xl text-base leading-7 text-muted-foreground sm:text-lg">
               Unlock a smoother path through Nakhlah, or pick up Dates whenever
               you need an extra boost.
             </p>

@@ -1,15 +1,15 @@
 import { create } from "zustand";
 import { createCachedSlice } from "./_utils/createCachedSlice";
-import { fetchLegalDocuments as fetchLegalDocumentsApi } from "@/services/api/globals";
+import { fetchAbout as fetchAboutApi } from "@/services/api/globals";
 
-const LEGAL_DOCUMENTS_TTL_MS = 30 * 60 * 1000;
+const ABOUT_TTL_MS = 30 * 60 * 1000;
 
-export const useLegalDocumentsStore = create((set, get) => ({
-    ...createCachedSlice(LEGAL_DOCUMENTS_TTL_MS),
+export const useAboutStore = create((set, get) => ({
+    ...createCachedSlice(ABOUT_TTL_MS),
 
     data: null,
 
-    fetchLegalDocuments: async ({ forceRefresh = false } = {}) => {
+    fetchAbout: async ({ forceRefresh = false } = {}) => {
         const state = get();
         const shouldFetch = forceRefresh || state.shouldRefetch(state.lastFetchedAt);
 
@@ -19,10 +19,10 @@ export const useLegalDocumentsStore = create((set, get) => ({
 
         set({ isLoading: true, error: null });
 
-        const result = await fetchLegalDocumentsApi({});
+        const result = await fetchAboutApi();
         if (!result?.success) {
-            set({ isLoading: false, error: result?.error || "Failed to load legal documents" });
-            return { success: false, error: result?.error || "Failed to load legal documents" };
+            set({ isLoading: false, error: result?.error || "Failed to load about content" });
+            return { success: false, error: result?.error || "Failed to load about content" };
         }
 
         set({

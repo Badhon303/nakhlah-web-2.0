@@ -28,14 +28,24 @@ export const COUNTRY_OPTIONS = getCountries()
   }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
+export const COUNTRY_NAME_OVERRIDES = {
+  TR: "Türkiye",
+};
+
 export const getCountryName = (countryCode) => labels[countryCode] || "";
+
+export const getCountryDisplayName = (countryCode) =>
+  COUNTRY_NAME_OVERRIDES[countryCode] || getCountryName(countryCode);
 
 export const getCountryCodeByName = (countryName) => {
   if (!countryName) return "";
   const normalized = countryName.trim().toLowerCase();
   return (
-    COUNTRY_OPTIONS.find((country) => country.name.toLowerCase() === normalized)
-      ?.code || ""
+    COUNTRY_OPTIONS.find(
+      (country) =>
+        country.name.toLowerCase() === normalized ||
+        getCountryDisplayName(country.code).toLowerCase() === normalized,
+    )?.code || ""
   );
 };
 
@@ -81,7 +91,7 @@ export function CountryPicker({
           className={cn(
             "flex h-12 items-center gap-2 px-4 text-base ring-offset-background transition-colors focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
             isEmbedded
-              ? "shrink-0 bg-transparent hover:bg-muted/40"
+              ? "w-fit shrink-0 bg-transparent px-3 hover:bg-muted/40 sm:px-4"
               : cn(
                   "w-full justify-between rounded-xl border bg-background hover:border-accent",
                   hasError
@@ -99,14 +109,15 @@ export function CountryPicker({
             )}
             <span
               className={cn(
-                "truncate text-left",
+                "text-left",
+                showCallingCode ? "whitespace-nowrap" : "truncate",
                 isEmbedded && "font-semibold",
               )}
             >
               {selectedCountry
                 ? showCallingCode
                   ? `+${selectedCountry.callingCode}`
-                  : selectedCountry.name
+                  : getCountryDisplayName(selectedCountry.code)
                 : placeholder}
             </span>
           </span>
@@ -117,7 +128,7 @@ export function CountryPicker({
         align="start"
         sideOffset={8}
         className={cn(
-          "w-[var(--radix-popover-trigger-width)] min-w-[300px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border-border p-0 shadow-lg",
+          "w-[var(--radix-popover-trigger-width)] min-w-[min(300px,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border-border p-0 shadow-lg",
           className,
         )}
       >
@@ -135,7 +146,7 @@ export function CountryPicker({
               {COUNTRY_OPTIONS.map((country) => (
                 <CommandItem
                   key={country.code}
-                  value={`${country.name} ${country.code} +${country.callingCode}`}
+                  value={`${country.name} ${getCountryDisplayName(country.code)} ${country.code} +${country.callingCode}`}
                   onSelect={() => {
                     onChange(country.code);
                     setOpen(false);
@@ -144,10 +155,10 @@ export function CountryPicker({
                 >
                   <CountryFlag countryCode={country.code} />
                   <span className="min-w-0 flex-1 truncate font-medium">
-                    {country.name}
+                    {getCountryDisplayName(country.code)}
                   </span>
                   {showCallingCodeInList ? (
-                    <span className="text-xs text-muted-foreground transition-colors group-hover:text-accent-foreground group-data-[selected=true]:text-accent-foreground">
+                    <span className="shrink-0 whitespace-nowrap text-xs text-muted-foreground transition-colors group-hover:text-accent-foreground group-data-[selected=true]:text-accent-foreground">
                       +{country.callingCode}
                     </span>
                   ) : null}

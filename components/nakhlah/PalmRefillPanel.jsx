@@ -18,6 +18,9 @@ export default function PalmRefillPanel({
   palmTreesCount = 0,
   maxPalmTrees = 5,
   mascotSize = "xxxl",
+  showMascot = true,
+  showHeader = true,
+  compact = false,
   onRefill,
   isRefilling = false,
   onGoPro,
@@ -36,32 +39,38 @@ export default function PalmRefillPanel({
       transition={{ duration: 0.3 }}
       className="w-full max-w-md mx-auto text-center"
     >
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="flex justify-center mb-4"
-      >
-        <FreshDateMascot mood="sad" size={mascotSize} />
-      </motion.div>
+      {showMascot ? (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-4 flex justify-center"
+        >
+          <FreshDateMascot mood="sad" size={mascotSize} />
+        </motion.div>
+      ) : null}
 
-      <motion.h2
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="text-2xl md:text-3xl font-extrabold text-foreground mb-2"
-      >
-        {title}
-      </motion.h2>
+      {showHeader ? (
+        <>
+          <motion.h2
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-2 text-2xl font-extrabold text-foreground md:text-3xl"
+          >
+            {title}
+          </motion.h2>
 
-      <motion.p
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25 }}
-        className="text-muted-foreground mb-5"
-      >
-        {description}
-      </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="mb-5 text-muted-foreground"
+          >
+            {description}
+          </motion.p>
+        </>
+      ) : null}
 
       <motion.div
         initial={{ opacity: 0 }}
@@ -72,7 +81,7 @@ export default function PalmRefillPanel({
         {Array.from({ length: maxPalmTrees }).map((_, index) => (
           <PalmIcon
             key={index}
-            size="md"
+            size={compact ? "sm" : "md"}
             className={index < palmTreesCount ? "opacity-100" : "opacity-25"}
           />
         ))}
@@ -87,7 +96,9 @@ export default function PalmRefillPanel({
         <Button
           onClick={onRefill}
           disabled={isRefilling || palmTreesCount >= maxPalmTrees}
-          className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
+          className={`w-full rounded-xl bg-accent font-bold text-accent-foreground hover:opacity-90 ${
+            compact ? "h-11 text-base" : "h-12 text-lg"
+          }`}
         >
           {isRefilling ? "Refilling..." : "Refill Palm Trees"}
         </Button>
@@ -95,7 +106,9 @@ export default function PalmRefillPanel({
           onClick={onGoPro}
           disabled={isRefilling}
           variant="outline"
-          className="w-full h-12 font-bold text-lg rounded-xl border-2"
+          className={`w-full rounded-xl border-2 font-bold ${
+            compact ? "h-11 text-base" : "h-12 text-lg"
+          }`}
         >
           Go Pro — Unlimited Palms
         </Button>

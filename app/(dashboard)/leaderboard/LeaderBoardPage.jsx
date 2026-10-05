@@ -51,7 +51,7 @@ function PodiumPlace({ user, rank }) {
   const config = PODIUM_CONFIG[rank];
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex min-w-0 flex-col items-center">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -91,10 +91,10 @@ function PodiumPlace({ user, rank }) {
         </div>
       </motion.div>
 
-      <p className="mt-6 font-semibold text-foreground text-sm lg:text-base truncate max-w-[120px] text-center">
+      <p className="mt-6 max-w-[96px] truncate text-center text-sm font-semibold text-foreground sm:max-w-[120px] lg:text-base">
         {user?.name}
       </p>
-      <div className="mt-1 rounded-full bg-card px-3 py-1 text-accent font-bold text-sm shadow-md border border-border">
+      <div className="mt-1 whitespace-nowrap rounded-full border border-border bg-card px-2.5 py-1 text-xs font-bold text-accent shadow-md sm:px-3 sm:text-sm">
         {user?.injaz} Injaz
       </div>
 
@@ -118,7 +118,7 @@ function PodiumPlace({ user, rank }) {
   );
 }
 
-function RestList({ restList, onViewProfile }) {
+function RestList({ restList }) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const loadMoreRef = useRef(null);
 
@@ -148,20 +148,20 @@ function RestList({ restList, onViewProfile }) {
           key={user.id}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 + index * 0.05 }}
-          className={`w-full bg-transparent lg:bg-card flex items-center gap-4 px-2 py-4 lg:p-4 rounded-2xl ${
+          transition={{ delay: Math.min(0.7 + index * 0.05, 1.2) }}
+          className={`flex w-full items-center gap-3 rounded-2xl bg-transparent px-3 py-3 sm:gap-4 sm:py-4 lg:bg-card lg:p-4 ${
             user.isCurrentUser
               ? "bg-muted/30 border-2 border-primary lg:shadow-lg"
               : "border border-border shadow-md"
           }`}
         >
-          <div className="w-8 text-center">
-            <span className="font-bold text-muted-foreground text-lg">
+          <div className="w-7 shrink-0 text-center sm:w-8">
+            <span className="font-bold text-muted-foreground text-base sm:text-lg">
               {user.rank}
             </span>
           </div>
           <div
-            className={`w-14 h-14 rounded-full bg-gradient-to-br ${user.color} flex items-center justify-center text-white font-bold text-lg shadow-lg`}
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${user.color} text-lg font-bold text-white shadow-lg sm:h-14 sm:w-14`}
           >
             {user.avatarUrl ? (
               <Image
@@ -175,9 +175,9 @@ function RestList({ restList, onViewProfile }) {
               user.avatar
             )}
           </div>
-          <div className="flex-1 text-left">
+          <div className="min-w-0 flex-1 text-left">
             <p
-              className={`font-bold ${
+              className={`truncate font-bold ${
                 user.isCurrentUser ? "text-primary" : "text-foreground"
               }`}
             >
@@ -191,12 +191,13 @@ function RestList({ restList, onViewProfile }) {
       {visibleCount < restList.length && (
         <div ref={loadMoreRef} className="pt-2 flex justify-center">
           <button
+            type="button"
             onClick={() =>
               setVisibleCount((prev) =>
                 Math.min(prev + PAGE_SIZE, restList.length),
               )
             }
-            className="px-6 py-2.5 rounded-xl border border-border bg-card text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+            className="min-h-11 px-6 py-2.5 rounded-xl border border-border bg-card text-sm font-semibold text-foreground hover:bg-muted active:bg-muted transition-colors"
           >
             Load More
           </button>
@@ -206,7 +207,7 @@ function RestList({ restList, onViewProfile }) {
   );
 }
 
-export default function Leaderboard({ onViewProfile }) {
+export default function Leaderboard() {
   const { data: session, status } = useSession();
   const leaderboardData = useLeaderboardStore((state) => state.leaderboard);
   const topThree = useLeaderboardStore((state) => state.topThree);
@@ -243,14 +244,14 @@ export default function Leaderboard({ onViewProfile }) {
 
   return (
     <div className="min-h-screen">
-      <div className=" container mx-auto px-4 py-6 max-w-7xl">
+      <div className="container mx-auto max-w-3xl px-4 pb-8 pt-4 lg:max-w-7xl lg:py-6">
         {/* Header */}
-        <section className="mb-6 max-w-2xl">
+        <section className="mb-6 max-w-4xl">
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-5xl">
             Rise through the{" "}
             <span className="text-gradient-accent">ranks.</span>
           </h1>
-          <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
+          <p className="mt-4 max-w-4xl text-base leading-7 text-muted-foreground sm:text-lg">
             Compete with learners and earn your place at the top of the
             leaderboard.
           </p>
@@ -261,7 +262,7 @@ export default function Leaderboard({ onViewProfile }) {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="relative mb-8 flex items-end justify-center gap-4 lg:gap-8 mt-8"
+          className="relative mb-8 mt-10 flex items-end justify-center gap-2 sm:gap-4 lg:gap-8"
         >
           <PodiumPlace user={topThree[1]} rank={2} />
           <PodiumPlace user={topThree[0]} rank={1} />
@@ -273,7 +274,7 @@ export default function Leaderboard({ onViewProfile }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="lg:space-y-3"
+          className="space-y-2 lg:space-y-3"
         >
           {isLoading ? (
             <div className="space-y-3">
@@ -289,11 +290,7 @@ export default function Leaderboard({ onViewProfile }) {
               No leaderboard data available.
             </div>
           ) : (
-            <RestList
-              key={dataKey}
-              restList={restList}
-              onViewProfile={onViewProfile}
-            />
+            <RestList key={dataKey} restList={restList} />
           )}
         </motion.div>
       </div>

@@ -9,6 +9,32 @@ import { Bullseye } from "@/components/icons/BullsEye";
 import { NotoStopwatch } from "@/components/icons/NotoStopwatch";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 
+function giftLabel(item) {
+  if (typeof item === "string" || typeof item === "number") {
+    return String(item).trim();
+  }
+  if (!item || typeof item !== "object") return "";
+  return String(
+    item.title || item.name || item.label || item.key || "",
+  ).trim();
+}
+
+function collectEarnedGifts(progressData) {
+  const sources = [
+    progressData?.badges?.added,
+    progressData?.gifts,
+    progressData?.giftsEarned,
+    progressData?.rewards?.gifts,
+    progressData?.reward?.gifts,
+  ];
+
+  return sources
+    .flatMap((source) => (Array.isArray(source) ? source : []))
+    .map(giftLabel)
+    .filter(Boolean)
+    .filter((label, index, labels) => labels.indexOf(label) === index);
+}
+
 function formatTime(totalSeconds) {
   const clamped = Math.max(0, Number(totalSeconds) || 0);
   const minutes = Math.floor(clamped / 60)
@@ -97,10 +123,7 @@ export default function LessonCompleted() {
     totalQuestions,
     correctAnswerAttempts,
   });
-  const addedBadges = Array.isArray(progressData?.badges?.added)
-    ? progressData.badges.added
-    : [];
-  const streakMessage = progressData?.streak?.message || "";
+  const earnedGifts = collectEarnedGifts(progressData);
 
   const stats = [
     {
@@ -216,22 +239,22 @@ export default function LessonCompleted() {
             ))}
           </div>
 
-          {addedBadges.length > 0 && (
+          {earnedGifts.length > 0 && (
             <div className="mb-3 px-1 sm:mb-8 sm:px-4">
               <div className="max-w-sm mx-auto rounded-2xl border border-border bg-card p-3 text-left sm:p-4">
                 <p className="text-sm font-bold text-foreground">
                   Gifts earned
                 </p>
-                {addedBadges.length ? (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    New badges: {addedBadges.join(", ")}
-                  </p>
-                ) : null}
-                {/* {streakMessage ? (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {streakMessage}
-                  </p>
-                ) : null} */}
+                <ul className="mt-1 space-y-1">
+                  {earnedGifts.map((gift) => (
+                    <li
+                      key={gift}
+                      className="text-sm text-muted-foreground"
+                    >
+                      {gift}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           )}
@@ -265,3 +288,5 @@ export default function LessonCompleted() {
     </div>
   );
 }
+
+

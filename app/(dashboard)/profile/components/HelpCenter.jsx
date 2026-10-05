@@ -1,30 +1,27 @@
 "use client";
-import { motion } from "framer-motion";
 import { ChevronLeft, ChevronDown, Search } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
-import { fetchHelpCenter } from "@/services/api/globals";
 import { useSession } from "@/lib/auth-client";
 import { getSessionToken } from "@/lib/authUtils";
+import { useHelpCenterStore } from "@/stores/useHelpCenterStore";
+import HighlightedText from "@/components/nakhlah/HighlightedText";
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
-export default function HelpCenterPage({ onBack, onNavigateContact }) {
+export default function HelpCenterPage({ onBack }) {
   const [expandedFaq, setExpandedFaq] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [faqs, setFaqs] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const token = getSessionToken(session);
+  const helpCenterData = useHelpCenterStore((state) => state.data);
+  const isLoading = useHelpCenterStore((state) => state.isLoading);
+  const error = useHelpCenterStore((state) => state.error);
+  const fetchHelpCenter = useHelpCenterStore((state) => state.fetchHelpCenter);
+  const faqs = helpCenterData?.faq ?? [];
 
   useEffect(() => {
-    const load = async () => {
-      setIsLoading(true);
-      const token = getSessionToken(session);
-      const result = await fetchHelpCenter({ faq: true }, token);
-      if (result.success) {
-        setFaqs(result.data?.faq ?? []);
-      }
-      setIsLoading(false);
-    };
-    load();
-  }, [session]);
+    if (status === "loading") return;
+    fetchHelpCenter(token);
+  }, [status, token, fetchHelpCenter]);
 
   const filteredFaqs = useMemo(() => {
     if (!searchQuery.trim()) return faqs;
@@ -36,66 +33,36 @@ export default function HelpCenterPage({ onBack, onNavigateContact }) {
     );
   }, [faqs, searchQuery]);
 
+  const showLoading = isLoading || (!helpCenterData && !error);
+
   return (
-    <div className="max-w-2xl mx-auto py-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-2xl bg-transparent lg:bg-card rounded-none lg:rounded-2xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-6"
-      >
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+    <div className="mx-auto max-w-4xl px-4 py-6">
+      <div className="w-full bg-transparent p-0 lg:rounded-3xl lg:border lg:border-border lg:bg-card lg:p-6 lg:shadow-lg">
+        <div className="mb-6 flex items-center gap-3 md:mb-7">
           <button
             onClick={onBack}
-            className="inline-flex items-center justify-center rounded-full hover:bg-muted h-10 w-10 transition-colors"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-muted"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="h-5 w-5" />
           </button>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Help Center</h1>
-          </div>
+          <h1 className="text-3xl font-bold text-foreground">Help Center</h1>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-4 mb-8 flex-wrap">
-          <div className="px-4 py-2 rounded-lg font-medium bg-accent text-accent-foreground">
-            FAQ
-          </div>
-          <button
-            onClick={() => onNavigateContact && onNavigateContact()}
-            className="px-4 py-2 rounded-lg font-medium bg-muted/30 text-muted-foreground hover:bg-muted/50 transition-all"
-          >
-            Contact us
-          </button>
-        </div>
-
-        {/* Search Bar */}
         <div className="relative mb-5">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search FAQs..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-muted/20 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground placeholder:text-muted-foreground"
+            className="w-full rounded-xl border border-border bg-muted/20 py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
           />
         </div>
 
-        {/* FAQ List */}
-        {isLoading ? (
-          <div className="space-y-3">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="border border-border rounded-xl p-4">
-                <div
-                  className="h-4 bg-muted/50 rounded animate-pulse"
-                  style={{ width: `${90 - i * 8}%` }}
-                />
-              </div>
-            ))}
-          </div>
+        {showLoading && !searchQuery ? (
+          <DocumentLoadingSkeleton />
         ) : filteredFaqs.length === 0 ? (
-          <div className="py-8 text-center text-muted-foreground text-sm">
+          <div className="py-8 text-center text-sm text-muted-foreground">
             {searchQuery
               ? "No FAQs match your search."
               : "No FAQs available at the moment."}
@@ -103,38 +70,35 @@ export default function HelpCenterPage({ onBack, onNavigateContact }) {
         ) : (
           <div className="space-y-2">
             {filteredFaqs.map((faq, index) => (
-              <motion.div
+              <div
                 key={faq.id || index}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 * index, duration: 0.3 }}
-                className="border border-border rounded-xl overflow-hidden"
+                className="overflow-hidden rounded-xl border border-border"
               >
                 <button
                   onClick={() =>
                     setExpandedFaq(expandedFaq === index ? null : index)
                   }
-                  className="w-full flex items-center justify-between py-4 hover:bg-muted/50 transition-all"
+                  className="flex w-full items-center justify-between p-4 transition-all hover:bg-muted/50"
                 >
                   <span className="text-left font-medium text-foreground">
-                    {faq.question}
+                    <HighlightedText text={faq.question} query={searchQuery} />
                   </span>
                   <ChevronDown
-                    className={`w-5 h-5 text-muted-foreground flex-shrink-0 ml-2 transition-transform ${
+                    className={`ml-2 h-5 w-5 flex-shrink-0 text-muted-foreground transition-transform ${
                       expandedFaq === index ? "rotate-180" : ""
                     }`}
                   />
                 </button>
                 {expandedFaq === index && (
-                  <div className="px-4 pb-4 text-sm text-muted-foreground leading-relaxed">
-                    {faq.answer}
+                  <div className="px-4 pb-4 text-sm leading-relaxed text-muted-foreground">
+                    <HighlightedText text={faq.answer} query={searchQuery} />
                   </div>
                 )}
-              </motion.div>
+              </div>
             ))}
           </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

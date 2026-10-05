@@ -21,6 +21,23 @@ function getResponsiveMascotSize(width) {
   return "xxxl";
 }
 
+function getLevelIdInView() {
+  const banners = [...document.querySelectorAll("[data-unit-banner]")];
+  const banner = banners.find((el) => el.getBoundingClientRect().height > 0);
+  const top = banner ? banner.getBoundingClientRect().bottom : 0;
+  const mid = top + (window.innerHeight - top) / 2;
+  let match = "";
+
+  document.querySelectorAll("[data-level-id]").forEach((el) => {
+    const rect = el.getBoundingClientRect();
+    if (rect.top <= mid && rect.bottom > mid) {
+      match = el.getAttribute("data-level-id") || "";
+    }
+  });
+
+  return match;
+}
+
 function getLevelRingColor(colorIndex) {
   const colors = ["#4ade80", "#c084fc", "#fb923c", "#60a5fa", "#f87171"];
   return colors[((colorIndex || 1) - 1) % colors.length] || colors[3];
@@ -158,13 +175,29 @@ function UnitDivider({ label, colorIndex }) {
 
 export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
   const { data: session } = useSession();
-  const [currentLevelId, setCurrentLevelId] = useState("");
+  const [scrolledLevelId, setScrolledLevelId] = useState("");
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== "undefined" ? window.innerWidth : 0,
   );
   const [lessonCountsByTask, setLessonCountsByTask] = useState({});
   const hasScrolledRef = useRef(false);
   const prevLessonsRef = useRef(lessons);
+  const lessonCountsRef = useRef(lessonCountsByTask);
+  const levelsRef = useRef(levels);
+  const landedUntilRef = useRef(0);
+
+  useEffect(() => {
+    lessonCountsRef.current = lessonCountsByTask;
+    levelsRef.current = levels;
+  }, [lessonCountsByTask, levels]);
+
+  const currentLessonSectionId = useMemo(() => {
+    const currentLesson = lessons.find((lesson) => lesson.isCurrent);
+    return currentLesson?.sectionId || "";
+  }, [lessons]);
+
+  const activeLevelId =
+    scrolledLevelId || currentLessonSectionId || levels[0]?.id || "";
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -173,9 +206,7 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const currentLevel = levels.find(
-    (l) => l.id === (currentLevelId || levels[0]?.id),
-  );
+  const currentLevel = levels.find((level) => level.id === activeLevelId);
 
   const groupedLessons = useMemo(() => {
     return lessons.reduce((acc, lesson) => {
@@ -205,10 +236,9 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
 
     const tasksToFetch = currentSectionLessons.filter(
       (task) =>
-        !lessonCountsByTask[task.apiId] &&
+        !lessonCountsRef.current[task.apiId] &&
         !task.isLocked &&
-        !task.isCompleted &&
-        task.lessonCount > 0,
+        !task.isCompleted,
     );
     if (!tasksToFetch.length) return;
 
@@ -225,7 +255,11 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
           const completed = docs.filter(
             (lesson) => lesson.status === "completed",
           ).length;
-          return { apiId: task.apiId, completed };
+          return {
+            apiId: task.apiId,
+            completed,
+            total: docs.length,
+          };
         }),
       );
 
@@ -235,7 +269,7 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
         const next = { ...prev };
         results.forEach((r) => {
           if (!r) return;
-          next[r.apiId] = { completed: r.completed };
+          next[r.apiId] = { completed: r.completed, total: r.total };
         });
         return next;
       });
@@ -246,7 +280,7 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
     return () => {
       cancelled = true;
     };
-  }, [currentSectionLessons, session, lessonCountsByTask]);
+  }, [currentSectionLessons, session]);
   const currentTask =
     currentSectionLessons.find((lesson) => lesson.isCurrent) ||
     currentSectionLessons.find((lesson) => !lesson.isLocked) ||
@@ -257,42 +291,26 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
 
     let total = 0;
     let completed = 0;
-    let missingLessonData = false;
 
     currentSectionLessons.forEach((task) => {
-      const taskTotal = Number(task.lessonCount) || 0;
+      const cached = lessonCountsByTask[task.apiId];
+      const reportedTotal = Number(task.lessonCount) || 0;
+      const taskTotal = reportedTotal || cached?.total || 1;
       total += taskTotal;
 
-      if (task.isLocked || taskTotal === 0) {
-        // Locked or empty tasks contribute 0 completed lessons.
-        return;
-      }
+      if (task.isLocked) return;
 
       if (task.isCompleted) {
         completed += taskTotal;
         return;
       }
 
-      const cached = lessonCountsByTask[task.apiId];
       if (cached) {
-        completed += cached.completed;
-      } else {
-        missingLessonData = true;
+        completed += Math.min(taskTotal, Number(cached.completed) || 0);
       }
     });
 
     if (total === 0) return 0;
-
-    // If any in-progress task hasn't been fetched yet, fall back to task-level
-    // progress so the ring doesn't jump around while data is loading.
-    if (missingLessonData) {
-      const taskTotal = currentSectionLessons.length;
-      const taskCompleted = currentSectionLessons.filter(
-        (lesson) => lesson.isCompleted,
-      ).length;
-      return taskTotal > 0 ? Math.round((taskCompleted / taskTotal) * 100) : 0;
-    }
-
     return Math.round((completed / total) * 100);
   }, [currentSectionLessons, lessonCountsByTask]);
 
@@ -446,22 +464,20 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
     const observers = [];
     const levelElements = document.querySelectorAll("[data-level-id]");
 
-    const observerCallback = (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const levelId = entry.target.getAttribute("data-level-id");
-          const level = levels.find((l) => l.id.toString() === levelId);
-          if (level) {
-            setCurrentLevelId(level.id);
-          }
-        }
-      });
+    const applyVisibleLevel = () => {
+      if (!hasScrolledRef.current || Date.now() < landedUntilRef.current) return;
+      const levelId = getLevelIdInView();
+      if (!levelId) return;
+      const level = levelsRef.current.find(
+        (item) => item.id.toString() === levelId,
+      );
+      if (level) setScrolledLevelId(level.id);
     };
 
-    const observer = new IntersectionObserver(observerCallback, {
+    const observer = new IntersectionObserver(applyVisibleLevel, {
       root: null,
-      rootMargin: "-15% 0px -80% 0px",
-      threshold: 0,
+      rootMargin: "0px",
+      threshold: [0, 0.25, 0.5],
     });
 
     levelElements.forEach((el) => {
@@ -513,6 +529,14 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
       if (targetEl) {
         targetEl.scrollIntoView({ behavior: "instant", block: "center" });
         hasScrolledRef.current = true;
+        landedUntilRef.current = Date.now() + 800;
+        const levelId =
+          targetEl.closest("[data-level-id]")?.getAttribute("data-level-id") ||
+          getLevelIdInView();
+        const level = levelsRef.current.find(
+          (item) => item.id.toString() === levelId,
+        );
+        if (level) setScrolledLevelId(level.id);
         return true;
       }
       return false;
@@ -542,7 +566,10 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
       <div className="fixed top-[var(--sat)] left-0 right-0 h-[65px] z-[39] bg-background lg:hidden pointer-events-none" />
 
       {/* Mobile current-level banner at the top of the journey path */}
-      <div className="lg:hidden sticky top-[calc(65px_+_var(--sat))] z-[43] bg-background mb-4">
+      <div
+        data-unit-banner
+        className="lg:hidden sticky top-[calc(65px_+_var(--sat))] z-[43] bg-background mb-4"
+      >
         <UnitBanner
           compact
           gradientClass={getLevelColor(currentLevel?.colorIndex || 1)}
@@ -561,7 +588,10 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
       <div className="hidden lg:block sticky top-0 z-[44] h-6 bg-background" />
 
       {/* Sticky unit header on desktop only */}
-      <div className="hidden lg:block sticky top-6 z-[44] bg-background py-2 lg:py-0">
+      <div
+        data-unit-banner
+        className="hidden lg:block sticky top-6 z-[44] bg-background py-2 lg:py-0"
+      >
         <UnitBanner
           gradientClass={getLevelColor(currentLevel?.colorIndex || 1)}
           title={currentLevel?.name || ""}

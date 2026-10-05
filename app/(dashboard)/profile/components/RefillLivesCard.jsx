@@ -1,23 +1,36 @@
-import { Button } from "@/components/ui/button";
+"use client";
+
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { useSession } from "@/lib/auth-client";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
 import { refillPalmTrees } from "@/services/api";
-import { useProfileStore } from "@/stores/useProfileStore";
+import { useGamificationStockStore } from "@/stores/useGamificationStockStore";
 import { toast } from "@/components/nakhlah/Toast";
+import PalmRefillPanel from "@/components/nakhlah/PalmRefillPanel";
 
 export default function RefillLivesCard() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [isRefilling, setIsRefilling] = useState(false);
-  const fetchProfile = useProfileStore((state) => state.fetchMyProfile);
-  const profile = useProfileStore((state) => state.profile);
-
-  const palmTreesCount = Number(
-    profile?.gamificationStock?.palm?.palmStock ?? 5,
+  const fetchGamificationStock = useGamificationStockStore(
+    (state) => state.fetchGamificationStock,
   );
+  const palmStock = useGamificationStockStore((state) => state.palmStock);
+  const palmUpdatedAt = useGamificationStockStore(
+    (state) => state.palmUpdatedAt,
+  );
+  const dateStock = useGamificationStockStore((state) => state.dateStock);
+  const palmTreesCount = Number(palmStock ?? 5);
+
+  useEffect(() => {
+    if (status !== "authenticated" || !isSessionValid(session)) return;
+    const token = getSessionToken(session);
+    if (!token) return;
+
+    fetchGamificationStock({ token, userKey: getUserKey(session) });
+  }, [status, session, fetchGamificationStock]);
 
   const handleRefill = async () => {
     if (palmTreesCount >= 5) {
@@ -44,7 +57,11 @@ export default function RefillLivesCard() {
         return;
       }
 
-      await fetchProfile(token, true, getUserKey(session));
+      await fetchGamificationStock({
+        token,
+        userKey: getUserKey(session),
+        forceRefresh: true,
+      });
       toast.success(result.message || "Palm Trees refilled successfully.");
     } finally {
       setIsRefilling(false);
@@ -52,41 +69,32 @@ export default function RefillLivesCard() {
   };
 
   return (
-    <div className="lg:rounded-2xl lg:bg-card lg:shadow-lg lg:border lg:border-border lg:overflow-hidden lg:p-6">
-      <div className="">
-        <h3 className="text-xl font-semibold flex items-center gap-2 mb-4 lg:mb-6">
-          {/* <Heart className="w-5 h-5 text-destructive" /> */}
+    <section className="overflow-hidden rounded-none border-0 bg-transparent shadow-none lg:rounded-2xl lg:border lg:border-accent/20 lg:bg-card lg:shadow-sm">
+      <div className="border-b border-border px-5 py-4 text-foreground">
+        <h3 className="text-xl font-extrabold text-foreground">
           Refill Palm Trees
         </h3>
-      </div>
-      <div className="">
-        <p className="text-sm text-muted-foreground mb-4 lg:mb-6">
-          Out of Palm Trees? Refill and continue learning without interruptions!
+        <p className="mt-1 text-sm text-muted-foreground">
+          Stay ready for your next lesson.
         </p>
-        <div className="p-3 bg-muted rounded-lg border border-muted-foreground/50 text-sm mb-4">
-          <h5 className="font-medium mb-1">Quick Refill</h5>
-          <p>
-            Refill your Palm Trees with dates or unlock unlimited Palm Trees
-            with Pro
-          </p>
-        </div>
-        <div className="grid gap-2">
-          <Button
-            onClick={handleRefill}
-            variant="outline"
-            className="w-full"
-            disabled={isRefilling || palmTreesCount >= 5}
-          >
-            {isRefilling ? "Refilling..." : "Refill with Dates"}
-          </Button>
-          <Button
-            onClick={() => router.push("/store")}
-            className="w-full text-accent-foreground"
-          >
-            Go Pro (Unlimited)
-          </Button>
-        </div>
       </div>
-    </div>
+      <div className="p-4">
+        <PalmRefillPanel
+          title="Refill Palm Trees"
+          description="Out of Palm Trees? Refill and continue learning without interruptions!"
+          palmTreesCount={palmTreesCount}
+          maxPalmTrees={5}
+          mascotSize="lg"
+          showMascot={false}
+          showHeader={false}
+          compact
+          onRefill={handleRefill}
+          isRefilling={isRefilling}
+          onGoPro={() => router.push("/store")}
+          palmUpdatedAt={palmUpdatedAt}
+          dateStock={dateStock}
+        />
+      </div>
+    </section>
   );
 }
