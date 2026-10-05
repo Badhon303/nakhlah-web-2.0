@@ -3,16 +3,13 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ChevronLeft, ShieldCheck } from "lucide-react";
-import { useSession } from "next-auth/react";
-import { getSessionToken } from "@/lib/authUtils";
+import { ChevronLeft } from "lucide-react";
 import { useLegalDocumentsStore } from "@/stores/useLegalDocumentsStore";
 import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
 import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
 export default function PrivacyRoutePage() {
   const router = useRouter();
-  const { data: session } = useSession();
   const legalData = useLegalDocumentsStore((state) => state.data);
   const isLoading = useLegalDocumentsStore((state) => state.isLoading);
   const fetchLegalDocuments = useLegalDocumentsStore(
@@ -21,8 +18,8 @@ export default function PrivacyRoutePage() {
   const content = legalData?.privacyPolicy ?? null;
 
   useEffect(() => {
-    fetchLegalDocuments(getSessionToken(session));
-  }, [session, fetchLegalDocuments]);
+    fetchLegalDocuments();
+  }, [fetchLegalDocuments]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">

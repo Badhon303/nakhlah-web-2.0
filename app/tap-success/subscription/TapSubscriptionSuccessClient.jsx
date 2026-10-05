@@ -16,6 +16,10 @@ export default function TapSubscriptionSuccessClient() {
   const { data: session, status: sessionStatus } = useSession();
   const hasCapturedRef = useRef(false);
   const tapId = searchParams.get("tap_id") || "";
+  const paymentAgreementId =
+    searchParams.get("payment_agreement_id") ||
+    searchParams.get("paymentAgreementId") ||
+    "";
   const [captureState, setCaptureState] = useState({
     status: "loading",
     message:
@@ -46,6 +50,7 @@ export default function TapSubscriptionSuccessClient() {
       const result = await captureTapSubscriptionCharge(
         tapId,
         getSessionToken(session),
+        paymentAgreementId,
       );
 
       if (!result.success) {
@@ -71,7 +76,7 @@ export default function TapSubscriptionSuccessClient() {
     };
 
     capturePayment();
-  }, [session, sessionStatus, tapId]);
+  }, [paymentAgreementId, session, sessionStatus, tapId]);
 
   return (
     <PaymentResultView

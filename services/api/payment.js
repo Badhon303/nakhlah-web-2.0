@@ -1,5 +1,12 @@
 import { buildApiUrl } from "@/lib/api-config";
+import {
+    clearTapPaymentAgreementId,
+    rememberTapPaymentAgreementId,
+    readTapPaymentAgreementId,
+} from "@/lib/tapPaymentAgreement";
 import { fetchCurrentUser, refreshAccessToken } from "./auth";
+
+export { clearTapPaymentAgreementId, readTapPaymentAgreementId };
 
 const withApiUrl = (path) => buildApiUrl(path);
 
@@ -277,7 +284,7 @@ export async function cancelSubscription(subscriptionId, token) {
 export async function switchSubscription(
     newPlanId,
     token,
-    { paymentMethod = "paypal", customer } = {},
+    { paymentMethod = "paypal", customer, paymentAgreementId } = {},
 ) {
     try {
         if (!token) {
@@ -315,7 +322,15 @@ export async function switchSubscription(
                 );
             }
 
+            const agreementId = String(paymentAgreementId || "").trim();
             payload.customer = resolvedCustomer;
+            payload.source = "src_card";
+            Object.assign(
+                payload,
+                agreementId
+                    ? tapMerchantInitiatedFields(agreementId)
+                    : tapCustomerInitiatedFields({ saveCard: true }),
+            );
         }
 
         const { response } = await fetchWithAuthRetry("/api/payments/subscriptions/switch", {
@@ -336,6 +351,7 @@ export async function switchSubscription(
         return {
             success: true,
             data,
+            paymentAgreementId: rememberTapPaymentAgreementId(data),
             message: data?.message || "Subscription switched successfully",
         };
     } catch (error) {
@@ -389,6 +405,23 @@ export async function fetchTapConfig(token) {
     }
 }
 
+function tapCustomerInitiatedFields({ saveCard }) {
+    return {
+        customer_initiated: true,
+        save_card: Boolean(saveCard),
+        threeDSecure: true,
+    };
+}
+
+function tapMerchantInitiatedFields(paymentAgreementId) {
+    return {
+        customer_initiated: false,
+        save_card: false,
+        threeDSecure: false,
+        payment_agreement_id: paymentAgreementId,
+    };
+}
+
 const normalizeSaudiMobile = (value) =>
     String(value || "")
         .replace(/\D/g, "")
@@ -431,8 +464,7 @@ const buildTapDateChargePayload = (
     return {
         packageId,
         source: "src_all",
-        // source: "src_card",
-
+        ...tapCustomerInitiatedFields({ saveCard: false }),
     };
 };
 
@@ -482,6 +514,7 @@ export async function createTapDateCharge(packageId, token, options = {}) {
             data?.data?.chargeId ||
             data?.data?.id ||
             null;
+        const paymentAgreementId = rememberTapPaymentAgreementId(data);
         const approvalUrl = normalizeApprovalUrl(data);
         const status = String(
             data?.status || data?.data?.status || "INITIATED",
@@ -504,6 +537,7 @@ export async function createTapDateCharge(packageId, token, options = {}) {
             approvalUrl,
             needsOtp,
             status,
+            paymentAgreementId,
             tapConfig: tapConfig.data,
             data,
         };
@@ -575,7 +609,7 @@ export async function confirmTapStcDateCharge(chargeId, otp, token) {
     }
 }
 
-export async function captureTapDateCharge(chargeId, token) {
+export async function captureTapDateCharge(chargeId, token, paymentAgreementId = "") {
     try {
         if (!token) {
             throw new Error("Authentication required");
@@ -593,7 +627,14 @@ export async function captureTapDateCharge(chargeId, token) {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ chargeId }),
+                body: JSON.stringify({
+                    chargeId,
+                    ...(String(paymentAgreementId || "").trim()
+                        ? {
+                              payment_agreement_id: String(paymentAgreementId).trim(),
+                          }
+                        : {}),
+                }),
             },
         );
 
@@ -606,6 +647,11 @@ export async function captureTapDateCharge(chargeId, token) {
         return {
             success: true,
             data,
+            paymentAgreementId:
+                rememberTapPaymentAgreementId(data) ||
+                rememberTapPaymentAgreementId({
+                    payment_agreement_id: String(paymentAgreementId || "").trim(),
+                }),
             message: data?.message || "Payment confirmed successfully",
         };
     } catch (error) {
@@ -671,6 +717,7 @@ export async function createTapSubscriptionCharge(
                     paymentMethod: "tap",
                     source: source || "src_card",
                     customer: resolvedCustomer,
+                    ...tapCustomerInitiatedFields({ saveCard: true }),
                 }),
             },
         );
@@ -684,6 +731,7 @@ export async function createTapSubscriptionCharge(
         }
 
         const approvalUrl = normalizeApprovalUrl(data);
+        const paymentAgreementId = rememberTapPaymentAgreementId(data);
         if (!approvalUrl) {
             throw new Error("Tap approval URL was not returned");
         }
@@ -693,6 +741,7 @@ export async function createTapSubscriptionCharge(
             chargeId: data?.chargeId || data?.id || null,
             approvalUrl,
             status: data?.status || "INITIATED",
+            paymentAgreementId,
             tapConfig: tapConfig.data,
             data,
         };
@@ -705,7 +754,11 @@ export async function createTapSubscriptionCharge(
     }
 }
 
-export async function captureTapSubscriptionCharge(chargeId, token) {
+export async function captureTapSubscriptionCharge(
+    chargeId,
+    token,
+    paymentAgreementId = "",
+) {
     try {
         if (!token) {
             throw new Error("Authentication required");
@@ -723,7 +776,14 @@ export async function captureTapSubscriptionCharge(chargeId, token) {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ chargeId }),
+                body: JSON.stringify({
+                    chargeId,
+                    ...(String(paymentAgreementId || "").trim()
+                        ? {
+                              payment_agreement_id: String(paymentAgreementId).trim(),
+                          }
+                        : {}),
+                }),
             },
         );
 
@@ -738,6 +798,11 @@ export async function captureTapSubscriptionCharge(chargeId, token) {
         return {
             success: true,
             data,
+            paymentAgreementId:
+                rememberTapPaymentAgreementId(data) ||
+                rememberTapPaymentAgreementId({
+                    payment_agreement_id: String(paymentAgreementId || "").trim(),
+                }),
             message: data?.message || "Subscription confirmed successfully",
         };
     } catch (error) {

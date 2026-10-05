@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { CheckCircle2, X } from "lucide-react";
 import { Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   fetchTaskLessons,
   claimGiftBoxTask,
@@ -27,6 +27,15 @@ const JOURNEY_REFRESH_FLAG_KEY = "nakhlah:journey-needs-refresh";
 
 const sortByOrder = (items, key) =>
   [...(items || [])].sort((a, b) => (a?.[key] || 0) - (b?.[key] || 0));
+
+const getProgressLessonId = (docs) => {
+  const sortedLessons = sortByOrder(docs, "lessonOrder");
+  const activeLesson =
+    sortedLessons.find((lesson) => lesson?.status !== "locked") ||
+    sortedLessons[0];
+
+  return activeLesson?.id || "";
+};
 
 const getOrderedJourneyTasks = (journeyData) => {
   const levels = sortByOrder(journeyData?.levels, "levelOrder");
@@ -52,14 +61,11 @@ export function LessonSelectionPopup({
   const [lessons, setLessons] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
-  const [isGiftAlreadyOpened, setIsGiftAlreadyOpened] = useState(
-    Boolean(isTaskGiftBox && isCompleted),
-  );
+  const [isGiftAlreadyOpened, setIsGiftAlreadyOpened] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
-  const [hasClaimed, setHasClaimed] = useState(
-    Boolean(isTaskGiftBox && isCompleted),
-  );
+  const [hasClaimed, setHasClaimed] = useState(false);
   const [giftRewards, setGiftRewards] = useState(null);
+  const giftClaimStartedRef = useRef(false);
   const { data: session, status } = useSession();
 
   useEffect(() => {
@@ -69,9 +75,10 @@ export function LessonSelectionPopup({
       try {
         setIsLoading(true);
         setLoadError("");
-        setIsGiftAlreadyOpened(Boolean(isTaskGiftBox && isCompleted));
-        setHasClaimed(Boolean(isTaskGiftBox && isCompleted));
+        setIsGiftAlreadyOpened(false);
+        setHasClaimed(false);
         setGiftRewards(null);
+        giftClaimStartedRef.current = false;
 
         if (status === "loading") return;
         if (status === "unauthenticated" || !isSessionValid(session)) {
@@ -80,10 +87,22 @@ export function LessonSelectionPopup({
 
         const token = getSessionToken(session);
 
-        const [result, profileResult] = await Promise.all([
-          fetchTaskLessons(taskId, token),
-          isTaskGiftBox ? fetchMyProfile(token) : Promise.resolve(null),
-        ]);
+        if (isTaskGiftBox) {
+          const profileResult = await fetchMyProfile(token);
+
+          if (
+            profileResult?.success &&
+            hasOpenedGiftBox(profileResult.profile, taskId) &&
+            !giftClaimStartedRef.current
+          ) {
+            setIsGiftAlreadyOpened(true);
+            setHasClaimed(true);
+          }
+
+          return;
+        }
+
+        const result = await fetchTaskLessons(taskId, token);
         if (!result.success) {
           throw new Error(result.error || "Failed to load lessons");
         }
@@ -107,16 +126,6 @@ export function LessonSelectionPopup({
         });
 
         setLessons(normalized);
-
-        if (isTaskGiftBox && profileResult?.success) {
-          const alreadyOpened = hasOpenedGiftBox(profileResult.profile, taskId);
-
-          if (alreadyOpened) {
-            setIsGiftAlreadyOpened(true);
-            setHasClaimed(true);
-            setLoadError("");
-          }
-        }
       } catch (error) {
         setLoadError(error?.message || "Unable to load lessons");
       } finally {
@@ -159,10 +168,18 @@ export function LessonSelectionPopup({
   };
 
   const handleClaimGift = async () => {
-    if (isClaiming || hasClaimed || isLocked || isGiftAlreadyOpened) return;
+    if (
+      isClaiming ||
+      hasClaimed ||
+      isLocked ||
+      isGiftAlreadyOpened ||
+      isLoading
+    ) {
+      return;
+    }
 
+    giftClaimStartedRef.current = true;
     setIsClaiming(true);
-    // Optimistic UI update
     setHasClaimed(true);
 
     try {
@@ -188,10 +205,10 @@ export function LessonSelectionPopup({
           : [],
       });
 
-      const activeGiftLessonId =
-        lessons.find((lesson) => lesson.isCurrent || !lesson.isLocked)?.id ||
-        lessons[0]?.id ||
-        "";
+      const lessonsResult = await fetchTaskLessons(taskId, token);
+      const activeGiftLessonId = lessonsResult.success
+        ? getProgressLessonId(lessonsResult.data?.docs)
+        : "";
 
       if (activeGiftLessonId) {
         const progressResult = await makeLearnerProgress(
@@ -201,12 +218,13 @@ export function LessonSelectionPopup({
         if (progressResult?.success) {
           useDailyQuestStore.getState().invalidate();
         }
-        if (typeof window !== "undefined") {
-          useJourneyStore.getState().invalidate();
-          useProfileStore.getState().invalidate();
-          sessionStorage.setItem(JOURNEY_REFRESH_FLAG_KEY, "true");
-          window.dispatchEvent(new Event("nakhlah:journey-updated"));
-        }
+      }
+
+      if (typeof window !== "undefined") {
+        useJourneyStore.getState().invalidate();
+        useProfileStore.getState().invalidate();
+        sessionStorage.setItem(JOURNEY_REFRESH_FLAG_KEY, "true");
+        window.dispatchEvent(new Event("nakhlah:journey-updated"));
       }
 
       // Auto close after showing animation for a bit
@@ -223,6 +241,7 @@ export function LessonSelectionPopup({
       } else {
         setLoadError("Failed to claim gift. Please try again.");
         setHasClaimed(false);
+        giftClaimStartedRef.current = false;
       }
     } finally {
       setIsClaiming(false);
@@ -331,9 +350,14 @@ export function LessonSelectionPopup({
             )}
 
             <motion.button
+              type="button"
               onClick={handleClaimGift}
               disabled={
-                isLocked || hasClaimed || isClaiming || isGiftAlreadyOpened
+                isLocked ||
+                hasClaimed ||
+                isClaiming ||
+                isGiftAlreadyOpened ||
+                isLoading
               }
               className={`
                 relative z-10 w-48 h-48 rounded-full flex flex-col items-center justify-center

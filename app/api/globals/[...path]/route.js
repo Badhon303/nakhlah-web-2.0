@@ -22,7 +22,10 @@ export async function GET(request, { params }) {
         );
         upstreamUrl.search = request.nextUrl.search;
 
-        const authorization = request.headers.get("authorization");
+        const isLegalDocuments = pathSegments[0] === "legal-documents";
+        const authorization = isLegalDocuments
+            ? null
+            : request.headers.get("authorization");
 
         const upstreamResponse = await fetch(upstreamUrl.toString(), {
             method: "GET",

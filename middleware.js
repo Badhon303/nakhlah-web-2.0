@@ -8,9 +8,14 @@ export default withAuth(
         const isAuthPage = req.nextUrl.pathname.startsWith("/auth");
         const isOnboarding = req.nextUrl.pathname.startsWith("/onboarding");
         const isGetStarted = req.nextUrl.pathname.startsWith("/get-started");
+        const isLegalDocument =
+            req.nextUrl.pathname === "/privacy" ||
+            req.nextUrl.pathname.startsWith("/privacy/") ||
+            req.nextUrl.pathname === "/terms-and-conditions" ||
+            req.nextUrl.pathname.startsWith("/terms-and-conditions/");
 
-        // Allow auth pages, onboarding, and get-started without authentication
-        if (isAuthPage || isOnboarding || isGetStarted) {
+        // Allow auth pages, onboarding, get-started, and public legal pages
+        if (isAuthPage || isOnboarding || isGetStarted || isLegalDocument) {
             return NextResponse.next();
         }
 

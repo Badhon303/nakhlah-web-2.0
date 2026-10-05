@@ -29,6 +29,7 @@ import { resolveLessonCompletionDailyQuestParams } from "@/lib/gamification";
 import { useDailyQuestStore } from "@/stores/useDailyQuestStore";
 import { useLessonStore } from "@/stores/useLessonStore";
 import { useProfileStore } from "@/stores/useProfileStore";
+import { useGamificationStockStore } from "@/stores/useGamificationStockStore";
 import { useJourneyStore } from "@/stores/useJourneyStore";
 import { getUserKey } from "@/lib/userKey";
 import { toast } from "@/components/nakhlah/Toast";
@@ -384,6 +385,21 @@ export default function LessonPage({ routeLessonId = "" }) {
   );
   const fetchProfile = useProfileStore((state) => state.fetchMyProfile);
   const profileData = useProfileStore((state) => state.profile);
+  const storePalmStock = useGamificationStockStore((state) => state.palmStock);
+  const storePalmUpdatedAt = useGamificationStockStore(
+    (state) => state.palmUpdatedAt,
+  );
+  const storeDateStock = useGamificationStockStore((state) => state.dateStock);
+  const storeUserKey = useGamificationStockStore((state) => state.userKey);
+  const storeLastFetchedAt = useGamificationStockStore(
+    (state) => state.lastFetchedAt,
+  );
+  const fetchGamificationStock = useGamificationStockStore(
+    (state) => state.fetchGamificationStock,
+  );
+  const setStorePalmStock = useGamificationStockStore(
+    (state) => state.setPalmStock,
+  );
 
   const [questions, setQuestions] = useState([]);
   const [lessonRefreshKey, setLessonRefreshKey] = useState(0);
@@ -443,6 +459,9 @@ export default function LessonPage({ routeLessonId = "" }) {
 
   const questionType = currentQuestion?.question_type;
   const hasPalmTrees = palmTrees > 0;
+  const stockReady =
+    storeUserKey === activeUserKey && storeLastFetchedAt != null;
+  const displayedPalmTrees = stockReady ? storePalmStock : palmTrees;
 
   const imageUrl = getQuestionMedia(currentQuestion, "image");
   const audioUrl = getQuestionMedia(currentQuestion, "audio");
@@ -451,6 +470,14 @@ export default function LessonPage({ routeLessonId = "" }) {
   useEffect(() => {
     sessionRef.current = session;
   }, [session]);
+
+  useEffect(() => {
+    if (!stockReady) return;
+    setPalmTrees(storePalmStock);
+    if (storePalmStock > 0) {
+      setShowPalmRefillPrompt(false);
+    }
+  }, [stockReady, storePalmStock]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -563,25 +590,34 @@ export default function LessonPage({ routeLessonId = "" }) {
         const resolvedProfile = profileResult?.success
           ? profileResult.profile
           : null;
-        if (resolvedProfile) {
-          const palmStock = Number(
-            resolvedProfile?.gamificationStock?.palm?.palmStock,
-          );
-          if (Number.isFinite(palmStock)) {
-            setPalmTrees(palmStock);
-            syncProfilePalmTrees(palmStock);
-            if (palmStock <= 0) {
-              setLoadError(
-                "You need more Palm Trees before opening this lesson.",
-              );
-              setIsLoading(false);
-              return;
-            }
-          } else {
-            throw new Error("Unable to verify available Palm Trees.");
-          }
-        } else {
+        if (!resolvedProfile) {
           throw new Error("Unable to verify available Palm Trees.");
+        }
+
+        const stockResult = await fetchGamificationStock({
+          token,
+          userKey: getUserKey(currentSession),
+          forceRefresh: true,
+        });
+        const profilePalm = Number(
+          resolvedProfile?.gamificationStock?.palm?.palmStock,
+        );
+        const stockPalm = Number(stockResult?.palmStock);
+        const resolvedPalm =
+          stockResult?.success && Number.isFinite(stockPalm)
+            ? stockPalm
+            : profilePalm;
+
+        if (!Number.isFinite(resolvedPalm)) {
+          throw new Error("Unable to verify available Palm Trees.");
+        }
+
+        setPalmTrees(resolvedPalm);
+        syncProfilePalmTrees(resolvedPalm);
+        if (resolvedPalm <= 0) {
+          setLoadError("You need more Palm Trees before opening this lesson.");
+          setIsLoading(false);
+          return;
         }
 
         const questionsRequest = selectedLessonIsExam
@@ -622,6 +658,7 @@ export default function LessonPage({ routeLessonId = "" }) {
     activeUserKey,
     authSessionKey,
     fetchProfile,
+    fetchGamificationStock,
     storeSelectedLessonId,
     storeSelectedNodeId,
     storeSelectedLessonIsExam,
@@ -651,10 +688,12 @@ export default function LessonPage({ routeLessonId = "" }) {
       // down the answer-checking flow that triggered this.
       const token = getSessionToken(session);
       if (token) {
-        void fetchProfile(token, true, getUserKey(session));
+        const userKey = getUserKey(session);
+        void fetchProfile(token, true, userKey);
+        void fetchGamificationStock({ token, userKey, forceRefresh: true });
       }
     }
-  }, [palmTrees, isLoading, session, fetchProfile]);
+  }, [palmTrees, isLoading, session, fetchProfile, fetchGamificationStock]);
 
   useEffect(() => {
     totalAnswerAttemptsRef.current = totalAnswerAttempts;
@@ -1030,7 +1069,14 @@ export default function LessonPage({ routeLessonId = "" }) {
     if (Number.isFinite(palmStock)) {
       setPalmTrees(palmStock);
       syncProfilePalmTrees(palmStock);
+      setStorePalmStock(palmStock);
     }
+
+    void fetchGamificationStock({
+      token,
+      userKey: getUserKey(session),
+      forceRefresh: true,
+    });
   };
 
   const recordAnswerAttempt = (isAnswerCorrect) => {
@@ -1490,7 +1536,15 @@ export default function LessonPage({ routeLessonId = "" }) {
       }
 
       await fetchProfile(token, true, getUserKey(session));
-      setPalmTrees(5);
+      const stockResult = await fetchGamificationStock({
+        token,
+        userKey: getUserKey(session),
+        forceRefresh: true,
+      });
+      const refilledPalm = Number(stockResult?.palmStock);
+      setPalmTrees(
+        stockResult?.success && Number.isFinite(refilledPalm) ? refilledPalm : 5,
+      );
       setShowPalmRefillPrompt(false);
       setLessonRefreshKey((key) => key + 1);
       toast.success(
@@ -1638,8 +1692,9 @@ export default function LessonPage({ routeLessonId = "" }) {
         progressPercentage={progressPercentage}
         onExit={() => setShowExitDialog(true)}
         elapsedSeconds={elapsedSeconds}
-        palmTrees={palmTrees}
+        palmTrees={displayedPalmTrees}
         maxPalmTrees={5}
+        palmUpdatedAt={stockReady ? storePalmUpdatedAt : null}
       />
 
       {showExitDialog && (
@@ -2305,8 +2360,9 @@ export default function LessonPage({ routeLessonId = "" }) {
           isRefilling={isRefillingFromError}
           onGoPro={() => router.push("/store")}
           onExit={handleLeaveLesson}
-          palmUpdatedAt={profileData?.gamificationStock?.palm?.palmUpdatedAt}
-          dateStock={profileData?.gamificationStock?.dateStock ?? 0}
+          palmTreesCount={displayedPalmTrees}
+          palmUpdatedAt={stockReady ? storePalmUpdatedAt : null}
+          dateStock={stockReady ? storeDateStock : (profileData?.gamificationStock?.dateStock ?? 0)}
         />
       )}
     </div>

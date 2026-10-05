@@ -13,6 +13,10 @@ export default function TapDateSuccessClient() {
   const { data: session, status: sessionStatus } = useSession();
   const hasCapturedRef = useRef(false);
   const tapId = searchParams.get("tap_id") || "";
+  const paymentAgreementId =
+    searchParams.get("payment_agreement_id") ||
+    searchParams.get("paymentAgreementId") ||
+    "";
   const [captureState, setCaptureState] = useState({
     status: "loading",
     message:
@@ -43,6 +47,7 @@ export default function TapDateSuccessClient() {
       const result = await captureTapDateCharge(
         tapId,
         getSessionToken(session),
+        paymentAgreementId,
       );
 
       if (!result.success) {
@@ -65,7 +70,7 @@ export default function TapDateSuccessClient() {
     };
 
     capturePayment();
-  }, [session, sessionStatus, tapId]);
+  }, [paymentAgreementId, session, sessionStatus, tapId]);
 
   return (
     <PaymentResultView

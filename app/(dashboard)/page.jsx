@@ -21,30 +21,37 @@ const JOURNEY_REFRESH_FLAG_KEY = "nakhlah:journey-needs-refresh";
 const sortByOrder = (items, key) =>
   [...(items || [])].sort((a, b) => (a?.[key] || 0) - (b?.[key] || 0));
 
+const toOrder = (value) => {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : Number.NaN;
+};
+
 const buildJourneyView = (journey, currentProgress) => {
   const sections = [];
   const nodes = [];
-  const levelOrder = Number(currentProgress?.levelOrder);
-  const unitOrder = Number(currentProgress?.unitOrder);
-  const taskOrder = Number(currentProgress?.taskOrder);
+  const levelOrder = toOrder(currentProgress?.levelOrder);
+  const unitOrder = toOrder(currentProgress?.unitOrder);
+  const taskOrder = toOrder(currentProgress?.taskOrder);
   const sortedLevels = sortByOrder(journey?.levels, "levelOrder");
   const hasExplicitProgress =
     Number.isFinite(unitOrder) && Number.isFinite(taskOrder);
 
   sortedLevels.forEach((level) => {
     const units = sortByOrder(level?.units, "unitOrder");
+    const levelOrderValue = toOrder(level.levelOrder);
 
     units.forEach((unit) => {
       const sectionId = `${level.id}-${unit.id}`;
+      const unitOrderValue = toOrder(unit.unitOrder);
       const isEarlierLevel =
-        hasExplicitProgress && level.levelOrder < levelOrder;
+        hasExplicitProgress && levelOrderValue < levelOrder;
       const isCurrentLevel =
-        hasExplicitProgress && level.levelOrder === levelOrder;
+        hasExplicitProgress && levelOrderValue === levelOrder;
       const isEarlierUnitInCurrentLevel =
-        hasExplicitProgress && isCurrentLevel && unit.unitOrder < unitOrder;
+        hasExplicitProgress && isCurrentLevel && unitOrderValue < unitOrder;
       const isEarlierUnit = isEarlierLevel || isEarlierUnitInCurrentLevel;
       const isCurrentUnit =
-        hasExplicitProgress && isCurrentLevel && unit.unitOrder === unitOrder;
+        hasExplicitProgress && isCurrentLevel && unitOrderValue === unitOrder;
 
       const unitUnlocked =
         !hasExplicitProgress ||
@@ -71,10 +78,16 @@ const buildJourneyView = (journey, currentProgress) => {
 
       tasks.forEach((task, index) => {
         const hasTaskProgress = lastActiveIndex >= 0;
+        const taskOrderValue = toOrder(task.taskOrder);
+        const isGiftBox = Boolean(task?.giftBox);
         const isEarlierTaskInCurrentUnit =
-          hasExplicitProgress && isCurrentUnit && task.taskOrder < taskOrder;
+          hasExplicitProgress &&
+          isCurrentUnit &&
+          taskOrderValue < taskOrder;
         const isCurrentTask =
-          hasExplicitProgress && isCurrentUnit && task.taskOrder === taskOrder;
+          hasExplicitProgress &&
+          isCurrentUnit &&
+          taskOrderValue === taskOrder;
 
         let isCompleted =
           (hasExplicitProgress &&
@@ -96,7 +109,8 @@ const buildJourneyView = (journey, currentProgress) => {
           isCurrent = true;
         }
 
-        if (task?.inProgressOrCompleted && !isCurrent) {
+        // Reaching a gift box only unlocks it. The claim request is what opens it.
+        if (task?.inProgressOrCompleted && !isCurrent && !isGiftBox) {
           isCompleted = true;
         }
 
@@ -109,7 +123,6 @@ const buildJourneyView = (journey, currentProgress) => {
           isCompleted = false;
         }
 
-        const isGiftBox = Boolean(task?.giftBox);
         const type = isGiftBox ? "trophy" : "lesson";
 
         nodes.push({
