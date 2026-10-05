@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { ThemeToggle } from "./ThemeToggle";
 import { signOut } from "next-auth/react";
+import { clearTapPaymentAgreementId } from "@/lib/tapPaymentAgreement";
 
 const navItems = [
   { path: "/", label: "Home", icon: "/icons/Home-Icon.127e8555.svg" },
@@ -58,6 +59,7 @@ export function Navbar() {
 
   const handleLogout = async () => {
     window.dispatchEvent(new Event("nakhlah:logout-started"));
+    clearTapPaymentAgreementId();
     try {
       await signOut({ redirect: false });
     } catch {

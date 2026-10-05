@@ -4,12 +4,9 @@ import { motion } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
 import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
 import { useLegalDocumentsStore } from "@/stores/useLegalDocumentsStore";
-import { useSession } from "next-auth/react";
-import { getSessionToken } from "@/lib/authUtils";
 import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
 export default function PrivacyPolicyPage({ onBack }) {
-  const { data: session } = useSession();
   const legalData = useLegalDocumentsStore((state) => state.data);
   const isLoading = useLegalDocumentsStore((state) => state.isLoading);
   const error = useLegalDocumentsStore((state) => state.error);
@@ -19,8 +16,8 @@ export default function PrivacyPolicyPage({ onBack }) {
   const content = legalData?.privacyPolicy ?? null;
 
   useEffect(() => {
-    fetchLegalDocuments(getSessionToken(session));
-  }, [session, fetchLegalDocuments]);
+    fetchLegalDocuments();
+  }, [fetchLegalDocuments]);
 
   return (
     <div className="max-w-4xl mx-auto py-6">

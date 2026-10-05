@@ -1,8 +1,11 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import PrivacyPolicyPage from "@/app/(dashboard)/profile/components/PrivacyPolicy";
+import TermsAndConditionsPage from "@/app/(dashboard)/profile/components/TermsAndConditions";
 import { cn } from "@/lib/utils";
 import {
   EMAIL_REGEX,
@@ -27,6 +30,43 @@ export function AccountStep({
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [openDocument, setOpenDocument] = useState(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!openDocument) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setOpenDocument(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [openDocument]);
+
+  const openLegalDocument = (event, document) => {
+    if (
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey ||
+      event.button !== 0
+    ) {
+      return;
+    }
+    event.preventDefault();
+    setOpenDocument(document);
+  };
 
   const handleEmailChange = (value) => {
     setLocalEmail(value);
@@ -183,11 +223,38 @@ export function AccountStep({
         <div className="text-sm text-muted-foreground">
           <p>
             By continuing you agree to our{" "}
-            <span className="text-foreground font-medium">Terms</span> and{" "}
-            <span className="text-foreground font-medium">Privacy Policy</span>.
+            <a
+              href="/terms-and-conditions"
+              className="text-foreground font-medium underline-offset-2 hover:underline"
+              onClick={(event) => openLegalDocument(event, "terms")}
+            >
+              Terms
+            </a>{" "}
+            and{" "}
+            <a
+              href="/privacy"
+              className="text-foreground font-medium underline-offset-2 hover:underline"
+              onClick={(event) => openLegalDocument(event, "privacy")}
+            >
+              Privacy Policy
+            </a>
+            .
           </p>
         </div>
       </motion.div>
+
+      {isMounted && openDocument
+        ? createPortal(
+            <div className="fixed inset-0 z-[80] overflow-y-auto bg-background px-4">
+              {openDocument === "privacy" ? (
+                <PrivacyPolicyPage onBack={() => setOpenDocument(null)} />
+              ) : (
+                <TermsAndConditionsPage onBack={() => setOpenDocument(null)} />
+              )}
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

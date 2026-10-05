@@ -12,6 +12,7 @@ import {
   Mail,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
+import { clearTapPaymentAgreementId } from "@/lib/tapPaymentAgreement";
 
 export default function SettingsPage({ onBack, onNavigate }) {
   const accountItems = [
@@ -58,6 +59,7 @@ export default function SettingsPage({ onBack, onNavigate }) {
 
   const handleLogout = async () => {
     window.dispatchEvent(new Event("nakhlah:logout-started"));
+    clearTapPaymentAgreementId();
     try {
       await signOut({ redirect: false });
     } catch {

@@ -13,6 +13,7 @@ export default function PalmTreesDepletedOverlay({
   isRefilling,
   onGoPro,
   onExit,
+  palmTreesCount = 0,
   palmUpdatedAt = null,
   dateStock = 0,
 }) {
@@ -21,7 +22,7 @@ export default function PalmTreesDepletedOverlay({
       <PalmRefillPanel
         title="Out of Palm Trees!"
         description="You've used up all your Palm Trees, so you can't answer more questions right now."
-        palmTreesCount={0}
+        palmTreesCount={palmTreesCount}
         maxPalmTrees={5}
         onRefill={onRefill}
         isRefilling={isRefilling}

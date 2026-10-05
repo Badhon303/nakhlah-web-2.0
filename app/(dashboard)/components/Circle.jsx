@@ -105,8 +105,10 @@ export function Circle({
     return "";
   };
 
+  const canOpen = !isLocked && (isCompleted || isCurrent || isTrophy);
+
   const handleClick = () => {
-    if ((isCompleted || isCurrent) && !isLocked) {
+    if (canOpen) {
       if (typeof window !== "undefined") {
         localStorage.setItem("lastInteractedNodeId", nodeId);
       }
@@ -125,7 +127,7 @@ export function Circle({
       <div
         onClick={handleClick}
         className={`flex items-center justify-center ${getCircleStyles()} transition-transform ${
-          (isCompleted || isCurrent) && !isLocked
+          canOpen
             ? "cursor-pointer hover:scale-110"
             : isLocked
               ? "cursor-not-allowed"

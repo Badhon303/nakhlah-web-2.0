@@ -41,6 +41,7 @@ import {
   cancelSubscription,
   switchSubscription,
   createTapSubscriptionCharge,
+  readTapPaymentAgreementId,
 } from "@/services/api/payment";
 
 const premiumFeatures = [
@@ -346,6 +347,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
         paymentMethod: gateway,
         ...(gateway === "tap"
           ? {
+              paymentAgreementId: readTapPaymentAgreementId(currentSubscription),
               customer: {
                 firstName: options.firstName || billingCustomer.firstName,
                 lastName: options.lastName || billingCustomer.lastName,

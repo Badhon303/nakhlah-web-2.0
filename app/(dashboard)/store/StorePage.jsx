@@ -39,6 +39,7 @@ import {
   fetchCurrentSubscription,
   createTapDateCharge,
   createTapSubscriptionCharge,
+  readTapPaymentAgreementId,
   // confirmTapStcDateCharge,
 } from "@/services/api/payment";
 import { useProfileStore } from "@/stores/useProfileStore";
@@ -299,6 +300,7 @@ export default function StorePage() {
       paymentMethod: gateway,
       ...(gateway === "tap"
         ? {
+            paymentAgreementId: readTapPaymentAgreementId(currentSubscription),
             customer: {
               firstName: options.firstName || billingCustomer.firstName,
               lastName: options.lastName || billingCustomer.lastName,

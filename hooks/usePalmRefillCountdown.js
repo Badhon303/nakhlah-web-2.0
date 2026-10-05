@@ -22,21 +22,36 @@ export function usePalmRefillCountdown(
   );
 
   useEffect(() => {
-    setState(getPalmRefillState(palmUpdatedAt, palmStock, maxPalmStock));
+    const sync = () =>
+      setState(getPalmRefillState(palmUpdatedAt, palmStock, maxPalmStock));
 
-    if (Number(palmStock) >= maxPalmStock) {
+    sync();
+
+    const refill = getPalmRefillState(palmUpdatedAt, palmStock, maxPalmStock);
+    if (refill.isFull || refill.msRemaining == null) {
       return undefined;
     }
 
-    const interval = setInterval(() => {
-      setState(getPalmRefillState(palmUpdatedAt, palmStock, maxPalmStock));
-    }, 1000);
+    const interval = setInterval(sync, 1000);
+    const syncIfVisible = () => {
+      if (document.visibilityState === "visible") sync();
+    };
 
-    return () => clearInterval(interval);
+    document.addEventListener("visibilitychange", syncIfVisible);
+    window.addEventListener("focus", sync);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", syncIfVisible);
+      window.removeEventListener("focus", sync);
+    };
   }, [palmUpdatedAt, palmStock, maxPalmStock]);
 
   return {
     ...state,
-    formatted: state.isFull ? null : formatRefillCountdown(state.msRemaining),
+    formatted:
+      state.isFull || state.msRemaining == null
+        ? null
+        : formatRefillCountdown(state.msRemaining),
   };
 }

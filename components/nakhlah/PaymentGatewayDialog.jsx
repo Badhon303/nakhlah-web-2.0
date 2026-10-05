@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Check, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import {
@@ -65,7 +65,7 @@ const GATEWAY_OPTIONS = [
   {
     id: "tap",
     label: "Choose Others",
-    description: "Cards, wallets & local methods",
+    description: "Visa, Mastercard, mada, or Apple Pay",
     logo: "/tap-pay.png",
     disabled: false,
   },
@@ -124,7 +124,10 @@ function GatewayPicker({
   const [phoneCountryIso, setPhoneCountryIso] = useState(
     resolvedInitialCountryIso,
   );
-  const [phoneE164, setPhoneE164] = useState(resolvedInitialE164);
+  const [phoneE164, setPhoneE164] = useState(
+    resolvedInitialE164 || undefined,
+  );
+  const phoneTouchedRef = useRef(false);
   // const [otp, setOtp] = useState("");
   // const [stcChargeId, setStcChargeId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -139,10 +142,11 @@ function GatewayPicker({
   }, [fetchMyProfile, session, sessionStatus]);
 
   useEffect(() => {
+    if (phoneTouchedRef.current) return;
     setFirstName(resolvedInitialFirstName);
     setLastName(resolvedInitialLastName);
     setPhoneCountryIso(resolvedInitialCountryIso);
-    setPhoneE164(resolvedInitialE164);
+    setPhoneE164(resolvedInitialE164 || undefined);
   }, [
     resolvedInitialFirstName,
     resolvedInitialLastName,
@@ -199,8 +203,14 @@ function GatewayPicker({
 
   const handlePhoneCountryChange = (nextIso) => {
     if (nextIso === phoneCountryIso) return;
+    phoneTouchedRef.current = true;
     setPhoneCountryIso(nextIso || "");
-    setPhoneE164("");
+    setPhoneE164(undefined);
+  };
+
+  const handlePhoneChange = (value) => {
+    phoneTouchedRef.current = true;
+    setPhoneE164(value);
   };
 
   const handleProceed = async () => {
@@ -398,15 +408,15 @@ function GatewayPicker({
             <PhoneInput
               id="tap-customer-phone"
               country={phoneCountryIso || undefined}
-              international={phoneCountryIso ? true : undefined}
+              international={false}
               smartCaret={false}
-              value={phoneE164 || undefined}
-              onChange={(value) => setPhoneE164(value || "")}
+              value={phoneE164}
+              onChange={handlePhoneChange}
               disabled={isSubmitting || !phoneCountryIso}
               inputMode="tel"
               autoComplete="tel"
               aria-label="Mobile number"
-              className="flex h-10 min-w-0 flex-1 border-0 bg-transparent px-3 text-center text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 min-w-0 flex-1 border-0 bg-transparent px-3 text-start text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               placeholder={
                 phoneCountryIso ? "Phone number" : "Select a country code"
               }
