@@ -13,6 +13,7 @@ import { Trophy } from "@/components/icons/Trophy";
 import { useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
+import { hasOpenedGiftBox } from "@/lib/gamification";
 import { useJourneyStore } from "@/stores/useJourneyStore";
 import { useProfileStore } from "@/stores/useProfileStore";
 
@@ -26,7 +27,7 @@ const toOrder = (value) => {
   return Number.isFinite(numeric) ? numeric : Number.NaN;
 };
 
-const buildJourneyView = (journey, currentProgress) => {
+const buildJourneyView = (journey, currentProgress, profileData) => {
   const sections = [];
   const nodes = [];
   const levelOrder = toOrder(currentProgress?.levelOrder);
@@ -124,6 +125,7 @@ const buildJourneyView = (journey, currentProgress) => {
         }
 
         const type = isGiftBox ? "trophy" : "lesson";
+        const isGiftOpened = isGiftBox && hasOpenedGiftBox(profileData, task.id);
 
         nodes.push({
           id: `${sectionId}-${task.id}`,
@@ -133,6 +135,7 @@ const buildJourneyView = (journey, currentProgress) => {
           isCompleted,
           isCurrent,
           isLocked,
+          isGiftOpened,
           icon: isGiftBox ? <Trophy size="xl" /> : null,
           level: unit.unitOrder,
           sectionId,
@@ -238,6 +241,7 @@ export default function LearnPage() {
     const { sections, nodes } = buildJourneyView(
       journeyData || {},
       profileData?.currentProgress || null,
+      profileData,
     );
     return { levels: sections, lessons: nodes };
   }, [journeyData, profileData]);

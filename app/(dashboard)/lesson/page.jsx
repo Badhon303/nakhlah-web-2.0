@@ -34,6 +34,7 @@ import { useJourneyStore } from "@/stores/useJourneyStore";
 import { getUserKey } from "@/lib/userKey";
 import { toast } from "@/components/nakhlah/Toast";
 import { persistUnlockedBadgeKeys, extractUnlockedBadgeKeys } from "@/lib/lessonUnlockedBadges";
+import { markJourneyLandOnNewGift } from "@/lib/journeyScroll";
 import PalmTreesDepletedOverlay from "./PalmTreesDepletedOverlay";
 
 import LessonLoadingView from "./loading/LessonLoadingView";
@@ -1118,6 +1119,7 @@ export default function LessonPage({ routeLessonId = "" }) {
     accuracyPercentageOverride = null,
     hasWrongAnswerOverride = null,
     forceDailyQuestRefresh = false,
+    landOnNewGift = true,
   } = {}) => {
     setIsNavigatingToCompletion(true);
 
@@ -1222,6 +1224,9 @@ export default function LessonPage({ routeLessonId = "" }) {
 
     if (typeof window !== "undefined") {
       sessionStorage.setItem(JOURNEY_REFRESH_FLAG_KEY, "true");
+      if (landOnNewGift) {
+        markJourneyLandOnNewGift();
+      }
       window.dispatchEvent(new Event("nakhlah:journey-updated"));
     }
 
@@ -1321,7 +1326,7 @@ export default function LessonPage({ routeLessonId = "" }) {
       (selectedLessonStatus || "").trim().toLowerCase() === "completed";
 
     if (isReplayOfCompletedLesson) {
-      await completeLessonAndRedirect();
+      await completeLessonAndRedirect({ landOnNewGift: false });
       return;
     }
 

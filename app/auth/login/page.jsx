@@ -14,6 +14,7 @@ import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
 import { useRouter, useSearchParams } from "next/navigation";
 import { queueToastAfterNavigation, toast } from "@/components/nakhlah/Toast";
 import { useProfileStore } from "@/stores/useProfileStore";
+import { clearJourneyScrollOverrides } from "@/lib/journeyScroll";
 
 function socialLoginErrorMessage(error, message) {
   if (message) return message;
@@ -36,6 +37,10 @@ function LoginForm() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    clearJourneyScrollOverrides();
+  }, []);
 
   useEffect(() => {
     const error = searchParams.get("error");

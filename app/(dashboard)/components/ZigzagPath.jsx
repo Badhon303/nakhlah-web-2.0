@@ -2,18 +2,45 @@
 import { Circle } from "./Circle";
 import { GateBanner } from "@/components/nakhlah/GateBanner";
 import { JourneyCompleteCelebration } from "./JourneyCompleteCelebration";
+import {
+  finishJourneyLandOnNewGift,
+  readJourneyLandOnNewGift,
+  takeRememberedJourneyScroll,
+} from "@/lib/journeyScroll";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
+
+let journeyScrollMountId = 0;
 
 const PATH_CENTER = 50;
 const PATH_AMPLITUDE = 25;
 const PATH_FREQUENCY = 0.8;
 // const LESSON_ROW_HEIGHT = 112;
 
+function findNewlyUnlockedGift(lessons) {
+  const currentIndex = lessons.findIndex((lesson) => lesson.isCurrent);
+  if (currentIndex <= 0) return null;
+  const previous = lessons[currentIndex - 1];
+  if (
+    previous?.type === "trophy" &&
+    !previous.isLocked &&
+    !previous.isGiftOpened
+  ) {
+    return previous;
+  }
+  return null;
+}
+
 export function ZigzagPath({ lessons, levels, isLoading = false }) {
   const [currentLevelId, setCurrentLevelId] = useState("");
   const hasScrolledRef = useRef(false);
   const prevLessonsRef = useRef(lessons);
+  const hasMountedWithLessonsRef = useRef(false);
+  const lessonsChangedRef = useRef(false);
+  const stickRef = useRef(false);
+  const landOnGiftRef = useRef(false);
+  const landFlagReadRef = useRef(false);
+  const heldScrollRef = useRef(null);
 
   const currentLevel = levels.find((l) => l.id === currentLevelId);
 
@@ -94,27 +121,96 @@ export function ZigzagPath({ lessons, levels, isLoading = false }) {
     return () => observers.forEach((o) => o.disconnect());
   }, [levels, isLoading, currentLevelId]);
 
-  // Reset scroll guard whenever lessons data changes identity (e.g. after journey refresh)
   useEffect(() => {
+    const mountId = ++journeyScrollMountId;
+    return () => {
+      window.setTimeout(() => {
+        if (journeyScrollMountId === mountId) {
+          finishJourneyLandOnNewGift();
+        }
+      }, 0);
+    };
+  }, []);
+
+  // A later journey refresh must not move the path after a gift landing or claim.
+  useEffect(() => {
+    if (lessons.length === 0) return;
+    if (!hasMountedWithLessonsRef.current) {
+      hasMountedWithLessonsRef.current = true;
+      prevLessonsRef.current = lessons;
+      return;
+    }
     if (prevLessonsRef.current !== lessons) {
-      hasScrolledRef.current = false;
+      if (!stickRef.current) {
+        hasScrolledRef.current = false;
+      }
+      lessonsChangedRef.current = true;
       prevLessonsRef.current = lessons;
     }
   }, [lessons]);
 
-  // Scroll to current lesson on load / after refresh
+  useEffect(() => {
+    if (heldScrollRef.current == null) return undefined;
+    const y = heldScrollRef.current;
+    const restore = () => {
+      window.scrollTo({ top: y, left: 0, behavior: "instant" });
+    };
+    restore();
+    const raf = requestAnimationFrame(restore);
+    const release = window.setTimeout(() => {
+      heldScrollRef.current = null;
+    }, 1500);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(release);
+    };
+  }, [lessons]);
+
+  // Fresh visits, including login, land on the current lesson.
+  // The gift rules run only from a one-shot flag set by that action.
   useEffect(() => {
     if (isLoading || lessons.length === 0) return undefined;
     if (hasScrolledRef.current) return undefined;
 
+    const isInPlaceRefresh = lessonsChangedRef.current;
+    lessonsChangedRef.current = false;
+
+    if (!landFlagReadRef.current && !isInPlaceRefresh) {
+      landFlagReadRef.current = true;
+      landOnGiftRef.current = readJourneyLandOnNewGift();
+      // A saved claim position belongs to the refresh that followed that claim.
+      // A fresh visit, including login, starts from the current lesson.
+      takeRememberedJourneyScroll();
+      sessionStorage.removeItem("nakhlah:journey-scroll-node");
+    }
+
+    if (isInPlaceRefresh) {
+      const savedScroll = takeRememberedJourneyScroll();
+      if (savedScroll != null) {
+        heldScrollRef.current = savedScroll;
+        window.scrollTo({ top: savedScroll, left: 0, behavior: "instant" });
+        stickRef.current = true;
+        hasScrolledRef.current = true;
+        finishJourneyLandOnNewGift();
+        return undefined;
+      }
+    }
+
     const getTargetEl = () => {
-      // 1. Always prefer the API's isCurrent node — source of truth
+      if (landOnGiftRef.current) {
+        const gift = findNewlyUnlockedGift(lessons);
+        if (gift) {
+          const giftEl = document.getElementById(`node-${gift.apiId}`);
+          if (!giftEl) return null;
+          return { el: giftEl, landedOnGift: true };
+        }
+      }
+
       const currentLesson = lessons.find((l) => l.isCurrent);
       let targetEl = currentLesson
         ? document.getElementById(`node-${currentLesson.apiId}`)
         : null;
 
-      // 2. Fallback: last node the user explicitly clicked
       if (!targetEl) {
         const lastInteractedId = localStorage.getItem("lastInteractedNodeId");
         if (lastInteractedId) {
@@ -122,7 +218,6 @@ export function ZigzagPath({ lessons, levels, isLoading = false }) {
         }
       }
 
-      // 3. Fallback: first unlocked node
       if (!targetEl) {
         const firstUnlocked = lessons.find((l) => !l.isLocked);
         if (firstUnlocked) {
@@ -130,22 +225,27 @@ export function ZigzagPath({ lessons, levels, isLoading = false }) {
         }
       }
 
-      return targetEl;
+      return targetEl ? { el: targetEl, landedOnGift: false } : null;
     };
 
     const doScroll = () => {
-      const targetEl = getTargetEl();
-      if (targetEl) {
-        targetEl.scrollIntoView({ behavior: "instant", block: "center" });
-        hasScrolledRef.current = true;
-        return true;
+      const target = getTargetEl();
+      if (!target) return false;
+      target.el.scrollIntoView({ behavior: "instant", block: "center" });
+      hasScrolledRef.current = true;
+      if (target.landedOnGift) {
+        stickRef.current = true;
+        landOnGiftRef.current = false;
+        finishJourneyLandOnNewGift();
+      } else if (isInPlaceRefresh && landOnGiftRef.current) {
+        landOnGiftRef.current = false;
+        finishJourneyLandOnNewGift();
       }
-      return false;
+      return true;
     };
 
-    // Try immediately after paint, then retry at 400ms and 900ms
-    // for slow layouts (backgrounds, images not yet sized)
-    let t1, t2;
+    let t1;
+    let t2;
     const raf = requestAnimationFrame(() => {
       if (!doScroll()) {
         t1 = setTimeout(() => {
@@ -212,6 +312,7 @@ export function ZigzagPath({ lessons, levels, isLoading = false }) {
                           isCompleted={lesson.isCompleted}
                           isCurrent={lesson.isCurrent}
                           isLocked={lesson.isLocked}
+                          isGiftOpened={lesson.isGiftOpened}
                           icon={lesson.icon}
                           type={lesson.type}
                           size="lg"
