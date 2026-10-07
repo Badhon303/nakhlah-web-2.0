@@ -14,6 +14,7 @@ export function Circle({
   isCompleted,
   isCurrent,
   isLocked,
+  isGiftOpened = false,
   icon,
   type,
   size = "md",
@@ -52,18 +53,25 @@ export function Circle({
     : iconSizeClasses[size] || iconSizeClasses.md;
 
   const getIcon = () => {
-    // Gift box / Mystery box
+    // Gift box: closed until it is claimed. The open image is only for a claimed box.
     if (isTrophy) {
-      const unlocked = !isLocked;
+      if (isGiftOpened) {
+        return (
+          <img
+            src="/icons/mystery_box_unlocked.svg"
+            alt="Mystery box opened"
+            className={`${iconSizeClass} scale-110 object-contain`}
+          />
+        );
+      }
+
       return (
         <img
-          src={
-            unlocked
-              ? "/icons/mystery_box_unlocked.svg"
-              : "/icons/mystery_box_locked.svg"
-          }
-          alt={unlocked ? "Mystery box unlocked" : "Mystery box locked"}
-          className={`${iconSizeClass} object-contain${unlocked ? " scale-110" : ""}`}
+          src="/icons/mystery_box_locked.svg"
+          alt={isLocked ? "Mystery box locked" : "Mystery box ready to open"}
+          className={`${iconSizeClass} object-contain${
+            isLocked ? " opacity-50 grayscale" : " scale-110"
+          }`}
         />
       );
     }
@@ -105,7 +113,9 @@ export function Circle({
     return "";
   };
 
-  const canOpen = !isLocked && (isCompleted || isCurrent || isTrophy);
+  const canOpen = isTrophy
+    ? !isLocked
+    : !isLocked && (isCompleted || isCurrent);
 
   const handleClick = () => {
     if (canOpen) {
@@ -131,7 +141,7 @@ export function Circle({
             ? "cursor-pointer hover:scale-110"
             : isLocked
               ? "cursor-not-allowed"
-              : "cursor-pointer hover:scale-105"
+              : "cursor-default"
         }`}
       >
         {getIcon()}
@@ -145,6 +155,7 @@ export function Circle({
           isCurrent={isCurrent}
           isLocked={isLocked}
           isTaskGiftBox={isTrophy}
+          isGiftOpened={isGiftOpened}
           onClose={handleClosePopup}
           open={showPopup}
         />

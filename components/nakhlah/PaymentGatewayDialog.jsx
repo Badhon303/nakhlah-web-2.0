@@ -66,7 +66,7 @@ const GATEWAY_OPTIONS = [
     id: "tap",
     label: "Choose Others",
     description: "Visa, Mastercard, mada, or Apple Pay",
-    logo: "/tap-pay.png",
+    logo: "/credit-card.png",
     disabled: false,
   },
 ];
@@ -339,43 +339,44 @@ function GatewayPicker({
       */}
 
       {needsNameInput && (
-        <div className="mx-auto mt-4 grid w-full max-w-sm gap-3 text-center">
-          {!resolvedInitialFirstName.trim() && (
-            <div>
-              <label
-                htmlFor="tap-customer-first-name"
-                className="mb-2 block text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground"
-              >
-                First name
-              </label>
+        <div className="mx-auto mt-4 w-full max-w-sm text-center">
+          <p className="mb-2 text-left text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
+            Your name
+          </p>
+          <div
+            className={cn(
+              "grid gap-3",
+              !resolvedInitialFirstName.trim() &&
+                !resolvedInitialLastName.trim()
+                ? "grid-cols-2"
+                : "grid-cols-1",
+            )}
+          >
+            {!resolvedInitialFirstName.trim() && (
               <Input
                 id="tap-customer-first-name"
                 value={firstName}
                 disabled={isSubmitting}
                 onChange={(event) => setFirstName(event.target.value)}
-                placeholder="First name"
+                placeholder="Enter your first name"
+                autoComplete="given-name"
+                aria-label="First name"
                 className="text-center"
               />
-            </div>
-          )}
-          {!resolvedInitialLastName.trim() && (
-            <div>
-              <label
-                htmlFor="tap-customer-last-name"
-                className="mb-2 block text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground"
-              >
-                Last name
-              </label>
+            )}
+            {!resolvedInitialLastName.trim() && (
               <Input
                 id="tap-customer-last-name"
                 value={lastName}
                 disabled={isSubmitting}
                 onChange={(event) => setLastName(event.target.value)}
-                placeholder="Last name"
+                placeholder="Enter your last name"
+                autoComplete="family-name"
+                aria-label="Last name"
                 className="text-center"
               />
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 
@@ -383,7 +384,7 @@ function GatewayPicker({
         <div className="mx-auto mt-4 w-full max-w-sm text-center">
           <label
             htmlFor="tap-customer-phone"
-            className="mb-2 block text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground"
+            className="mb-2 block text-left text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground"
           >
             {"Mobile number to save your card"}
             {/* {isStcPay ? "STC Pay mobile number" : "Mobile number to save your card"} */}
@@ -427,11 +428,11 @@ function GatewayPicker({
               Enter a valid mobile number for the selected country.
             </p>
           )}
-          {tapCustomerRequired && (
+          {/* {tapCustomerRequired && (
             <p className="mt-1.5 text-xs text-muted-foreground">
               Required so Tap can save your card for the subscription.
             </p>
-          )}
+          )} */}
           {/* {isStcPay && !waitingForOtp && (
             <p className="mt-1.5 text-xs text-muted-foreground">
               Use the STC Pay mobile number. Tap test numbers include

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { fetchMyProfile } from "@/services/api/auth";
+import { clearJourneyScrollOverrides } from "@/lib/journeyScroll";
 
 const SESSION_GRACE_MS = 2500;
 const SESSION_RETRY_MS = 400;
@@ -54,6 +55,7 @@ export default function SocialRedirectPage() {
         if (resolvedRef.current || cancelled) return;
 
         resolvedRef.current = true;
+        clearJourneyScrollOverrides();
         if (profileResult.success && profileResult.profile) {
           router.replace("/");
           return;

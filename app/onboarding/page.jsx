@@ -22,6 +22,7 @@ import { CompletionStep } from "@/components/nakhlah/onboarding/CompletionStep";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { clearJourneyScrollOverrides } from "@/lib/journeyScroll";
 import { registerUser } from "@/lib/authUtils";
 import {
   fetchCurrentUser,
@@ -558,6 +559,7 @@ export default function Onboarding() {
     localStorage.removeItem("nakhlah_profile_prompt_pending");
 
     if (typeof window !== "undefined") {
+      clearJourneyScrollOverrides();
       sessionStorage.setItem("nakhlah:journey-needs-refresh", "true");
     }
 
