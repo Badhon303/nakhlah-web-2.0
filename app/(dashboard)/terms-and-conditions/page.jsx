@@ -3,25 +3,25 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ChevronLeft, FileText } from "lucide-react";
-import { useSession } from "next-auth/react";
-import { getSessionToken } from "@/lib/authUtils";
+import { ChevronLeft } from "lucide-react";
 import { useLegalDocumentsStore } from "@/stores/useLegalDocumentsStore";
 import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
 export default function TermsAndConditionsRoutePage() {
   const router = useRouter();
-  const { data: session } = useSession();
   const legalData = useLegalDocumentsStore((state) => state.data);
   const isLoading = useLegalDocumentsStore((state) => state.isLoading);
+  const error = useLegalDocumentsStore((state) => state.error);
   const fetchLegalDocuments = useLegalDocumentsStore(
     (state) => state.fetchLegalDocuments,
   );
   const content = legalData?.termsAndConditions ?? null;
+  const showLoading = isLoading || (!legalData && !error);
 
   useEffect(() => {
-    fetchLegalDocuments(getSessionToken(session));
-  }, [session, fetchLegalDocuments]);
+    fetchLegalDocuments();
+  }, [fetchLegalDocuments]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
@@ -45,12 +45,8 @@ export default function TermsAndConditionsRoutePage() {
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="space-y-3">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-4 bg-muted/40 rounded animate-pulse" />
-            ))}
-          </div>
+        {showLoading ? (
+          <DocumentLoadingSkeleton />
         ) : content ? (
           <LexicalRenderer lexicalJson={content} className="text-base" />
         ) : (

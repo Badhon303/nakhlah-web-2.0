@@ -18,7 +18,7 @@ export const useLegalDocumentsStore = create((set, get) => ({
 
     data: null,
 
-    fetchLegalDocuments: async (token, { forceRefresh = false } = {}) => {
+    fetchLegalDocuments: async ({ forceRefresh = false } = {}) => {
         const state = get();
         const shouldFetch = forceRefresh || state.shouldRefetch(state.lastFetchedAt);
 
@@ -28,7 +28,7 @@ export const useLegalDocumentsStore = create((set, get) => ({
 
         set({ isLoading: true, error: null });
 
-        const result = await fetchLegalDocumentsApi({}, token);
+        const result = await fetchLegalDocumentsApi({});
         if (!result?.success) {
             set({ isLoading: false, error: result?.error || "Failed to load legal documents" });
             return { success: false, error: result?.error || "Failed to load legal documents" };
