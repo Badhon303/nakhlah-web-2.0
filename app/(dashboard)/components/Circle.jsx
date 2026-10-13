@@ -16,6 +16,7 @@ export function Circle({
   isCompleted,
   isCurrent,
   isLocked,
+  isGiftOpened = false,
   icon,
   type,
   size = "md",
@@ -142,6 +143,7 @@ export function Circle({
           isCurrent={isCurrent}
           isLocked={isLocked}
           isTaskGiftBox={isTrophy}
+          isGiftOpened={isGiftOpened}
           onClose={handleClosePopup}
           open={showPopup}
         />

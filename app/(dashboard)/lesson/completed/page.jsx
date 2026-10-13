@@ -167,14 +167,9 @@ export default function LessonCompleted() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="flex justify-center mb-2 sm:mb-6"
+            className="flex justify-center mb-4"
           >
-            <span className="sm:hidden">
-              <FreshDateMascot mood="celebrating" size="xxl" />
-            </span>
-            <span className="hidden sm:inline">
-              <FreshDateMascot mood="celebrating" size="xxxl" />
-            </span>
+            <FreshDateMascot mood="celebrating" size="xxxl" />
           </motion.div>
 
           {/* Title */}
@@ -288,5 +283,3 @@ export default function LessonCompleted() {
     </div>
   );
 }
-
-

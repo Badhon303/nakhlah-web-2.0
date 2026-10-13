@@ -45,7 +45,7 @@ export default function HelpCenterPage({ onBack }) {
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-3xl font-bold text-foreground">Help Center</h1>
+          <h1 className="text-3xl font-bold text-foreground">FAQs</h1>
         </div>
 
         <div className="relative mb-5">

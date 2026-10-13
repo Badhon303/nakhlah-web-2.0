@@ -11,6 +11,7 @@ import { Trophy } from "@/components/icons/Trophy";
 import { useSession } from "@/lib/auth-client";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
+import { hasOpenedGiftBox } from "@/lib/gamification";
 import { useJourneyStore } from "@/stores/useJourneyStore";
 import { useProfileStore } from "@/stores/useProfileStore";
 
@@ -25,7 +26,7 @@ const toOrder = (value) => {
   return Number.isFinite(numeric) ? numeric : Number.NaN;
 };
 
-const buildJourneyView = (journey, currentProgress) => {
+const buildJourneyView = (journey, currentProgress, profileData) => {
   const sections = [];
   const nodes = [];
   const levelOrder = toOrder(currentProgress?.levelOrder);
@@ -117,7 +118,14 @@ const buildJourneyView = (journey, currentProgress) => {
           isCompleted = false;
         }
 
+        // Reaching a gift only unlocks it. The claim request is what opens it.
+        if (isGiftBox) {
+          isCompleted = false;
+        }
+
         const type = isGiftBox ? "trophy" : "lesson";
+        const isGiftOpened =
+          isGiftBox && hasOpenedGiftBox(profileData, task.id);
 
         nodes.push({
           id: `${sectionId}-${task.id}`,
@@ -127,6 +135,7 @@ const buildJourneyView = (journey, currentProgress) => {
           isCompleted,
           isCurrent,
           isLocked,
+          isGiftOpened,
           lessonCount: Number(task?.lessonCount) || 0,
           icon: isGiftBox ? <Trophy size="xl" /> : null,
           level: unit.unitOrder,
@@ -225,6 +234,7 @@ export default function LearnPage() {
     const { sections, nodes } = buildJourneyView(
       journeyData || {},
       profileData?.currentProgress || null,
+      profileData,
     );
     return { levels: sections, lessons: nodes };
   }, [journeyData, profileData]);
@@ -241,7 +251,10 @@ export default function LearnPage() {
       <main className="container mx-auto pt-[65px] lg:pt-0 lg:px-4 lg:py-6 max-w-7xl">
         <div className="flex flex-col lg:flex-row gap-12">
           {/* Left side: Scrollable pathway */}
-          <div className="lg:w-2/3 lg:h-[calc(100vh_-_64px)] lg:overflow-y-auto no-scrollbar">
+          <div
+            data-journey-scroll
+            className="lg:w-2/3 lg:h-[calc(100vh_-_64px)] lg:overflow-y-auto no-scrollbar"
+          >
             {loadError ? (
               <JourneyErrorFallback
                 error={loadError}

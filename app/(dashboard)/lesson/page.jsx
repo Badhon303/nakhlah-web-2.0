@@ -446,6 +446,7 @@ export default function LessonPage() {
   const [rightState, setRightState] = useState([]);
   const [incorrectPairs, setIncorrectPairs] = useState([]);
   const [pairPenaltyApplied, setPairPenaltyApplied] = useState(false);
+  const [activePronunciationId, setActivePronunciationId] = useState(null);
   const sessionRef = useRef(session);
   const autoplayedAudioQuestionIdRef = useRef(null);
   const totalAnswerAttemptsRef = useRef(0);
@@ -974,6 +975,7 @@ export default function LessonPage() {
     setSelectedRight(null);
     setIncorrectPairs([]);
     setPairPenaltyApplied(false);
+    setActivePronunciationId(null);
 
     if (questionType === "word_making" || questionType === "sentence_making") {
       setAvailableTokens(shuffleArray(orderedTokens));
@@ -1707,12 +1709,18 @@ export default function LessonPage() {
       )}
 
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 sm:overflow-visible sm:p-4">
-        <div className="w-full max-w-4xl mx-auto sm:flex sm:min-h-full sm:flex-col sm:justify-center">
+        <div className="mx-auto flex min-h-full w-full max-w-4xl flex-col">
           <motion.div
             key={currentQuestion?.id || currentIndex}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-4 sm:space-y-6"
+            className={`space-y-4 sm:my-auto sm:space-y-6 ${
+              questionType === "pair_matching" ||
+              questionType === "word_making" ||
+              questionType === "sentence_making"
+                ? "my-auto"
+                : ""
+            }`}
           >
             {questionType === "learn" && (
               <>
@@ -1741,7 +1749,7 @@ export default function LessonPage() {
 
                 <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 sm:gap-6 lg:gap-8">
                   <div className="w-full lg:w-2/5 flex justify-center">
-                    <div className="relative w-full max-w-[min(9.5rem,22vh)] sm:max-w-sm">
+                    <div className="relative w-full max-w-[16rem] sm:max-w-sm">
                       <div className="relative aspect-square bg-gradient-to-br from-accent/20 to-primary/10 rounded-xl sm:rounded-2xl p-2">
                         {imageUrl ? (
                           <Image
@@ -1775,6 +1783,11 @@ export default function LessonPage() {
                                   <ArabicTooltip
                                     text={word}
                                     pronunciation={pronunciation}
+                                    tooltipId={`${currentQuestion?.id || currentIndex}-${index}`}
+                                    activeTooltipId={activePronunciationId}
+                                    onActiveTooltipChange={
+                                      setActivePronunciationId
+                                    }
                                   />
                                   {isLast ? "" : " "}
                                 </span>
@@ -1818,7 +1831,7 @@ export default function LessonPage() {
 
                 <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 sm:gap-6 lg:gap-8">
                   <div className="w-full lg:w-2/5 flex justify-center">
-                    <div className="relative w-full max-w-[min(9.5rem,22vh)] sm:max-w-sm">
+                    <div className="relative w-full max-w-[16rem] sm:max-w-sm">
                       <div className="relative aspect-square bg-gradient-to-br from-accent/20 to-primary/10 rounded-xl sm:rounded-2xl p-2">
                         {imageUrl ? (
                           <Image
@@ -2261,7 +2274,7 @@ export default function LessonPage() {
                                       : "border-border bg-card text-foreground hover:border-accent hover:shadow-sm sm:hover:shadow-md"
                               }`}
                             >
-                              <span className="text-sm sm:text-base md:text-lg font-bold text-center leading-tight line-clamp-2">
+                              <span className="text-sm sm:text-base md:text-lg font-bold text-center leading-snug break-words">
                                 {item.text}
                               </span>
                             </motion.button>

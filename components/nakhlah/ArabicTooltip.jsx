@@ -14,9 +14,17 @@ import {
  * @param {string} pronunciation - The pronunciation word to show in tooltip
  * @param {string} children - Child content
  */
-export function ArabicTooltip({ text, pronunciation }) {
-  const [open, setOpen] = useState(false);
+export function ArabicTooltip({
+  text,
+  pronunciation,
+  tooltipId,
+  activeTooltipId,
+  onActiveTooltipChange,
+}) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const [isTouch, setIsTouch] = useState(false);
+  const isGrouped = typeof onActiveTooltipChange === "function";
+  const open = isGrouped ? activeTooltipId === tooltipId : uncontrolledOpen;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -28,16 +36,31 @@ export function ArabicTooltip({ text, pronunciation }) {
   }, []);
 
   const handleMouseEnter = useCallback(() => {
-    if (!isTouch) setOpen(true);
-  }, [isTouch]);
+    if (isTouch) return;
+    if (isGrouped) {
+      onActiveTooltipChange(tooltipId);
+      return;
+    }
+    setUncontrolledOpen(true);
+  }, [isGrouped, isTouch, onActiveTooltipChange, tooltipId]);
 
   const handleMouseLeave = useCallback(() => {
-    if (!isTouch) setOpen(false);
-  }, [isTouch]);
+    if (isTouch) return;
+    if (isGrouped) {
+      onActiveTooltipChange(null);
+      return;
+    }
+    setUncontrolledOpen(false);
+  }, [isGrouped, isTouch, onActiveTooltipChange]);
 
   const handleClick = useCallback(() => {
-    if (isTouch) setOpen((prev) => !prev);
-  }, [isTouch]);
+    if (!isTouch) return;
+    if (isGrouped) {
+      onActiveTooltipChange(activeTooltipId === tooltipId ? null : tooltipId);
+      return;
+    }
+    setUncontrolledOpen((prev) => !prev);
+  }, [activeTooltipId, isGrouped, isTouch, onActiveTooltipChange, tooltipId]);
 
   return (
     <TooltipProvider delayDuration={0}>

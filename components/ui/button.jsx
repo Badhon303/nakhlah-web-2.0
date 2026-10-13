@@ -12,7 +12,7 @@ const buttonVariants = cva(
         default:
           "bg-accent text-accent-foreground shadow-accent hover:brightness-110 hover:shadow-lg",
         primary:
-          "bg-secondary text-secondary-foreground shadow-md hover:brightness-105 hover:shadow-lg",
+          "bg-primary text-primary-foreground shadow-md hover:brightness-105 hover:shadow-lg",
         secondary:
           "bg-secondary text-secondary-foreground shadow-md hover:brightness-105 hover:shadow-lg",
         destructive:

@@ -5,6 +5,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "@/lib/auth-client";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { fetchTaskLessons } from "@/services/api";
+import {
+  applyJourneyScroll,
+  takeRememberedJourneyScroll,
+} from "@/lib/journeyScroll";
 
 const PATH_CENTER = 50;
 const PATH_AMPLITUDE = 25;
@@ -182,6 +186,10 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
   const [lessonCountsByTask, setLessonCountsByTask] = useState({});
   const hasScrolledRef = useRef(false);
   const prevLessonsRef = useRef(lessons);
+  const hasMountedWithLessonsRef = useRef(false);
+  const lessonsChangedRef = useRef(false);
+  const stickRef = useRef(false);
+  const heldScrollRef = useRef(null);
   const lessonCountsRef = useRef(lessonCountsByTask);
   const levelsRef = useRef(levels);
   const landedUntilRef = useRef(0);
@@ -488,18 +496,60 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
     return () => observers.forEach((o) => o.disconnect());
   }, [levels, isLoading]);
 
-  // Reset scroll guard whenever lessons data changes identity
+  // A gift claim refreshes the journey in place. That refresh must not
+  // pull the path back to the current lesson.
   useEffect(() => {
+    if (lessons.length === 0) return;
+    if (!hasMountedWithLessonsRef.current) {
+      hasMountedWithLessonsRef.current = true;
+      prevLessonsRef.current = lessons;
+      return;
+    }
     if (prevLessonsRef.current !== lessons) {
-      hasScrolledRef.current = false;
+      if (!stickRef.current) {
+        hasScrolledRef.current = false;
+      }
+      lessonsChangedRef.current = true;
       prevLessonsRef.current = lessons;
     }
   }, [lessons]);
 
-  // Scroll to current lesson on load / after refresh
+  useEffect(() => {
+    if (heldScrollRef.current == null) return undefined;
+    const saved = heldScrollRef.current;
+    const restore = () => applyJourneyScroll(saved);
+    restore();
+    const raf = requestAnimationFrame(restore);
+    const release = window.setTimeout(() => {
+      heldScrollRef.current = null;
+    }, 1500);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(release);
+    };
+  }, [lessons]);
+
+  // Fresh visits land on the current lesson. A claim keeps the scroll in place.
   useEffect(() => {
     if (isLoading || lessons.length === 0) return undefined;
     if (hasScrolledRef.current) return undefined;
+
+    const isInPlaceRefresh = lessonsChangedRef.current;
+    lessonsChangedRef.current = false;
+
+    if (isInPlaceRefresh) {
+      const savedScroll = takeRememberedJourneyScroll();
+      if (savedScroll) {
+        heldScrollRef.current = savedScroll;
+        applyJourneyScroll(savedScroll);
+        stickRef.current = true;
+        hasScrolledRef.current = true;
+        landedUntilRef.current = Date.now() + 800;
+        return undefined;
+      }
+    } else {
+      takeRememberedJourneyScroll();
+    }
 
     const getTargetEl = () => {
       const currentLesson = lessons.find((l) => l.isCurrent);
@@ -675,6 +725,7 @@ export function ZigzagPath({ lessons, levels, mascots, isLoading = false }) {
                           isCompleted={lesson.isCompleted}
                           isCurrent={lesson.isCurrent}
                           isLocked={lesson.isLocked}
+                          isGiftOpened={lesson.isGiftOpened}
                           icon={lesson.icon}
                           type={lesson.type}
                           size="lg"
