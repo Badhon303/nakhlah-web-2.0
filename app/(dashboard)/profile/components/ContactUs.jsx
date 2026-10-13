@@ -74,7 +74,7 @@ const orbitPositions = socialMethods.map((_, index) => {
 
 const INITIAL_FORM = { name: "", email: "", subject: "", message: "" };
 
-export default function ContactUsPage({ onBack, onNavigateFaq }) {
+export default function ContactUsPage({ onBack }) {
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -159,19 +159,6 @@ export default function ContactUsPage({ onBack, onNavigateFaq }) {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <h1 className="text-3xl font-bold text-foreground">Contact Us</h1>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-3 mb-5 md:mb-6 flex-wrap">
-          <button
-            onClick={() => onNavigateFaq?.()}
-            className="min-w-28 px-4 py-2 rounded-lg text-center font-medium text-muted-foreground hover:bg-muted/50 dark:hover:bg-muted/20 transition-all"
-          >
-            FAQ
-          </button>
-          <div className="min-w-28 px-4 py-2 rounded-lg text-center font-medium bg-accent text-accent-foreground">
-            Contact us
-          </div>
         </div>
 
         {/* Hero: mascot with social links orbiting around it */}

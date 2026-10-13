@@ -14,14 +14,18 @@ export default function AboutNakhlahPage({
   onNavigate,
   showNavigationItems = true,
 }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const token = getSessionToken(session);
   const aboutData = useAboutStore((state) => state.data);
   const isLoading = useAboutStore((state) => state.isLoading);
+  const error = useAboutStore((state) => state.error);
   const fetchAbout = useAboutStore((state) => state.fetchAbout);
+  const showLoading = isLoading || (!aboutData && !error);
 
   useEffect(() => {
-    fetchAbout(getSessionToken(session));
-  }, [session, fetchAbout]);
+    if (status === "loading") return;
+    fetchAbout(token);
+  }, [status, token, fetchAbout]);
 
   const aboutItems = [
     ...(showNavigationItems
@@ -101,7 +105,7 @@ export default function AboutNakhlahPage({
         </div>
 
         {/* About Content */}
-        {isLoading ? (
+        {showLoading ? (
           <div className="mb-8 px-1">
             <DocumentLoadingSkeleton />
           </div>
