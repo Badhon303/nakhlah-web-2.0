@@ -8,18 +8,22 @@ import { useSession } from "next-auth/react";
 import { getSessionToken } from "@/lib/authUtils";
 import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
-export default function HelpCenterPage({ onBack, onNavigateContact }) {
+export default function HelpCenterPage({ onBack }) {
   const [expandedFaq, setExpandedFaq] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const token = getSessionToken(session);
   const helpCenterData = useHelpCenterStore((state) => state.data);
   const isLoading = useHelpCenterStore((state) => state.isLoading);
+  const error = useHelpCenterStore((state) => state.error);
   const fetchHelpCenter = useHelpCenterStore((state) => state.fetchHelpCenter);
   const faqs = helpCenterData?.faq ?? [];
+  const showLoading = isLoading || (!helpCenterData && !error);
 
   useEffect(() => {
-    fetchHelpCenter(getSessionToken(session));
-  }, [session, fetchHelpCenter]);
+    if (status === "loading") return;
+    fetchHelpCenter(token);
+  }, [status, token, fetchHelpCenter]);
 
   const visibleFaqs = faqs;
 
@@ -40,21 +44,8 @@ export default function HelpCenterPage({ onBack, onNavigateContact }) {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Help Center</h1>
+            <h1 className="text-3xl font-bold text-foreground">FAQs</h1>
           </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-3 mb-5 md:mb-6 flex-wrap">
-          <div className="min-w-28 px-4 py-2 rounded-lg text-center font-medium bg-accent text-accent-foreground">
-            FAQ
-          </div>
-          <button
-            onClick={() => onNavigateContact && onNavigateContact()}
-            className="min-w-28 px-4 py-2 rounded-lg text-center font-medium text-muted-foreground hover:bg-muted/50 dark:hover:bg-muted/20 transition-all"
-          >
-            Contact us
-          </button>
         </div>
 
         {/* Search Bar */}
@@ -70,7 +61,7 @@ export default function HelpCenterPage({ onBack, onNavigateContact }) {
         </div>
 
         {/* FAQ List */}
-        {isLoading ? (
+        {showLoading ? (
           <DocumentLoadingSkeleton />
         ) : visibleFaqs.length === 0 ? (
           <div className="py-8 text-center text-muted-foreground text-sm">

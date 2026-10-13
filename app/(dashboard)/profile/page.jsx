@@ -187,17 +187,11 @@ function ProfileAndSettingsContent() {
         return <FindFriendsPage onBack={() => setActiveView("settings")} />;
       case "help-center":
         return (
-          <HelpCenterPage
-            onBack={() => setActiveView("settings")}
-            onNavigateContact={() => setActiveView("contact-us")}
-          />
+          <HelpCenterPage onBack={() => setActiveView("settings")} />
         );
       case "contact-us":
         return (
-          <ContactUsPage
-            onBack={() => setActiveView("settings")}
-            onNavigateFaq={() => setActiveView("help-center")}
-          />
+          <ContactUsPage onBack={() => setActiveView("settings")} />
         );
       case "general":
         return <GeneralSettingsPage onBack={() => setActiveView("settings")} />;

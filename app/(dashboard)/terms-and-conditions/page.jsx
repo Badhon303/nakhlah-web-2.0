@@ -12,10 +12,12 @@ export default function TermsAndConditionsRoutePage() {
   const router = useRouter();
   const legalData = useLegalDocumentsStore((state) => state.data);
   const isLoading = useLegalDocumentsStore((state) => state.isLoading);
+  const error = useLegalDocumentsStore((state) => state.error);
   const fetchLegalDocuments = useLegalDocumentsStore(
     (state) => state.fetchLegalDocuments,
   );
   const content = legalData?.termsAndConditions ?? null;
+  const showLoading = isLoading || (!legalData && !error);
 
   useEffect(() => {
     fetchLegalDocuments();
@@ -43,7 +45,7 @@ export default function TermsAndConditionsRoutePage() {
           </div>
         </div>
 
-        {isLoading ? (
+        {showLoading ? (
           <DocumentLoadingSkeleton />
         ) : content ? (
           <LexicalRenderer lexicalJson={content} className="text-base" />

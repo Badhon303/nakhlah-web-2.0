@@ -38,7 +38,7 @@ export default function SettingsPage({ onBack, onNavigate }) {
 
   const supportItems = [
     {
-      label: "FAQ",
+      label: "FAQs",
       description: "Browse answers to common questions",
       icon: HelpCircle,
       action: "help-center",

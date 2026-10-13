@@ -14,6 +14,7 @@ export default function TermsAndConditionsPage({ onBack }) {
     (state) => state.fetchLegalDocuments,
   );
   const content = legalData?.termsAndConditions ?? null;
+  const showLoading = isLoading || (!legalData && !error);
 
   useEffect(() => {
     fetchLegalDocuments();
@@ -41,7 +42,7 @@ export default function TermsAndConditionsPage({ onBack }) {
         </div>
 
         {/* Content */}
-        {isLoading ? (
+        {showLoading ? (
           <DocumentLoadingSkeleton />
         ) : error ? (
           <div className="py-8 text-center text-muted-foreground text-sm">

@@ -14,21 +14,24 @@ export default function PolicyDocumentPage({
   title,
   standalone = false,
 }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const token = getSessionToken(session);
   const helpCenterData = useHelpCenterStore((state) => state.data);
   const isLoading = useHelpCenterStore((state) => state.isLoading);
   const error = useHelpCenterStore((state) => state.error);
   const fetchHelpCenter = useHelpCenterStore((state) => state.fetchHelpCenter);
   const content = helpCenterData?.[policyKey] ?? null;
+  const showLoading = isLoading || (!helpCenterData && !error);
 
   useEffect(() => {
-    fetchHelpCenter(getSessionToken(session));
-  }, [session, fetchHelpCenter]);
+    if (status === "loading") return;
+    fetchHelpCenter(token);
+  }, [status, token, fetchHelpCenter]);
 
   return (
     <div
       className={
-        standalone ? "max-w-4xl mx-auto px-4 py-6" : "max-w-2xl mx-auto py-6"
+        standalone ? "max-w-4xl mx-auto px-4 py-6" : "max-w-4xl mx-auto py-6"
       }
     >
       <div
@@ -48,7 +51,7 @@ export default function PolicyDocumentPage({
           <h1 className="text-2xl font-bold text-foreground">{title}</h1>
         </div>
 
-        {isLoading ? (
+        {showLoading ? (
           <DocumentLoadingSkeleton />
         ) : error ? (
           <div className="py-8 text-center text-muted-foreground text-sm">

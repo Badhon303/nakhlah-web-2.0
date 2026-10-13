@@ -12,17 +12,21 @@ import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleto
 
 export default function FaqPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const token = getSessionToken(session);
   const [expandedFaq, setExpandedFaq] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const helpCenterData = useHelpCenterStore((state) => state.data);
   const isLoading = useHelpCenterStore((state) => state.isLoading);
+  const error = useHelpCenterStore((state) => state.error);
   const fetchHelpCenter = useHelpCenterStore((state) => state.fetchHelpCenter);
   const faqs = helpCenterData?.faq ?? [];
+  const showLoading = isLoading || (!helpCenterData && !error);
 
   useEffect(() => {
-    fetchHelpCenter(getSessionToken(session));
-  }, [session, fetchHelpCenter]);
+    if (status === "loading") return;
+    fetchHelpCenter(token);
+  }, [status, token, fetchHelpCenter]);
 
   const visibleFaqs = faqs;
 
@@ -54,7 +58,7 @@ export default function FaqPage() {
           />
         </div>
 
-        {isLoading ? (
+        {showLoading ? (
           <DocumentLoadingSkeleton />
         ) : visibleFaqs.length === 0 ? (
           <p className="py-8 text-center text-muted-foreground">

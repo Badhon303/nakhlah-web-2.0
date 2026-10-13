@@ -7,9 +7,6 @@ export default function ContactUsRoutePage() {
   const router = useRouter();
 
   return (
-    <ContactUsPage
-      onBack={() => router.push("/faq")}
-      onNavigateFaq={() => router.push("/faq")}
-    />
+    <ContactUsPage onBack={() => router.push("/")} />
   );
 }

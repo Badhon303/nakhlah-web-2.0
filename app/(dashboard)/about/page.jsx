@@ -35,14 +35,18 @@ const isRichText = (value) =>
 
 export default function AboutPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const token = getSessionToken(session);
   const aboutData = useAboutStore((state) => state.data);
   const isLoading = useAboutStore((state) => state.isLoading);
+  const error = useAboutStore((state) => state.error);
   const fetchAbout = useAboutStore((state) => state.fetchAbout);
+  const showLoading = isLoading || (!aboutData && !error);
 
   useEffect(() => {
-    fetchAbout(getSessionToken(session));
-  }, [session, fetchAbout]);
+    if (status === "loading") return;
+    fetchAbout(token);
+  }, [status, token, fetchAbout]);
 
   const sections = SECTION_CONFIG.filter((section) =>
     isRichText(aboutData?.[section.key]),
@@ -69,7 +73,7 @@ export default function AboutPage() {
           <FreshDateMascot size="xxl" mood="happy" />
         </div>
 
-        {isLoading ? (
+        {showLoading ? (
           <DocumentLoadingSkeleton />
         ) : sections.length > 0 ? (
           <div className="space-y-8">
