@@ -1,8 +1,11 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import PrivacyPolicyPage from "@/app/(dashboard)/profile/components/PrivacyPolicy";
+import TermsAndConditionsPage from "@/app/(dashboard)/profile/components/TermsAndConditions";
 import { cn } from "@/lib/utils";
 import {
   EMAIL_REGEX,
@@ -27,6 +30,16 @@ export function AccountStep({
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [legalView, setLegalView] = useState(null);
+
+  useEffect(() => {
+    if (!legalView) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [legalView]);
 
   const handleEmailChange = (value) => {
     setLocalEmail(value);
@@ -130,7 +143,8 @@ export function AccountStep({
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute right-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground active:text-foreground"
             >
               {showPassword ? (
                 <EyeOff className="w-5 h-5" />
@@ -164,7 +178,10 @@ export function AccountStep({
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label={
+                showConfirmPassword ? "Hide password" : "Show password"
+              }
+              className="absolute right-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground active:text-foreground"
             >
               {showConfirmPassword ? (
                 <EyeOff className="w-5 h-5" />
@@ -183,11 +200,38 @@ export function AccountStep({
         <div className="text-sm text-muted-foreground">
           <p>
             By continuing you agree to our{" "}
-            <span className="text-foreground font-medium">Terms</span> and{" "}
-            <span className="text-foreground font-medium">Privacy Policy</span>.
+            <button
+              type="button"
+              onClick={() => setLegalView("terms")}
+              className="font-medium text-foreground underline-offset-2 hover:underline"
+            >
+              Terms & Conditions
+            </button>{" "}
+            and{" "}
+            <button
+              type="button"
+              onClick={() => setLegalView("privacy")}
+              className="font-medium text-foreground underline-offset-2 hover:underline"
+            >
+              Privacy Policy
+            </button>
+            .
           </p>
         </div>
       </motion.div>
+
+      {legalView
+        ? createPortal(
+            <div className="fixed inset-0 z-[80] overflow-y-auto bg-background pb-[var(--sab)] pt-[var(--sat)]">
+              {legalView === "privacy" ? (
+                <PrivacyPolicyPage onBack={() => setLegalView(null)} />
+              ) : (
+                <TermsAndConditionsPage onBack={() => setLegalView(null)} />
+              )}
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

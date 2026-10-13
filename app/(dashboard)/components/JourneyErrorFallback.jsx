@@ -67,10 +67,6 @@ export function JourneyErrorFallback({ error = "", onRetry }) {
     }
   }, [errorType, router]);
 
-  if (errorType === "unauthenticated") {
-    return null;
-  }
-
   const PrimaryButton = config.primaryHref ? (
     <Link
       href={config.primaryHref}

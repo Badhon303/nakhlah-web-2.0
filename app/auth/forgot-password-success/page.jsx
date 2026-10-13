@@ -38,7 +38,7 @@ export default function ForgotPasswordSuccessPage() {
               Check your email
             </h1>
             <p className="text-lg text-muted-foreground">
-              Congratulations! We have sent a password reset link to the email
+              We have sent a password reset link to the email
               address associated with your account.
             </p>
             <p className="text-sm text-muted-foreground mt-3">

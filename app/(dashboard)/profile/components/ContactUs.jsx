@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { motion } from "framer-motion";
 import {
   ChevronLeft,
   Mail,
@@ -143,13 +142,8 @@ export default function ContactUsPage({ onBack }) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto py-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-2xl bg-transparent lg:bg-card rounded-none lg:rounded-2xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-6"
-      >
+    <div className="mx-auto max-w-4xl px-4 py-6">
+      <div className="w-full bg-transparent p-0 lg:rounded-3xl lg:border lg:border-border lg:bg-card lg:p-6 lg:shadow-lg">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6 md:mb-7">
           <button
@@ -161,8 +155,7 @@ export default function ContactUsPage({ onBack }) {
           <h1 className="text-3xl font-bold text-foreground">Contact Us</h1>
         </div>
 
-        {/* Hero: mascot with social links orbiting around it */}
-        <div className="flex flex-col items-center text-center gap-6 mb-8">
+        <div className="mb-8 flex flex-col items-center gap-6 text-center">
           <div className="relative w-40 h-40 lg:w-80 lg:h-80 shrink-0">
             <div className="hidden lg:block absolute inset-8 rounded-full border-2 border-dashed border-accent/25" />
             <div className="absolute inset-0 flex items-center justify-center">
@@ -173,15 +166,12 @@ export default function ContactUsPage({ onBack }) {
                 const IconComponent = method.icon;
                 const { left, top } = orbitPositions[index];
                 return (
-                  <motion.button
-                    key={method.title}
-                    type="button"
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.08 * index, duration: 0.35 }}
-                    title={method.title}
-                    aria-label={method.title}
-                    className={`absolute w-12 h-12 rounded-full bg-gradient-to-br ${method.color} flex items-center justify-center shadow-md ring-4 ring-card hover:scale-110 transition-transform cursor-pointer`}
+                <button
+                  key={method.title}
+                  type="button"
+                  title={method.title}
+                  aria-label={method.title}
+                  className={`absolute flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br shadow-md ring-4 ring-card transition-transform hover:scale-110 ${method.color}`}
                     style={{
                       left: `${left}px`,
                       top: `${top}px`,
@@ -190,12 +180,29 @@ export default function ContactUsPage({ onBack }) {
                   >
                     <IconComponent className="w-5 h-5 text-white" />
                     <span className="sr-only">{method.title}</span>
-                  </motion.button>
+                  </button>
                 );
               })}
             </div>
           </div>
-          <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
+          {/* <div className="flex lg:hidden items-center justify-center gap-3">
+            {socialMethods.map((method) => {
+              const IconComponent = method.icon;
+              return (
+                <button
+                  key={method.title}
+                  type="button"
+                  title={method.title}
+                  aria-label={method.title}
+                  className={`flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br shadow-md ring-4 ring-card transition-transform hover:scale-110 ${method.color}`}
+                >
+                    <IconComponent className="w-5 h-5 text-white" />
+                    <span className="sr-only">{method.title}</span>
+                  </button>
+              );
+            })}
+          </div> */}
+          <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
             Got a question, found a bug, or just want to say hi? We&apos;d love
             to hear from you. Drop us an email, or send a message using the form
             below and we&apos;ll get back to you as soon as we can.
@@ -204,18 +211,15 @@ export default function ContactUsPage({ onBack }) {
 
         {/* Direct Contact Methods */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
-          {directMethods.map((method, index) => {
+          {directMethods.map((method) => {
             const IconComponent = method.icon;
             return (
-              <motion.a
+              <a
                 key={method.title}
                 href={method.href}
                 target={method.href.startsWith("http") ? "_blank" : undefined}
                 rel={method.href.startsWith("http") ? "noreferrer" : undefined}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.04 * index, duration: 0.3 }}
-                className="flex items-center gap-3 p-4 bg-muted/20 rounded-xl border border-border/30 hover:bg-muted/50 hover:border-accent/50 transition-all group"
+                className="group flex items-center gap-3 rounded-xl border border-border/30 bg-muted/20 p-4 transition-all hover:border-accent/50 hover:bg-muted/50"
               >
                 <div
                   className={`w-12 h-12 rounded-xl bg-gradient-to-br ${method.color} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}
@@ -230,13 +234,13 @@ export default function ContactUsPage({ onBack }) {
                     {method.subtitle}
                   </p>
                 </div>
-              </motion.a>
+              </a>
             );
           })}
         </div>
 
         {/* Message Form */}
-        {/* <div className="bg-transparent lg:bg-card/60 border-0 lg:border lg:border-border rounded-none lg:rounded-2xl p-0 lg:p-6">
+        {/* <div className="rounded-none border-0 bg-transparent p-0 lg:rounded-2xl lg:border lg:border-border lg:bg-card/60 lg:p-6">
           <h2 className="text-lg font-bold text-foreground mb-1">
             Send us a message
           </h2>
@@ -356,7 +360,7 @@ export default function ContactUsPage({ onBack }) {
             </Button>
           </form>
         </div> */}
-      </motion.div>
+      </div>
     </div>
   );
 }

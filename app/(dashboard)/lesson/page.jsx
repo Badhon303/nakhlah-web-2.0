@@ -29,6 +29,7 @@ import { resolveLessonCompletionDailyQuestParams } from "@/lib/gamification";
 import { useDailyQuestStore } from "@/stores/useDailyQuestStore";
 import { useLessonStore } from "@/stores/useLessonStore";
 import { useProfileStore } from "@/stores/useProfileStore";
+import { useGamificationStockStore } from "@/stores/useGamificationStockStore";
 import { getUserKey } from "@/lib/userKey";
 import { toast } from "@/components/nakhlah/Toast";
 
@@ -53,6 +54,13 @@ function safelyParseLessonSession(rawValue) {
   } catch {
     return null;
   }
+}
+
+function readRouteLessonId() {
+  if (typeof window === "undefined") return "";
+  return (
+    new URLSearchParams(window.location.search).get("lessonId")?.trim() || ""
+  );
 }
 
 function clearPersistedLessonSession() {
@@ -381,6 +389,21 @@ export default function LessonPage() {
   );
   const fetchProfile = useProfileStore((state) => state.fetchMyProfile);
   const profileData = useProfileStore((state) => state.profile);
+  const storePalmStock = useGamificationStockStore((state) => state.palmStock);
+  const storePalmUpdatedAt = useGamificationStockStore(
+    (state) => state.palmUpdatedAt,
+  );
+  const storeDateStock = useGamificationStockStore((state) => state.dateStock);
+  const storeUserKey = useGamificationStockStore((state) => state.userKey);
+  const storeLastFetchedAt = useGamificationStockStore(
+    (state) => state.lastFetchedAt,
+  );
+  const fetchGamificationStock = useGamificationStockStore(
+    (state) => state.fetchGamificationStock,
+  );
+  const setStorePalmStock = useGamificationStockStore(
+    (state) => state.setPalmStock,
+  );
 
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -423,6 +446,7 @@ export default function LessonPage() {
   const [rightState, setRightState] = useState([]);
   const [incorrectPairs, setIncorrectPairs] = useState([]);
   const [pairPenaltyApplied, setPairPenaltyApplied] = useState(false);
+  const [activePronunciationId, setActivePronunciationId] = useState(null);
   const sessionRef = useRef(session);
   const autoplayedAudioQuestionIdRef = useRef(null);
   const totalAnswerAttemptsRef = useRef(0);
@@ -438,6 +462,9 @@ export default function LessonPage() {
 
   const questionType = currentQuestion?.question_type;
   const hasPalmTrees = palmTrees > 0;
+  const stockReady =
+    storeUserKey === activeUserKey && storeLastFetchedAt != null;
+  const displayedPalmTrees = stockReady ? storePalmStock : palmTrees;
 
   const imageUrl = getQuestionMedia(currentQuestion, "image");
   const audioUrl = getQuestionMedia(currentQuestion, "audio");
@@ -447,6 +474,14 @@ export default function LessonPage() {
     sessionRef.current = session;
   }, [session]);
 
+  useEffect(() => {
+    if (!stockReady) return;
+    setPalmTrees(storePalmStock);
+    if (storePalmStock > 0) {
+      setShowPalmRefillPrompt(false);
+    }
+  }, [stockReady, storePalmStock]);
+
   // Block interaction the instant Palm Trees hit zero mid-lesson.
   useEffect(() => {
     if (isLoading) return;
@@ -454,10 +489,12 @@ export default function LessonPage() {
       setShowPalmRefillPrompt(true);
       const token = getSessionToken(session);
       if (token) {
-        void fetchProfile(token, true, getUserKey(session));
+        const userKey = getUserKey(session);
+        void fetchProfile(token, true, userKey);
+        void fetchGamificationStock({ token, userKey, forceRefresh: true });
       }
     }
-  }, [palmTrees, isLoading, session, fetchProfile]);
+  }, [palmTrees, isLoading, session, fetchProfile, fetchGamificationStock]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -508,6 +545,7 @@ export default function LessonPage() {
       }
 
       const lessonId =
+        readRouteLessonId() ||
         (storeSelectedLessonId || "").trim() ||
         sessionStorage.getItem("selectedLessonId")?.trim();
       const taskId =
@@ -569,25 +607,34 @@ export default function LessonPage() {
         const resolvedProfile = profileResult?.success
           ? profileResult.profile
           : null;
-        if (resolvedProfile) {
-          const palmStock = Number(
-            resolvedProfile?.gamificationStock?.palm?.palmStock,
-          );
-          if (Number.isFinite(palmStock)) {
-            setPalmTrees(palmStock);
-            syncProfilePalmTrees(palmStock);
-            if (palmStock <= 0) {
-              setLoadError(
-                "You need more Palm Trees before opening this lesson.",
-              );
-              setIsLoading(false);
-              return;
-            }
-          } else {
-            throw new Error("Unable to verify available Palm Trees.");
-          }
-        } else {
+        if (!resolvedProfile) {
           throw new Error("Unable to verify available Palm Trees.");
+        }
+
+        const stockResult = await fetchGamificationStock({
+          token,
+          userKey: getUserKey(currentSession),
+          forceRefresh: true,
+        });
+        const profilePalm = Number(
+          resolvedProfile?.gamificationStock?.palm?.palmStock,
+        );
+        const stockPalm = Number(stockResult?.palmStock);
+        const resolvedPalm =
+          stockResult?.success && Number.isFinite(stockPalm)
+            ? stockPalm
+            : profilePalm;
+
+        if (!Number.isFinite(resolvedPalm)) {
+          throw new Error("Unable to verify available Palm Trees.");
+        }
+
+        setPalmTrees(resolvedPalm);
+        syncProfilePalmTrees(resolvedPalm);
+        if (resolvedPalm <= 0) {
+          setLoadError("You need more Palm Trees before opening this lesson.");
+          setIsLoading(false);
+          return;
         }
 
         const questionsRequest = selectedLessonIsExam
@@ -628,6 +675,7 @@ export default function LessonPage() {
     activeUserKey,
     authSessionKey,
     fetchProfile,
+    fetchGamificationStock,
     storeSelectedLessonId,
     storeSelectedNodeId,
     storeSelectedLessonIsExam,
@@ -691,6 +739,7 @@ export default function LessonPage() {
     if (isLoading || !questions.length) return;
 
     const lessonId =
+      readRouteLessonId() ||
       (storeSelectedLessonId || "").trim() ||
       sessionStorage.getItem("selectedLessonId")?.trim();
     const taskId =
@@ -926,6 +975,7 @@ export default function LessonPage() {
     setSelectedRight(null);
     setIncorrectPairs([]);
     setPairPenaltyApplied(false);
+    setActivePronunciationId(null);
 
     if (questionType === "word_making" || questionType === "sentence_making") {
       setAvailableTokens(shuffleArray(orderedTokens));
@@ -1015,7 +1065,14 @@ export default function LessonPage() {
     if (Number.isFinite(palmStock)) {
       setPalmTrees(palmStock);
       syncProfilePalmTrees(palmStock);
+      setStorePalmStock(palmStock);
     }
+
+    void fetchGamificationStock({
+      token,
+      userKey: getUserKey(session),
+      forceRefresh: true,
+    });
   };
 
   const recordAnswerAttempt = (isAnswerCorrect) => {
@@ -1061,6 +1118,7 @@ export default function LessonPage() {
     setIsNavigatingToCompletion(true);
 
     const lessonId =
+      readRouteLessonId() ||
       (storeSelectedLessonId || "").trim() ||
       sessionStorage.getItem("selectedLessonId")?.trim();
     const token = getSessionToken(session);
@@ -1239,7 +1297,10 @@ export default function LessonPage() {
       return;
     }
 
-    const lessonId = sessionStorage.getItem("selectedLessonId")?.trim();
+    const lessonId =
+      readRouteLessonId() ||
+      (storeSelectedLessonId || "").trim() ||
+      sessionStorage.getItem("selectedLessonId")?.trim();
     const token = getSessionToken(session);
     const isReplayOfCompletedLesson =
       (selectedLessonStatus || "").trim().toLowerCase() === "completed";
@@ -1460,7 +1521,17 @@ export default function LessonPage() {
       }
 
       await fetchProfile(token, true, getUserKey(session));
-      setPalmTrees(5);
+      const stockResult = await fetchGamificationStock({
+        token,
+        userKey: getUserKey(session),
+        forceRefresh: true,
+      });
+      const refilledPalm = Number(stockResult?.palmStock);
+      setPalmTrees(
+        stockResult?.success && Number.isFinite(refilledPalm)
+          ? refilledPalm
+          : 5,
+      );
       setShowPalmRefillPrompt(false);
       toast.success(
         refillResult.message || "Palm Trees refilled successfully.",
@@ -1607,8 +1678,9 @@ export default function LessonPage() {
         progressPercentage={progressPercentage}
         onExit={() => setShowExitDialog(true)}
         elapsedSeconds={elapsedSeconds}
-        palmTrees={palmTrees}
+        palmTrees={displayedPalmTrees}
         maxPalmTrees={5}
+        palmUpdatedAt={stockReady ? storePalmUpdatedAt : null}
       />
 
       {showExitDialog && (
@@ -1626,20 +1698,29 @@ export default function LessonPage() {
           isRefilling={isRefillingFromError}
           onGoPro={() => router.push("/store")}
           onExit={handleLeaveLesson}
-          palmUpdatedAt={profileData?.gamificationStock?.palm?.palmUpdatedAt}
-          dateStock={profileData?.gamificationStock?.dateStock ?? 0}
+          palmTreesCount={displayedPalmTrees}
+          palmUpdatedAt={stockReady ? storePalmUpdatedAt : null}
+          dateStock={
+            stockReady
+              ? storeDateStock
+              : (profileData?.gamificationStock?.dateStock ?? 0)
+          }
         />
       )}
 
-      <div
-        className={`flex-1 flex justify-center p-3 sm:p-4 items-center overflow-x-hidden`}
-      >
-        <div className="w-full max-w-4xl mx-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 sm:overflow-visible sm:p-4">
+        <div className="mx-auto flex min-h-full w-full max-w-4xl flex-col">
           <motion.div
             key={currentQuestion?.id || currentIndex}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-4 sm:space-y-6"
+            className={`space-y-4 sm:my-auto sm:space-y-6 ${
+              questionType === "pair_matching" ||
+              questionType === "word_making" ||
+              questionType === "sentence_making"
+                ? "my-auto"
+                : ""
+            }`}
           >
             {questionType === "learn" && (
               <>
@@ -1668,7 +1749,7 @@ export default function LessonPage() {
 
                 <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 sm:gap-6 lg:gap-8">
                   <div className="w-full lg:w-2/5 flex justify-center">
-                    <div className="relative w-full max-w-[280px] sm:max-w-sm">
+                    <div className="relative w-full max-w-[16rem] sm:max-w-sm">
                       <div className="relative aspect-square bg-gradient-to-br from-accent/20 to-primary/10 rounded-xl sm:rounded-2xl p-2">
                         {imageUrl ? (
                           <Image
@@ -1702,6 +1783,11 @@ export default function LessonPage() {
                                   <ArabicTooltip
                                     text={word}
                                     pronunciation={pronunciation}
+                                    tooltipId={`${currentQuestion?.id || currentIndex}-${index}`}
+                                    activeTooltipId={activePronunciationId}
+                                    onActiveTooltipChange={
+                                      setActivePronunciationId
+                                    }
                                   />
                                   {isLast ? "" : " "}
                                 </span>
@@ -1745,7 +1831,7 @@ export default function LessonPage() {
 
                 <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 sm:gap-6 lg:gap-8">
                   <div className="w-full lg:w-2/5 flex justify-center">
-                    <div className="relative w-full max-w-[280px] sm:max-w-sm">
+                    <div className="relative w-full max-w-[16rem] sm:max-w-sm">
                       <div className="relative aspect-square bg-gradient-to-br from-accent/20 to-primary/10 rounded-xl sm:rounded-2xl p-2">
                         {imageUrl ? (
                           <Image
@@ -2188,7 +2274,7 @@ export default function LessonPage() {
                                       : "border-border bg-card text-foreground hover:border-accent hover:shadow-sm sm:hover:shadow-md"
                               }`}
                             >
-                              <span className="text-sm sm:text-base md:text-lg font-bold text-center leading-tight line-clamp-2">
+                              <span className="text-sm sm:text-base md:text-lg font-bold text-center leading-snug break-words">
                                 {item.text}
                               </span>
                             </motion.button>

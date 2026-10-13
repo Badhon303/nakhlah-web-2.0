@@ -1,4 +1,3 @@
-
 "use client";
 import { motion } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
@@ -41,7 +40,7 @@ export default function NotificationSettingsPage({ onBack }) {
         </div>
 
         {/* Notification List */}
-        <div className="space-y-1">
+        <div className="space-y-1 px-4">
           {notificationItems.map((item, index) => (
             <motion.div
               key={item.key}

@@ -4,15 +4,15 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "com.fintechhub.nakhla",
+  "applicationId": "com.fintechhub.nakhlah",
   "variantName": "debug",
   "elements": [
     {
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 6,
-      "versionName": "1.0.6",
+      "versionCode": 9,
+      "versionName": "1.0.9",
       "outputFile": "app-debug.apk"
     }
   ],

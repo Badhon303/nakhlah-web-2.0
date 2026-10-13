@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.fintechhub.nakhla',
+  appId: 'com.fintechhub.nakhlah',
   appName: 'nakhlah',
   webDir: 'out',
   plugins: {

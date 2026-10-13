@@ -33,7 +33,6 @@ import {
 import { NAME_MAX_LENGTH } from "@/lib/validation";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-
 const FIELD_CLASS =
   "w-full h-12 px-4 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground";
 
@@ -310,7 +309,7 @@ export default function EditProfilePage({
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-6">
+    <div className="max-w-4xl px-4 lg:px-0 mx-auto py-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -409,7 +408,7 @@ export default function EditProfilePage({
                 showCallingCode
                 placeholder="Code"
                 variant="embedded"
-                triggerClassName="rounded-l-xl border-r border-border"
+                triggerClassName="shrink-0 rounded-l-xl border-r border-border"
               />
               <PhoneInput
                 country={phoneCountryCode || undefined}

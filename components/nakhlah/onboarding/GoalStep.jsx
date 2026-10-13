@@ -31,6 +31,7 @@ export function GoalStep({
       <div className="grid grid-cols-2 gap-4">
         {goals.map((goal, index) => {
           const value = String(goal.goalTime);
+          const isSelected = selectedGoal === value;
           return (
             <motion.button
               key={goal.id}
@@ -41,7 +42,7 @@ export function GoalStep({
               className={cn(
                 "relative flex flex-col items-center gap-3 p-6 rounded-2xl border-2 transition-all duration-300",
                 "hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
-                selectedGoal === value
+                isSelected
                   ? "border-accent bg-accent/10 shadow-accent-glow"
                   : "border-border bg-card hover:border-primary",
               )}
@@ -64,7 +65,7 @@ export function GoalStep({
                   {value} min / day
                 </p>
               </div>
-              {selectedGoal === value && (
+              {isSelected && (
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}

@@ -2,25 +2,29 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { ChevronDown, ChevronLeft, Search } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { getSessionToken } from "@/lib/authUtils";
 import { fetchHelpCenter } from "@/services/api/globals";
+import HighlightedText from "@/components/nakhlah/HighlightedText";
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
 export default function FaqPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const token = getSessionToken(session);
   const [faqs, setFaqs] = useState([]);
   const [expandedFaq, setExpandedFaq] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (status === "loading") return undefined;
+    let cancelled = false;
+
     const loadFaq = async () => {
-      setIsLoading(true);
-      const token = getSessionToken(session);
       const result = await fetchHelpCenter({ faq: true }, token);
+      if (cancelled) return;
       if (result.success) {
         setFaqs(result.data?.faq ?? []);
       }
@@ -28,7 +32,10 @@ export default function FaqPage() {
     };
 
     loadFaq();
-  }, [session]);
+    return () => {
+      cancelled = true;
+    };
+  }, [status, token]);
 
   const filteredFaqs = useMemo(() => {
     if (!searchQuery.trim()) return faqs;
@@ -41,12 +48,8 @@ export default function FaqPage() {
   }, [faqs, searchQuery]);
 
   return (
-    <div className="min-h-[calc(100vh-6rem)] flex items-center justify-center px-4 py-8">
-      <motion.div
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-3xl bg-card rounded-3xl border border-border shadow-lg p-5 md:p-6"
-      >
+    <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="w-full max-w-4xl rounded-none border-0 bg-transparent p-0 shadow-none lg:rounded-3xl lg:border lg:border-border lg:bg-card lg:p-6 lg:shadow-lg">
         <div className="flex items-center gap-3 mb-6">
           <button
             onClick={() => router.push("/")}
@@ -69,14 +72,7 @@ export default function FaqPage() {
         </div>
 
         {isLoading ? (
-          <div className="space-y-2">
-            {[...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className="h-14 rounded-xl bg-muted/40 animate-pulse"
-              />
-            ))}
-          </div>
+          <DocumentLoadingSkeleton />
         ) : filteredFaqs.length === 0 ? (
           <p className="py-8 text-center text-muted-foreground">
             {searchQuery
@@ -88,7 +84,7 @@ export default function FaqPage() {
             {filteredFaqs.map((faq, index) => (
               <div
                 key={faq.id || index}
-                className="rounded-xl border border-border overflow-hidden"
+                className="overflow-hidden rounded-xl border border-border"
               >
                 <button
                   onClick={() =>
@@ -97,7 +93,7 @@ export default function FaqPage() {
                   className="w-full flex items-center justify-between p-4 hover:bg-muted/40 transition-colors"
                 >
                   <span className="text-left font-medium text-foreground">
-                    {faq.question}
+                    <HighlightedText text={faq.question} query={searchQuery} />
                   </span>
                   <ChevronDown
                     className={`w-5 h-5 text-muted-foreground transition-transform ${
@@ -107,14 +103,14 @@ export default function FaqPage() {
                 </button>
                 {expandedFaq === index && (
                   <div className="px-4 pb-4 text-sm text-muted-foreground leading-relaxed">
-                    {faq.answer}
+                    <HighlightedText text={faq.answer} query={searchQuery} />
                   </div>
                 )}
               </div>
             ))}
           </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

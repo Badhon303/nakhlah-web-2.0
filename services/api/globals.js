@@ -66,7 +66,7 @@ export async function fetchHelpCenter(select = {}, token) {
     }
 }
 
-export async function fetchLegalDocuments(select = {}, token) {
+export async function fetchLegalDocuments(select = {}) {
     try {
         const params = new URLSearchParams();
         Object.entries(select).forEach(([key, val]) => {
@@ -79,9 +79,8 @@ export async function fetchLegalDocuments(select = {}, token) {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
-            credentials: "include",
+            credentials: "omit",
             cache: "no-store",
         });
 

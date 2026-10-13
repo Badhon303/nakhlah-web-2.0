@@ -11,6 +11,7 @@ import { Trophy } from "@/components/icons/Trophy";
 import { useSession } from "@/lib/auth-client";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
+import { hasOpenedGiftBox } from "@/lib/gamification";
 import { useJourneyStore } from "@/stores/useJourneyStore";
 import { useProfileStore } from "@/stores/useProfileStore";
 
@@ -20,30 +21,37 @@ const JOURNEY_REFRESH_FLAG_KEY = "nakhlah:journey-needs-refresh";
 const sortByOrder = (items, key) =>
   [...(items || [])].sort((a, b) => (a?.[key] || 0) - (b?.[key] || 0));
 
-const buildJourneyView = (journey, currentProgress) => {
+const toOrder = (value) => {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : Number.NaN;
+};
+
+const buildJourneyView = (journey, currentProgress, profileData) => {
   const sections = [];
   const nodes = [];
-  const levelOrder = Number(currentProgress?.levelOrder);
-  const unitOrder = Number(currentProgress?.unitOrder);
-  const taskOrder = Number(currentProgress?.taskOrder);
+  const levelOrder = toOrder(currentProgress?.levelOrder);
+  const unitOrder = toOrder(currentProgress?.unitOrder);
+  const taskOrder = toOrder(currentProgress?.taskOrder);
   const sortedLevels = sortByOrder(journey?.levels, "levelOrder");
   const hasExplicitProgress =
     Number.isFinite(unitOrder) && Number.isFinite(taskOrder);
 
   sortedLevels.forEach((level) => {
     const units = sortByOrder(level?.units, "unitOrder");
+    const levelOrderValue = toOrder(level.levelOrder);
 
     units.forEach((unit) => {
       const sectionId = `${level.id}-${unit.id}`;
+      const unitOrderValue = toOrder(unit.unitOrder);
       const isEarlierLevel =
-        hasExplicitProgress && level.levelOrder < levelOrder;
+        hasExplicitProgress && levelOrderValue < levelOrder;
       const isCurrentLevel =
-        hasExplicitProgress && level.levelOrder === levelOrder;
+        hasExplicitProgress && levelOrderValue === levelOrder;
       const isEarlierUnitInCurrentLevel =
-        hasExplicitProgress && isCurrentLevel && unit.unitOrder < unitOrder;
+        hasExplicitProgress && isCurrentLevel && unitOrderValue < unitOrder;
       const isEarlierUnit = isEarlierLevel || isEarlierUnitInCurrentLevel;
       const isCurrentUnit =
-        hasExplicitProgress && isCurrentLevel && unit.unitOrder === unitOrder;
+        hasExplicitProgress && isCurrentLevel && unitOrderValue === unitOrder;
 
       const unitUnlocked =
         !hasExplicitProgress ||
@@ -70,10 +78,12 @@ const buildJourneyView = (journey, currentProgress) => {
 
       tasks.forEach((task, index) => {
         const hasTaskProgress = lastActiveIndex >= 0;
+        const taskOrderValue = toOrder(task.taskOrder);
+        const isGiftBox = Boolean(task?.giftBox);
         const isEarlierTaskInCurrentUnit =
-          hasExplicitProgress && isCurrentUnit && task.taskOrder < taskOrder;
+          hasExplicitProgress && isCurrentUnit && taskOrderValue < taskOrder;
         const isCurrentTask =
-          hasExplicitProgress && isCurrentUnit && task.taskOrder === taskOrder;
+          hasExplicitProgress && isCurrentUnit && taskOrderValue === taskOrder;
 
         let isCompleted =
           (hasExplicitProgress &&
@@ -95,7 +105,7 @@ const buildJourneyView = (journey, currentProgress) => {
           isCurrent = true;
         }
 
-        if (task?.inProgressOrCompleted && !isCurrent) {
+        if (task?.inProgressOrCompleted && !isCurrent && !isGiftBox) {
           isCompleted = true;
         }
 
@@ -108,8 +118,14 @@ const buildJourneyView = (journey, currentProgress) => {
           isCompleted = false;
         }
 
-        const isGiftBox = Boolean(task?.giftBox);
+        // Reaching a gift only unlocks it. The claim request is what opens it.
+        if (isGiftBox) {
+          isCompleted = false;
+        }
+
         const type = isGiftBox ? "trophy" : "lesson";
+        const isGiftOpened =
+          isGiftBox && hasOpenedGiftBox(profileData, task.id);
 
         nodes.push({
           id: `${sectionId}-${task.id}`,
@@ -119,6 +135,7 @@ const buildJourneyView = (journey, currentProgress) => {
           isCompleted,
           isCurrent,
           isLocked,
+          isGiftOpened,
           lessonCount: Number(task?.lessonCount) || 0,
           icon: isGiftBox ? <Trophy size="xl" /> : null,
           level: unit.unitOrder,
@@ -217,6 +234,7 @@ export default function LearnPage() {
     const { sections, nodes } = buildJourneyView(
       journeyData || {},
       profileData?.currentProgress || null,
+      profileData,
     );
     return { levels: sections, lessons: nodes };
   }, [journeyData, profileData]);
@@ -230,10 +248,13 @@ export default function LearnPage() {
         <UserStats />
       </div>
 
-      <main className="container mx-auto pt-[56px] lg:pt-0 lg:px-4 lg:py-6 max-w-7xl">
+      <main className="container mx-auto pt-[65px] lg:pt-0 lg:px-4 lg:py-6 max-w-7xl">
         <div className="flex flex-col lg:flex-row gap-12">
           {/* Left side: Scrollable pathway */}
-          <div className="lg:w-2/3 lg:h-[calc(100vh_-_64px)] lg:overflow-y-auto no-scrollbar">
+          <div
+            data-journey-scroll
+            className="lg:w-2/3 lg:h-[calc(100vh_-_64px)] lg:overflow-y-auto no-scrollbar"
+          >
             {loadError ? (
               <JourneyErrorFallback
                 error={loadError}

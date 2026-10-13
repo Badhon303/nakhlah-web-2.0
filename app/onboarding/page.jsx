@@ -1,10 +1,11 @@
 "use client";
 
 import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ProgressSteps } from "@/components/nakhlah/ProgressSteps";
+import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
 import Image from "next/image";
 import Link from "next/link";
 import { ProficiencyStep } from "@/components/nakhlah/onboarding/ProficiencyStep";
@@ -19,6 +20,7 @@ import { AgeStep } from "@/components/nakhlah/onboarding/AgeStep";
 import { AccountStep } from "@/components/nakhlah/onboarding/AccountStep";
 import { CompletionStep } from "@/components/nakhlah/onboarding/CompletionStep";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { registerUser } from "@/lib/authUtils";
 import {
@@ -438,6 +440,10 @@ export default function Onboarding() {
         setAge("");
         break;
     }
+    if (isSocialSignup && currentStep === 8) {
+      setCurrentStep(10);
+      return;
+    }
     setCurrentStep((s) => s + 1);
   };
 
@@ -543,6 +549,7 @@ export default function Onboarding() {
         interests,
         fullName,
         contactNumber,
+        phoneCountry,
         age,
         email,
         completed: true,
@@ -558,6 +565,34 @@ export default function Onboarding() {
     router.push("/");
     router.refresh();
   };
+
+  const handleProfileInfoChange = useCallback((fields) => {
+    if (fields.fullName !== undefined) setFullName(fields.fullName);
+    if (fields.contactNumber !== undefined)
+      setContactNumber(fields.contactNumber);
+    if (fields.countryCode !== undefined) setPhoneCountry(fields.countryCode);
+    if (fields.profilePicture !== undefined)
+      setProfilePicture(fields.profilePicture);
+    if (fields.fileError !== undefined) setProfileFileError(fields.fileError);
+    if (fields.contactError !== undefined)
+      setProfileContactError(fields.contactError);
+    if (fields.nameError !== undefined) setProfileNameError(fields.nameError);
+  }, []);
+
+  const handleAccountChange = useCallback((fields) => {
+    if (fields.email !== undefined) setEmail(fields.email);
+    if (fields.password !== undefined) setPassword(fields.password);
+    if (fields.confirmPassword !== undefined)
+      setConfirmPassword(fields.confirmPassword);
+    if (fields.confirmPasswordError !== undefined)
+      setConfirmPasswordError(fields.confirmPasswordError);
+    if (fields.emailError !== undefined)
+      setProfileEmailError(fields.emailError);
+    if (fields.passwordError !== undefined)
+      setProfilePasswordError(fields.passwordError);
+  }, []);
+
+  const isFinalStep = currentStep === steps.length;
 
   const renderStep = () => {
     switch (currentStep) {
@@ -631,21 +666,7 @@ export default function Onboarding() {
             contactNumber={contactNumber}
             countryCode={phoneCountry || country}
             profilePicture={profilePicture}
-            onChange={(fields) => {
-              if (fields.fullName !== undefined) setFullName(fields.fullName);
-              if (fields.contactNumber !== undefined)
-                setContactNumber(fields.contactNumber);
-              if (fields.countryCode !== undefined)
-                setPhoneCountry(fields.countryCode);
-              if (fields.profilePicture !== undefined)
-                setProfilePicture(fields.profilePicture);
-              if (fields.fileError !== undefined)
-                setProfileFileError(fields.fileError);
-              if (fields.contactError !== undefined)
-                setProfileContactError(fields.contactError);
-              if (fields.nameError !== undefined)
-                setProfileNameError(fields.nameError);
-            }}
+            onChange={handleProfileInfoChange}
           />
         );
       case 8:
@@ -664,18 +685,7 @@ export default function Onboarding() {
             email={email}
             password={password}
             confirmPassword={confirmPassword}
-            onChange={(fields) => {
-              if (fields.email !== undefined) setEmail(fields.email);
-              if (fields.password !== undefined) setPassword(fields.password);
-              if (fields.confirmPassword !== undefined)
-                setConfirmPassword(fields.confirmPassword);
-              if (fields.confirmPasswordError !== undefined)
-                setConfirmPasswordError(fields.confirmPasswordError);
-              if (fields.emailError !== undefined)
-                setProfileEmailError(fields.emailError);
-              if (fields.passwordError !== undefined)
-                setProfilePasswordError(fields.passwordError);
-            }}
+            onChange={handleAccountChange}
           />
         );
       case 10:
@@ -725,27 +735,36 @@ export default function Onboarding() {
               Nakhlah
             </span>
           </Link>
+          <ThemeToggle />
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-4">
-        <div className="max-w-[520px] mx-auto flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleBack}
-            disabled={isRegistering}
-            className="shrink-0"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1 min-w-0">
-            <ProgressSteps steps={steps} currentStep={currentStep} />
+      {isFinalStep ? null : (
+        <div className="container mx-auto px-4 py-4">
+          <div className="max-w-[520px] mx-auto flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleBack}
+              disabled={isRegistering}
+              aria-label="Go back"
+              className="h-10 w-10 shrink-0"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1 min-w-0">
+              <ProgressSteps steps={steps} currentStep={currentStep} />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <main className="flex-1 container mx-auto px-4 py-6 flex items-start justify-center">
+      <main
+        className={cn(
+          "flex-1 container mx-auto px-4 py-6 pb-8 flex justify-center",
+          isFinalStep ? "items-center" : "items-start",
+        )}
+      >
         {isLoadingOnboarding ? (
           <div className="w-full max-w-xl mx-auto text-center text-muted-foreground">
             Loading onboarding options...

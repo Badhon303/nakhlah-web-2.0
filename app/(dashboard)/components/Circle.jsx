@@ -16,6 +16,7 @@ export function Circle({
   isCompleted,
   isCurrent,
   isLocked,
+  isGiftOpened = false,
   icon,
   type,
   size = "md",
@@ -102,8 +103,10 @@ export function Circle({
     return "bg-[hsl(var(--node-yellow))] border-[hsl(var(--node-yellow-border))] pathway-node-shadow";
   };
 
+  const canOpen = !isLocked && (isCompleted || isCurrent || isTrophy);
+
   const handleClick = () => {
-    if ((isCompleted || isCurrent) && !isLocked) {
+    if (canOpen) {
       if (typeof window !== "undefined") {
         sessionStorage.setItem("lastInteractedNodeId", nodeId);
       }
@@ -122,7 +125,7 @@ export function Circle({
       <div
         onClick={handleClick}
         className={`${!isTrophy ? `rounded-full border-4 ${sizeClass}` : ""} flex items-center justify-center ${getCircleStyles()} transition-transform ${
-          (isCompleted || isCurrent) && !isLocked
+          canOpen
             ? "cursor-pointer hover:scale-110"
             : isLocked
               ? "cursor-not-allowed"
@@ -140,6 +143,7 @@ export function Circle({
           isCurrent={isCurrent}
           isLocked={isLocked}
           isTaskGiftBox={isTrophy}
+          isGiftOpened={isGiftOpened}
           onClose={handleClosePopup}
           open={showPopup}
         />

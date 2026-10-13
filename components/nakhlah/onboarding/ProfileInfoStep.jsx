@@ -217,7 +217,7 @@ export function ProfileInfoStep({
               showCallingCode
               placeholder="Code"
               variant="embedded"
-              triggerClassName="rounded-l-xl border-r border-input"
+              triggerClassName="shrink-0 rounded-l-xl border-r border-input"
             />
             <PhoneInput
               country={localCountry || undefined}

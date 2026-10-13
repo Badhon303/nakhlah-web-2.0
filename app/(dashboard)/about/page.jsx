@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
-import { Mascot } from "@/components/nakhlah/Mascot";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
 import { getSessionToken } from "@/lib/authUtils";
-import { fetchAbout } from "@/services/api/globals";
-import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
+import { useAboutStore } from "@/stores/useAboutStore";
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
 const SECTION_CONFIG = [
   { key: "about", title: "About" },
@@ -19,39 +18,41 @@ const SECTION_CONFIG = [
   { key: "partners", title: "Partners" },
 ];
 
-const isRichText = (value) => value?.root?.type === "root";
+const hasTextContent = (node) => {
+  if (!node) return false;
+  if (typeof node.text === "string" && node.text.trim().length > 0) {
+    return true;
+  }
+  if (Array.isArray(node.children)) {
+    return node.children.some(hasTextContent);
+  }
+  return false;
+};
+
+const isRichText = (value) =>
+  value?.root?.type === "root" && hasTextContent(value.root);
 
 export default function AboutPage() {
   const router = useRouter();
-  const { data: session } = useSession();
-  const [aboutData, setAboutData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: session, status } = useSession();
+  const token = getSessionToken(session);
+  const aboutData = useAboutStore((state) => state.data);
+  const isLoading = useAboutStore((state) => state.isLoading);
+  const error = useAboutStore((state) => state.error);
+  const fetchAbout = useAboutStore((state) => state.fetchAbout);
 
   useEffect(() => {
-    const load = async () => {
-      setIsLoading(true);
-      const token = getSessionToken(session);
-      const result = await fetchAbout(token);
-      if (result.success) {
-        setAboutData(result.data);
-      }
-      setIsLoading(false);
-    };
-
-    load();
-  }, [session]);
+    if (status === "loading") return;
+    fetchAbout(token);
+  }, [status, token, fetchAbout]);
 
   const sections = SECTION_CONFIG.filter((section) =>
     isRichText(aboutData?.[section.key]),
   );
 
   return (
-    <div className="min-h-[calc(100vh-6rem)] flex items-center justify-center px-4 py-8">
-      <motion.div
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-3xl bg-card rounded-3xl border border-border shadow-lg p-5 md:p-6"
-      >
+    <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="w-full max-w-4xl rounded-3xl border border-border bg-card p-5 shadow-lg md:p-6">
         <div className="flex items-center gap-3 mb-7">
           <button
             onClick={() => router.push("/")}
@@ -66,23 +67,15 @@ export default function AboutPage() {
           <FreshDateMascot size="xxl" mood="happy" />
         </div>
 
-        {isLoading ? (
-          <div className="space-y-2">
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="h-4 bg-muted/40 rounded animate-pulse"
-                style={{ width: `${90 - (i % 6) * 7}%` }}
-              />
-            ))}
-          </div>
+        {isLoading || (!aboutData && !error) ? (
+          <DocumentLoadingSkeleton />
         ) : sections.length > 0 ? (
           <div className="space-y-8">
             {sections.map((section) => (
               <section key={section.key}>
-                <h2 className="text-xl font-semibold text-foreground mb-3">
+                {/* <h2 className="text-xl font-semibold text-foreground mb-3">
                   {section.title}
-                </h2>
+                </h2> */}
                 <LexicalRenderer
                   lexicalJson={aboutData[section.key]}
                   className="text-base"
@@ -111,7 +104,7 @@ export default function AboutPage() {
             No about content available.
           </p>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

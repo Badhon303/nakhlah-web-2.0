@@ -2,15 +2,6 @@ import { create } from "zustand";
 import { createCachedSlice } from "./_utils/createCachedSlice";
 import { fetchLegalDocuments as fetchLegalDocumentsApi } from "@/services/api/globals";
 
-/**
- * Legal Documents Store
- * Caches the full Legal Documents globals doc (Terms & Conditions, Privacy
- * Policy). This content is managed via CMS and rarely changes, so the whole
- * document is fetched once and reused instantly by the standalone
- * /terms-and-conditions and /privacy routes plus the in-app profile
- * equivalents, instead of each screen re-fetching its own slice.
- * TTL: 30 minutes
- */
 const LEGAL_DOCUMENTS_TTL_MS = 30 * 60 * 1000;
 
 export const useLegalDocumentsStore = create((set, get) => ({
@@ -18,7 +9,7 @@ export const useLegalDocumentsStore = create((set, get) => ({
 
     data: null,
 
-    fetchLegalDocuments: async (token, { forceRefresh = false } = {}) => {
+    fetchLegalDocuments: async ({ forceRefresh = false } = {}) => {
         const state = get();
         const shouldFetch = forceRefresh || state.shouldRefetch(state.lastFetchedAt);
 
@@ -28,7 +19,7 @@ export const useLegalDocumentsStore = create((set, get) => ({
 
         set({ isLoading: true, error: null });
 
-        const result = await fetchLegalDocumentsApi({}, token);
+        const result = await fetchLegalDocumentsApi({});
         if (!result?.success) {
             set({ isLoading: false, error: result?.error || "Failed to load legal documents" });
             return { success: false, error: result?.error || "Failed to load legal documents" };
