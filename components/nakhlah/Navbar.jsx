@@ -42,6 +42,14 @@ export function Navbar() {
     );
 
     const updateKeyboardState = () => {
+      const activeElement = document.activeElement;
+      const isTextEntryFocused =
+        activeElement instanceof HTMLTextAreaElement ||
+        (activeElement instanceof HTMLElement && activeElement.isContentEditable) ||
+        (activeElement instanceof HTMLInputElement &&
+          ["text", "search", "email", "url", "tel", "password", "number"].includes(
+            activeElement.type,
+          ));
       const viewportHeight = visualViewport.height;
       const isMobileViewport = window.innerWidth < 1024;
 
@@ -51,16 +59,22 @@ export function Navbar() {
 
       const keyboardHasReducedViewport =
         viewportHeight < viewportHeightRef.current - 150;
-      setIsKeyboardOpen(isMobileViewport && keyboardHasReducedViewport);
+      setIsKeyboardOpen(
+        isMobileViewport && isTextEntryFocused && keyboardHasReducedViewport,
+      );
     };
 
     updateKeyboardState();
     visualViewport.addEventListener("resize", updateKeyboardState);
     window.addEventListener("resize", updateKeyboardState);
+    window.addEventListener("focusin", updateKeyboardState);
+    window.addEventListener("focusout", updateKeyboardState);
 
     return () => {
       visualViewport.removeEventListener("resize", updateKeyboardState);
       window.removeEventListener("resize", updateKeyboardState);
+      window.removeEventListener("focusin", updateKeyboardState);
+      window.removeEventListener("focusout", updateKeyboardState);
     };
   }, []);
 
