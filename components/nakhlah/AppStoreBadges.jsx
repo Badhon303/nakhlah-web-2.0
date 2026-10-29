@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { X } from "lucide-react";
 
 // Separate links for Android and iOS
 const ANDROID_STORE_LINK =
@@ -59,7 +60,9 @@ export function AppStoreBadges({ className = "" }) {
   const currentQr = qrCodeDataUrls[activeTab];
 
   return (
-    <div className={`flex flex-col items-center gap-3 w-full max-w-sm ${className}`}>
+    <div
+      className={`flex flex-col items-center gap-3 w-full max-w-sm ${className}`}
+    >
       {/* Store Navigation Buttons */}
       <div className="grid grid-cols-2 gap-3 w-full">
         {/* Apple App Store */}
@@ -111,13 +114,22 @@ export function AppStoreBadges({ className = "" }) {
 
       {/* Smart QR Scanner Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md bg-card border-border rounded-3xl p-6 sm:p-8 shadow-2xl">
-          <DialogHeader className="text-center sm:text-center space-y-2">
+        <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md bg-card border-border rounded-3xl p-6 sm:p-8 shadow-2xl [&>button]:hidden">
+          <DialogHeader className="text-center sm:text-center space-y-2 relative">
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="absolute right-0 top-0 rounded-full p-2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Close"
+            >
+              <X className="hidden lg:block h-4 w-4" />
+            </button>
             <DialogTitle className="text-2xl font-bold text-foreground">
               Download Nakhlah App
             </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground max-w-xs mx-auto">
-              Scan this QR code with your phone camera to download directly to your device.
+              Scan this QR code with your phone camera to download directly to
+              your device.
             </DialogDescription>
           </DialogHeader>
 
