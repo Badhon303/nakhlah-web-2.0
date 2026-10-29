@@ -15,6 +15,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { queueToastAfterNavigation, toast } from "@/components/nakhlah/Toast";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { clearJourneyScrollOverrides } from "@/lib/journeyScroll";
+import { AppStoreBadges } from "@/components/nakhlah/AppStoreBadges";
 
 function socialLoginErrorMessage(error, message) {
   if (message) return message;
@@ -99,7 +100,7 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen bg-background flex items-start sm:items-center justify-center px-4 py-10">
-      <div className="fixed top-4 right-4 z-50 lg:hidden">
+      <div className="fixed top-4 right-4 z-50">
         <div className="bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-full p-2 shadow-lg">
           <ThemeToggle size="lg" />
         </div>
@@ -116,6 +117,7 @@ function LoginForm() {
           <p className="text-xl text-muted-foreground text-center max-w-md">
             Learn languages whenever and wherever you want
           </p>
+          <AppStoreBadges />
         </motion.div>
 
         {/* Right Side - Form */}
@@ -286,6 +288,9 @@ function LoginForm() {
                   Sign Up
                 </Link>
               </p>
+
+              {/* Mobile Store Links */}
+              <AppStoreBadges className="pt-2 flex lg:hidden mx-auto" />
             </form>
           </div>
         </motion.div>
