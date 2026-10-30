@@ -60,15 +60,32 @@ function readIdentifierHints(item) {
 }
 
 function matchByHints(packages, hints) {
+    // The product id identifies the actual Play/App Store SKU being purchased.
+    // Prefer it over the RevenueCat package identifier, which can be configured
+    // with a misleading label while pointing at a different store product.
+    if (hints.productId) {
+        const byProduct = packages.find((p) => p.productId === hints.productId);
+        if (byProduct) return byProduct;
+
+        // Do not fall back to a package id when a product id was supplied but
+        // is unavailable; that package could contain a different SKU.
+        return null;
+    }
     if (hints.packageId) {
         const byPkg = packages.find((p) => p.identifier === hints.packageId);
         if (byPkg) return byPkg;
     }
-    if (hints.productId) {
-        const byProduct = packages.find((p) => p.productId === hints.productId);
-        if (byProduct) return byProduct;
-    }
     return null;
+}
+
+function productIdHasExactAmount(productId, amount) {
+    if (!productId || !amount) return false;
+    return String(productId).match(/\d+/g)?.some((part) => Number(part) === amount) || false;
+}
+
+function titleConflictsWithDateAmount(title, amount) {
+    const titleAmounts = String(title || "").match(/\d+/g)?.map(Number) || [];
+    return titleAmounts.length > 0 && !titleAmounts.includes(amount);
 }
 
 function matchSubscriptionByInterval(packages, plan) {
@@ -102,8 +119,8 @@ function matchDatePackage(packages, pkg) {
     if (amount) {
         const byAmount = packages.find(
             (p) =>
-                p.productId?.includes(String(amount)) ||
-                p.identifier?.includes(String(amount)),
+                productIdHasExactAmount(p.productId, amount) ||
+                productIdHasExactAmount(p.identifier, amount),
         );
         if (byAmount) return byAmount;
     }
@@ -151,6 +168,14 @@ export async function purchaseDatePackage(pkg) {
         return {
             success: false,
             error: "No matching RevenueCat date package was found.",
+        };
+    }
+
+    const amount = Number(pkg?.amount) || Number(pkg?.raw?.dateAmount) || null;
+    if (amount && titleConflictsWithDateAmount(target.title, amount)) {
+        return {
+            success: false,
+            error: `The selected ${amount}-date package is linked to a different store product. Please try again later.`,
         };
     }
 

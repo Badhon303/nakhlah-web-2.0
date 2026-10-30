@@ -24,7 +24,7 @@ Subscription and date/gem package purchases are handled through [RevenueCat](htt
 ### 3. **Checkout bridge - `services/revenuecat-checkout.js`**
 
 - Maps the app's existing plan/date-package objects (from the backend catalog) to a RevenueCat package.
-- Matching order: explicit `rcPackageId`/`rcProductId` on the item → heuristics (subscription interval → `MONTHLY`/`ANNUAL` package type; date package amount → product id) → first available package.
+- Matching order: exact store product id (`rcProductId` or the built-in catalog mapping) → RevenueCat package id when no product id is supplied → exact date amount in a product id. Date amounts are matched as whole numeric tokens, so `500` cannot match `2500`. A store product title that names a different date amount is rejected before checkout.
 - `purchaseSubscriptionPlan(plan)` / `purchaseDatePackage(pkg)` are the only functions the UI calls to start a purchase.
 
 ### 4. **UI integration**
