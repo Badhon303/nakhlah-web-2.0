@@ -589,7 +589,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
                         </p>
                         {plan.savePercent && (
                           <p className="text-sm text-accent font-semibold mb-2">
-                            {plan.price}
+                            {plan.price || "Price unavailable"}
                           </p>
                         )}
                       </div>
@@ -606,7 +606,7 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
                           </>
                         ) : (
                           <p className="text-3xl md:text-4xl font-bold text-foreground">
-                            {plan.price}
+                            {plan.price || "Price unavailable"}
                           </p>
                         )}
                         <p className="text-xs text-muted-foreground mt-1">
@@ -623,7 +623,10 @@ export default function PremiumSubscription({ onBack, initialPlan }) {
               className="w-full max-w-md bg-accent hover:bg-accent/90 text-accent-foreground"
               onClick={handleSubscriptionCheckout}
               disabled={
-                !selectedPlanDetails || checkoutPlanId !== null || isCanceling
+                !selectedPlanDetails ||
+                !selectedPlanDetails.price ||
+                checkoutPlanId !== null ||
+                isCanceling
               }
             >
               {checkoutPlanId

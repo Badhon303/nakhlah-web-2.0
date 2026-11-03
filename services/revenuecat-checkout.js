@@ -105,6 +105,16 @@ function matchSubscriptionByInterval(packages, plan) {
     );
 }
 
+/** Resolve the store product used for both native price display and purchase. */
+export function resolveSubscriptionPackage(packages, plan) {
+    const hints = readIdentifierHints(plan);
+    return (
+        matchByHints(packages, hints) ||
+        matchSubscriptionByInterval(packages, plan) ||
+        null
+    );
+}
+
 function matchDatePackage(packages, pkg) {
     const amount = Number(pkg?.amount) || Number(pkg?.raw?.dateAmount) || null;
     const knownHints = Object.values(DATE_PACKAGE_REVENUECAT_IDS).find(
@@ -127,6 +137,12 @@ function matchDatePackage(packages, pkg) {
     return null;
 }
 
+/** Resolve the store product used for both native date price display and purchase. */
+export function resolveDatePackage(packages, pkg) {
+    const hints = readIdentifierHints(pkg);
+    return matchByHints(packages, hints) || matchDatePackage(packages, pkg);
+}
+
 /**
  * Purchase a subscription plan through RevenueCat.
  * @returns {Promise<{success:boolean, cancelled?:boolean, customerInfo?:object, error?:string}>}
@@ -137,11 +153,7 @@ export async function purchaseSubscriptionPlan(plan) {
     );
     if (!success) return { success: false, error };
 
-    const hints = readIdentifierHints(plan);
-    const target =
-        matchByHints(packages, hints) ||
-        matchSubscriptionByInterval(packages, plan) ||
-        packages[0];
+    const target = resolveSubscriptionPackage(packages, plan);
 
     if (!target) {
         return {
@@ -161,8 +173,7 @@ export async function purchaseDatePackage(pkg) {
     const { success, packages, error } = await getPackages(getDatesOfferingId());
     if (!success) return { success: false, error };
 
-    const hints = readIdentifierHints(pkg);
-    const target = matchByHints(packages, hints) || matchDatePackage(packages, pkg);
+    const target = resolveDatePackage(packages, pkg);
 
     if (!target) {
         return {

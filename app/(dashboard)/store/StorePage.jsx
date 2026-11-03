@@ -485,7 +485,8 @@ export default function StorePage() {
                               {isBusy ? (
                                 <Loader2 className="h-8 w-8 animate-spin" />
                               ) : (
-                                plan.price?.replace(/\/(mo|yr)$/, "")
+                                plan.price?.replace(/\/(mo|yr)$/, "") ||
+                                "Price unavailable"
                               )}
                             </span>
                             <span className="mb-1 text-sm font-medium text-muted-foreground">
@@ -520,7 +521,9 @@ export default function StorePage() {
                               <Button
                                 onClick={() => handleSubscriptionCheckout(plan)}
                                 disabled={
-                                  checkoutId !== null || isLoadingCurrent
+                                  checkoutId !== null ||
+                                  isLoadingCurrent ||
+                                  !plan.price
                                 }
                                 className="w-full bg-accent font-bold text-accent-foreground hover:bg-accent/90"
                               >
@@ -630,12 +633,12 @@ export default function StorePage() {
                           One-time payment
                         </p>
                         <p className="text-2xl font-extrabold text-foreground">
-                          {pkg.price}
+                          {pkg.price || "Price unavailable"}
                         </p>
                       </div>
                       <Button
                         onClick={() => handleDateCheckout(pkg)}
-                        disabled={checkoutId !== null}
+                        disabled={checkoutId !== null || !pkg.price}
                         className="bg-secondary font-bold text-secondary-foreground hover:bg-secondary/90"
                       >
                         {isBusy ? (

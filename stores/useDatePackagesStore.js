@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { createCachedSlice } from "./_utils/createCachedSlice";
 import { fetchDatePackages as fetchDatePackagesApi } from "@/services/api";
+import { getDatesOfferingId, getPackages, isNativePlatform } from "@/lib/revenuecat";
+import { resolveDatePackage } from "@/services/revenuecat-checkout";
 
 /**
  * Date Packages Store
@@ -16,7 +18,7 @@ const REVENUECAT_DATE_PACKAGES = {
     "date-package-3": { amount: 2500, price: 10, label: "DATE SURGE" },
 };
 
-const mapDatePackage = (item, index) => {
+const mapDatePackage = (item, index, storePackage = null, native = false) => {
     const id = item?.id || `date-package-${index}`;
     const defaults = REVENUECAT_DATE_PACKAGES[id] || {};
     const amount = Number(item?.dateAmount) || defaults.amount || 0;
@@ -25,7 +27,11 @@ const mapDatePackage = (item, index) => {
         id,
         label: item?.name || defaults.label || "DATE PACKAGE",
         amount,
-        price: `$${item?.price ?? defaults.price ?? 0}`,
+        // Native store prices are localized by Google Play / App Store.
+        // Don't show the backend's USD price next to a localized purchase sheet.
+        price: native
+            ? (storePackage?.priceString || null)
+            : `$${item?.price ?? defaults.price ?? 0}`,
         description:
             item?.description ||
             `Get ${amount} Dates to keep learning without interruption.`,
@@ -62,9 +68,30 @@ export const useDatePackagesStore = create((set, get) => ({
             };
         }
 
-        const packages = (result.packages || [])
-            .filter((item) => item?.isActive !== false)
-            .map(mapDatePackage)
+        const activePackages = (result.packages || []).filter(
+            (item) => item?.isActive !== false,
+        );
+        const native = isNativePlatform();
+        let storePackages = [];
+        if (native) {
+            const offering = await getPackages(getDatesOfferingId());
+            if (offering.success) storePackages = offering.packages;
+        }
+
+        const packages = activePackages
+            .map((item, index) => {
+                const storePackage = native
+                    ? resolveDatePackage(storePackages, {
+                          ...item,
+                          amount:
+                              Number(item?.dateAmount) ||
+                              REVENUECAT_DATE_PACKAGES[item?.id]?.amount ||
+                              0,
+                          raw: item,
+                      })
+                    : null;
+                return mapDatePackage(item, index, storePackage, native);
+            })
             .sort((a, b) => a.sortOrder - b.sortOrder);
 
         set({

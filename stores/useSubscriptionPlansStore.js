@@ -1,6 +1,12 @@
 import { create } from "zustand";
 import { createCachedSlice } from "./_utils/createCachedSlice";
 import { fetchSubscriptionPlans as fetchSubscriptionPlansApi } from "@/services/api";
+import {
+    getPackages,
+    getSubscriptionOfferingId,
+    isNativePlatform,
+} from "@/lib/revenuecat";
+import { resolveSubscriptionPackage } from "@/services/revenuecat-checkout";
 
 /**
  * Subscription Plans Store
@@ -16,7 +22,12 @@ const formatPlanPrice = (price, interval) => {
     return `${symbol}${price}${suffix}`;
 };
 
-const mapSubscriptionPlan = (item, index) => {
+const mapSubscriptionPlan = (
+    item,
+    index,
+    storePackage = null,
+    native = false,
+) => {
     const interval = item?.interval;
     const isYearly = interval === "year";
     const price = item?.price ?? 0;
@@ -25,7 +36,11 @@ const mapSubscriptionPlan = (item, index) => {
         id: item?.id || `subscription-plan-${index}`,
         duration: item?.name || (isYearly ? "Yearly" : "Monthly"),
         interval,
-        price: formatPlanPrice(price, interval),
+        // Native store prices are already localized by Google Play / App Store.
+        // Never show the API's USD amount beside a localized native checkout.
+        price: native
+            ? (storePackage?.priceString || null)
+            : formatPlanPrice(price, interval),
         actualPrice: null,
         savePercent: null,
         popular: isYearly,
@@ -62,9 +77,24 @@ export const useSubscriptionPlansStore = create((set, get) => ({
             };
         }
 
-        const plans = (result.plans || [])
-            .filter((item) => item?.isActive !== false)
-            .map(mapSubscriptionPlan)
+        const activePlans = (result.plans || []).filter(
+            (item) => item?.isActive !== false,
+        );
+        const native = isNativePlatform();
+        let storePackages = [];
+        if (native) {
+            const offering = await getPackages(getSubscriptionOfferingId());
+            if (offering.success) storePackages = offering.packages;
+        }
+
+        const plans = activePlans
+            .map((item, index) => {
+                const storePlan = { ...item, interval: item?.interval, raw: item };
+                const storePackage = native
+                    ? resolveSubscriptionPackage(storePackages, storePlan)
+                    : null;
+                return mapSubscriptionPlan(item, index, storePackage, native);
+            })
             .sort((a, b) => (a.interval === "year" ? 1 : -1));
 
         set({

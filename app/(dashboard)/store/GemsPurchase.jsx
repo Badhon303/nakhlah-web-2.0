@@ -192,12 +192,12 @@ export default function GemsPurchase({ onBack }) {
                     <div className="h-px bg-border" />
 
                     <p className="text-2xl font-bold text-foreground">
-                      {pkg.price}
+                      {pkg.price || "Price unavailable"}
                     </p>
 
                     <Button
                       onClick={() => handlePackageSelect(pkg)}
-                      disabled={checkoutId !== null}
+                      disabled={checkoutId !== null || !pkg.price}
                       className="w-full font-semibold h-10 bg-accent hover:bg-accent/90"
                     >
                       {checkoutId === pkg.id ? "Processing..." : "Buy Now"}
