@@ -25,7 +25,8 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isCredentialsLoading, setIsCredentialsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const isLoading = isCredentialsLoading || isGoogleLoading;
+  const [isAppleLoading, setIsAppleLoading] = useState(false);
+  const isLoading = isCredentialsLoading || isGoogleLoading || isAppleLoading;
 
   // If a valid session already exists, never paint the sign-in form.
   // This prevents flashing the form before redirecting.
@@ -56,6 +57,29 @@ export default function Login() {
       toast.error(error.message || "Google sign-in failed");
     } finally {
       setIsGoogleLoading(false);
+    }
+  };
+
+  const handleAppleLogin = async (event) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+    if (isLoading) return;
+
+    clearProfile();
+    setIsAppleLoading(true);
+    try {
+      const result = await signIn("apple", { redirect: false });
+      if (!result?.ok) {
+        toast.error(result?.error || "Apple sign-in failed");
+        return;
+      }
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      console.error("Apple login error:", error);
+      toast.error(error.message || "Apple sign-in failed");
+    } finally {
+      setIsAppleLoading(false);
     }
   };
 
@@ -259,6 +283,19 @@ export default function Login() {
                   />
                 </svg>
                 Continue with Google
+              </Button>
+
+              <Button
+                type="button"
+                onClick={handleAppleLogin}
+                onMouseDown={(event) => event.stopPropagation()}
+                disabled={isLoading}
+                className="mt-3 w-full h-12 bg-black hover:bg-black/90 text-white font-semibold rounded-xl"
+              >
+                <svg className="w-5 h-5 mr-2 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M16.37 12.56c.02 2.13 1.87 2.84 1.89 2.85-.02.05-.3 1.03-.98 2.04-.59.87-1.2 1.74-2.16 1.76-.94.02-1.24-.57-2.32-.57s-1.42.55-2.3.59c-.92.04-1.62-.94-2.22-1.8-1.22-1.76-2.15-4.97-.9-7.14.62-1.08 1.72-1.76 2.92-1.78.91-.02 1.77.62 2.32.62.55 0 1.58-.77 2.66-.66.45.02 1.72.18 2.53 1.37-.07.04-1.51.88-1.49 2.72ZM14.62 6.7c.49-.59.82-1.4.73-2.21-.71.03-1.57.47-2.08 1.06-.46.53-.86 1.36-.75 2.15.79.06 1.6-.4 2.1-1Z" />
+                </svg>
+                {isAppleLoading ? "CONNECTING TO APPLE..." : "Continue with Apple"}
               </Button>
 
               <p className="text-center text-sm text-muted-foreground">

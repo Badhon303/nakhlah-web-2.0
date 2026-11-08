@@ -8,6 +8,7 @@ import {
   Info,
   CreditCard,
   LogOut,
+  Trash2,
   ChevronLeft,
   ChevronRight,
   Mail,
@@ -16,12 +17,16 @@ import {
 import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
 import { signOut, getSessionSync } from "@/lib/auth-client";
 import { getSessionToken } from "@/lib/authUtils";
-import { logoutUser } from "@/services/api/auth";
+import { deleteMyAccount, logoutUser } from "@/services/api/auth";
 import { ConfirmPrompt } from "@/components/nakhlah/ConfirmPrompt";
+import { useProfileStore } from "@/stores/useProfileStore";
+import { toast } from "@/components/nakhlah/Toast";
 
 export default function SettingsPage({ onBack, onNavigate }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const accountItems = [
     {
@@ -74,6 +79,21 @@ export default function SettingsPage({ onBack, onNavigate }) {
     } catch {
       // ignore network errors, still proceed to clear local session
     }
+    await signOut({ redirect: true, callbackUrl: "/auth/login" });
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    const session = getSessionSync();
+    const result = await deleteMyAccount(getSessionToken(session));
+    setIsDeleting(false);
+
+    if (!result.success) {
+      toast.error(result.error || "Unable to delete your account.");
+      return;
+    }
+
+    useProfileStore.getState().clear();
     await signOut({ redirect: true, callbackUrl: "/auth/login" });
   };
 
@@ -232,6 +252,27 @@ export default function SettingsPage({ onBack, onNavigate }) {
             <ChevronRight className="h-5 w-5 shrink-0 text-destructive/60 transition-transform group-hover:translate-x-0.5" />
           </button>
         </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.28, duration: 0.4 }}
+        >
+          <button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="group flex w-full items-center gap-4 rounded-none border-x-0 border-b border-t-0 border-destructive/20 bg-transparent px-5 py-4 text-left transition-colors hover:bg-destructive/[0.055] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive sm:px-6 lg:rounded-2xl lg:border lg:bg-card"
+          >
+            <Trash2 className="h-8 w-8 shrink-0 text-destructive" />
+            <span className="min-w-0 flex-1">
+              <span className="block font-extrabold text-destructive">Delete account</span>
+              <span className="mt-0.5 block text-sm text-muted-foreground">
+                Permanently delete your account and associated profile data
+              </span>
+            </span>
+            <ChevronRight className="h-5 w-5 shrink-0 text-destructive/60" />
+          </button>
+        </motion.div>
       </div>
 
       <ConfirmPrompt
@@ -244,6 +285,17 @@ export default function SettingsPage({ onBack, onNavigate }) {
         cancelLabel="Stay Signed In"
         onConfirm={handleLogout}
         isPending={isLoggingOut}
+      />
+      <ConfirmPrompt
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        icon={Trash2}
+        title="Delete your account?"
+        description="This permanently deletes your account and profile data. You will be signed out and cannot undo this action."
+        confirmLabel="Delete Account"
+        cancelLabel="Keep Account"
+        onConfirm={handleDeleteAccount}
+        isPending={isDeleting}
       />
     </main>
   );

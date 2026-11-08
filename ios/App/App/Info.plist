@@ -6,6 +6,10 @@
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>GIDClientID</key>
 	<string>277339731222-js25ucssuk7fl48ngk952fdmkf6bliv2.apps.googleusercontent.com</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Take a profile photo to personalize your Nakhlah account.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Choose a photo from your library to personalize your Nakhlah account.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

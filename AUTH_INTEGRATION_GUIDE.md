@@ -21,7 +21,21 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_web_google_client_id_here
 NEXT_PUBLIC_GOOGLE_OAUTH_REDIRECT_URI=https://uat.nakhlah.net/api/auth/callback/google
 GOOGLE_CLIENT_ID=your_google_client_id_here
 GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+
+# Sign in with Apple
+NEXT_PUBLIC_APPLE_CLIENT_ID=your_apple_service_id
+NEXT_PUBLIC_APPLE_REDIRECT_URI=https://your-domain.example.com/auth/apple/callback
 ```
+
+The app uses the Capacitor 8 Sign in with Apple plugin and sends Apple's ID
+token to `POST /api/users/social-login` with `provider: "apple"` and Apple's
+stable user identifier as `sid`. The API must verify the token with Apple's
+public keys, validate its nonce, and accept the iOS bundle ID as the iOS
+audience. Web sign-in also needs to accept the configured Service ID as its
+audience. Enable the Sign in with Apple capability for the iOS App ID in Apple
+Developer. Web and Android also need the matching Service ID and HTTPS return
+URL. Apple only returns the email and name the first time, so persist those on
+the backend and identify later sign-ins by Apple's `sid`.
 
 ## Native Google Sign-In Setup
 

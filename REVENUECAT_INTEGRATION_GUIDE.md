@@ -53,13 +53,16 @@ Add these to `.env` / `.env.local` (all are read via `NEXT_PUBLIC_*` since they'
 4. Create two **offerings**: one for subscriptions (packages typed `MONTHLY` / `ANNUAL`) and one for date packages (e.g. offering id `dates`), each containing the relevant packages.
 5. The date package catalog ids map to the RevenueCat products below. The frontend also accepts `rcPackageId` / `rcProductId` from the backend, which takes precedence over the built-in mapping.
 
-| Catalog id | Dates | Price | RevenueCat package | RevenueCat product |
+| Catalog id | Dates | Price | RevenueCat package | iOS product |
 | --- | ---: | ---: | --- | --- |
-| `date-package-1` | 500 | $2 | `date-package-1` | `date_package_1` |
-| `date-package-2` | 1,000 | $5 | `date-package-2` | `date_package_2` |
-| `date-package-3` | 2,500 | $10 | `date-package-3` | `date_package_3` |
+| `date-package-1` | 500 | $2 | `date-package-1` | `com.nakhlah.dates.500` |
+| `date-package-2` | 1,000 | $5 | `date-package-2` | `com.nakhlah.dates.1000` |
+| `date-package-3` | 2,500 | $10 | `date-package-3` | `com.nakhlah.dates.2500` |
 
-The subscription mappings are `$rc_monthly` → `monthly` and `$rc_annual` → `yearly`.
+The iOS subscription products are `com.nakhlah.premium.monthly` and
+`com.nakhlah.premium.yearly`, mapped to `$rc_monthly` and `$rc_annual`.
+For Android, subscription packages are selected by RevenueCat package type,
+and date products are selected by their exact date amount when the SKU differs.
 
 6. Date packages are one-time purchases and must not be attached to the `premium` entitlement. Configure a RevenueCat → backend webhook to credit the purchased dates exactly once using the transaction/product id as the idempotency key. Subscription purchases/renewals/cancellations should update your own subscription records (used by `fetchCurrentSubscription` / `cancelSubscription`).
 

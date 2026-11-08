@@ -375,6 +375,35 @@ export async function fetchMyProfile(token) {
     }
 }
 
+export async function deleteMyAccount(token) {
+    try {
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        const { response } = await fetchWithAuthRetry("/api/user-profile/me", {
+            method: "DELETE",
+            token,
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to delete account"));
+        }
+
+        return {
+            success: true,
+            message: data?.message || "Account deleted successfully",
+        };
+    } catch (error) {
+        console.error("Delete account error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to delete account",
+        };
+    }
+}
+
 export async function refillPalmTrees(token) {
     try {
         if (!token) {

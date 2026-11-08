@@ -21,24 +21,24 @@ import {
 const DATE_PACKAGE_REVENUECAT_IDS = {
     "date-package-1": {
         packageId: "date-package-1",
-        productId: "date_package_1",
+        productId: "com.nakhlah.dates.500",
         dateAmount: 500,
     },
     "date-package-2": {
         packageId: "date-package-2",
-        productId: "date_package_2",
+        productId: "com.nakhlah.dates.1000",
         dateAmount: 1000,
     },
     "date-package-3": {
         packageId: "date-package-3",
-        productId: "date_package_3",
+        productId: "com.nakhlah.dates.2500",
         dateAmount: 2500,
     },
 };
 
 const SUBSCRIPTION_REVENUECAT_IDS = {
-    month: { packageId: "$rc_monthly", productId: "monthly" },
-    year: { packageId: "$rc_annual", productId: "yearly" },
+    month: { packageId: "$rc_monthly", productId: "com.nakhlah.premium.monthly" },
+    year: { packageId: "$rc_annual", productId: "com.nakhlah.premium.yearly" },
 };
 
 function readIdentifierHints(item) {
