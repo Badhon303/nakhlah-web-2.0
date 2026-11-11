@@ -12,6 +12,7 @@ export default function PalmTreesDepletedOverlay({
   onRefill,
   isRefilling,
   onGoPro,
+  onGoStore,
   onExit,
   palmTreesCount = 0,
   palmUpdatedAt = null,
@@ -27,6 +28,7 @@ export default function PalmTreesDepletedOverlay({
         onRefill={onRefill}
         isRefilling={isRefilling}
         onGoPro={onGoPro}
+        onGoStore={onGoStore}
         onExit={onExit}
         exitLabel="Exit Lesson"
         palmUpdatedAt={palmUpdatedAt}

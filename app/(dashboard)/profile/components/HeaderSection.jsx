@@ -101,7 +101,7 @@ export default function HeaderSection({
             <div className="mt-5 flex justify-center gap-3 sm:justify-start">
               <Button
                 onClick={onNavigateEdit}
-                className="h-10 rounded-xl bg-white px-4 font-bold text-accent shadow-sm hover:bg-white/90"
+                className="rounded-xl bg-white px-4 font-bold text-accent shadow-sm hover:bg-white/90"
               >
                 <Edit className="mr-2 h-4 w-4" />
                 Edit profile
@@ -114,7 +114,7 @@ export default function HeaderSection({
               */}
               <Button
                 onClick={onNavigateSettings}
-                className="h-10 rounded-xl border border-white/25 bg-white/10 px-4 font-bold text-white shadow-none hover:bg-white/20"
+                className="rounded-xl border border-white/25 bg-white/10 px-4 font-bold text-white shadow-none hover:bg-white/20"
               >
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
