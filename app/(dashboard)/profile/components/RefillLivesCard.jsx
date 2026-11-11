@@ -90,6 +90,7 @@ export default function RefillLivesCard() {
           onRefill={handleRefill}
           isRefilling={isRefilling}
           onGoPro={() => router.push("/store")}
+          onGoStore={() => router.push("/store#date-packages")}
           palmUpdatedAt={palmUpdatedAt}
           dateStock={dateStock}
         />

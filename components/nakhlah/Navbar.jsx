@@ -91,7 +91,7 @@ export function Navbar() {
               alt="Nakhlah logo"
               width={80}
               height={80}
-              className="h-20 w-20 rounded-lg object-cover"
+              className="rounded-lg object-cover"
               priority
             />
           </Link>

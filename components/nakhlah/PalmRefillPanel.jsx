@@ -24,6 +24,7 @@ export default function PalmRefillPanel({
   onRefill,
   isRefilling = false,
   onGoPro,
+  onGoStore,
   onExit,
   exitLabel = "Exit Lesson",
   palmUpdatedAt = null,
@@ -93,24 +94,32 @@ export default function PalmRefillPanel({
         transition={{ delay: 0.35 }}
         className="space-y-3"
       >
-        <Button
-          onClick={onRefill}
-          disabled={isRefilling || palmTreesCount >= maxPalmTrees}
-          className={`w-full rounded-xl bg-accent font-bold text-accent-foreground hover:opacity-90 ${
-            compact ? "h-11 text-base" : "h-12 text-lg"
-          }`}
-        >
-          {isRefilling ? "Refilling..." : "Refill Palm Trees"}
-        </Button>
+        {dateStock >= 100 ? (
+          <Button
+            onClick={onRefill}
+            disabled={isRefilling || palmTreesCount >= maxPalmTrees}
+            className={`w-full rounded-xl bg-accent font-bold text-accent-foreground hover:opacity-90`}
+          >
+            {isRefilling
+              ? "Refilling..."
+              : "Use 100 Dates to Refill Palm Trees"}
+          </Button>
+        ) : (
+          <Button
+            onClick={onGoStore || onGoPro}
+            disabled={isRefilling}
+            className={`w-full rounded-xl bg-accent font-bold text-accent-foreground hover:opacity-90`}
+          >
+            Buy Dates to Refill Palm Trees
+          </Button>
+        )}
         <Button
           onClick={onGoPro}
           disabled={isRefilling}
           variant="outline"
-          className={`w-full rounded-xl border-2 font-bold ${
-            compact ? "h-11 text-base" : "h-12 text-lg"
-          }`}
+          className={`w-full rounded-xl border-2 font-bold`}
         >
-          Go Pro — Unlimited Palms
+          Go Pro — Unlimited Palms Trees
         </Button>
 
         <p className="text-xs text-muted-foreground pt-1">
@@ -119,8 +128,11 @@ export default function PalmRefillPanel({
             : "Palm Trees also refill for free over time — check back later."}
         </p>
         <p className="text-xs text-muted-foreground">
-          You have {dateStock} date{dateStock === 1 ? "" : "s"} available to
-          refill instantly.
+          {dateStock >= 100
+            ? `You have ${dateStock} date${dateStock === 1 ? "" : "s"}. Each refill uses 100 dates.`
+            : dateStock > 0
+              ? `You have ${dateStock} dates, but a refill needs 100. Buy more in the Store to continue.`
+              : "You’re out of dates. Buy more in the Store to refill your Palm Trees."}
         </p>
 
         {onExit ? (

@@ -270,6 +270,25 @@ export default function StorePage() {
   ]);
 
   useEffect(() => {
+    const scrollToDatePackages = () => {
+      if (window.location.hash !== "#date-packages") return;
+
+      // The store is a client-rendered page. Wait until its DOM has committed
+      // before resolving the hash, which may arrive during an App Router
+      // transition before StoreVisual has mounted.
+      window.requestAnimationFrame(() => {
+        document
+          .getElementById("date-packages")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    };
+
+    scrollToDatePackages();
+    window.addEventListener("hashchange", scrollToDatePackages);
+    return () => window.removeEventListener("hashchange", scrollToDatePackages);
+  }, []);
+
+  useEffect(() => {
     if (!isSuccessfulReturn) return undefined;
     setShowConfetti(true);
     const timeoutId = setTimeout(() => setShowConfetti(false), 2000);

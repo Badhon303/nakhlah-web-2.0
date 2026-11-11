@@ -10,7 +10,12 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DatesIcon } from "@/components/icons/PublicAssetIcons";
+import {
+  DateRefillIcon,
+  DateBoostIcon,
+  DateSurgeIcon,
+  DatesIcon,
+} from "@/components/icons/PublicAssetIcons";
 
 const PREMIUM_FEATURES = [
   "Unlimited palms and uninterrupted learning",
@@ -41,8 +46,8 @@ export default function StoreVisual({
       <section className="grid min-h-24 items-end gap-6 lg:grid-cols-[1fr_auto]">
         <div className="max-w-4xl">
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-5xl">
-            Invest in your{" "}
-            <span className="text-gradient-accent">learning rhythm.</span>
+            Your journey to{" "}
+            <span className="text-secondary">fluency starts here</span>
           </h1>
           <p className="mt-4 max-w-4xl text-base leading-7 text-muted-foreground sm:text-lg">
             Unlock a smoother path through Nakhlah, or pick up Dates whenever
@@ -52,7 +57,7 @@ export default function StoreVisual({
         {isLoadingCurrent ? (
           <div
             aria-hidden="true"
-            className="flex h-24 w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 lg:w-60"
+            className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 lg:w-60"
           >
             <div className="min-w-0 flex-1 space-y-2">
               <div className="h-3 w-24 animate-pulse rounded bg-muted" />
@@ -64,7 +69,7 @@ export default function StoreVisual({
           <button
             type="button"
             onClick={onShowSubscriptionDetails}
-            className="group flex h-24 w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md lg:w-60"
+            className="group flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md lg:w-60"
           >
             <span className="min-w-0 flex-1">
               <span className="block text-xs font-semibold text-muted-foreground">
@@ -203,6 +208,14 @@ export default function StoreVisual({
                             <Check className="h-3.5 w-3.5 text-secondary" />{" "}
                             Manage from your account
                           </p>
+                          <p className="flex items-center gap-2">
+                            <Check className="h-3.5 w-3.5 text-secondary" />{" "}
+                            Priority support
+                          </p>
+                          <p className="flex items-center gap-2">
+                            <Check className="h-3.5 w-3.5 text-secondary" />{" "}
+                            Cancel anytime
+                          </p>
                         </div>
                         <div className="mt-auto pt-5">
                           {isCurrent || isEnding ? (
@@ -239,7 +252,7 @@ export default function StoreVisual({
         </div>
       </section>
 
-      <section>
+      <section id="date-packages" className="scroll-mt-24">
         <div className="mb-6">
           <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-secondary">
             <DatesIcon size="sm" /> Date packages
@@ -289,8 +302,16 @@ export default function StoreVisual({
                     </span>
                   ) : null}
                   <div className="flex items-start gap-4">
-                    <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl">
-                      <DatesIcon size="lg" />
+                    <span className="grid h-[60px] w-[60px] shrink-0 place-items-center rounded-2xl">
+                      {pkg.amount === 2500 ? (
+                        <DateSurgeIcon size="lg" width={60} height={60} />
+                      ) : pkg.amount === 500 ? (
+                        <DateRefillIcon size="lg" width={60} height={60} />
+                      ) : pkg.amount === 1000 ? (
+                        <DateBoostIcon size="lg" width={60} height={60} />
+                      ) : (
+                        <DatesIcon size="lg" width={60} height={60} />
+                      )}
                     </span>
                     <div>
                       <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">

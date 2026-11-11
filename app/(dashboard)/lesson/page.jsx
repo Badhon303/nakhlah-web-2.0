@@ -406,6 +406,7 @@ export default function LessonPage({ routeLessonId = "" }) {
   const [lessonRefreshKey, setLessonRefreshKey] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [isLeavingLesson, setIsLeavingLesson] = useState(false);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showExitDialog, setShowExitDialog] = useState(false);
@@ -1367,10 +1368,11 @@ export default function LessonPage({ routeLessonId = "" }) {
   };
 
   const handleLeaveLesson = () => {
+    setIsLeavingLesson(true);
     clearPersistedLessonSession();
     clearLessonSelection();
     setShowExitDialog(false);
-    router.push("/");
+    router.replace("/");
   };
 
   const handleCheckAnswer = async () => {
@@ -1561,6 +1563,10 @@ export default function LessonPage({ routeLessonId = "" }) {
     }
   };
 
+  if (isLeavingLesson) {
+    return null;
+  }
+
   if (isLoading || isNavigatingToCompletion) {
     return <LessonLoadingView progress={65} />;
   }
@@ -1573,6 +1579,25 @@ export default function LessonPage({ routeLessonId = "" }) {
 
     if (isNavigationError) {
       return null;
+    }
+
+    if (isLifeError) {
+      return (
+        <PalmTreesDepletedOverlay
+          onRefill={handleRefillFromErrorState}
+          isRefilling={isRefillingFromError}
+          onGoPro={() => router.push("/store")}
+          onGoStore={() => router.push("/store#date-packages")}
+          onExit={handleLeaveLesson}
+          palmTreesCount={displayedPalmTrees}
+          palmUpdatedAt={stockReady ? storePalmUpdatedAt : null}
+          dateStock={
+            stockReady
+              ? storeDateStock
+              : (profileData?.gamificationStock?.dateStock ?? 0)
+          }
+        />
+      );
     }
 
     return (
@@ -2364,6 +2389,7 @@ export default function LessonPage({ routeLessonId = "" }) {
           onRefill={handleRefillFromErrorState}
           isRefilling={isRefillingFromError}
           onGoPro={() => router.push("/store")}
+          onGoStore={() => router.push("/store#date-packages")}
           onExit={handleLeaveLesson}
           palmTreesCount={displayedPalmTrees}
           palmUpdatedAt={stockReady ? storePalmUpdatedAt : null}
