@@ -69,7 +69,7 @@ export default function StoreVisual({
           <button
             type="button"
             onClick={onShowSubscriptionDetails}
-            className="group flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md lg:w-60"
+            className="group flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 store-accent-hover-border hover:shadow-md lg:w-60"
           >
             <span className="min-w-0 flex-1">
               <span className="block text-xs font-semibold text-muted-foreground">
@@ -93,11 +93,17 @@ export default function StoreVisual({
         ) : null}
       </section>
 
-      <section className="overflow-hidden rounded-none border-0 bg-transparent shadow-none lg:rounded-3xl lg:border lg:border-accent/20 lg:bg-card lg:shadow-lg">
+      <section className="overflow-hidden rounded-none border-0 bg-transparent shadow-none lg:rounded-3xl lg:border store-accent-border-subtle lg:bg-card lg:shadow-lg">
         <div className="grid lg:grid-cols-[0.93fr_1.07fr]">
-          <div className="relative bg-gradient-accent p-7 text-accent-foreground sm:p-9 lg:p-10">
-            <div className="absolute -right-10 -top-12 h-48 w-48 rounded-full border-[28px] border-white/10" />
-            <div className="relative">
+          <div className="relative isolate overflow-hidden store-accent-background p-7 text-white sm:p-9 lg:px-16 lg:py-10">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/bg-home/purple_carpet_symmetric_compact.svg?v=4"
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 z-0 h-full w-full object-cover object-center"
+            />
+            <div className="relative z-10 text-white">
               <h2 className="text-3xl font-extrabold leading-tight sm:text-4xl">
                 Make every learning day count.
               </h2>
@@ -111,7 +117,7 @@ export default function StoreVisual({
                     key={feature}
                     className="flex items-start gap-3 rounded-xl bg-white/10 px-3 py-2.5 text-sm font-medium"
                   >
-                    <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white text-accent">
+                    <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white store-accent-text">
                       <Check className="h-3.5 w-3.5 stroke-[3]" />
                     </span>
                     {feature}
@@ -127,7 +133,7 @@ export default function StoreVisual({
 
           <div className="p-5 sm:p-8 lg:p-10">
             <div className="mb-6">
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-accent">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] store-accent-text">
                 Choose your plan
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -158,10 +164,10 @@ export default function StoreVisual({
                         key={plan.id}
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className={`relative flex min-h-[19rem] flex-col rounded-2xl border p-5 ${plan.popular ? "border-accent bg-accent/[0.045] shadow-lg" : "border-border bg-background"}`}
+                        className={`relative flex min-h-[19rem] flex-col rounded-2xl border p-5 store-accent-background-soft ${plan.popular ? "store-accent-border shadow-lg" : "border-border"}`}
                       >
                         {plan.popular ? (
-                          <span className="absolute -top-3 left-5 rounded-full bg-accent px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-accent-foreground">
+                          <span className="absolute -top-3 left-5 rounded-full store-accent-button px-3 py-1 text-[10px] font-bold uppercase tracking-wider">
                             Best value
                           </span>
                         ) : null}
@@ -231,7 +237,11 @@ export default function StoreVisual({
                             <Button
                               onClick={() => onSubscriptionCheckout(plan)}
                               disabled={checkoutId !== null || isLoadingCurrent}
-                              className="w-full bg-accent font-bold text-accent-foreground hover:bg-accent/90"
+                              className="w-full store-accent-button font-bold"
+                              style={{
+                                backgroundColor: "hsl(var(--store-page-accent))",
+                                color: "hsl(var(--store-page-accent-foreground))",
+                              }}
                             >
                               {busy
                                 ? "Opening checkout..."
@@ -304,13 +314,13 @@ export default function StoreVisual({
                   <div className="flex items-start gap-4">
                     <span className="grid h-[60px] w-[60px] shrink-0 place-items-center rounded-2xl">
                       {pkg.amount === 2500 ? (
-                        <DateSurgeIcon size="lg" width={60} height={60} />
+                        <DateSurgeIcon size="lg" width={52} height={52} />
                       ) : pkg.amount === 500 ? (
-                        <DateRefillIcon size="lg" width={60} height={60} />
+                        <DateRefillIcon size="lg" width={52} height={52} />
                       ) : pkg.amount === 1000 ? (
-                        <DateBoostIcon size="lg" width={60} height={60} />
+                        <DateBoostIcon size="lg" width={52} height={52} />
                       ) : (
-                        <DatesIcon size="lg" width={60} height={60} />
+                        <DatesIcon size="lg" width={52} height={52} />
                       )}
                     </span>
                     <div>

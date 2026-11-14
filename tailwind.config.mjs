@@ -51,6 +51,10 @@ export default {
           foreground: "hsl(var(--accent-foreground))",
           glow: "hsl(var(--accent-glow))",
         },
+        "store-page-accent": {
+          DEFAULT: "hsl(var(--store-page-accent))",
+          foreground: "hsl(var(--store-page-accent-foreground))",
+        },
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",

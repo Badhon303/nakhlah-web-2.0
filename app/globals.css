@@ -22,6 +22,8 @@
     --accent: 263 70% 58%;
     --accent-foreground: 0 0% 100%;
     --accent-glow: 263 80% 70%;
+    --store-page-accent: 276 100% 43%;
+    --store-page-accent-foreground: 0 0% 100%;
 
     /* Background - Warm cream */
     --background: 40 33% 96%;
@@ -119,6 +121,8 @@
     --accent: 263 75% 65%;
     --accent-foreground: 0 0% 100%;
     --accent-glow: 263 80% 75%;
+    --store-page-accent: 276 100% 43%;
+    --store-page-accent-foreground: 0 0% 100%;
 
     --background: 240 10% 4%;
     --foreground: 40 20% 95%;
@@ -221,6 +225,43 @@
 
   .glass-card {
     @apply backdrop-blur-md bg-card/80 border border-border/50;
+  }
+
+  .store-accent-background {
+    background-color: hsl(var(--store-page-accent));
+  }
+
+  .store-accent-background-soft {
+    background-color: hsl(var(--store-page-accent) / 0.045);
+  }
+
+  .store-accent-text {
+    color: hsl(var(--store-page-accent));
+  }
+
+  .store-accent-foreground {
+    color: hsl(var(--store-page-accent-foreground));
+  }
+
+  .store-accent-border {
+    border-color: hsl(var(--store-page-accent));
+  }
+
+  .store-accent-border-subtle {
+    border-color: hsl(var(--store-page-accent) / 0.2);
+  }
+
+  .store-accent-button {
+    background-color: hsl(var(--store-page-accent));
+    color: hsl(var(--store-page-accent-foreground));
+  }
+
+  .store-accent-button:hover {
+    background-color: hsl(var(--store-page-accent) / 0.9);
+  }
+
+  .store-accent-hover-border:hover {
+    border-color: hsl(var(--store-page-accent) / 0.4);
   }
 }
 
