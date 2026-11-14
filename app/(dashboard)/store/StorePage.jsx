@@ -496,7 +496,7 @@ export default function StorePage() {
                 </p>
                 <button
                   onClick={() => fetchDatePackages({ forceRefresh: true })}
-                  className="bg-accent hover:bg-accent/90 text-accent-foreground text-xs font-extrabold tracking-widest py-2.5 px-4 rounded-lg uppercase transition-colors"
+                  className="bg-store-page-accent hover:bg-store-page-accent/90 text-store-page-accent-foreground text-xs font-extrabold tracking-widest py-2.5 px-4 rounded-lg uppercase transition-colors"
                 >
                   RETRY
                 </button>
@@ -510,7 +510,7 @@ export default function StorePage() {
                   transition={{ delay: i * 0.08 }}
                   className={`relative rounded-2xl border-2 p-6 pb-8 flex flex-col items-center gap-5 bg-background text-center ${
                     pkg.popular
-                      ? "border-accent shadow-xl pt-10"
+                      ? "border-store-page-accent shadow-xl pt-10"
                       : "border-border shadow-sm"
                   }`}
                 >
@@ -539,7 +539,7 @@ export default function StorePage() {
                   <hr className="w-full border-border" />
 
                   {/* Amount pill */}
-                  <span className="bg-accent text-accent-foreground text-sm font-bold px-5 rounded-full inline-flex items-center justify-center h-7 pt-[3px]">
+                  <span className="bg-store-page-accent text-store-page-accent-foreground text-sm font-bold px-5 rounded-full inline-flex items-center justify-center h-7 pt-[3px]">
                     {pkg.amount}
                   </span>
 
@@ -552,7 +552,7 @@ export default function StorePage() {
                   <button
                     onClick={() => handleDateCheckout(pkg)}
                     disabled={checkoutId !== null}
-                    className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-xs font-extrabold tracking-widest py-2.5 px-4 rounded-lg uppercase transition-colors flex items-center justify-center"
+                    className="w-full bg-store-page-accent hover:bg-store-page-accent/90 text-store-page-accent-foreground text-xs font-extrabold tracking-widest py-2.5 px-4 rounded-lg uppercase transition-colors flex items-center justify-center"
                   >
                     {checkoutId === `dates:${pkg.id}` ? (
                       <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -572,12 +572,12 @@ export default function StorePage() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="relative rounded-3xl border-2 border-accent bg-background overflow-visible"
+            className="relative rounded-3xl border-2 border-store-page-accent bg-background overflow-visible"
           >
             {/* Section header banner */}
             <div className="flex justify-center -mt-5 mb-0">
               <div className="relative">
-                <div className="bg-accent text-accent-foreground text-xl font-black px-10 py-2 rounded-xl shadow-lg">
+                <div className="bg-store-page-accent text-store-page-accent-foreground text-xl font-black px-10 py-2 rounded-xl shadow-lg">
                   Get Unlimited Lives
                 </div>
                 {/* GO PREMIUM tag - bottom-right like BEST VALUE */}
@@ -597,7 +597,7 @@ export default function StorePage() {
                   "Personalized dashboard",
                 ].map((f) => (
                   <li key={f} className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-store-page-accent inline-block shrink-0" />
                     {f}
                   </li>
                 ))}
@@ -676,7 +676,7 @@ export default function StorePage() {
                               type="button"
                               onClick={() => handleSubscriptionCheckout(plan)}
                               disabled={checkoutId !== null || isLoadingCurrent}
-                              className="rounded-full px-5 py-2 text-[10px] font-extrabold tracking-widest uppercase bg-accent text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50 min-w-[92px]"
+                              className="rounded-full px-5 py-2 text-[10px] font-extrabold tracking-widest uppercase bg-store-page-accent text-store-page-accent-foreground hover:bg-store-page-accent/90 transition-colors disabled:opacity-50 min-w-[92px]"
                             >
                               Subscribe
                             </button>
@@ -1087,7 +1087,7 @@ export default function StorePage() {
                     Keep Current
                   </Button>
                   <Button
-                    className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+                    className="flex-1 bg-store-page-accent hover:bg-store-page-accent/90 text-store-page-accent-foreground"
                     onClick={handleConfirmSwitch}
                     disabled={isCanceling}
                   >
