@@ -18,7 +18,7 @@ export default function ChallengesHome() {
       <section className="mb-6 max-w-4xl">
         <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-5xl">
           Master your{" "}
-          <span className="text-gradient-accent">daily targets.</span>
+          <span className="text-secondary">daily targets.</span>
         </h1>
         <p className="mt-4 max-w-4xl text-base leading-7 text-muted-foreground sm:text-lg">
           Complete challenges, collect badges, and keep your learning streak

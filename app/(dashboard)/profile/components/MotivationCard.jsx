@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { GlowingStar } from "@/components/icons/GlowingStar";
+import CarpetBackground from "@/components/nakhlah/CarpetBackground";
 import { useRouter } from "next/navigation";
 
 export default function MotivationCard() {
@@ -10,10 +11,10 @@ export default function MotivationCard() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4, duration: 0.5 }}
-      className="relative overflow-hidden rounded-2xl bg-gradient-accent text-accent-foreground shadow-lg"
+      className="relative isolate overflow-hidden rounded-2xl store-accent-background text-accent-foreground shadow-lg"
     >
-      <div className="absolute -right-8 -top-10 h-32 w-32 rounded-full border-[22px] border-white/10" />
-      <div className="relative p-6">
+      <CarpetBackground />
+      <div className="relative z-10 px-14 py-6">
         <div className="mb-5 text-center">
           <GlowingStar size="lg" className="mx-auto pb-2 text-center" />
           <h3 className="mb-2 text-xl font-extrabold">Keep going!</h3>
