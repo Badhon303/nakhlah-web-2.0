@@ -16,6 +16,7 @@ import {
   DateSurgeIcon,
   DatesIcon,
 } from "@/components/icons/PublicAssetIcons";
+import CarpetBackground from "@/components/nakhlah/CarpetBackground";
 
 const PREMIUM_FEATURES = [
   "Unlimited palms and uninterrupted learning",
@@ -95,14 +96,8 @@ export default function StoreVisual({
 
       <section className="overflow-hidden rounded-none border-0 bg-transparent shadow-none lg:rounded-3xl lg:border store-accent-border-subtle lg:bg-card lg:shadow-lg">
         <div className="grid lg:grid-cols-[0.93fr_1.07fr]">
-          <div className="relative isolate overflow-hidden store-accent-background p-7 text-white sm:p-9 lg:px-16 lg:py-10">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/bg-home/purple_carpet_symmetric_compact.svg?v=4"
-              alt=""
-              aria-hidden="true"
-              className="absolute inset-0 z-0 h-full w-full object-cover object-center"
-            />
+          <div className="relative isolate overflow-hidden store-accent-background px-11 py-7 text-white sm:p-9 lg:px-16 lg:py-10">
+            <CarpetBackground />
             <div className="relative z-10 text-white">
               <h2 className="text-3xl font-extrabold leading-tight sm:text-4xl">
                 Make every learning day count.
@@ -184,7 +179,9 @@ export default function StoreVisual({
                             </p>
                           </div>
                           {isCurrent || isEnding || isEnded ? (
-                            <span className="rounded-full bg-muted px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                            <span
+                              className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${isEnded ? "bg-muted text-muted-foreground dark:bg-slate-700 dark:text-slate-100" : "bg-muted text-muted-foreground"}`}
+                            >
                               {isCurrent
                                 ? "Current"
                                 : isEnding
@@ -239,8 +236,10 @@ export default function StoreVisual({
                               disabled={checkoutId !== null || isLoadingCurrent}
                               className="w-full store-accent-button font-bold"
                               style={{
-                                backgroundColor: "hsl(var(--store-page-accent))",
-                                color: "hsl(var(--store-page-accent-foreground))",
+                                backgroundColor:
+                                  "hsl(var(--store-page-accent))",
+                                color:
+                                  "hsl(var(--store-page-accent-foreground))",
                               }}
                             >
                               {busy
@@ -350,7 +349,8 @@ export default function StoreVisual({
                     <Button
                       onClick={() => onDateCheckout(pkg)}
                       disabled={checkoutId !== null}
-                      className="bg-secondary font-bold text-secondary-foreground hover:bg-secondary/90"
+                      variant="secondary"
+                      className="font-bold hover:bg-secondary/90"
                     >
                       {busy ? (
                         <Loader2 className="h-4 w-4 animate-spin" />

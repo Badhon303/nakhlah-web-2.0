@@ -18,9 +18,11 @@
     --secondary: 144 26% 39%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Violet - Accent */
-    --accent: 263 70% 58%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent follows the store accent; keep the former violet values for reference. */
+    /* --accent: 263 70% 58%; */
+    /* --accent-foreground: 0 0% 100%; */
+    --accent: var(--store-page-accent);
+    --accent-foreground: var(--store-page-accent-foreground);
     --accent-glow: 263 80% 70%;
     --store-page-accent: 276 100% 43%;
     --store-page-accent-foreground: 0 0% 100%;
@@ -118,8 +120,10 @@
     --secondary: 144 30% 45%;
     --secondary-foreground: 0 0% 100%;
 
-    --accent: 263 75% 65%;
-    --accent-foreground: 0 0% 100%;
+    /* --accent: 263 75% 65%; */
+    /* --accent-foreground: 0 0% 100%; */
+    --accent: var(--store-page-accent);
+    --accent-foreground: var(--store-page-accent-foreground);
     --accent-glow: 263 80% 75%;
     --store-page-accent: 276 100% 43%;
     --store-page-accent-foreground: 0 0% 100%;

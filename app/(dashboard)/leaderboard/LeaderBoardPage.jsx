@@ -15,10 +15,10 @@ const PODIUM_CONFIG = {
     avatarImg: 112,
     blockWidth: "w-28 lg:w-36",
     blockHeight: "h-32 lg:h-36",
-    frontFace: "from-violet-400 to-violet-500",
-    topFace: "bg-violet-300",
+    frontFace: "from-accent to-accent/80",
+    topFace: "bg-accent/70",
     numberClass: "text-5xl lg:text-6xl",
-    medalBg: "bg-amber-400",
+    medalBg: "bg-accent",
     delay: 0.3,
   },
   2: {
@@ -27,10 +27,10 @@ const PODIUM_CONFIG = {
     avatarImg: 96,
     blockWidth: "w-24 lg:w-32",
     blockHeight: "h-24 lg:h-28",
-    frontFace: "from-violet-500 to-violet-600",
-    topFace: "bg-violet-400",
+    frontFace: "from-accent to-accent/80",
+    topFace: "bg-accent/70",
     numberClass: "text-4xl lg:text-5xl",
-    medalBg: "bg-slate-300",
+    medalBg: "bg-accent",
     delay: 0.4,
   },
   3: {
@@ -39,10 +39,10 @@ const PODIUM_CONFIG = {
     avatarImg: 96,
     blockWidth: "w-24 lg:w-32",
     blockHeight: "h-20 lg:h-24",
-    frontFace: "from-violet-600 to-violet-700",
-    topFace: "bg-violet-500",
+    frontFace: "from-accent to-accent/80",
+    topFace: "bg-accent/70",
     numberClass: "text-4xl lg:text-5xl",
-    medalBg: "bg-amber-600",
+    medalBg: "bg-accent",
     delay: 0.5,
   },
 };
@@ -180,7 +180,7 @@ export default function Leaderboard({ onViewProfile }) {
         <section className="mb-6 max-w-4xl">
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-5xl">
             Rise through the{" "}
-            <span className="text-gradient-accent">ranks.</span>
+            <span className="text-secondary">ranks.</span>
           </h1>
           <p className="mt-4 max-w-4xl text-base leading-7 text-muted-foreground sm:text-lg">
             Compete with learners and earn your place at the top of the
