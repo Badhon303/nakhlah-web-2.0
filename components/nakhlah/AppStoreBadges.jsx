@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import QRCode from "qrcode";
-import { AppleStoreIcon } from "@/components/icons/AppleStore";
+// import { AppleStoreIcon } from "@/components/icons/AppleStore";
 import { GooglePlayIcon } from "@/components/icons/GooglePlay";
 import { QrScanIcon } from "@/components/icons/QrScanIcon";
 import {
@@ -22,7 +22,7 @@ const IOS_STORE_LINK =
   "https://play.google.com/store/apps/details?id=com.fintechhub.nakhlah";
 
 export function AppStoreBadges({ className = "" }) {
-  const [activeTab, setActiveTab] = useState("ios");
+  const [activeTab, setActiveTab] = useState("android");
   const [qrCodeDataUrls, setQrCodeDataUrls] = useState({
     ios: "",
     android: "",
@@ -66,7 +66,7 @@ export function AppStoreBadges({ className = "" }) {
       {/* Store Navigation Buttons */}
       <div className="grid grid-cols-2 gap-3 w-full">
         {/* Apple App Store */}
-        <a
+        {/* <a
           href={IOS_STORE_LINK}
           target="_blank"
           rel="noopener noreferrer"
@@ -81,14 +81,14 @@ export function AppStoreBadges({ className = "" }) {
               App Store
             </span>
           </div>
-        </a>
+        </a> */}
 
         {/* Google Play Store */}
         <a
           href={ANDROID_STORE_LINK}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-border bg-card hover:bg-muted/40 shadow-sm hover:shadow transition-all duration-150 active:scale-95"
+          className="col-span-2 justify-self-center flex items-center gap-2.5 px-3 py-2.5 w-[calc(50%_-_0.375rem)] rounded-xl border border-border bg-card hover:bg-muted/40 shadow-sm hover:shadow transition-all duration-150 active:scale-95"
         >
           <GooglePlayIcon className="w-5 h-5 shrink-0" size={20} />
           <div className="flex flex-col text-left leading-tight min-w-0">
@@ -161,7 +161,7 @@ export function AppStoreBadges({ className = "" }) {
             </div>
 
             {/* Platform switcher (reverted design: no background on buttons, text in accent color, animated font size) */}
-            <div className="flex items-center gap-3 mt-5 px-4 py-2 bg-muted/40 rounded-full border border-border/50 text-xs">
+            {/* <div className="flex items-center gap-3 mt-5 px-4 py-2 bg-muted/40 rounded-full border border-border/50 text-xs">
               <motion.button
                 type="button"
                 onClick={() => setActiveTab("ios")}
@@ -205,7 +205,7 @@ export function AppStoreBadges({ className = "" }) {
                 <GooglePlayIcon className="w-3.5 h-3.5 shrink-0" size={14} />
                 <span>Android</span>
               </motion.button>
-            </div>
+            </div> */}
           </div>
         </DialogContent>
       </Dialog>
