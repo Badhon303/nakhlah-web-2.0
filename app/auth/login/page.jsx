@@ -114,7 +114,7 @@ function LoginForm() {
           className="hidden lg:flex flex-col items-center justify-center gap-6"
         >
           <LogoAnimation className="w-56" />
-          <p className="text-xl text-muted-foreground text-center max-w-md">
+          <p className="text-xl text-muted-foreground text-center max-w-md whitespace-nowrap">
             Learn languages whenever and wherever you want
           </p>
           <AppStoreBadges />
