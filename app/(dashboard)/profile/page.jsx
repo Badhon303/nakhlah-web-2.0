@@ -187,13 +187,12 @@ function ProfileAndSettingsContent() {
         return <FindFriendsPage onBack={() => setActiveView("settings")} />;
       case "help-center":
         return (
-          <HelpCenterPage
-            onBack={() => setActiveView("settings")}
-            onNavigateContact={() => setActiveView("contact-us")}
-          />
+          <HelpCenterPage onBack={() => setActiveView("settings")} />
         );
       case "contact-us":
-        return <ContactUsPage onBack={() => setActiveView("help-center")} />;
+        return (
+          <ContactUsPage onBack={() => setActiveView("settings")} />
+        );
       case "general":
         return <GeneralSettingsPage onBack={() => setActiveView("settings")} />;
       case "about-nakhlah":
@@ -250,7 +249,7 @@ function ProfileAndSettingsContent() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="px-4 sm:px-5 lg:px-0"
+          className="px-0"
         >
           {renderView()}
         </motion.div>

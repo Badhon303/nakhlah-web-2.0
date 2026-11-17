@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { toast } from "@/components/nakhlah/Toast";
 import { logoutUser } from "@/services/api/auth";
+import { clearTapPaymentAgreementId } from "@/lib/tapPaymentAgreement";
 import { useRouter } from "next/navigation";
 
 export function LogoutButton({
@@ -18,6 +19,7 @@ export function LogoutButton({
 
   const handleLogout = async () => {
     try {
+      clearTapPaymentAgreementId();
       await logoutUser();
       await signOut({ redirect: false });
       toast.success("Logged out successfully");

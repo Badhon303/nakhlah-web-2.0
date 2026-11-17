@@ -14,6 +14,7 @@ export function Circle({
   isCompleted,
   isCurrent,
   isLocked,
+  isGiftOpened = false,
   icon,
   type,
   size = "md",
@@ -52,13 +53,25 @@ export function Circle({
     : iconSizeClasses[size] || iconSizeClasses.md;
 
   const getIcon = () => {
-    // Gift box / Mystery box
+    // Gift box: closed until it is claimed. The open image is only for a claimed box.
     if (isTrophy) {
+      if (isGiftOpened) {
+        return (
+          <img
+            src="/icons/mystery_box_unlocked.svg"
+            alt="Mystery box opened"
+            className={`${iconSizeClass} scale-110 object-contain`}
+          />
+        );
+      }
+
       return (
         <img
           src="/icons/mystery_box_locked.svg"
-          alt="Mystery Box"
-          className={`${iconSizeClass} object-contain`}
+          alt={isLocked ? "Mystery box locked" : "Mystery box ready to open"}
+          className={`${iconSizeClass} object-contain${
+            isLocked ? " opacity-50 grayscale" : " scale-110"
+          }`}
         />
       );
     }
@@ -100,8 +113,12 @@ export function Circle({
     return "";
   };
 
+  const canOpen = isTrophy
+    ? !isLocked
+    : !isLocked && (isCompleted || isCurrent);
+
   const handleClick = () => {
-    if ((isCompleted || isCurrent) && !isLocked) {
+    if (canOpen) {
       if (typeof window !== "undefined") {
         localStorage.setItem("lastInteractedNodeId", nodeId);
       }
@@ -120,11 +137,11 @@ export function Circle({
       <div
         onClick={handleClick}
         className={`flex items-center justify-center ${getCircleStyles()} transition-transform ${
-          (isCompleted || isCurrent) && !isLocked
+          canOpen
             ? "cursor-pointer hover:scale-110"
             : isLocked
               ? "cursor-not-allowed"
-              : "cursor-pointer hover:scale-105"
+              : "cursor-default"
         }`}
       >
         {getIcon()}
@@ -138,6 +155,7 @@ export function Circle({
           isCurrent={isCurrent}
           isLocked={isLocked}
           isTaskGiftBox={isTrophy}
+          isGiftOpened={isGiftOpened}
           onClose={handleClosePopup}
           open={showPopup}
         />

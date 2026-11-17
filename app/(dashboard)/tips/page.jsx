@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 import { getSessionToken } from "@/lib/authUtils";
 import { useHelpCenterStore } from "@/stores/useHelpCenterStore";
 import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
 export default function TipsPage() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function TipsPage() {
   }, [session, fetchHelpCenter]);
 
   return (
-    <div className="min-h-[calc(100vh-6rem)] flex items-center justify-center px-4 py-8">
+    <div className="max-w-4xl mx-auto px-4 py-6">
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
@@ -42,11 +43,7 @@ export default function TipsPage() {
         </div>
 
         {isLoading ? (
-          <div className="space-y-3">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-4 bg-muted/40 rounded animate-pulse" />
-            ))}
-          </div>
+          <DocumentLoadingSkeleton />
         ) : (
           <div className="space-y-8">
             {guide && (

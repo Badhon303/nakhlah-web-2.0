@@ -393,6 +393,39 @@ export async function fetchMyProfile(token) {
     }
 }
 
+export async function fetchGamificationStocks(token) {
+    try {
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        const { response } = await fetchWithAuthRetry("/api/user-profile/gamification-stocks", {
+            method: "GET",
+            token,
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(data, "Failed to load gamification stocks"));
+        }
+
+        return {
+            success: true,
+            data,
+        };
+    } catch (error) {
+        console.error("Fetch gamification stocks error:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to load gamification stocks",
+        };
+    }
+}
+
 export async function refillPalmTrees(token) {
     try {
         if (!token) {
@@ -558,266 +591,6 @@ export async function fetchSubscriptionPlans() {
     }
 }
 
-const normalizeApprovalUrl = (data) => {
-    if (data?.approvalUrl) return data.approvalUrl;
-    if (data?.approveUrl) return data.approveUrl;
-    if (data?.url) return data.url;
-
-    const approveLink = Array.isArray(data?.links)
-        ? data.links.find((link) => {
-            const rel = String(link?.rel || "").toLowerCase();
-            return rel === "approve" || rel === "approval_url";
-        })
-        : null;
-
-    return approveLink?.href || "";
-};
-
-export async function createDatePaymentOrder(packageId, token) {
-    try {
-        if (!token) {
-            throw new Error("Authentication required");
-        }
-
-        if (!packageId) {
-            throw new Error("Missing date package");
-        }
-
-        const { response } = await fetchWithAuthRetry("/api/payments/dates/create-order", {
-            method: "POST",
-            token,
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ packageId }),
-        });
-
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-            throw new Error(toErrorMessage(data, "Failed to start PayPal checkout"));
-        }
-
-        const approvalUrl = normalizeApprovalUrl(data);
-
-        if (!approvalUrl) {
-            throw new Error("PayPal approval URL was not returned");
-        }
-
-        return {
-            success: true,
-            orderId: data?.orderId || data?.id || null,
-            approvalUrl,
-            data,
-        };
-    } catch (error) {
-        console.error("Create date payment order error:", error);
-        return {
-            success: false,
-            error: error.message || "Failed to start PayPal checkout",
-        };
-    }
-}
-
-export async function captureDatePaymentOrder(orderId, token) {
-    try {
-        if (!token) {
-            throw new Error("Authentication required");
-        }
-
-        if (!orderId) {
-            throw new Error("Missing PayPal order token");
-        }
-
-        const { response } = await fetchWithAuthRetry("/api/payments/dates/capture-order", {
-            method: "POST",
-            token,
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ orderId }),
-        });
-
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-            throw new Error(toErrorMessage(data, "Failed to confirm PayPal payment"));
-        }
-
-        return {
-            success: true,
-            data,
-            message: data?.message || "Payment confirmed successfully",
-        };
-    } catch (error) {
-        console.error("Capture date payment order error:", error);
-        return {
-            success: false,
-            error: error.message || "Failed to confirm PayPal payment",
-        };
-    }
-}
-
-export async function createSubscriptionPayment(plan, token) {
-    try {
-        if (!token) {
-            throw new Error("Authentication required");
-        }
-
-        const planId = plan?.id || plan;
-
-        if (!planId) {
-            throw new Error("Missing subscription plan");
-        }
-
-        const { response } = await fetchWithAuthRetry("/api/payments/subscriptions/create", {
-            method: "POST",
-            token,
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ planId }),
-        });
-
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-            throw new Error(toErrorMessage(data, "Failed to start PayPal subscription"));
-        }
-
-        const approvalUrl = normalizeApprovalUrl(data);
-
-        if (!approvalUrl) {
-            throw new Error("PayPal approval URL was not returned");
-        }
-
-        return {
-            success: true,
-            subscriptionId: data?.subscriptionId || data?.id || null,
-            approvalUrl,
-            data,
-        };
-    } catch (error) {
-        console.error("Create subscription payment error:", error);
-        return {
-            success: false,
-            error: error.message || "Failed to start PayPal subscription",
-        };
-    }
-}
-
-export async function fetchCurrentSubscription(token) {
-    try {
-        if (!token) {
-            throw new Error("Authentication required");
-        }
-
-        const { response } = await fetchWithAuthRetry("/api/payments/me/subscription", {
-            method: "GET",
-            token,
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
-
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-            throw new Error(toErrorMessage(data, "Failed to load subscription"));
-        }
-
-        return {
-            success: true,
-            subscription: data?.subscription || null,
-            data,
-        };
-    } catch (error) {
-        console.error("Fetch current subscription error:", error);
-        return {
-            success: false,
-            error: error.message || "Failed to load subscription",
-        };
-    }
-}
-
-export async function cancelSubscription(subscriptionId, token) {
-    try {
-        if (!token) {
-            throw new Error("Authentication required");
-        }
-
-        if (!subscriptionId) {
-            throw new Error("Missing subscription ID");
-        }
-
-        const { response } = await fetchWithAuthRetry("/api/payments/subscriptions/cancel", {
-            method: "POST",
-            token,
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ subscriptionId }),
-        });
-
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-            throw new Error(toErrorMessage(data, "Failed to cancel subscription"));
-        }
-
-        return {
-            success: true,
-            data,
-            message: data?.message || "Subscription canceled successfully",
-        };
-    } catch (error) {
-        console.error("Cancel subscription error:", error);
-        return {
-            success: false,
-            error: error.message || "Failed to cancel subscription",
-        };
-    }
-}
-
-export async function switchSubscription(newPlanId, token) {
-    try {
-        if (!token) {
-            throw new Error("Authentication required");
-        }
-
-        if (!newPlanId) {
-            throw new Error("Missing new plan ID");
-        }
-
-        const { response } = await fetchWithAuthRetry("/api/payments/subscriptions/switch", {
-            method: "POST",
-            token,
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ newPlanId }),
-        });
-
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-            throw new Error(toErrorMessage(data, "Failed to switch subscription"));
-        }
-
-        return {
-            success: true,
-            data,
-            message: data?.message || "Subscription switched successfully",
-        };
-    } catch (error) {
-        console.error("Switch subscription error:", error);
-        return {
-            success: false,
-            error: error.message || "Failed to switch subscription",
-        };
-    }
-}
-
 export async function forgotPassword(email) {
     try {
         const response = await fetch(withApiUrl("/api/users/forgot-password"), {
@@ -908,4 +681,3 @@ export async function resetPassword(token, password) {
 //         };
 //     }
 // }
-

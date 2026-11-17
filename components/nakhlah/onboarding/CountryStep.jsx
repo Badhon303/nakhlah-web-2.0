@@ -7,6 +7,7 @@ import {
   CountryFlag,
   COUNTRY_OPTIONS,
   CountryPicker,
+  getCountryDisplayName,
 } from "@/components/nakhlah/onboarding/CountryPicker";
 import { cn } from "@/lib/utils";
 
@@ -87,7 +88,7 @@ export function CountryStep({ title, selectedCountry, onSelect }) {
                     isSelected ? "text-accent" : "text-foreground",
                   )}
                 >
-                  {country.name}
+                  {getCountryDisplayName(country.code)}
                 </span>
                 {isSelected ? (
                   <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent">
@@ -111,7 +112,11 @@ export function CountryStep({ title, selectedCountry, onSelect }) {
           <MapPin className="h-4 w-4 text-accent" />
           Search every country
         </label>
-        <CountryPicker value={selectedCountry} onChange={onSelect} />
+        <CountryPicker
+          value={selectedCountry}
+          onChange={onSelect}
+          showCallingCodeInList={false}
+        />
         <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
           Search by country name or international calling code.
         </p>

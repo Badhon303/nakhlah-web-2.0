@@ -29,8 +29,12 @@ import { resolveLessonCompletionDailyQuestParams } from "@/lib/gamification";
 import { useDailyQuestStore } from "@/stores/useDailyQuestStore";
 import { useLessonStore } from "@/stores/useLessonStore";
 import { useProfileStore } from "@/stores/useProfileStore";
+import { useGamificationStockStore } from "@/stores/useGamificationStockStore";
+import { useJourneyStore } from "@/stores/useJourneyStore";
 import { getUserKey } from "@/lib/userKey";
 import { toast } from "@/components/nakhlah/Toast";
+import { persistUnlockedBadgeKeys, extractUnlockedBadgeKeys } from "@/lib/lessonUnlockedBadges";
+import { markJourneyLandOnNewGift } from "@/lib/journeyScroll";
 import PalmTreesDepletedOverlay from "./PalmTreesDepletedOverlay";
 
 import LessonLoadingView from "./loading/LessonLoadingView";
@@ -381,11 +385,28 @@ export default function LessonPage({ routeLessonId = "" }) {
     (state) => state.clearLessonSelection,
   );
   const fetchProfile = useProfileStore((state) => state.fetchMyProfile);
+  const profileData = useProfileStore((state) => state.profile);
+  const storePalmStock = useGamificationStockStore((state) => state.palmStock);
+  const storePalmUpdatedAt = useGamificationStockStore(
+    (state) => state.palmUpdatedAt,
+  );
+  const storeDateStock = useGamificationStockStore((state) => state.dateStock);
+  const storeUserKey = useGamificationStockStore((state) => state.userKey);
+  const storeLastFetchedAt = useGamificationStockStore(
+    (state) => state.lastFetchedAt,
+  );
+  const fetchGamificationStock = useGamificationStockStore(
+    (state) => state.fetchGamificationStock,
+  );
+  const setStorePalmStock = useGamificationStockStore(
+    (state) => state.setPalmStock,
+  );
 
   const [questions, setQuestions] = useState([]);
   const [lessonRefreshKey, setLessonRefreshKey] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [isLeavingLesson, setIsLeavingLesson] = useState(false);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showExitDialog, setShowExitDialog] = useState(false);
@@ -412,6 +433,7 @@ export default function LessonPage({ routeLessonId = "" }) {
   const [selectedFillBlankOptionId, setSelectedFillBlankOptionId] =
     useState(null);
   const [fillBlankAnswer, setFillBlankAnswer] = useState("");
+  const [activeLearnTooltip, setActiveLearnTooltip] = useState(null);
 
   const [selectedTokens, setSelectedTokens] = useState([]);
   const [availableTokens, setAvailableTokens] = useState([]);
@@ -439,6 +461,9 @@ export default function LessonPage({ routeLessonId = "" }) {
 
   const questionType = currentQuestion?.question_type;
   const hasPalmTrees = palmTrees > 0;
+  const stockReady =
+    storeUserKey === activeUserKey && storeLastFetchedAt != null;
+  const displayedPalmTrees = stockReady ? storePalmStock : palmTrees;
 
   const imageUrl = getQuestionMedia(currentQuestion, "image");
   const audioUrl = getQuestionMedia(currentQuestion, "audio");
@@ -447,6 +472,14 @@ export default function LessonPage({ routeLessonId = "" }) {
   useEffect(() => {
     sessionRef.current = session;
   }, [session]);
+
+  useEffect(() => {
+    if (!stockReady) return;
+    setPalmTrees(storePalmStock);
+    if (storePalmStock > 0) {
+      setShowPalmRefillPrompt(false);
+    }
+  }, [stockReady, storePalmStock]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -559,25 +592,34 @@ export default function LessonPage({ routeLessonId = "" }) {
         const resolvedProfile = profileResult?.success
           ? profileResult.profile
           : null;
-        if (resolvedProfile) {
-          const palmStock = Number(
-            resolvedProfile?.gamificationStock?.palm?.palmStock,
-          );
-          if (Number.isFinite(palmStock)) {
-            setPalmTrees(palmStock);
-            syncProfilePalmTrees(palmStock);
-            if (palmStock <= 0) {
-              setLoadError(
-                "You need more Palm Trees before opening this lesson.",
-              );
-              setIsLoading(false);
-              return;
-            }
-          } else {
-            throw new Error("Unable to verify available Palm Trees.");
-          }
-        } else {
+        if (!resolvedProfile) {
           throw new Error("Unable to verify available Palm Trees.");
+        }
+
+        const stockResult = await fetchGamificationStock({
+          token,
+          userKey: getUserKey(currentSession),
+          forceRefresh: true,
+        });
+        const profilePalm = Number(
+          resolvedProfile?.gamificationStock?.palm?.palmStock,
+        );
+        const stockPalm = Number(stockResult?.palmStock);
+        const resolvedPalm =
+          stockResult?.success && Number.isFinite(stockPalm)
+            ? stockPalm
+            : profilePalm;
+
+        if (!Number.isFinite(resolvedPalm)) {
+          throw new Error("Unable to verify available Palm Trees.");
+        }
+
+        setPalmTrees(resolvedPalm);
+        syncProfilePalmTrees(resolvedPalm);
+        if (resolvedPalm <= 0) {
+          setLoadError("You need more Palm Trees before opening this lesson.");
+          setIsLoading(false);
+          return;
         }
 
         const questionsRequest = selectedLessonIsExam
@@ -618,6 +660,7 @@ export default function LessonPage({ routeLessonId = "" }) {
     activeUserKey,
     authSessionKey,
     fetchProfile,
+    fetchGamificationStock,
     storeSelectedLessonId,
     storeSelectedNodeId,
     storeSelectedLessonIsExam,
@@ -642,8 +685,17 @@ export default function LessonPage({ routeLessonId = "" }) {
     if (isLoading) return;
     if (palmTrees <= 0) {
       setShowPalmRefillPrompt(true);
+      // Refresh in the background (not awaited) so the depleted overlay's
+      // refill countdown has an accurate `palmUpdatedAt` without slowing
+      // down the answer-checking flow that triggered this.
+      const token = getSessionToken(session);
+      if (token) {
+        const userKey = getUserKey(session);
+        void fetchProfile(token, true, userKey);
+        void fetchGamificationStock({ token, userKey, forceRefresh: true });
+      }
     }
-  }, [palmTrees, isLoading]);
+  }, [palmTrees, isLoading, session, fetchProfile, fetchGamificationStock]);
 
   useEffect(() => {
     totalAnswerAttemptsRef.current = totalAnswerAttempts;
@@ -924,6 +976,7 @@ export default function LessonPage({ routeLessonId = "" }) {
     setSelectedTrueFalse(null);
     setSelectedFillBlankOptionId(null);
     setFillBlankAnswer("");
+    setActiveLearnTooltip(null);
     setSelectedTokens([]);
     setSelectedLeft(null);
     setSelectedRight(null);
@@ -1018,7 +1071,14 @@ export default function LessonPage({ routeLessonId = "" }) {
     if (Number.isFinite(palmStock)) {
       setPalmTrees(palmStock);
       syncProfilePalmTrees(palmStock);
+      setStorePalmStock(palmStock);
     }
+
+    void fetchGamificationStock({
+      token,
+      userKey: getUserKey(session),
+      forceRefresh: true,
+    });
   };
 
   const recordAnswerAttempt = (isAnswerCorrect) => {
@@ -1060,6 +1120,7 @@ export default function LessonPage({ routeLessonId = "" }) {
     accuracyPercentageOverride = null,
     hasWrongAnswerOverride = null,
     forceDailyQuestRefresh = false,
+    landOnNewGift = true,
   } = {}) => {
     setIsNavigatingToCompletion(true);
 
@@ -1123,10 +1184,8 @@ export default function LessonPage({ routeLessonId = "" }) {
             (Number.isFinite(itemInjaz) ? itemInjaz : 0),
           badges: {
             added: [
-              ...(Array.isArray(accumulator?.badges?.added)
-                ? accumulator.badges.added
-                : []),
-              ...(Array.isArray(item?.badges?.added) ? item.badges.added : []),
+              ...extractUnlockedBadgeKeys(accumulator),
+              ...extractUnlockedBadgeKeys(item),
             ],
             total: [
               ...(Array.isArray(accumulator?.badges?.total)
@@ -1153,13 +1212,22 @@ export default function LessonPage({ routeLessonId = "" }) {
         },
       }),
     );
+    persistUnlockedBadgeKeys(mergedClaimPayload);
 
     if (token && shouldInvalidateDailyQuestCache) {
       useDailyQuestStore.getState().invalidate();
     }
 
+    // Bust journey/profile caches now so home cannot serve pre-completion data
+    // even if the sessionStorage flag is missed (e.g. child effects race).
+    useJourneyStore.getState().invalidate();
+    useProfileStore.getState().invalidate();
+
     if (typeof window !== "undefined") {
       sessionStorage.setItem(JOURNEY_REFRESH_FLAG_KEY, "true");
+      if (landOnNewGift) {
+        markJourneyLandOnNewGift();
+      }
       window.dispatchEvent(new Event("nakhlah:journey-updated"));
     }
 
@@ -1178,6 +1246,13 @@ export default function LessonPage({ routeLessonId = "" }) {
     const isSkipped = isCorrect === null && isScored;
 
     if (isSkipped) {
+      if (currentIndex === totalQuestions - 1) {
+        toast.info(
+          "This is the last question. Answer it to complete the lesson.",
+        );
+        return;
+      }
+
       setQuestions((prev) => {
         const nextList = [...prev];
         const skippedQuestion = nextList[currentIndex];
@@ -1192,6 +1267,7 @@ export default function LessonPage({ routeLessonId = "" }) {
       setSelectedTrueFalse(null);
       setSelectedFillBlankOptionId(null);
       setFillBlankAnswer("");
+      setActiveLearnTooltip(null);
       setSelectedTokens([]);
       setSelectedLeft(null);
       setSelectedRight(null);
@@ -1251,7 +1327,7 @@ export default function LessonPage({ routeLessonId = "" }) {
       (selectedLessonStatus || "").trim().toLowerCase() === "completed";
 
     if (isReplayOfCompletedLesson) {
-      await completeLessonAndRedirect();
+      await completeLessonAndRedirect({ landOnNewGift: false });
       return;
     }
 
@@ -1292,10 +1368,11 @@ export default function LessonPage({ routeLessonId = "" }) {
   };
 
   const handleLeaveLesson = () => {
+    setIsLeavingLesson(true);
     clearPersistedLessonSession();
     clearLessonSelection();
     setShowExitDialog(false);
-    router.push("/");
+    router.replace("/");
   };
 
   const handleCheckAnswer = async () => {
@@ -1466,7 +1543,15 @@ export default function LessonPage({ routeLessonId = "" }) {
       }
 
       await fetchProfile(token, true, getUserKey(session));
-      setPalmTrees(5);
+      const stockResult = await fetchGamificationStock({
+        token,
+        userKey: getUserKey(session),
+        forceRefresh: true,
+      });
+      const refilledPalm = Number(stockResult?.palmStock);
+      setPalmTrees(
+        stockResult?.success && Number.isFinite(refilledPalm) ? refilledPalm : 5,
+      );
       setShowPalmRefillPrompt(false);
       setLessonRefreshKey((key) => key + 1);
       toast.success(
@@ -1477,6 +1562,10 @@ export default function LessonPage({ routeLessonId = "" }) {
       setIsRefillingFromError(false);
     }
   };
+
+  if (isLeavingLesson) {
+    return null;
+  }
 
   if (isLoading || isNavigatingToCompletion) {
     return <LessonLoadingView progress={65} />;
@@ -1490,6 +1579,25 @@ export default function LessonPage({ routeLessonId = "" }) {
 
     if (isNavigationError) {
       return null;
+    }
+
+    if (isLifeError) {
+      return (
+        <PalmTreesDepletedOverlay
+          onRefill={handleRefillFromErrorState}
+          isRefilling={isRefillingFromError}
+          onGoPro={() => router.push("/store")}
+          onGoStore={() => router.push("/store#date-packages")}
+          onExit={handleLeaveLesson}
+          palmTreesCount={displayedPalmTrees}
+          palmUpdatedAt={stockReady ? storePalmUpdatedAt : null}
+          dateStock={
+            stockReady
+              ? storeDateStock
+              : (profileData?.gamificationStock?.dateStock ?? 0)
+          }
+        />
+      );
     }
 
     return (
@@ -1614,8 +1722,9 @@ export default function LessonPage({ routeLessonId = "" }) {
         progressPercentage={progressPercentage}
         onExit={() => setShowExitDialog(true)}
         elapsedSeconds={elapsedSeconds}
-        palmTrees={palmTrees}
+        palmTrees={displayedPalmTrees}
         maxPalmTrees={5}
+        palmUpdatedAt={stockReady ? storePalmUpdatedAt : null}
       />
 
       {showExitDialog && (
@@ -1630,7 +1739,7 @@ export default function LessonPage({ routeLessonId = "" }) {
       <div
         className={`flex-1 flex justify-center p-3 sm:p-4 ${
           questionType === "pair_matching"
-            ? "items-start overflow-x-hidden"
+            ? "items-center overflow-x-hidden"
             : "items-center"
         }`}
       >
@@ -1702,6 +1811,10 @@ export default function LessonPage({ routeLessonId = "" }) {
                                   <ArabicTooltip
                                     text={word}
                                     pronunciation={pronunciation}
+                                    isOpen={activeLearnTooltip === index}
+                                    onOpenChange={(next) =>
+                                      setActiveLearnTooltip(next ? index : null)
+                                    }
                                   />
                                   {isLast ? "" : " "}
                                 </span>
@@ -1796,7 +1909,7 @@ export default function LessonPage({ routeLessonId = "" }) {
             {questionType === "true_false" && (
               <>
                 <div>
-                  <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground">
+                  <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground text-center">
                     True or False?
                   </p>
                 </div>
@@ -1914,76 +2027,80 @@ export default function LessonPage({ routeLessonId = "" }) {
                     {fillBlankQuestionParts.hasBlank ? (
                       <>
                         <span>{fillBlankQuestionParts.before}</span>
-                        <span className="inline-flex w-[140px] sm:w-[180px] h-[1.35em] align-middle justify-center items-center border-b-2 border-foreground/40 overflow-hidden leading-none flex-shrink-0">
-                          <AnimatePresence mode="wait">
-                            {fillBlankAnswer ? (
-                              <motion.span
-                                key={fillBlankAnswer}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -6 }}
-                                transition={{
-                                  duration: 0.18,
-                                  ease: "easeOut",
-                                }}
-                                className="inline-block text-foreground truncate leading-none"
-                              >
-                                {fillBlankAnswer}
-                              </motion.span>
-                            ) : (
-                              <motion.span
-                                key="blank"
-                                initial={{ opacity: 0, y: 6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -4 }}
-                                transition={{
-                                  duration: 0.16,
-                                  ease: "easeOut",
-                                }}
-                                className="inline-block text-muted-foreground leading-none"
-                              >
-                                {fillBlankQuestionParts.blank}
-                              </motion.span>
-                            )}
-                          </AnimatePresence>
+                        <span className="inline-flex w-[150px] sm:w-[180px] h-[1.8em] items-center justify-center border-b-2 border-foreground/40 pb-1 overflow-hidden leading-none flex-shrink-0">
+                          <div className="w-full flex items-center justify-center">
+                            <AnimatePresence mode="wait">
+                              {fillBlankAnswer ? (
+                                <motion.span
+                                  key={fillBlankAnswer}
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -6 }}
+                                  transition={{
+                                    duration: 0.18,
+                                    ease: "easeOut",
+                                  }}
+                                  className="block w-full text-center text-foreground whitespace-nowrap leading-normal"
+                                >
+                                  {fillBlankAnswer}
+                                </motion.span>
+                              ) : (
+                                <motion.span
+                                  key="blank"
+                                  initial={{ opacity: 0, y: 6 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -4 }}
+                                  transition={{
+                                    duration: 0.16,
+                                    ease: "easeOut",
+                                  }}
+                                  className="block w-full text-center text-muted-foreground whitespace-nowrap leading-normal"
+                                >
+                                  {fillBlankQuestionParts.blank}
+                                </motion.span>
+                              )}
+                            </AnimatePresence>
+                          </div>
                         </span>
                         <span>{fillBlankQuestionParts.after}</span>
                       </>
                     ) : (
                       <>
                         <span>{fillBlankQuestionParts.before}</span>
-                        <span className="inline-flex w-[140px] sm:w-[180px] h-[1.35em] align-middle justify-center items-center border-b-2 border-foreground/40 overflow-hidden leading-none flex-shrink-0">
-                          <AnimatePresence mode="wait">
-                            {fillBlankAnswer ? (
-                              <motion.span
-                                key={fillBlankAnswer}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -6 }}
-                                transition={{
-                                  duration: 0.18,
-                                  ease: "easeOut",
-                                }}
-                                className="inline-block text-foreground truncate leading-none"
-                              >
-                                {fillBlankAnswer}
-                              </motion.span>
-                            ) : (
-                              <motion.span
-                                key="blank-fallback"
-                                initial={{ opacity: 0, y: 6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -4 }}
-                                transition={{
-                                  duration: 0.16,
-                                  ease: "easeOut",
-                                }}
-                                className="inline-block text-muted-foreground leading-none"
-                              >
-                                {fillBlankQuestionParts.blank || ""}
-                              </motion.span>
-                            )}
-                          </AnimatePresence>
+                        <span className="inline-flex w-[150px] sm:w-[180px] h-[1.8em] items-center justify-center border-b-2 border-foreground/40 pb-1 overflow-hidden leading-none flex-shrink-0">
+                          <div className="w-full flex items-center justify-center">
+                            <AnimatePresence mode="wait">
+                              {fillBlankAnswer ? (
+                                <motion.span
+                                  key={fillBlankAnswer}
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -6 }}
+                                  transition={{
+                                    duration: 0.18,
+                                    ease: "easeOut",
+                                  }}
+                                  className="block w-full text-center text-foreground whitespace-nowrap leading-normal"
+                                >
+                                  {fillBlankAnswer}
+                                </motion.span>
+                              ) : (
+                                <motion.span
+                                  key="blank-fallback"
+                                  initial={{ opacity: 0, y: 6 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -4 }}
+                                  transition={{
+                                    duration: 0.16,
+                                    ease: "easeOut",
+                                  }}
+                                  className="block w-full text-center text-muted-foreground whitespace-nowrap leading-normal"
+                                >
+                                  {fillBlankQuestionParts.blank || ""}
+                                </motion.span>
+                              )}
+                            </AnimatePresence>
+                          </div>
                         </span>
                       </>
                     )}
@@ -2121,7 +2238,7 @@ export default function LessonPage({ routeLessonId = "" }) {
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+                <div className="grid grid-cols-2 gap-2 sm:gap-4">
                   <div className="w-full">
                     <div className="bg-card border border-border rounded-xl sm:rounded-2xl p-3 sm:p-4 flex flex-col overflow-hidden">
                       <div className="space-y-2.5 sm:space-y-4 pr-1">
@@ -2272,7 +2389,11 @@ export default function LessonPage({ routeLessonId = "" }) {
           onRefill={handleRefillFromErrorState}
           isRefilling={isRefillingFromError}
           onGoPro={() => router.push("/store")}
+          onGoStore={() => router.push("/store#date-packages")}
           onExit={handleLeaveLesson}
+          palmTreesCount={displayedPalmTrees}
+          palmUpdatedAt={stockReady ? storePalmUpdatedAt : null}
+          dateStock={stockReady ? storeDateStock : (profileData?.gamificationStock?.dateStock ?? 0)}
         />
       )}
     </div>

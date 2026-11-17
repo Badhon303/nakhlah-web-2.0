@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,18 +11,55 @@ import { Eye, EyeOff } from "lucide-react";
 import { signIn } from "next-auth/react";
 import LogoAnimation from "@/components/icons/Logo";
 import { ThemeToggle } from "@/components/nakhlah/ThemeToggle";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { queueToastAfterNavigation, toast } from "@/components/nakhlah/Toast";
 import { useProfileStore } from "@/stores/useProfileStore";
+import { clearJourneyScrollOverrides } from "@/lib/journeyScroll";
+import { AppStoreBadges } from "@/components/nakhlah/AppStoreBadges";
 
-export default function Login() {
+function socialLoginErrorMessage(error, message) {
+  if (message) return message;
+  if (error === "SocialLoginFailed") {
+    return "Google sign-in failed. Please try again or use email login.";
+  }
+  if (error === "SessionExpired") {
+    return "Your session expired. Please sign in again.";
+  }
+  return error ? "Unable to sign in. Please try again." : "";
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const clearProfile = useProfileStore((state) => state.clear);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    clearJourneyScrollOverrides();
+  }, []);
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    const message = searchParams.get("message");
+    const text = socialLoginErrorMessage(error, message);
+    if (!text) return;
+    toast.error(text);
+    // Drop query so refreshing does not re-toast.
+    router.replace("/auth/login", { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once per error query
+  }, [searchParams]);
+
+  const handleGoogleSignIn = () => {
+    if (isLoading || isGoogleLoading) return;
+    setIsGoogleLoading(true);
+    clearProfile();
+    signIn("google", { callbackUrl: "/auth/social-redirect" });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -63,7 +100,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-background flex items-start sm:items-center justify-center px-4 py-10">
-      <div className="fixed top-4 right-4 z-50 lg:hidden">
+      <div className="fixed top-4 right-4 z-50">
         <div className="bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-full p-2 shadow-lg">
           <ThemeToggle size="lg" />
         </div>
@@ -80,6 +117,7 @@ export default function Login() {
           <p className="text-xl text-muted-foreground text-center max-w-md">
             Learn languages whenever and wherever you want
           </p>
+          <AppStoreBadges />
         </motion.div>
 
         {/* Right Side - Form */}
@@ -191,15 +229,13 @@ export default function Login() {
               </div>
 
               {/* Sign In Button */}
-              <div className="hidden sm:block">
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
-                >
-                  {isLoading ? "SIGNING IN..." : "SIGN IN"}
-                </Button>
-              </div>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
+              >
+                {isLoading ? "SIGNING IN..." : "SIGN IN"}
+              </Button>
 
               {/* Divider */}
               <div className="relative">
@@ -217,11 +253,8 @@ export default function Login() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  clearProfile();
-                  signIn("google", { callbackUrl: "/auth/social-redirect" });
-                }}
-                disabled={isLoading}
+                onClick={handleGoogleSignIn}
+                disabled={isLoading || isGoogleLoading}
                 className="w-full h-12 border-border hover:bg-accent/10 font-semibold text-foreground rounded-xl"
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -255,20 +288,21 @@ export default function Login() {
                   Sign Up
                 </Link>
               </p>
+
+              {/* Mobile Store Links */}
+              <AppStoreBadges className="pt-2 flex lg:hidden mx-auto" />
             </form>
-          </div>
-          {/* Mobile bottom action */}
-          <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-background border-t border-border p-4">
-            <Button
-              onClick={handleSubmit}
-              disabled={isLoading}
-              className="w-full h-12 bg-accent hover:opacity-90 text-accent-foreground font-bold text-lg rounded-xl"
-            >
-              {isLoading ? "SIGNING IN..." : "SIGN IN"}
-            </Button>
           </div>
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <LoginForm />
+    </Suspense>
   );
 }

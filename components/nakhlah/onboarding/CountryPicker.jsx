@@ -28,6 +28,13 @@ export const COUNTRY_OPTIONS = getCountries()
   }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
+export const COUNTRY_NAME_OVERRIDES = {
+  TR: "Türkiye",
+};
+
+export const getCountryDisplayName = (countryCode) =>
+  COUNTRY_NAME_OVERRIDES[countryCode] || getCountryName(countryCode);
+
 export const getCountryName = (countryCode) => labels[countryCode] || "";
 
 export const getCountryCodeByName = (countryName) => {
@@ -57,6 +64,7 @@ export function CountryPicker({
   onChange,
   placeholder = "Select a country",
   showCallingCode = false,
+  showCallingCodeInList = true,
   disabled = false,
   hasError = false,
   variant = "bordered",
@@ -105,7 +113,7 @@ export function CountryPicker({
               {selectedCountry
                 ? showCallingCode
                   ? `+${selectedCountry.callingCode}`
-                  : selectedCountry.name
+                  : getCountryDisplayName(selectedCountry.code)
                 : placeholder}
             </span>
           </span>
@@ -121,14 +129,20 @@ export function CountryPicker({
         )}
       >
         <Command>
-          <CommandInput placeholder="Search country or calling code..." />
+          <CommandInput
+            placeholder={
+              showCallingCodeInList
+                ? "Search country or calling code..."
+                : "Search country..."
+            }
+          />
           <CommandList className="max-h-[min(320px,55vh)]">
             <CommandEmpty>No country found.</CommandEmpty>
             <CommandGroup>
               {COUNTRY_OPTIONS.map((country) => (
                 <CommandItem
                   key={country.code}
-                  value={`${country.name} ${country.code} +${country.callingCode}`}
+                  value={`${country.name} ${getCountryDisplayName(country.code)} ${country.code} +${country.callingCode}`}
                   onSelect={() => {
                     onChange(country.code);
                     setOpen(false);
@@ -137,11 +151,13 @@ export function CountryPicker({
                 >
                   <CountryFlag countryCode={country.code} />
                   <span className="min-w-0 flex-1 truncate font-medium">
-                    {country.name}
+                    {getCountryDisplayName(country.code)}
                   </span>
-                  <span className="text-xs text-muted-foreground transition-colors group-hover:text-accent-foreground group-data-[selected=true]:text-accent-foreground">
-                    +{country.callingCode}
-                  </span>
+                  {showCallingCodeInList ? (
+                    <span className="text-xs text-muted-foreground transition-colors group-hover:text-accent-foreground group-data-[selected=true]:text-accent-foreground">
+                      +{country.callingCode}
+                    </span>
+                  ) : null}
                   <Check
                     className={cn(
                       "h-4 w-4 text-accent",

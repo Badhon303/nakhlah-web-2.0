@@ -3,24 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
-import { captureDatePaymentOrder } from "@/services/api";
+import { captureDatePaymentOrder } from "@/services/api/payment";
 import { toast } from "@/components/nakhlah/Toast";
-import {
-  Home,
-  RefreshCw,
-  ShoppingBag,
-  PartyPopper,
-  XCircle,
-} from "lucide-react";
-import {
-  ConfettiBurst,
-  DriftingLeaves,
-  ResultIconBadge,
-} from "@/components/nakhlah/ResultVisuals";
+import PaymentCancelledView from "@/components/nakhlah/PaymentCancelledView";
+import PaymentResultView from "@/components/nakhlah/PaymentResultView";
 
 export default function PaymentReturnClient() {
   const router = useRouter();
@@ -34,13 +21,11 @@ export default function PaymentReturnClient() {
   const payerId = searchParams.get("PayerID") || "";
   const isDatePayment = type === "dates";
   const isCanceled = status === "payment-canceled";
-  const mascotMood = isCanceled ? "sad" : "celebrating";
-  const [captureAttempt, setCaptureAttempt] = useState(0);
   const [captureState, setCaptureState] = useState({
     status: isCanceled ? "canceled" : "loading",
     message: isCanceled
       ? "Your PayPal checkout was canceled, so no charge was completed."
-      : "Confirming your PayPal payment...",
+      : "We're checking the charge with PayPal. Nothing is unlocked until this finishes.",
   });
 
   useEffect(() => {
@@ -90,124 +75,45 @@ export default function PaymentReturnClient() {
     };
 
     capturePayment();
-  }, [
-    captureAttempt,
-    isCanceled,
-    isDatePayment,
-    orderId,
-    session,
-    sessionStatus,
-  ]);
+  }, [isCanceled, isDatePayment, orderId, session, sessionStatus]);
 
-  const retryCapture = () => {
-    hasCapturedRef.current = false;
-    setCaptureState({
-      status: "loading",
-      message: "Confirming your PayPal payment...",
-    });
-    setCaptureAttempt((attempt) => attempt + 1);
-  };
-
-  const isLoading = captureState.status === "loading";
-  const isSuccess = captureState.status === "success";
-  const title = isCanceled
-    ? "Payment canceled"
-    : isLoading
-      ? "Confirming payment"
-      : isSuccess
-        ? "Payment successful!"
-        : "Payment needs attention";
+  if (isCanceled) {
+    return (
+      <PaymentCancelledView
+        eyebrow={
+          isDatePayment ? "Date package checkout" : "Subscription checkout"
+        }
+        title={
+          isDatePayment
+            ? "Your Date purchase was canceled."
+            : "Your subscription checkout was canceled."
+        }
+        description={
+          isDatePayment
+            ? "Your Date balance was not changed. Choose another package or return when you need an extra boost."
+            : "Your membership was not changed. You can review the available plans and try again anytime."
+        }
+        primaryLabel={
+          isDatePayment ? "Choose another package" : "Choose another plan"
+        }
+        onPrimary={() =>
+          router.push(
+            isDatePayment
+              ? "/store?refetch=dates"
+              : "/store?refetch=subscription",
+          )
+        }
+        onHome={() => router.push("/")}
+      />
+    );
+  }
 
   return (
-    <div className="relative min-h-screen bg-background flex items-center justify-center p-4 overflow-hidden">
-      {isSuccess ? <ConfettiBurst /> : !isLoading ? <DriftingLeaves /> : null}
-      <div className="relative w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="hidden lg:flex flex-col items-center justify-center gap-6"
-        >
-          <FreshDateMascot mood={mascotMood} size="xxxl" />
-          <h2 className="text-2xl font-bold text-foreground text-center max-w-md">
-            {isSuccess
-              ? "Your dates are on the way!"
-              : isCanceled
-                ? "Maybe next time!"
-                : "Confirming your payment..."}
-          </h2>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className="relative bg-card border border-border rounded-3xl p-8 md:p-12 text-center shadow-sm overflow-hidden"
-        >
-          <div className="lg:hidden flex justify-center mb-6">
-            <FreshDateMascot mood={mascotMood} size="xxl" />
-          </div>
-
-          <div className="space-y-4">
-            {!isLoading && (
-              <ResultIconBadge
-                icon={
-                  isSuccess ? PartyPopper : isCanceled ? XCircle : RefreshCw
-                }
-                variant={isSuccess ? "success" : "failed"}
-              />
-            )}
-
-            <h1 className="text-3xl md:text-5xl font-bold text-foreground">
-              {title}
-            </h1>
-
-            <p className="text-muted-foreground text-base md:text-lg leading-relaxed max-w-xl mx-auto">
-              {captureState.message}
-            </p>
-          </div>
-
-          <div className="pt-8 flex flex-col sm:flex-row gap-3 justify-center">
-            {captureState.status === "error" && isDatePayment && (
-              <Button
-                onClick={retryCapture}
-                className="bg-accent hover:bg-accent/90 text-accent-foreground"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Try Confirming Again
-              </Button>
-            )}
-
-            <Button
-              variant={isSuccess ? "default" : "outline"}
-              className={
-                isSuccess
-                  ? "bg-accent hover:bg-accent/90 text-accent-foreground"
-                  : ""
-              }
-              onClick={() => router.push("/")}
-            >
-              <Home className="w-4 h-4 mr-2" />
-              Go to Home
-            </Button>
-
-            <Button
-              variant={isCanceled ? "default" : "outline"}
-              className={
-                isCanceled
-                  ? "bg-accent hover:bg-accent/90 text-accent-foreground"
-                  : ""
-              }
-              onClick={() =>
-                router.push(isCanceled ? "/store?refetch=dates" : "/store")
-              }
-            >
-              <ShoppingBag className="w-4 h-4 mr-2" />
-              {isCanceled ? "Choose Another Package" : "Buy More Dates"}
-            </Button>
-          </div>
-        </motion.div>
-      </div>
-    </div>
+    <PaymentResultView
+      status={captureState.status}
+      kind={isDatePayment ? "dates" : "subscription"}
+      gateway="PayPal"
+      message={captureState.message}
+    />
   );
 }

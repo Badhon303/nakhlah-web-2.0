@@ -6,6 +6,7 @@ import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
 import { useHelpCenterStore } from "@/stores/useHelpCenterStore";
 import { useSession } from "next-auth/react";
 import { getSessionToken } from "@/lib/authUtils";
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
 export default function PolicyDocumentPage({
   onBack,
@@ -13,23 +14,24 @@ export default function PolicyDocumentPage({
   title,
   standalone = false,
 }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const token = getSessionToken(session);
   const helpCenterData = useHelpCenterStore((state) => state.data);
   const isLoading = useHelpCenterStore((state) => state.isLoading);
   const error = useHelpCenterStore((state) => state.error);
   const fetchHelpCenter = useHelpCenterStore((state) => state.fetchHelpCenter);
   const content = helpCenterData?.[policyKey] ?? null;
+  const showLoading = isLoading || (!helpCenterData && !error);
 
   useEffect(() => {
-    fetchHelpCenter(getSessionToken(session));
-  }, [session, fetchHelpCenter]);
+    if (status === "loading") return;
+    fetchHelpCenter(token);
+  }, [status, token, fetchHelpCenter]);
 
   return (
     <div
       className={
-        standalone
-          ? "min-h-[calc(100vh-6rem)] flex items-center justify-center px-4 py-8"
-          : "max-w-4xl mx-auto"
+        standalone ? "max-w-4xl mx-auto px-4 py-6" : "max-w-4xl mx-auto py-6"
       }
     >
       <div
@@ -49,16 +51,8 @@ export default function PolicyDocumentPage({
           <h1 className="text-2xl font-bold text-foreground">{title}</h1>
         </div>
 
-        {isLoading ? (
-          <div className="space-y-3">
-            {[...Array(6)].map((_, index) => (
-              <div
-                key={index}
-                className="h-4 bg-muted/50 rounded animate-pulse"
-                style={{ width: `${85 - (index % 5) * 5}%` }}
-              />
-            ))}
-          </div>
+        {showLoading ? (
+          <DocumentLoadingSkeleton />
         ) : error ? (
           <div className="py-8 text-center text-muted-foreground text-sm">
             Failed to load content. Please try again later.

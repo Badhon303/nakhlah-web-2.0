@@ -1,11 +1,12 @@
 "use client";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, BookOpen, Lightbulb } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
 import { useHelpCenterStore } from "@/stores/useHelpCenterStore";
 import { useSession } from "next-auth/react";
 import { getSessionToken } from "@/lib/authUtils";
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
 export default function LearningTipsGuidesPage({ onBack }) {
   const { data: session } = useSession();
@@ -21,7 +22,7 @@ export default function LearningTipsGuidesPage({ onBack }) {
   }, [session, fetchHelpCenter]);
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-2xl mx-auto py-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -36,26 +37,13 @@ export default function LearningTipsGuidesPage({ onBack }) {
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-500 flex items-center justify-center">
-              <BookOpen className="w-5 h-5" />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground">
-              Learning Tips &amp; Guides
-            </h1>
-          </div>
+          <h1 className="text-2xl font-bold text-foreground">
+            Learning Tips &amp; Guides
+          </h1>
         </div>
 
         {isLoading ? (
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="space-y-2">
-                <div className="h-4 bg-muted/50 rounded animate-pulse w-3/4" />
-                <div className="h-4 bg-muted/50 rounded animate-pulse w-full" />
-                <div className="h-4 bg-muted/50 rounded animate-pulse w-5/6" />
-              </div>
-            ))}
-          </div>
+          <DocumentLoadingSkeleton />
         ) : error ? (
           <div className="py-8 text-center text-muted-foreground text-sm">
             <p>Failed to load content. Please try again later.</p>
@@ -70,8 +58,7 @@ export default function LearningTipsGuidesPage({ onBack }) {
             {/* Learning Guide (rich text) */}
             {guide && (
               <section>
-                <div className="flex items-center gap-2 mb-4">
-                  <BookOpen className="w-5 h-5 text-accent" />
+                <div className="mb-4">
                   <h2 className="text-lg font-semibold text-foreground">
                     Guide
                   </h2>
@@ -83,8 +70,7 @@ export default function LearningTipsGuidesPage({ onBack }) {
             {/* Learning Tips */}
             {tips.length > 0 && (
               <section>
-                <div className="flex items-center gap-2 mb-4">
-                  <Lightbulb className="w-5 h-5 text-amber-500" />
+                <div className="mb-4">
                   <h2 className="text-lg font-semibold text-foreground">
                     Tips
                   </h2>

@@ -5,20 +5,9 @@ import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { getUserKey } from "@/lib/userKey";
 import { useDailyQuestStore } from "@/stores/useDailyQuestStore";
 
-const questSections = [
-  {
-    type: "daily",
-    title: "Daily Quests",
-    icon: "📅",
-    description: "Reset every day",
-  },
-];
-
 export default function DailyMissions() {
   const { data: session, status } = useSession();
-  const dailyMissions = useDailyQuestStore(
-    (store) => store.challengeDailyMissions,
-  );
+  const missions = useDailyQuestStore((store) => store.challengeDailyMissions);
   const isLoading = useDailyQuestStore((store) => store.isLoading);
   const loadError = useDailyQuestStore((store) => store.error);
   const fetchDailyQuests = useDailyQuestStore(
@@ -43,19 +32,23 @@ export default function DailyMissions() {
     fetchDailyQuests({ token, userKey: getUserKey(session) });
   }, [clearDailyQuests, fetchDailyQuests, session, status]);
 
-  const sections = useMemo(() => {
-    return questSections.map((section) => ({
-      ...section,
-      missions: dailyMissions.filter((m) => m.type === section.type),
-    }));
-  }, [dailyMissions]);
-
-  const activeSections = sections.filter((s) => s.missions.length > 0);
+  const { todaysMissions, otherMissions } = useMemo(
+    () => ({
+      todaysMissions: missions.filter((mission) => mission.active !== false),
+      otherMissions: missions.filter((mission) => mission.active === false),
+    }),
+    [missions],
+  );
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-border bg-card p-6 text-center text-muted-foreground">
-        Loading daily quests...
+      <div className="space-y-3">
+        {[...Array(3)].map((_, index) => (
+          <div
+            key={`mission-skeleton-${index}`}
+            className="h-20 rounded-2xl border border-border bg-card animate-pulse"
+          />
+        ))}
       </div>
     );
   }
@@ -68,16 +61,30 @@ export default function DailyMissions() {
     );
   }
 
+  if (!missions.length) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-6 text-center text-muted-foreground">
+        No daily quests configured yet.
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-12">
-      {!activeSections.length && (
-        <div className="rounded-2xl border border-border bg-card p-6 text-center text-muted-foreground">
-          No daily quests configured yet.
-        </div>
-      )}
-      {activeSections.map((section) => (
-        <MissionSection key={section.type} section={section} />
-      ))}
+    <div className="space-y-8">
+      {todaysMissions.length ? (
+        <MissionSection
+          title="Daily Missions"
+          emoji="🎯"
+          missions={todaysMissions}
+        />
+      ) : null}
+      {otherMissions.length ? (
+        <MissionSection
+          title="Other Challenges"
+          description="Not part of today's rotation — they may show up on another day."
+          missions={otherMissions}
+        />
+      ) : null}
     </div>
   );
 }

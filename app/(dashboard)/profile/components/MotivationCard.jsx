@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { GlowingStar } from "@/components/icons/GlowingStar";
+import CarpetBackground from "@/components/nakhlah/CarpetBackground";
 import { useRouter } from "next/navigation";
 
 export default function MotivationCard() {
@@ -10,20 +11,21 @@ export default function MotivationCard() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4, duration: 0.5 }}
-      className="rounded-2xl bg-gradient-accent text-accent-foreground overflow-hidden shadow-lg"
+      className="relative isolate overflow-hidden rounded-2xl store-accent-background text-accent-foreground shadow-lg"
     >
-      <div className="p-6">
-        <div className="text-center mb-4">
-          <GlowingStar size="lg" className="text-center mx-auto pb-2" />
-          <h3 className="text-xl font-bold mb-2">Keep Going!</h3>
-          <p className="text-accent-foreground/80 text-sm">
+      <CarpetBackground />
+      <div className="relative z-10 px-14 py-6">
+        <div className="mb-5 text-center">
+          <GlowingStar size="lg" className="mx-auto pb-2 text-center" />
+          <h3 className="mb-2 text-xl font-extrabold">Keep going!</h3>
+          <p className="text-sm leading-6 text-accent-foreground/80">
             You&apos;re doing amazing! Keep up the great work and reach new
             heights.
           </p>
         </div>
         <Button
           onClick={() => router.push("/")}
-          className="w-full bg-card text-accent hover:bg-card/90"
+          className="w-full rounded-xl bg-card font-bold text-accent hover:bg-card/90"
         >
           Continue Learning
         </Button>

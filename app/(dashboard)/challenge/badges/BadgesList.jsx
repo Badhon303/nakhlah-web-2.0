@@ -158,7 +158,11 @@ export default function BadgesList() {
       {/* Sections */}
       <div className="space-y-10">
         {filteredSections.map((section) => (
-          <BadgeSection key={section.id} section={section} />
+          <BadgeSection
+            key={section.id}
+            section={section}
+            currentInjaz={injazStock}
+          />
         ))}
         {!filteredSections.length && (
           <div className="rounded-2xl border border-border bg-card p-6 text-center text-muted-foreground">

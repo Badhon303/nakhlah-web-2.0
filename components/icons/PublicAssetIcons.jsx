@@ -30,6 +30,24 @@ export function DatesIcon(props) {
   return <AssetIcon src="/icons/dates.svg" alt="Dates" {...props} />;
 }
 
+export function DateRefillIcon(props) {
+  return (
+    <AssetIcon src="/icons/date-refill-new.svg" alt="Date refill" {...props} />
+  );
+}
+
+export function DateBoostIcon(props) {
+  return (
+    <AssetIcon src="/icons/date-boost-new.svg" alt="Date boost" {...props} />
+  );
+}
+
+export function DateSurgeIcon(props) {
+  return (
+    <AssetIcon src="/icons/date-surge-new.svg" alt="Date surge" {...props} />
+  );
+}
+
 export function PalmIcon(props) {
   return <AssetIcon src="/icons/Palm_Tree.svg" alt="Palm" {...props} />;
 }

@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { Calendar } from "@/components/icons/Calendar";
 import { NotoStopwatch } from "@/components/icons/NotoStopwatch";
@@ -12,16 +11,6 @@ import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { useDatePackagesStore } from "@/stores/useDatePackagesStore";
 import { useSubscriptionPlansStore } from "@/stores/useSubscriptionPlansStore";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -37,25 +26,57 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { toast } from "@/components/nakhlah/Toast";
+import Confetti from "@/components/nakhlah/Confetti";
+import PaymentGatewayDialog, {
+  GatewayPicker,
+} from "@/components/nakhlah/PaymentGatewayDialog";
+import StoreVisual from "./StoreVisual";
 import {
   createDatePaymentOrder,
   createSubscriptionPayment,
   cancelSubscription,
   switchSubscription,
   fetchCurrentSubscription,
-} from "@/services/api";
+  createTapDateCharge,
+  createTapSubscriptionCharge,
+  readTapPaymentAgreementId,
+  // confirmTapStcDateCharge,
+} from "@/services/api/payment";
+import { useProfileStore } from "@/stores/useProfileStore";
+import { getUserKey } from "@/lib/userKey";
+import { getBillingCustomer } from "@/lib/billingCustomer";
+
+const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
+
+const isActiveSubscription = (subscription) =>
+  Boolean(
+    subscription &&
+    ACTIVE_SUBSCRIPTION_STATUSES.has(
+      String(subscription.status || "").toLowerCase(),
+    ),
+  );
 
 export default function StorePage() {
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
+  const profile = useProfileStore((state) => state.profile);
+  const fetchMyProfile = useProfileStore((state) => state.fetchMyProfile);
+  const billingCustomer = getBillingCustomer(profile, session);
   const searchParams = useSearchParams();
   const [checkoutId, setCheckoutId] = useState(null);
+  const [pendingCheckout, setPendingCheckout] = useState(null);
+  const [showGatewayDialog, setShowGatewayDialog] = useState(false);
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [isLoadingCurrent, setIsLoadingCurrent] = useState(true);
   const [pendingSwitchPlan, setPendingSwitchPlan] = useState(null);
+  const [switchStep, setSwitchStep] = useState("confirm");
   const [isCanceling, setIsCanceling] = useState(false);
-  const [showConfirmCancel, setShowConfirmCancel] = useState(false);
+  const [cancelStep, setCancelStep] = useState(null);
   const [showSubscriptionDetails, setShowSubscriptionDetails] = useState(false);
-  const shouldRefetchDates = searchParams.get("refetch") === "dates";
+  const [showConfetti, setShowConfetti] = useState(false);
+  const refetchTarget = searchParams.get("refetch");
+  const shouldRefetchDates = refetchTarget === "dates";
+  const shouldRefetchSubscription = refetchTarget === "subscription";
+  const isSuccessfulReturn = searchParams.get("payment") === "success";
 
   const loadCurrentSubscription = async () => {
     if (!isSessionValid(session)) return;
@@ -73,56 +94,20 @@ export default function StorePage() {
     return true;
   };
 
-  const redirectToPayPal = (approvalUrl) => {
-    window.location.assign(approvalUrl);
+  const redirectToCheckout = (url) => {
+    window.location.assign(url);
   };
 
-  const datePackages = useDatePackagesStore((state) => state.packages);
-  const subscriptionPlans = useSubscriptionPlansStore((state) => state.plans);
-  const fetchDatePackages = useDatePackagesStore(
-    (state) => state.fetchDatePackages,
-  );
-  const fetchSubscriptionPlans = useSubscriptionPlansStore(
-    (state) => state.fetchSubscriptionPlans,
-  );
-  const isLoadingDates = useDatePackagesStore((state) => state.isLoading);
-  const isLoadingPlans = useSubscriptionPlansStore((state) => state.isLoading);
-  const datesError = useDatePackagesStore((state) => state.error);
-
-  useEffect(() => {
-    fetchDatePackages({ forceRefresh: shouldRefetchDates });
-    fetchSubscriptionPlans({ forceRefresh: shouldRefetchDates });
-
-    if (isSessionValid(session)) {
-      loadCurrentSubscription().then(() => setIsLoadingCurrent(false));
-    } else {
-      setIsLoadingCurrent(false);
-    }
-  }, [fetchDatePackages, fetchSubscriptionPlans, shouldRefetchDates, session]);
-
-  const handleDateCheckout = async (pkg) => {
+  const handleDateCheckout = (pkg) => {
     if (!requireAuth()) return;
-
-    setCheckoutId(`dates:${pkg.id}`);
-    const result = await createDatePaymentOrder(
-      pkg.id,
-      getSessionToken(session),
-    );
-
-    if (!result.success) {
-      setCheckoutId(null);
-      toast.error(result.error || "Unable to start PayPal checkout.");
-      return;
-    }
-
-    redirectToPayPal(result.approvalUrl);
+    setPendingCheckout({ type: "dates", item: pkg });
+    setShowGatewayDialog(true);
   };
 
-  const handleSubscriptionCheckout = async (plan) => {
+  const handleSubscriptionCheckout = (plan) => {
     if (!requireAuth()) return;
 
-    const canSwitch =
-      currentSubscription && currentSubscription.status !== "cancelled";
+    const canSwitch = isActiveSubscription(currentSubscription);
 
     if (canSwitch && currentSubscription.plan?.id === plan.id) {
       if (currentSubscription.cancelAtPeriodEnd) {
@@ -139,73 +124,254 @@ export default function StorePage() {
 
     if (canSwitch && currentSubscription.plan?.id !== plan.id) {
       setPendingSwitchPlan(plan);
+      setSwitchStep("confirm");
       return;
     }
 
-    await startSubscriptionCheckout(plan);
+    setPendingCheckout({ type: "subscription", item: plan });
+    setShowGatewayDialog(true);
   };
 
-  const startSubscriptionCheckout = async (plan) => {
-    setCheckoutId(`premium:${plan.id}`);
-    const result = await createSubscriptionPayment(
-      plan,
-      getSessionToken(session),
-    );
+  const executeDateCheckout = async (pkg, gateway, options = {}) => {
+    setCheckoutId(`dates:${pkg.id}`);
+
+    // STC Pay OTP (dates)
+    // if (gateway === "tap" && options.otp && options.chargeId) {
+    //   const result = await confirmTapStcDateCharge(
+    //     options.chargeId,
+    //     options.otp,
+    //     getSessionToken(session),
+    //   );
+    //
+    //   if (!result.success) {
+    //     setCheckoutId(null);
+    //     toast.error(result.error || "Unable to confirm STC Pay.");
+    //     return result;
+    //   }
+    //
+    //   setCheckoutId(null);
+    //   setShowGatewayDialog(false);
+    //   toast.success(result.message || "STC Pay confirmed successfully.");
+    //   window.location.assign("/store?refetch=dates&payment=success");
+    //   return result;
+    // }
+
+    const result =
+      gateway === "tap"
+        ? await createTapDateCharge(pkg.id, getSessionToken(session), {
+            paymentMethod: "card",
+            // paymentMethod: options.paymentMethod || "card",
+            // phoneNumber: options.phone,
+          })
+        : await createDatePaymentOrder(pkg.id, getSessionToken(session));
 
     if (!result.success) {
       setCheckoutId(null);
-      toast.error(result.error || "Unable to start PayPal subscription.");
-      return;
+      toast.error(
+        result.error ||
+          (gateway === "tap"
+            ? "Unable to start Tap checkout."
+            : "Unable to start PayPal checkout."),
+      );
+      return result;
     }
 
-    redirectToPayPal(result.approvalUrl);
+    // if (result.needsOtp) {
+    //   setCheckoutId(null);
+    //   return result;
+    // }
+
+    const checkoutUrl = result.approvalUrl;
+    if (checkoutUrl) redirectToCheckout(checkoutUrl);
+    setCheckoutId(null);
+    return result;
   };
 
-  const handleConfirmSwitch = async () => {
+  const executeSubscriptionCheckout = async (plan, gateway, options = {}) => {
+    setCheckoutId(`premium:${plan.id}`);
+    const result =
+      gateway === "tap"
+        ? await createTapSubscriptionCharge(plan, getSessionToken(session), {
+            source: "src_card",
+            customer: {
+              firstName: options.firstName || billingCustomer.firstName,
+              lastName: options.lastName || billingCustomer.lastName,
+              phoneCountryCode:
+                options.phoneCountryCode || billingCustomer.phoneCountryCode,
+              phoneNumber: options.phone || billingCustomer.phoneNumber,
+            },
+          })
+        : await createSubscriptionPayment(plan, getSessionToken(session));
+
+    if (!result.success) {
+      setCheckoutId(null);
+      toast.error(
+        result.error ||
+          (gateway === "tap"
+            ? "Unable to start Tap subscription."
+            : "Unable to start PayPal subscription."),
+      );
+      return result;
+    }
+
+    const checkoutUrl = result.approvalUrl;
+    if (checkoutUrl) redirectToCheckout(checkoutUrl);
+    setCheckoutId(null);
+    return result;
+  };
+
+  const handleGatewaySelect = async (gateway, options = {}) => {
+    if (!pendingCheckout) {
+      return { success: false, error: "No checkout item selected" };
+    }
+
+    return pendingCheckout.type === "dates"
+      ? executeDateCheckout(pendingCheckout.item, gateway, options)
+      : executeSubscriptionCheckout(pendingCheckout.item, gateway, options);
+  };
+
+  const closeGatewayDialog = () => {
+    setShowGatewayDialog(false);
+    setPendingCheckout(null);
+  };
+
+  const datePackages = useDatePackagesStore((state) => state.packages);
+  const subscriptionPlans = useSubscriptionPlansStore((state) => state.plans);
+  const fetchDatePackages = useDatePackagesStore(
+    (state) => state.fetchDatePackages,
+  );
+  const fetchSubscriptionPlans = useSubscriptionPlansStore(
+    (state) => state.fetchSubscriptionPlans,
+  );
+  const isLoadingDates = useDatePackagesStore((state) => state.isLoading);
+  const isLoadingPlans = useSubscriptionPlansStore((state) => state.isLoading);
+  const datesError = useDatePackagesStore((state) => state.error);
+
+  useEffect(() => {
+    fetchDatePackages({ forceRefresh: shouldRefetchDates });
+    fetchSubscriptionPlans({
+      forceRefresh: shouldRefetchDates || shouldRefetchSubscription,
+    });
+
+    if (isSessionValid(session)) {
+      setIsLoadingCurrent(true);
+      loadCurrentSubscription().then(() => setIsLoadingCurrent(false));
+      fetchMyProfile(getSessionToken(session), false, getUserKey(session));
+    } else {
+      setIsLoadingCurrent(false);
+    }
+  }, [
+    fetchDatePackages,
+    fetchSubscriptionPlans,
+    fetchMyProfile,
+    shouldRefetchDates,
+    shouldRefetchSubscription,
+    session,
+  ]);
+
+  useEffect(() => {
+    const scrollToDatePackages = () => {
+      if (window.location.hash !== "#date-packages") return;
+
+      // The store is a client-rendered page. Wait until its DOM has committed
+      // before resolving the hash, which may arrive during an App Router
+      // transition before StoreVisual has mounted.
+      window.requestAnimationFrame(() => {
+        document
+          .getElementById("date-packages")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    };
+
+    scrollToDatePackages();
+    window.addEventListener("hashchange", scrollToDatePackages);
+    return () => window.removeEventListener("hashchange", scrollToDatePackages);
+  }, []);
+
+  useEffect(() => {
+    if (!isSuccessfulReturn) return undefined;
+    setShowConfetti(true);
+    const timeoutId = setTimeout(() => setShowConfetti(false), 2000);
+    return () => clearTimeout(timeoutId);
+  }, [isSuccessfulReturn]);
+
+  useEffect(() => {
+    if (cancelStep !== "skeleton" || isCanceling) return undefined;
+    const timeoutId = window.setTimeout(() => setCancelStep("confirm"), 280);
+    return () => window.clearTimeout(timeoutId);
+  }, [cancelStep, isCanceling]);
+
+  const handleConfirmSwitch = () => {
     if (!pendingSwitchPlan) return;
+    setSwitchStep("pay");
+  };
+
+  const handleSwitchPayment = async (gateway, options = {}) => {
+    if (!pendingSwitchPlan) {
+      return { success: false, error: "No plan selected" };
+    }
 
     const token = getSessionToken(session);
     setIsCanceling(true);
     setCheckoutId(`premium:${pendingSwitchPlan.id}`);
 
-    const switchResult = await switchSubscription(pendingSwitchPlan.id, token);
+    const switchResult = await switchSubscription(pendingSwitchPlan.id, token, {
+      paymentMethod: gateway,
+      ...(gateway === "tap"
+        ? {
+            paymentAgreementId: readTapPaymentAgreementId(currentSubscription),
+            customer: {
+              firstName: options.firstName || billingCustomer.firstName,
+              lastName: options.lastName || billingCustomer.lastName,
+              phoneCountryCode:
+                options.phoneCountryCode || billingCustomer.phoneCountryCode,
+              phoneNumber: options.phone || billingCustomer.phoneNumber,
+            },
+          }
+        : {}),
+    });
 
     if (!switchResult.success) {
       setIsCanceling(false);
       setCheckoutId(null);
       toast.error(switchResult.error || "Failed to switch plan.");
-      return;
+      return switchResult;
     }
 
     const approvalUrl = switchResult.data?.approvalUrl;
     if (approvalUrl) {
       window.location.assign(approvalUrl);
-      return;
+      return switchResult;
     }
 
     toast.success(switchResult.message || "Plan switched successfully.");
     await loadCurrentSubscription();
     setIsCanceling(false);
+    setCheckoutId(null);
     setPendingSwitchPlan(null);
+    setSwitchStep("confirm");
+    return switchResult;
   };
 
   const isSubscriptionActive =
-    currentSubscription &&
-    currentSubscription.status !== "cancelled" &&
+    isActiveSubscription(currentSubscription) &&
     !currentSubscription.cancelAtPeriodEnd;
 
   const isSubscriptionCancelling =
-    currentSubscription &&
-    currentSubscription.status !== "cancelled" &&
+    isActiveSubscription(currentSubscription) &&
     currentSubscription.cancelAtPeriodEnd;
 
   const promptCancelSubscription = () => {
     if (!requireAuth()) return;
+    if (!isActiveSubscription(currentSubscription)) {
+      toast.info("This subscription is no longer active.");
+      return;
+    }
     if (!currentSubscription?.id) {
       toast.error("No active subscription found.");
       return;
     }
-    setShowConfirmCancel(true);
+    setCancelStep("skeleton");
   };
 
   const confirmCancelSubscription = async () => {
@@ -216,7 +382,7 @@ export default function StorePage() {
       return;
     }
 
-    setShowConfirmCancel(false);
+    setCancelStep("skeleton");
     setIsCanceling(true);
     const result = await cancelSubscription(
       subscriptionId,
@@ -225,6 +391,7 @@ export default function StorePage() {
 
     if (!result.success) {
       setIsCanceling(false);
+      setCancelStep("confirm");
       toast.error(result.error || "Unable to cancel subscription.");
       return;
     }
@@ -232,9 +399,11 @@ export default function StorePage() {
     toast.success(result.message || "Subscription canceled successfully.");
     await loadCurrentSubscription();
     setIsCanceling(false);
+    setCancelStep(null);
+    setShowSubscriptionDetails(false);
   };
 
-  const handleResubscribe = async (plan) => {
+  const handleResubscribe = (plan) => {
     if (!requireAuth()) return;
 
     const newPlanId = plan?.id || currentSubscription?.plan?.id;
@@ -244,26 +413,72 @@ export default function StorePage() {
     }
 
     // Fully cancelled subscriptions need a fresh checkout, not a switch.
-    setCheckoutId(`premium:${newPlanId}`);
-    const result = await createSubscriptionPayment(
-      plan || currentSubscription?.plan,
-      getSessionToken(session),
-    );
-
-    if (!result.success) {
-      setCheckoutId(null);
-      toast.error(result.error || "Unable to resubscribe.");
-      return;
-    }
-
-    window.location.assign(result.approvalUrl);
+    setPendingCheckout({
+      type: "subscription",
+      item: plan || currentSubscription?.plan,
+    });
+    setShowGatewayDialog(true);
   };
+
+  const subscriptionIsActive = isSubscriptionActive;
+  const subscriptionIsEnding = isSubscriptionCancelling;
+  const hasEndedSubscription =
+    Boolean(currentSubscription) && !isActiveSubscription(currentSubscription);
+  const isSubscriptionLoading = sessionStatus === "loading" || isLoadingCurrent;
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-10 max-w-5xl space-y-14">
+      <Confetti active={showConfetti} />
+      <StoreVisual
+        datePackages={datePackages}
+        subscriptionPlans={subscriptionPlans}
+        isLoadingDates={isLoadingDates}
+        isLoadingPlans={isLoadingPlans}
+        datesError={datesError}
+        isLoadingCurrent={isSubscriptionLoading}
+        currentSubscription={currentSubscription}
+        checkoutId={checkoutId}
+        subscriptionIsActive={subscriptionIsActive}
+        subscriptionIsEnding={subscriptionIsEnding}
+        hasEndedSubscription={hasEndedSubscription}
+        onDateCheckout={handleDateCheckout}
+        onSubscriptionCheckout={handleSubscriptionCheckout}
+        onShowSubscriptionDetails={() => setShowSubscriptionDetails(true)}
+        onRetryDates={() => fetchDatePackages({ forceRefresh: true })}
+      />
+      <PaymentGatewayDialog
+        open={showGatewayDialog}
+        onClose={closeGatewayDialog}
+        onSelect={handleGatewaySelect}
+        tapCustomerRequired={pendingCheckout?.type === "subscription"}
+        // tapPaymentMethods={pendingCheckout?.type === "dates"}
+        initialFirstName={billingCustomer.firstName}
+        initialLastName={billingCustomer.lastName}
+        initialPhone={billingCustomer.phoneNumber}
+        initialPhoneCountryCode={billingCustomer.phoneCountryCode}
+        title={
+          pendingCheckout?.type === "dates" ? "Buy Dates" : "Start Subscription"
+        }
+        description="Choose how you'd like to pay to continue to secure checkout."
+        summary={
+          pendingCheckout ? (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {pendingCheckout.type === "dates"
+                  ? `${pendingCheckout.item.amount} Dates`
+                  : pendingCheckout.item.duration}
+              </p>
+              <p className="mt-1 text-3xl font-extrabold text-foreground">
+                {pendingCheckout.item.price}
+              </p>
+            </div>
+          ) : null
+        }
+        disabled={checkoutId !== null}
+      />
+      <div>
         {/* ── Date Packages ── */}
-        <section>
+        <section className="hidden">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 items-end">
             {isLoadingDates ? (
               [...Array(3)].map((_, i) => (
@@ -281,7 +496,7 @@ export default function StorePage() {
                 </p>
                 <button
                   onClick={() => fetchDatePackages({ forceRefresh: true })}
-                  className="bg-accent hover:bg-accent/90 text-accent-foreground text-xs font-extrabold tracking-widest py-2.5 px-4 rounded-lg uppercase transition-colors"
+                  className="bg-store-page-accent hover:bg-store-page-accent/90 text-store-page-accent-foreground text-xs font-extrabold tracking-widest py-2.5 px-4 rounded-lg uppercase transition-colors"
                 >
                   RETRY
                 </button>
@@ -295,7 +510,7 @@ export default function StorePage() {
                   transition={{ delay: i * 0.08 }}
                   className={`relative rounded-2xl border-2 p-6 pb-8 flex flex-col items-center gap-5 bg-background text-center ${
                     pkg.popular
-                      ? "border-accent shadow-xl pt-10"
+                      ? "border-store-page-accent shadow-xl pt-10"
                       : "border-border shadow-sm"
                   }`}
                 >
@@ -324,7 +539,7 @@ export default function StorePage() {
                   <hr className="w-full border-border" />
 
                   {/* Amount pill */}
-                  <span className="bg-accent text-accent-foreground text-sm font-bold px-5 rounded-full inline-flex items-center justify-center h-7 pt-[3px]">
+                  <span className="bg-store-page-accent text-store-page-accent-foreground text-sm font-bold px-5 rounded-full inline-flex items-center justify-center h-7 pt-[3px]">
                     {pkg.amount}
                   </span>
 
@@ -337,7 +552,7 @@ export default function StorePage() {
                   <button
                     onClick={() => handleDateCheckout(pkg)}
                     disabled={checkoutId !== null}
-                    className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-xs font-extrabold tracking-widest py-2.5 px-4 rounded-lg uppercase transition-colors flex items-center justify-center"
+                    className="w-full bg-store-page-accent hover:bg-store-page-accent/90 text-store-page-accent-foreground text-xs font-extrabold tracking-widest py-2.5 px-4 rounded-lg uppercase transition-colors flex items-center justify-center"
                   >
                     {checkoutId === `dates:${pkg.id}` ? (
                       <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -352,17 +567,17 @@ export default function StorePage() {
         </section>
 
         {/* ── Get Unlimited Lives ── */}
-        <section className="pt-6">
+        <section className="hidden">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="relative rounded-3xl border-2 border-accent bg-background overflow-visible"
+            className="relative rounded-3xl border-2 border-store-page-accent bg-background overflow-visible"
           >
             {/* Section header banner */}
             <div className="flex justify-center -mt-5 mb-0">
               <div className="relative">
-                <div className="bg-accent text-accent-foreground text-xl font-black px-10 py-2 rounded-xl shadow-lg">
+                <div className="bg-store-page-accent text-store-page-accent-foreground text-xl font-black px-10 py-2 rounded-xl shadow-lg">
                   Get Unlimited Lives
                 </div>
                 {/* GO PREMIUM tag - bottom-right like BEST VALUE */}
@@ -382,7 +597,7 @@ export default function StorePage() {
                   "Personalized dashboard",
                 ].map((f) => (
                   <li key={f} className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-store-page-accent inline-block shrink-0" />
                     {f}
                   </li>
                 ))}
@@ -461,7 +676,7 @@ export default function StorePage() {
                               type="button"
                               onClick={() => handleSubscriptionCheckout(plan)}
                               disabled={checkoutId !== null || isLoadingCurrent}
-                              className="rounded-full px-5 py-2 text-[10px] font-extrabold tracking-widest uppercase bg-accent text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50 min-w-[92px]"
+                              className="rounded-full px-5 py-2 text-[10px] font-extrabold tracking-widest uppercase bg-store-page-accent text-store-page-accent-foreground hover:bg-store-page-accent/90 transition-colors disabled:opacity-50 min-w-[92px]"
                             >
                               Subscribe
                             </button>
@@ -514,60 +729,82 @@ export default function StorePage() {
           </motion.div>
         </section>
 
-        <AlertDialog
-          open={showConfirmCancel}
-          onOpenChange={setShowConfirmCancel}
-        >
-          <AlertDialogContent className="relative">
-            <AlertDialogCancel
-              disabled={isCanceling}
-              className="absolute right-4 top-4 h-4 w-4 p-0 border-0 bg-transparent text-foreground opacity-70 hover:opacity-100 hover:bg-transparent focus:ring-0 focus:ring-offset-0 disabled:pointer-events-none"
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close</span>
-            </AlertDialogCancel>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Cancel subscription?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Your{" "}
-                <span className="font-semibold text-foreground">
-                  {currentSubscription?.plan?.name || "Premium"}
-                </span>{" "}
-                subscription will be canceled, but you&apos;ll keep full access
-                until{" "}
-                <span className="font-semibold text-foreground">
-                  {currentSubscription?.currentPeriodEnd
-                    ? new Date(
-                        currentSubscription.currentPeriodEnd,
-                      ).toLocaleDateString()
-                    : "the end of your current billing period"}
-                </span>
-                .
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={isCanceling}>
-                Keep Subscription
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={(e) => {
-                  e.preventDefault();
-                  confirmCancelSubscription();
-                }}
-                disabled={isCanceling}
-                className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
-              >
-                {isCanceling ? "Canceling..." : "Yes, Cancel"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
         <Dialog
           open={showSubscriptionDetails}
-          onOpenChange={setShowSubscriptionDetails}
+          onOpenChange={(open) => {
+            if (isCanceling) return;
+            setShowSubscriptionDetails(open);
+            if (!open) setCancelStep(null);
+          }}
         >
-          <DialogContent className="sm:rounded-3xl border-2 border-border p-0 overflow-hidden max-w-2xl">
+          <DialogContent
+            className={`sm:rounded-3xl border-2 border-border p-0 overflow-y-auto max-h-[85vh] ${
+              cancelStep ? "max-w-md" : "max-w-2xl"
+            }`}
+          >
+            {cancelStep === "skeleton" ? (
+              <div className="space-y-5 p-6" aria-live="polite">
+                <DialogTitle className="sr-only">
+                  {isCanceling
+                    ? "Canceling your subscription"
+                    : "Loading cancellation details"}
+                </DialogTitle>
+                <div className="h-7 w-48 animate-pulse rounded-md bg-muted" />
+                <div className="space-y-2">
+                  <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                  <div className="h-4 w-5/6 animate-pulse rounded bg-muted" />
+                </div>
+                <div className="rounded-2xl border border-border p-4 space-y-3">
+                  <div className="h-4 w-2/5 animate-pulse rounded bg-muted" />
+                  <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                  <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+                </div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  {isCanceling
+                    ? "Canceling your subscription…"
+                    : "Loading…"}
+                </p>
+              </div>
+            ) : cancelStep === "confirm" ? (
+              <div className="p-6">
+                <DialogTitle className="text-xl font-bold text-foreground">
+                  Cancel subscription?
+                </DialogTitle>
+                <DialogDescription className="mt-2 text-muted-foreground">
+                  Your{" "}
+                  <span className="font-semibold text-foreground">
+                    {currentSubscription?.plan?.name || "Premium"}
+                  </span>{" "}
+                  subscription will be canceled, but you&apos;ll keep full
+                  access until{" "}
+                  <span className="font-semibold text-foreground">
+                    {currentSubscription?.currentPeriodEnd
+                      ? new Date(
+                          currentSubscription.currentPeriodEnd,
+                        ).toLocaleDateString()
+                      : "the end of your current billing period"}
+                  </span>
+                  .
+                </DialogDescription>
+                <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setCancelStep(null)}
+                  >
+                    Keep Subscription
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={confirmCancelSubscription}
+                    className="bg-red-600 text-white hover:bg-red-700"
+                  >
+                    Yes, Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
             <div
               className={`p-6 pb-0 ${
                 currentSubscription?.status === "cancelled"
@@ -720,35 +957,31 @@ export default function StorePage() {
                 </div>
               )} */}
 
-              {currentSubscription?.status !== "cancelled" &&
-                !currentSubscription?.cancelAtPeriodEnd && (
-                  <div className="rounded-2xl bg-red-50 dark:bg-red-950/30 border-2 border-red-200 dark:border-red-900 p-4 space-y-3">
-                    <div>
-                      <p className="text-sm text-red-900 dark:text-red-100 font-semibold mb-1">
-                        Cancel subscription
-                      </p>
-                      <p className="text-xs text-red-800 dark:text-red-200 leading-relaxed">
-                        If you cancel, you will keep premium access until{" "}
-                        {currentSubscription?.currentPeriodEnd
-                          ? new Date(
-                              currentSubscription.currentPeriodEnd,
-                            ).toLocaleDateString()
-                          : "the end of your billing period"}
-                        . After that, your subscription will not renew.
-                      </p>
-                    </div>
-                    <Button
-                      onClick={() => {
-                        setShowSubscriptionDetails(false);
-                        promptCancelSubscription();
-                      }}
-                      disabled={isCanceling}
-                      className="w-full bg-red-600 hover:bg-red-700 text-white"
-                    >
-                      {isCanceling ? "Canceling..." : "Cancel Subscription"}
-                    </Button>
+              {isSubscriptionActive && (
+                <div className="rounded-2xl bg-red-50 dark:bg-red-950/30 border-2 border-red-200 dark:border-red-900 p-4 space-y-3">
+                  <div>
+                    <p className="text-sm text-red-900 dark:text-red-100 font-semibold mb-1">
+                      Cancel subscription
+                    </p>
+                    <p className="text-xs text-red-800 dark:text-red-200 leading-relaxed">
+                      If you cancel, you will keep premium access until{" "}
+                      {currentSubscription?.currentPeriodEnd
+                        ? new Date(
+                            currentSubscription.currentPeriodEnd,
+                          ).toLocaleDateString()
+                        : "the end of your billing period"}
+                      . After that, your subscription will not renew.
+                    </p>
                   </div>
-                )}
+                  <Button
+                    onClick={promptCancelSubscription}
+                    disabled={isCanceling}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    {isCanceling ? "Canceling..." : "Cancel Subscription"}
+                  </Button>
+                </div>
+              )}
 
               {/* {currentSubscription?.cancelAtPeriodEnd &&
                 currentSubscription?.status !== "cancelled" && (
@@ -769,6 +1002,8 @@ export default function StorePage() {
                   </div>
                 )} */}
             </div>
+              </>
+            )}
           </DialogContent>
         </Dialog>
 
@@ -778,6 +1013,7 @@ export default function StorePage() {
           onOpenChange={(open) => {
             if (!open) {
               setPendingSwitchPlan(null);
+              setSwitchStep("confirm");
               setIsCanceling(false);
               setCheckoutId(null);
             }
@@ -787,44 +1023,78 @@ export default function StorePage() {
             <div className="p-6 text-center">
               <DialogHeader>
                 <DialogTitle className="text-xl font-bold text-foreground">
-                  Switch plan?
+                  {switchStep === "pay" ? "Choose a payment method" : "Switch plan?"}
                 </DialogTitle>
                 <DialogDescription className="text-muted-foreground mt-2">
-                  You currently have the{" "}
-                  <span className="font-semibold text-foreground">
-                    {currentSubscription?.plan?.name || "current"}
-                  </span>{" "}
-                  plan. We&apos;ll cancel it and start checkout for the{" "}
-                  <span className="font-semibold text-foreground">
-                    {pendingSwitchPlan?.duration}
-                  </span>{" "}
-                  plan.
+                  {switchStep === "pay" ? (
+                    <>
+                      Continue checkout for the{" "}
+                      <span className="font-semibold text-foreground">
+                        {pendingSwitchPlan?.duration}
+                      </span>{" "}
+                      plan.
+                    </>
+                  ) : (
+                    <>
+                      You currently have the{" "}
+                      <span className="font-semibold text-foreground">
+                        {currentSubscription?.plan?.name || "current"}
+                      </span>{" "}
+                      plan. Choose PayPal or Tap next to switch to the{" "}
+                      <span className="font-semibold text-foreground">
+                        {pendingSwitchPlan?.duration}
+                      </span>{" "}
+                      plan.
+                    </>
+                  )}
                 </DialogDescription>
               </DialogHeader>
-              <DialogFooter className="mt-6 flex-col sm:flex-row gap-3 sm:justify-center">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => {
-                    setPendingSwitchPlan(null);
-                    setIsCanceling(false);
-                    setCheckoutId(null);
-                  }}
-                >
-                  Keep Current
-                </Button>
-                <Button
-                  className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
-                  onClick={handleConfirmSwitch}
-                  disabled={isCanceling}
-                >
-                  {isCanceling ? (
-                    <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    "Switch Plan"
-                  )}
-                </Button>
-              </DialogFooter>
+              {switchStep === "pay" ? (
+                <div className="mt-6 text-left">
+                  <GatewayPicker
+                    key={`${pendingSwitchPlan?.id}-${billingCustomer.firstName}-${billingCustomer.lastName}-${billingCustomer.phoneCountryCode}-${billingCustomer.phoneNumber}`}
+                    onConfirm={handleSwitchPayment}
+                    disabled={isCanceling || checkoutId !== null}
+                    tapCustomerRequired
+                    tapPaymentMethods={false}
+                    initialFirstName={billingCustomer.firstName}
+                    initialLastName={billingCustomer.lastName}
+                    initialPhone={billingCustomer.phoneNumber}
+                    initialPhoneCountryCode={billingCustomer.phoneCountryCode}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="mt-3 w-full"
+                    onClick={() => setSwitchStep("confirm")}
+                    disabled={isCanceling}
+                  >
+                    Back
+                  </Button>
+                </div>
+              ) : (
+                <DialogFooter className="mt-6 flex-col sm:flex-row gap-3 sm:justify-center">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setPendingSwitchPlan(null);
+                      setSwitchStep("confirm");
+                      setIsCanceling(false);
+                      setCheckoutId(null);
+                    }}
+                  >
+                    Keep Current
+                  </Button>
+                  <Button
+                    className="flex-1 bg-store-page-accent hover:bg-store-page-accent/90 text-store-page-accent-foreground"
+                    onClick={handleConfirmSwitch}
+                    disabled={isCanceling}
+                  >
+                    Switch Plan
+                  </Button>
+                </DialogFooter>
+              )}
             </div>
           </DialogContent>
         </Dialog>

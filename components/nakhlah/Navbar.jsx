@@ -1,11 +1,14 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
 import { ThemeToggle } from "./ThemeToggle";
 import { signOut } from "next-auth/react";
+import { clearTapPaymentAgreementId } from "@/lib/tapPaymentAgreement";
 
 const navItems = [
   { path: "/", label: "Home", icon: "/icons/Home-Icon.127e8555.svg" },
@@ -22,6 +25,17 @@ const navItems = [
 export function Navbar() {
   const pathname = usePathname();
   const isHomePage = pathname === "/";
+  const { resolvedTheme } = useTheme();
+  const [themeReady, setThemeReady] = useState(false);
+
+  useEffect(() => {
+    setThemeReady(true);
+  }, []);
+
+  const logoutIcon =
+    themeReady && resolvedTheme === "dark" && !isHomePage
+      ? "/icons/logout-white.svg"
+      : "/icons/logout.125f3808.svg";
 
   // Clicking a nav link (or the logo) to the route we're already on would
   // otherwise still trigger Next.js's default scroll-to-top behavior, even
@@ -45,6 +59,7 @@ export function Navbar() {
 
   const handleLogout = async () => {
     window.dispatchEvent(new Event("nakhlah:logout-started"));
+    clearTapPaymentAgreementId();
     try {
       await signOut({ redirect: false });
     } catch {
@@ -61,7 +76,7 @@ export function Navbar() {
           "hidden lg:flex flex-col fixed top-0 left-0 h-full w-64 border-r border-border/50 p-6 overflow-y-auto",
           isHomePage
             ? "bg-transparent backdrop-blur-sm"
-            : "bg-card/95 backdrop-blur-md",
+            : "bg-background backdrop-blur-md",
         )}
       >
         <div className="flex flex-col gap-8">
@@ -76,7 +91,7 @@ export function Navbar() {
               alt="Nakhlah logo"
               width={80}
               height={80}
-              className="h-20 w-20 rounded-lg object-cover"
+              className="rounded-lg object-cover"
               priority
             />
           </Link>
@@ -125,7 +140,7 @@ export function Navbar() {
               )}
             >
               <Image
-                src="/icons/logout.125f3808.svg"
+                src={logoutIcon}
                 alt="Logout"
                 width={24}
                 height={24}
@@ -148,7 +163,7 @@ export function Navbar() {
           "lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t px-2",
           isHomePage
             ? "bg-white/30 dark:bg-white/10 backdrop-blur-md border-white/40 dark:border-white/20"
-            : "bg-card/95 backdrop-blur-md border-border",
+            : "bg-background backdrop-blur-md border-border",
         )}
       >
         <div className="flex items-center justify-between py-2 gap-1">
@@ -194,7 +209,7 @@ export function Navbar() {
             )}
           >
             <Image
-              src="/icons/logout.125f3808.svg"
+              src={logoutIcon}
               alt="Logout"
               width={24}
               height={24}

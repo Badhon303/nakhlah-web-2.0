@@ -35,7 +35,7 @@ export default function StreakUpdate() {
   }, [session, status]);
 
   const handleContinue = () => {
-    router.push("/lesson/five-days-straight");
+    router.push("/lesson/streak-straight");
   };
 
   return (

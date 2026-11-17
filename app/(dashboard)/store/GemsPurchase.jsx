@@ -8,14 +8,27 @@ import { useRouter } from "next/navigation";
 import { DatesIcon } from "@/components/icons/PublicAssetIcons";
 import { getSessionToken, isSessionValid } from "@/lib/authUtils";
 import { useDatePackagesStore } from "@/stores/useDatePackagesStore";
-import { createDatePaymentOrder } from "@/services/api";
+import {
+  createDatePaymentOrder,
+  createTapDateCharge,
+  // confirmTapStcDateCharge,
+} from "@/services/api/payment";
 import { toast } from "@/components/nakhlah/Toast";
+import PaymentGatewayDialog from "@/components/nakhlah/PaymentGatewayDialog";
+import { useProfileStore } from "@/stores/useProfileStore";
+import { getUserKey } from "@/lib/userKey";
+import { getBillingCustomer } from "@/lib/billingCustomer";
 import { ArrowLeft } from "lucide-react";
 
 export default function GemsPurchase({ onBack }) {
   const router = useRouter();
   const { data: session } = useSession();
+  const profile = useProfileStore((state) => state.profile);
+  const fetchMyProfile = useProfileStore((state) => state.fetchMyProfile);
+  const billingCustomer = getBillingCustomer(profile, session);
   const [checkoutId, setCheckoutId] = useState(null);
+  const [pendingPackage, setPendingPackage] = useState(null);
+  const [showGatewayDialog, setShowGatewayDialog] = useState(false);
 
   const datePackages = useDatePackagesStore((state) => state.packages);
   const fetchDatePackages = useDatePackagesStore(
@@ -25,7 +38,10 @@ export default function GemsPurchase({ onBack }) {
 
   useEffect(() => {
     fetchDatePackages();
-  }, [fetchDatePackages]);
+    if (isSessionValid(session)) {
+      fetchMyProfile(getSessionToken(session), false, getUserKey(session));
+    }
+  }, [fetchDatePackages, fetchMyProfile, session]);
 
   const requireAuth = () => {
     if (!isSessionValid(session)) {
@@ -35,19 +51,74 @@ export default function GemsPurchase({ onBack }) {
     return true;
   };
 
-  const handlePackageSelect = async (pkg) => {
+  const handlePackageSelect = (pkg) => {
     if (!requireAuth()) return;
+    setPendingPackage(pkg);
+    setShowGatewayDialog(true);
+  };
 
+  const executeCheckout = async (gateway, options = {}) => {
+    if (!pendingPackage) {
+      return { success: false, error: "No date package selected" };
+    }
+
+    const pkg = pendingPackage;
     setCheckoutId(pkg.id);
-    const result = await createDatePaymentOrder(pkg.id, getSessionToken(session));
+    // STC Pay OTP (dates)
+    // if (gateway === "tap" && options.otp && options.chargeId) {
+    //   const result = await confirmTapStcDateCharge(
+    //     options.chargeId,
+    //     options.otp,
+    //     getSessionToken(session),
+    //   );
+    //
+    //   if (!result.success) {
+    //     setCheckoutId(null);
+    //     toast.error(result.error || "Unable to confirm STC Pay.");
+    //     return result;
+    //   }
+    //
+    //   setCheckoutId(null);
+    //   setShowGatewayDialog(false);
+    //   toast.success(result.message || "STC Pay confirmed successfully.");
+    //   window.location.assign("/store?refetch=dates&payment=success");
+    //   return result;
+    // }
+
+    const result =
+      gateway === "tap"
+        ? await createTapDateCharge(pkg.id, getSessionToken(session), {
+            paymentMethod: "card",
+            // paymentMethod: options.paymentMethod || "card",
+            // phoneNumber: options.phone,
+          })
+        : await createDatePaymentOrder(pkg.id, getSessionToken(session));
 
     if (!result.success) {
       setCheckoutId(null);
-      toast.error(result.error || "Unable to start PayPal checkout.");
-      return;
+      toast.error(
+        result.error ||
+          (gateway === "tap"
+            ? "Unable to start Tap checkout."
+            : "Unable to start PayPal checkout."),
+      );
+      return result;
     }
 
-    window.location.assign(result.approvalUrl);
+    // if (result.needsOtp) {
+    //   setCheckoutId(null);
+    //   return result;
+    // }
+
+    const checkoutUrl = result.approvalUrl;
+    if (checkoutUrl) window.location.assign(checkoutUrl);
+    setCheckoutId(null);
+    return result;
+  };
+
+  const closeGatewayDialog = () => {
+    setShowGatewayDialog(false);
+    setPendingPackage(null);
   };
 
   const containerVariants = {
@@ -87,7 +158,7 @@ export default function GemsPurchase({ onBack }) {
             </h2>
           </div>
           <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
-            Choose a date package and we’ll open PayPal checkout directly.
+            Choose a date package and we’ll open secure checkout directly.
           </p>
         </div>
 
@@ -147,13 +218,40 @@ export default function GemsPurchase({ onBack }) {
                       disabled={checkoutId !== null}
                       className="w-full font-semibold h-10 bg-accent hover:bg-accent/90"
                     >
-                      {checkoutId === pkg.id ? "Opening PayPal..." : "Buy Now"}
+                      {checkoutId === pkg.id
+                        ? "Opening checkout..."
+                        : "Buy Now"}
                     </Button>
                   </div>
                 </motion.div>
               ))}
         </div>
       </motion.div>
+      <PaymentGatewayDialog
+        open={showGatewayDialog}
+        onClose={closeGatewayDialog}
+        onSelect={executeCheckout}
+        // tapPaymentMethods
+        initialFirstName={billingCustomer.firstName}
+        initialLastName={billingCustomer.lastName}
+        initialPhone={billingCustomer.phoneNumber}
+        initialPhoneCountryCode={billingCustomer.phoneCountryCode}
+        title="Buy Dates"
+        description="Choose how you'd like to pay to continue to secure checkout."
+        summary={
+          pendingPackage ? (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {pendingPackage.amount} Dates
+              </p>
+              <p className="mt-1 text-3xl font-extrabold text-foreground">
+                {pendingPackage.price}
+              </p>
+            </div>
+          ) : null
+        }
+        disabled={checkoutId !== null}
+      />
     </div>
   );
 }

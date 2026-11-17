@@ -8,29 +8,34 @@ import { useSession } from "next-auth/react";
 import { getSessionToken } from "@/lib/authUtils";
 import { useHelpCenterStore } from "@/stores/useHelpCenterStore";
 import HighlightedText from "@/components/nakhlah/HighlightedText";
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
 export default function FaqPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const token = getSessionToken(session);
   const [expandedFaq, setExpandedFaq] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const helpCenterData = useHelpCenterStore((state) => state.data);
   const isLoading = useHelpCenterStore((state) => state.isLoading);
+  const error = useHelpCenterStore((state) => state.error);
   const fetchHelpCenter = useHelpCenterStore((state) => state.fetchHelpCenter);
   const faqs = helpCenterData?.faq ?? [];
+  const showLoading = isLoading || (!helpCenterData && !error);
 
   useEffect(() => {
-    fetchHelpCenter(getSessionToken(session));
-  }, [session, fetchHelpCenter]);
+    if (status === "loading") return;
+    fetchHelpCenter(token);
+  }, [status, token, fetchHelpCenter]);
 
   const visibleFaqs = faqs;
 
   return (
-    <div className="min-h-[calc(100vh-6rem)] flex items-center justify-center px-4 py-8">
+    <div className="max-w-4xl mx-auto px-4 py-6">
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-4xl bg-card rounded-3xl border border-border shadow-lg p-5 md:p-6"
+        className="w-full max-w-4xl bg-transparent lg:bg-card rounded-none lg:rounded-3xl border-0 lg:border lg:border-border shadow-none lg:shadow-lg p-0 lg:p-6"
       >
         <div className="flex items-center gap-3 mb-6">
           <button
@@ -53,15 +58,8 @@ export default function FaqPage() {
           />
         </div>
 
-        {isLoading ? (
-          <div className="space-y-2">
-            {[...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className="h-14 rounded-xl bg-muted/40 animate-pulse"
-              />
-            ))}
-          </div>
+        {showLoading ? (
+          <DocumentLoadingSkeleton />
         ) : visibleFaqs.length === 0 ? (
           <p className="py-8 text-center text-muted-foreground">
             No FAQs available at the moment.
@@ -71,7 +69,7 @@ export default function FaqPage() {
             {visibleFaqs.map((faq, index) => (
               <div
                 key={faq.id || index}
-                className="rounded-xl border border-border overflow-hidden"
+                className="rounded-xl border border-border max-lg:border-x-0 max-lg:border-t-0 max-lg:rounded-none overflow-hidden"
               >
                 <button
                   onClick={() =>

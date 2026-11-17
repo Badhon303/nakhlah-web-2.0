@@ -6,29 +6,34 @@ import { useHelpCenterStore } from "@/stores/useHelpCenterStore";
 import HighlightedText from "@/components/nakhlah/HighlightedText";
 import { useSession } from "next-auth/react";
 import { getSessionToken } from "@/lib/authUtils";
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
 
-export default function HelpCenterPage({ onBack, onNavigateContact }) {
+export default function HelpCenterPage({ onBack }) {
   const [expandedFaq, setExpandedFaq] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const token = getSessionToken(session);
   const helpCenterData = useHelpCenterStore((state) => state.data);
   const isLoading = useHelpCenterStore((state) => state.isLoading);
+  const error = useHelpCenterStore((state) => state.error);
   const fetchHelpCenter = useHelpCenterStore((state) => state.fetchHelpCenter);
   const faqs = helpCenterData?.faq ?? [];
+  const showLoading = isLoading || (!helpCenterData && !error);
 
   useEffect(() => {
-    fetchHelpCenter(getSessionToken(session));
-  }, [session, fetchHelpCenter]);
+    if (status === "loading") return;
+    fetchHelpCenter(token);
+  }, [status, token, fetchHelpCenter]);
 
   const visibleFaqs = faqs;
 
   return (
-    <div className="min-h-[calc(100vh-6rem)] px-4 py-6 lg:py-8 lg:flex lg:items-center lg:justify-center">
+    <div className="max-w-4xl mx-auto py-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-4xl bg-card rounded-3xl border border-border shadow-lg p-5 md:p-6"
+        className="w-full bg-transparent lg:bg-card rounded-none lg:rounded-3xl border-0 lg:border lg:border-border shadow-none lg:shadow-lg p-0 lg:p-6"
       >
         {/* Header */}
         <div className="flex items-center gap-3 mb-6 md:mb-7">
@@ -39,21 +44,8 @@ export default function HelpCenterPage({ onBack, onNavigateContact }) {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Help Center</h1>
+            <h1 className="text-3xl font-bold text-foreground">FAQs</h1>
           </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-3 mb-5 md:mb-6 flex-wrap">
-          <div className="px-4 py-2 rounded-lg font-medium bg-accent text-accent-foreground">
-            FAQ
-          </div>
-          <button
-            onClick={() => onNavigateContact && onNavigateContact()}
-            className="px-4 py-2 rounded-lg font-medium bg-muted/30 text-muted-foreground hover:bg-muted/50 transition-all"
-          >
-            Contact us
-          </button>
         </div>
 
         {/* Search Bar */}
@@ -69,14 +61,8 @@ export default function HelpCenterPage({ onBack, onNavigateContact }) {
         </div>
 
         {/* FAQ List */}
-        {isLoading ? (
-          <div className="space-y-2">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="border border-border rounded-xl p-4">
-                <div className="h-4 bg-muted/50 rounded animate-pulse w-3/4" />
-              </div>
-            ))}
-          </div>
+        {showLoading ? (
+          <DocumentLoadingSkeleton />
         ) : visibleFaqs.length === 0 ? (
           <div className="py-8 text-center text-muted-foreground text-sm">
             No FAQs available at the moment.
@@ -89,7 +75,7 @@ export default function HelpCenterPage({ onBack, onNavigateContact }) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 * index, duration: 0.3 }}
-                className="border border-border rounded-xl overflow-hidden"
+                className="border border-border max-lg:border-x-0 max-lg:border-t-0 max-lg:rounded-none overflow-hidden"
               >
                 <button
                   onClick={() =>
