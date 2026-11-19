@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { Edit, Settings } from "lucide-react";
 // import { Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import CarpetBackground from "@/components/nakhlah/CarpetBackground";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -62,9 +61,10 @@ export default function HeaderSection({
       transition={{ duration: 0.5 }}
       className="overflow-hidden rounded-none border-0 bg-transparent shadow-none lg:rounded-3xl lg:border lg:border-accent/20 lg:bg-card lg:shadow-sm"
     >
-      <div className="relative isolate overflow-hidden store-accent-background px-14 py-7 text-accent-foreground sm:py-8 lg:px-16">
-        <CarpetBackground />
-        <div className="relative z-10 flex flex-col items-center gap-5 sm:flex-row sm:gap-6">
+      <div className="relative overflow-hidden bg-gradient-accent px-5 py-7 text-accent-foreground sm:px-7 sm:py-8">
+        <div className="absolute -right-12 -top-16 h-44 w-44 rounded-full bg-white/[0.06]" />
+        <div className="absolute -bottom-16 right-28 h-32 w-32 rounded-full bg-white/[0.06]" />
+        <div className="relative flex flex-col items-center gap-5 sm:flex-row sm:gap-6">
           {/* Avatar */}
           <div className="relative shrink-0">
             <div className="h-28 w-28 rounded-3xl border-4 border-white/80 bg-white/20 p-0.5 shadow-xl sm:h-32 sm:w-32">
@@ -86,22 +86,22 @@ export default function HeaderSection({
           </div>
 
           {/* Profile Info */}
-          <div className="w-full min-w-0 flex-1 text-center sm:w-auto sm:text-left">
+          <div className="min-w-0 flex-1 text-center sm:text-left">
             <h1 className="truncate text-3xl font-extrabold tracking-tight text-white">
               {isLoading ? "Loading..." : fullName}
             </h1>
-            <p className="mt-1 truncate text-sm font-medium text-white/85 sm:text-base">
+            <p className="mt-1 truncate text-sm font-medium text-white/95 dark:text-white/85 sm:text-base">
               {email}
             </p>
-            <p className="mt-1 text-sm text-white/70">
+            <p className="mt-1 text-sm text-white/90 dark:text-white/85">
               {joined ? `Learning with Nakhlah since ${joined}` : ""}
             </p>
 
             {/* Action Buttons */}
-            <div className="mx-auto mt-5 flex w-full max-w-56 flex-col items-stretch gap-3 sm:mx-0 sm:w-auto sm:max-w-none sm:flex-row sm:justify-start">
+            <div className="mt-5 flex justify-center gap-3 sm:justify-start">
               <Button
                 onClick={onNavigateEdit}
-                className="w-full rounded-xl bg-white px-4 font-bold text-accent shadow-sm hover:bg-white/90 sm:w-auto"
+                className="rounded-xl bg-white px-4 font-bold text-accent shadow-sm hover:bg-white/90"
               >
                 <Edit className="mr-2 h-4 w-4" />
                 Edit profile
@@ -114,7 +114,7 @@ export default function HeaderSection({
               */}
               <Button
                 onClick={onNavigateSettings}
-                className="w-full rounded-xl border border-white/25 bg-white/10 px-4 font-bold text-white shadow-none hover:bg-white/20 sm:w-auto"
+                className="rounded-xl border border-white/25 bg-white/10 px-4 font-bold text-white shadow-none hover:bg-white/20"
               >
                 <Settings className="mr-2 h-4 w-4" />
                 Settings

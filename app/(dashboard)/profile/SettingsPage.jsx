@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { clearTapPaymentAgreementId } from "@/lib/tapPaymentAgreement";
-import CarpetBackground from "@/components/nakhlah/CarpetBackground";
 
 export default function SettingsPage({ onBack, onNavigate }) {
   const accountItems = [
@@ -76,10 +75,10 @@ export default function SettingsPage({ onBack, onNavigate }) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45 }}
-        className="relative isolate mb-6 overflow-hidden rounded-none store-accent-background px-14 py-7 text-accent-foreground shadow-none sm:py-8 lg:rounded-3xl lg:px-16 lg:shadow-lg"
+        className="relative mb-6 overflow-hidden rounded-none bg-gradient-accent px-5 py-7 text-accent-foreground shadow-none sm:px-7 sm:py-8 lg:rounded-3xl lg:shadow-lg"
       >
-        <CarpetBackground />
-        <div className="relative z-10">
+        <div className="absolute -right-16 -top-20 h-52 w-52 rounded-full border-[30px] border-white/10" />
+        <div className="relative">
           <div className="flex w-full items-center justify-between gap-3">
             <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
               Settings
@@ -94,7 +93,7 @@ export default function SettingsPage({ onBack, onNavigate }) {
               <span className="hidden sm:inline">Back to profile</span>
             </button>
           </div>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-white/80 sm:text-base">
+          <p className="mt-2 max-w-xl text-sm leading-6 text-white/95 dark:text-white/85 sm:text-base">
             Manage your account, choose how Nakhlah keeps in touch, and find
             support whenever you need it.
           </p>
