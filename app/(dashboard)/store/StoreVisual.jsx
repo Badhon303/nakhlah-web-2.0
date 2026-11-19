@@ -16,7 +16,6 @@ import {
   DateSurgeIcon,
   DatesIcon,
 } from "@/components/icons/PublicAssetIcons";
-import CarpetBackground from "@/components/nakhlah/CarpetBackground";
 
 const PREMIUM_FEATURES = [
   "Unlimited palms and uninterrupted learning",
@@ -96,13 +95,15 @@ export default function StoreVisual({
 
       <section className="overflow-hidden rounded-none border-0 bg-transparent shadow-none lg:rounded-3xl lg:border store-accent-border-subtle lg:bg-card lg:shadow-lg">
         <div className="grid lg:grid-cols-[0.93fr_1.07fr]">
-          <div className="relative isolate overflow-hidden store-accent-background px-11 py-7 text-white sm:p-9 lg:px-16 lg:py-10">
-            <CarpetBackground />
-            <div className="relative z-10 text-white">
+          <div className="relative overflow-hidden bg-gradient-accent p-7 text-accent-foreground sm:p-9 lg:p-10">
+            <div className="absolute -right-10 -top-12 h-48 w-48 rounded-full bg-white/[0.06]" />
+            <div className="absolute -bottom-16 right-28 h-32 w-32 rounded-full bg-white/[0.06]" />
+
+            <div className="relative">
               <h2 className="text-3xl font-extrabold leading-tight sm:text-4xl">
                 Make every learning day count.
               </h2>
-              <p className="mt-3 max-w-md text-sm leading-6 text-white/85 sm:text-base">
+              <p className="mt-3 max-w-md text-sm leading-6 text-white/95 dark:text-white/90 sm:text-base">
                 One membership, thoughtfully built around staying curious,
                 consistent, and moving forward.
               </p>
@@ -110,16 +111,19 @@ export default function StoreVisual({
                 {PREMIUM_FEATURES.map((feature) => (
                   <div
                     key={feature}
-                    className="flex items-start gap-3 rounded-xl bg-white/10 px-3 py-2.5 text-sm font-medium"
+                    className="flex items-center gap-3 rounded-xl bg-white/10 px-3 py-2.5 text-sm font-semibold"
                   >
                     <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white store-accent-text">
-                      <Check className="h-3.5 w-3.5 stroke-[3]" />
+                      <Check className="h-3.5 w-3.5 stroke-[2.5]" />
                     </span>
-                    {feature}
+                    <span className="text-sm font-semibold text-white/95 dark:text-white/90">
+                      {" "}
+                      {feature}
+                    </span>
                   </div>
                 ))}
               </div>
-              <div className="mt-7 flex items-center gap-2 text-xs font-semibold text-white/75">
+              <div className="mt-7 flex items-center gap-2 text-[13px] font-semibold text-white/90 dark:text-white/80">
                 <ShieldCheck className="h-4 w-4" /> Secure checkout · Cancel
                 whenever you need
               </div>
@@ -253,7 +257,7 @@ export default function StoreVisual({
                     );
                   })}
             </div>
-            <p className="mt-5 flex items-center gap-2 text-xs text-muted-foreground">
+            <p className="mt-5 flex items-center gap-2 text-[13px] text-muted-foreground">
               <Info className="h-3.5 w-3.5" /> Your subscription renews
               automatically until you cancel.
             </p>
