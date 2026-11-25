@@ -1,37 +1,37 @@
-"use client";
-import { motion } from "framer-motion";
-import { Edit, Settings } from "lucide-react";
+"use client"
+import { motion } from "framer-motion"
+import { Edit, Settings } from "lucide-react"
 // import { Share2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { buildApiUrl } from "@/lib/api-config";
-import Image from "next/image";
+import { Button } from "@/components/ui/button"
+import { buildApiUrl } from "@/lib/api-config"
+import Image from "next/image"
 
 const getMediaUrl = (url) => {
-  if (!url) return "";
-  if (url.startsWith("http://") || url.startsWith("https://")) return url;
-  return buildApiUrl(url);
-};
+  if (!url) return ""
+  if (url.startsWith("http://") || url.startsWith("https://")) return url
+  return buildApiUrl(url)
+}
 
 const getInitials = (fullName, email) => {
-  const source = fullName || email || "User";
+  const source = fullName || email || "User"
   return source
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() || "")
-    .join("");
-};
+    .join("")
+}
 
 const formatJoinedDate = (dateInput) => {
-  if (!dateInput) return "";
-  const date = new Date(dateInput);
-  if (Number.isNaN(date.getTime())) return "";
+  if (!dateInput) return ""
+  const date = new Date(dateInput)
+  if (Number.isNaN(date.getTime())) return ""
   return date.toLocaleDateString("en-US", {
     day: "numeric",
     month: "long",
     year: "numeric",
-  });
-};
+  })
+}
 
 export default function HeaderSection({
   stats,
@@ -42,16 +42,15 @@ export default function HeaderSection({
   profileData,
   isLoading,
 }) {
-  const fullName = profileData?.fullName || "No Name Set";
-  const email =
-    currentUser?.email || profileData?.user?.email || "No Email Set";
+  const fullName = profileData?.fullName || "No Name Set"
+  const email = currentUser?.email || profileData?.user?.email || "No Email Set"
   const joined = formatJoinedDate(
     currentUser?.createdAt || profileData?.createdAt,
-  );
+  )
   const avatarUrl = getMediaUrl(
     profileData?.profilePicture?.url || currentUser?.socialMediaPictureUrl,
-  );
-  const initials = getInitials(fullName, email);
+  )
+  const initials = getInitials(fullName, email)
 
   return (
     <motion.section
@@ -60,13 +59,13 @@ export default function HeaderSection({
       transition={{ duration: 0.5 }}
       className="overflow-hidden rounded-none border-0 bg-transparent shadow-none lg:rounded-3xl lg:border lg:border-accent/20 lg:bg-card lg:shadow-sm"
     >
-      <div className="relative overflow-hidden bg-gradient-accent px-5 py-7 text-accent-foreground sm:px-7 sm:py-8">
-        <div className="absolute -right-12 -top-16 h-44 w-44 rounded-full border-[28px] border-white/10" />
+      <div className="relative overflow-hidden bg-gradient-accent p-0 text-accent-foreground lg:p-8">
+        <div className="absolute -right-12 -top-16 h-44 w-44 rounded-full bg-white/[0.06]" />
         <div className="absolute -bottom-16 right-28 h-32 w-32 rounded-full bg-white/[0.06]" />
-        <div className="relative flex flex-col items-center gap-5 sm:flex-row sm:gap-6">
+        <div className="relative flex flex-col items-center gap-5 sm:flex-row sm:gap-6 p-6">
           {/* Avatar */}
           <div className="relative shrink-0">
-            <div className="h-28 w-28 rounded-3xl border-4 border-white/80 bg-white/20 p-0.5 shadow-xl sm:h-32 sm:w-32">
+            <div className="h-28 w-28 rounded-3xl border-4 border-white/80 bg-white/20 shadow-xl sm:h-32 sm:w-32">
               <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-[1.25rem] bg-card/20 text-3xl font-extrabold text-white sm:text-4xl">
                 {avatarUrl ? (
                   <Image
@@ -89,10 +88,10 @@ export default function HeaderSection({
             <h1 className="truncate text-3xl font-extrabold tracking-tight text-white">
               {isLoading ? "Loading..." : fullName}
             </h1>
-            <p className="mt-1 truncate text-sm font-medium text-white/85 sm:text-base">
+            <p className="mt-1 truncate text-sm font-medium text-white/95 dark:text-white/85 sm:text-base">
               {email}
             </p>
-            <p className="mt-1 text-sm text-white/70">
+            <p className="mt-1 text-sm text-white/90 dark:text-white/85">
               {joined ? `Learning with Nakhlah since ${joined}` : ""}
             </p>
 
@@ -100,7 +99,7 @@ export default function HeaderSection({
             <div className="mt-5 flex justify-center gap-3 sm:justify-start">
               <Button
                 onClick={onNavigateEdit}
-                className="h-10 rounded-xl bg-white px-4 font-bold text-accent shadow-sm hover:bg-white/90"
+                className="rounded-xl bg-white px-4 font-bold text-accent shadow-sm hover:bg-white/90"
               >
                 <Edit className="mr-2 h-4 w-4" />
                 Edit profile
@@ -113,7 +112,7 @@ export default function HeaderSection({
               */}
               <Button
                 onClick={onNavigateSettings}
-                className="h-10 rounded-xl border border-white/25 bg-white/10 px-4 font-bold text-white shadow-none hover:bg-white/20"
+                className="rounded-xl border border-white/25 bg-white/10 px-4 font-bold text-white shadow-none hover:bg-white/20"
               >
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
@@ -141,5 +140,5 @@ export default function HeaderSection({
         </div>
       </div>
     </motion.section>
-  );
+  )
 }

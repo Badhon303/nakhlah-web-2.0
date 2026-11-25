@@ -1,55 +1,54 @@
-"use client";
+"use client"
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronLeft, Search } from "lucide-react";
-import { useSession } from "@/lib/auth-client";
-import { getSessionToken } from "@/lib/authUtils";
-import { fetchHelpCenter } from "@/services/api/globals";
-import HighlightedText from "@/components/nakhlah/HighlightedText";
-import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
+import { useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
+import { ChevronDown, ChevronLeft, Search } from "lucide-react"
+import { useSession } from "@/lib/auth-client"
+import { getSessionToken } from "@/lib/authUtils"
+import { fetchHelpCenter } from "@/services/api/globals"
+import HighlightedText from "@/components/nakhlah/HighlightedText"
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton"
 
 export default function FaqPage() {
-  const router = useRouter();
-  const { data: session, status } = useSession();
-  const token = getSessionToken(session);
-  const [faqs, setFaqs] = useState([]);
-  const [expandedFaq, setExpandedFaq] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter()
+  const { data: session } = useSession()
+  const [faqs, setFaqs] = useState([])
+  const [expandedFaq, setExpandedFaq] = useState(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    if (status === "loading") return undefined;
-    let cancelled = false;
-
     const loadFaq = async () => {
-      const result = await fetchHelpCenter({ faq: true }, token);
-      if (cancelled) return;
+      setIsLoading(true)
+      const token = getSessionToken(session)
+      const result = await fetchHelpCenter({ faq: true }, token)
       if (result.success) {
-        setFaqs(result.data?.faq ?? []);
+        setFaqs(result.data?.faq ?? [])
       }
-      setIsLoading(false);
-    };
+      setIsLoading(false)
+    }
 
-    loadFaq();
-    return () => {
-      cancelled = true;
-    };
-  }, [status, token]);
+    loadFaq()
+  }, [session])
 
   const filteredFaqs = useMemo(() => {
-    if (!searchQuery.trim()) return faqs;
-    const q = searchQuery.toLowerCase();
+    if (!searchQuery.trim()) return faqs
+    const q = searchQuery.toLowerCase()
     return faqs.filter(
       (item) =>
         item.question?.toLowerCase().includes(q) ||
         item.answer?.toLowerCase().includes(q),
-    );
-  }, [faqs, searchQuery]);
+    )
+  }, [faqs, searchQuery])
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
-      <div className="w-full max-w-4xl rounded-none border-0 bg-transparent p-0 shadow-none lg:rounded-3xl lg:border lg:border-border lg:bg-card lg:p-6 lg:shadow-lg">
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-4xl bg-transparent lg:bg-card rounded-none lg:rounded-3xl border-0 lg:border lg:border-border shadow-none lg:shadow-lg p-5 md:p-6"
+      >
         <div className="flex items-center gap-3 mb-6">
           <button
             onClick={() => router.push("/")}
@@ -84,7 +83,7 @@ export default function FaqPage() {
             {filteredFaqs.map((faq, index) => (
               <div
                 key={faq.id || index}
-                className="overflow-hidden rounded-xl border border-border"
+                className="rounded-xl border border-border max-lg:border-x-0 max-lg:border-t-0 max-lg:rounded-none overflow-hidden"
               >
                 <button
                   onClick={() =>
@@ -110,7 +109,7 @@ export default function FaqPage() {
             ))}
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
-  );
+  )
 }

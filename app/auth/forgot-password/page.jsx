@@ -1,49 +1,58 @@
-"use client";
+"use client"
 
-import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useRouter } from "next/navigation";
-import { forgotPassword } from "@/services/api/auth";
-import { toast } from "@/components/nakhlah/Toast";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot"
+import { useState } from "react"
+import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { forgotPassword } from "@/services/api/auth"
+import { toast } from "@/components/nakhlah/Toast"
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const [email, setEmail] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
   const handleContinue = async () => {
     if (!email || !email.includes("@")) {
-      toast.error("Please enter a valid email address");
-      return;
+      toast.error("Please enter a valid email address")
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
 
     try {
-      const result = await forgotPassword(email);
+      const result = await forgotPassword(email)
 
       if (!result.success) {
-        toast.error(result.error || "Failed to send reset email");
-        setIsLoading(false);
-        return;
+        toast.error(result.error || "Failed to send reset email")
+        setIsLoading(false)
+        return
       }
 
-      toast.success(result.message || "Reset link sent to your email");
-      router.push("/auth/forgot-password-success");
+      toast.success(result.message || "Reset link sent to your email")
+      router.push("/auth/forgot-password-success")
     } catch (error) {
-      console.error("Forgot password error:", error);
-      toast.error("An error occurred. Please try again.");
+      console.error("Forgot password error:", error)
+      toast.error("An error occurred. Please try again.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-start sm:items-center justify-center px-4 py-6">
+      <Link
+        href="/auth/login"
+        className="fixed left-4 top-4 z-50 inline-flex items-center gap-1.5 rounded-lg bg-background/80 px-3 py-2 text-foreground backdrop-blur-sm transition-colors hover:text-accent lg:hidden"
+      >
+        <ArrowLeft className="h-5 w-5" />
+        <span className="text-sm font-semibold">Back</span>
+      </Link>
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
         {/* Left Side - Mascot */}
         <motion.div
@@ -109,7 +118,7 @@ export default function ForgotPasswordPage() {
               </div>
 
               {/* Continue Button */}
-              <div>
+              <div className="hidden sm:block">
                 <Button
                   onClick={handleContinue}
                   disabled={isLoading}
@@ -122,6 +131,15 @@ export default function ForgotPasswordPage() {
           </div>
         </motion.div>
       </div>
+      <div className="safe-area-bottom fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background p-4 sm:hidden">
+        <Button
+          onClick={handleContinue}
+          disabled={isLoading}
+          className="h-12 w-full rounded-xl bg-accent text-lg font-bold text-accent-foreground hover:opacity-90"
+        >
+          {isLoading ? "SENDING..." : "CONTINUE"}
+        </Button>
+      </div>
     </div>
-  );
+  )
 }

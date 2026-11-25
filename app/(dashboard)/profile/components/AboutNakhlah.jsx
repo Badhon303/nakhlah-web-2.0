@@ -1,86 +1,54 @@
-"use client";
-import { useEffect, useLayoutEffect } from "react";
-import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
-import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
-import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
-import { useAboutStore } from "@/stores/useAboutStore";
-import { useSession } from "@/lib/auth-client";
-import { getSessionToken } from "@/lib/authUtils";
-import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
-
-let aboutScrollToRestore = null;
-
-function rememberAboutScroll() {
-  aboutScrollToRestore = window.scrollY || document.documentElement.scrollTop || 0;
-}
-
-function openFromAbout(onNavigate, view) {
-  rememberAboutScroll();
-  onNavigate?.(view);
-}
+"use client"
+import { useEffect, useState } from "react"
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot"
+import { motion } from "framer-motion"
+import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react"
+import LexicalRenderer from "@/components/nakhlah/LexicalRenderer"
+import { fetchAbout } from "@/services/api/globals"
+import { useSession } from "@/lib/auth-client"
+import { getSessionToken } from "@/lib/authUtils"
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton"
 
 export default function AboutNakhlahPage({
   onBack,
   onNavigate,
   showNavigationItems = true,
 }) {
-  const { data: session, status } = useSession();
-  const token = getSessionToken(session);
-  const aboutData = useAboutStore((state) => state.data);
-  const isLoading = useAboutStore((state) => state.isLoading);
-  const error = useAboutStore((state) => state.error);
-  const fetchAbout = useAboutStore((state) => state.fetchAbout);
+  const [aboutData, setAboutData] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const { data: session } = useSession()
 
   useEffect(() => {
-    if (status === "loading") return;
-    fetchAbout(token);
-  }, [status, token, fetchAbout]);
-
-  useLayoutEffect(() => {
-    if (aboutScrollToRestore == null) return undefined;
-
-    const restore = (finalPass) => {
-      if (aboutScrollToRestore == null) return;
-      const y = aboutScrollToRestore;
-      const maxScroll = Math.max(
-        0,
-        document.documentElement.scrollHeight - window.innerHeight,
-      );
-      const contentReady = !isLoading && (aboutData || error);
-      if (y > maxScroll + 8 && !contentReady) return;
-      window.scrollTo(0, Math.min(y, maxScroll));
-      if (finalPass) aboutScrollToRestore = null;
-    };
-
-    restore(false);
-    const frame = requestAnimationFrame(() => restore(false));
-    const timer = window.setTimeout(() => restore(true), 0);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.clearTimeout(timer);
-    };
-  }, [aboutData, error, isLoading]);
+    const load = async () => {
+      setIsLoading(true)
+      const token = getSessionToken(session)
+      const result = await fetchAbout(token)
+      if (result.success) {
+        setAboutData(result.data)
+      }
+      setIsLoading(false)
+    }
+    load()
+  }, [session])
 
   const aboutItems = [
     ...(showNavigationItems
       ? [
           {
             label: "Terms & Conditions",
-            action: () => openFromAbout(onNavigate, "terms-and-conditions"),
+            action: () => onNavigate?.("terms-and-conditions"),
           },
           {
             label: "Privacy Policy",
-            action: () => openFromAbout(onNavigate, "privacy-policy"),
+            action: () => onNavigate?.("privacy-policy"),
           },
           {
             label: "Payment & Subscription Policy",
-            action: () =>
-              openFromAbout(onNavigate, "payment-subscription-policy"),
+            action: () => onNavigate?.("payment-subscription-policy"),
           },
           {
             label: "Refund & Cancellation Policy",
-            action: () =>
-              openFromAbout(onNavigate, "refund-cancellation-policy"),
+            action: () => onNavigate?.("refund-cancellation-policy"),
           },
         ]
       : []),
@@ -98,11 +66,16 @@ export default function AboutNakhlahPage({
           },
         ]
       : []),
-  ];
+  ]
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6">
-      <div className="rounded-none border-0 bg-transparent p-0 shadow-none lg:rounded-2xl lg:border lg:border-border lg:bg-card lg:p-6 lg:shadow-lg">
+    <div className="max-w-4xl mx-auto py-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-transparent lg:bg-card rounded-none lg:rounded-2xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-6"
+      >
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
@@ -136,25 +109,32 @@ export default function AboutNakhlahPage({
         </div>
 
         {/* About Content */}
-        {isLoading || (!aboutData && !error) ? (
-          <div className="mb-8 px-1">
+        {isLoading ? (
+          <div className="mb-8">
             <DocumentLoadingSkeleton />
           </div>
         ) : aboutData?.about ? (
-          <div className="mb-8 px-1">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="mb-8"
+          >
             <LexicalRenderer lexicalJson={aboutData.about} />
-          </div>
+          </motion.div>
         ) : null}
 
         {/* Navigation Items */}
         {aboutItems.length > 0 && (
           <div className="space-y-1">
-            {aboutItems.map((item) => (
-              <button
-                key={item.label}
-                type="button"
+            {aboutItems.map((item, index) => (
+              <motion.button
+                key={index}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.05 * index, duration: 0.3 }}
                 onClick={item.action}
-                className="group flex w-full items-center justify-between rounded-lg p-4 transition-all hover:bg-muted/50"
+                className="w-full flex items-center justify-between py-4 hover:bg-muted/50 transition-all rounded-lg group"
               >
                 <span className="font-medium text-foreground">
                   {item.label}
@@ -164,11 +144,11 @@ export default function AboutNakhlahPage({
                 ) : (
                   <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
                 )}
-              </button>
+              </motion.button>
             ))}
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
-  );
+  )
 }

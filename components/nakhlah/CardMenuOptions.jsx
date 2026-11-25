@@ -1,22 +1,22 @@
-"use client";
+"use client"
 
-import { MoreVertical } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { MoreVertical } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"
 
-export function CardMenuOptions({ options = [] }) {
+export function CardMenuOptions({ options = [], className = "" }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 hover:bg-muted"
+          className={`h-8 w-8 p-0 hover:bg-muted ${className}`}
         >
           <MoreVertical className="h-4 w-4" />
           <span className="sr-only">Open menu</span>
@@ -34,5 +34,5 @@ export function CardMenuOptions({ options = [] }) {
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }

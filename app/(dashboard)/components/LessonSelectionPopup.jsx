@@ -1,51 +1,39 @@
-"use client";
+"use client"
 
-import { TreasureChest } from "@/components/icons/TreasureChest";
-import { Lock } from "@/components/icons/Lock";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle2, Sparkles, X } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { TreasureChest } from "@/components/icons/TreasureChest"
+import { Lock } from "@/components/icons/Lock"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { motion } from "framer-motion"
+import { CheckCircle2, X } from "lucide-react"
+import { Sparkles } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import {
   fetchTaskLessons,
   claimGiftBoxTask,
+  fetchMyProfile,
   fetchJourneyStructure,
   makeLearnerProgress,
-} from "@/services/api";
-import { useSession } from "@/lib/auth-client";
-import { getSessionToken, isSessionValid } from "@/lib/authUtils";
-import { hasOpenedGiftBox } from "@/lib/gamification";
-import { rememberJourneyScroll } from "@/lib/journeyScroll";
-import { useDailyQuestStore } from "@/stores/useDailyQuestStore";
-import { useJourneyStore } from "@/stores/useJourneyStore";
-import { useProfileStore } from "@/stores/useProfileStore";
-import { useLessonStore } from "@/stores/useLessonStore";
-import Image from "next/image";
-
-const JOURNEY_REFRESH_FLAG_KEY = "nakhlah:journey-needs-refresh";
+} from "@/services/api"
+import { useSession } from "@/lib/auth-client"
+import { getSessionToken, isSessionValid } from "@/lib/authUtils"
+import { hasOpenedGiftBox } from "@/lib/gamification"
+import { useDailyQuestStore } from "@/stores/useDailyQuestStore"
+import { useLessonStore } from "@/stores/useLessonStore"
+import Image from "next/image"
 
 const sortByOrder = (items, key) =>
-  [...(items || [])].sort((a, b) => (a?.[key] || 0) - (b?.[key] || 0));
-
-const getProgressLessonId = (docs) => {
-  const sortedLessons = sortByOrder(docs, "lessonOrder");
-  const activeLesson =
-    sortedLessons.find((lesson) => lesson?.status !== "locked") ||
-    sortedLessons[0];
-
-  return activeLesson?.id || "";
-};
+  [...(items || [])].sort((a, b) => (a?.[key] || 0) - (b?.[key] || 0))
 
 const getOrderedJourneyTasks = (journeyData) => {
-  const levels = sortByOrder(journeyData?.levels, "levelOrder");
+  const levels = sortByOrder(journeyData?.levels, "levelOrder")
 
   return levels.flatMap((level) => {
-    const units = sortByOrder(level?.units, "unitOrder");
+    const units = sortByOrder(level?.units, "unitOrder")
 
-    return units.flatMap((unit) => sortByOrder(unit?.tasks, "taskOrder"));
-  });
-};
+    return units.flatMap((unit) => sortByOrder(unit?.tasks, "taskOrder"))
+  })
+}
 
 export function LessonSelectionPopup({
   taskId,
@@ -53,75 +41,55 @@ export function LessonSelectionPopup({
   isCurrent,
   isLocked,
   isTaskGiftBox,
-  isGiftOpened = false,
   onClose,
   open,
 }) {
-  const router = useRouter();
-  const setSelectedLesson = useLessonStore((state) => state.setSelectedLesson);
-  const profileData = useProfileStore((state) => state.profile);
-  const giftOpenedOnOpen = Boolean(
-    isTaskGiftBox &&
-      (isGiftOpened || hasOpenedGiftBox(profileData, taskId)),
-  );
-  const openedOnMountRef = useRef(giftOpenedOnOpen);
-  const giftClaimStartedRef = useRef(false);
-  const [lessons, setLessons] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadError, setLoadError] = useState("");
-  const [isGiftAlreadyOpened, setIsGiftAlreadyOpened] =
-    useState(giftOpenedOnOpen);
-  const [isClaiming, setIsClaiming] = useState(false);
-  const [hasClaimed, setHasClaimed] = useState(giftOpenedOnOpen);
-  const [giftRewards, setGiftRewards] = useState(null);
-  const { data: session, status } = useSession();
+  const router = useRouter()
+  const setSelectedLesson = useLessonStore((state) => state.setSelectedLesson)
+  const [lessons, setLessons] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [loadError, setLoadError] = useState("")
+  const [isGiftAlreadyOpened, setIsGiftAlreadyOpened] = useState(
+    Boolean(isTaskGiftBox && isCompleted),
+  )
+  const [isClaiming, setIsClaiming] = useState(false)
+  const [hasClaimed, setHasClaimed] = useState(
+    Boolean(isTaskGiftBox && isCompleted),
+  )
+  const [giftRewards, setGiftRewards] = useState(null)
+  const { data: session, status } = useSession()
 
   useEffect(() => {
-    if (!open || !isTaskGiftBox || giftClaimStartedRef.current) return;
-    if (
-      openedOnMountRef.current ||
-      isGiftOpened ||
-      hasOpenedGiftBox(profileData, taskId)
-    ) {
-      openedOnMountRef.current = true;
-      setIsGiftAlreadyOpened(true);
-      setHasClaimed(true);
-      setGiftRewards(null);
-      setIsLoading(false);
-    }
-  }, [open, isTaskGiftBox, isGiftOpened, profileData, taskId]);
-
-  useEffect(() => {
-    if (!open || !taskId) return;
-
-    if (isTaskGiftBox) {
-      return;
-    }
+    if (!open || !taskId) return
 
     const loadLessons = async () => {
       try {
-        setIsLoading(true);
-        setLoadError("");
-        setIsGiftAlreadyOpened(false);
-        setHasClaimed(false);
-        setGiftRewards(null);
+        setIsLoading(true)
+        setLoadError("")
+        setIsGiftAlreadyOpened(Boolean(isTaskGiftBox && isCompleted))
+        setHasClaimed(Boolean(isTaskGiftBox && isCompleted))
+        setGiftRewards(null)
 
-        if (status === "loading") return;
+        if (status === "loading") return
         if (status === "unauthenticated" || !isSessionValid(session)) {
-          throw new Error("Please login to view lessons.");
+          throw new Error("Please login to view lessons.")
         }
 
-        const token = getSessionToken(session);
-        const result = await fetchTaskLessons(taskId, token);
+        const token = getSessionToken(session)
+
+        const [result, profileResult] = await Promise.all([
+          fetchTaskLessons(taskId, token),
+          isTaskGiftBox ? fetchMyProfile(token) : Promise.resolve(null),
+        ])
         if (!result.success) {
-          throw new Error(result.error || "Failed to load lessons");
+          throw new Error(result.error || "Failed to load lessons")
         }
 
-        const docs = Array.isArray(result.data?.docs) ? result.data.docs : [];
-        const sortedLessons = sortByOrder(docs, "lessonOrder");
+        const docs = Array.isArray(result.data?.docs) ? result.data.docs : []
+        const sortedLessons = sortByOrder(docs, "lessonOrder")
 
         const normalized = sortedLessons.map((lesson) => {
-          const status = lesson?.status;
+          const status = lesson?.status
 
           return {
             id: lesson.id,
@@ -132,19 +100,29 @@ export function LessonSelectionPopup({
             isCompleted: status === "completed",
             isCurrent: status === "inProgress",
             isLocked: status === "locked",
-          };
-        });
+          }
+        })
 
-        setLessons(normalized);
+        setLessons(normalized)
+
+        if (isTaskGiftBox && profileResult?.success) {
+          const alreadyOpened = hasOpenedGiftBox(profileResult.profile, taskId)
+
+          if (alreadyOpened) {
+            setIsGiftAlreadyOpened(true)
+            setHasClaimed(true)
+            setLoadError("")
+          }
+        }
       } catch (error) {
-        setLoadError(error?.message || "Unable to load lessons");
+        setLoadError(error?.message || "Unable to load lessons")
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    loadLessons();
-  }, [open, session, status, taskId, isTaskGiftBox]);
+    loadLessons()
+  }, [open, session, status, taskId, isTaskGiftBox, isCompleted])
 
   // ... keeping the rest the same up to the return
   const footerText = isLocked
@@ -153,49 +131,46 @@ export function LessonSelectionPopup({
       ? "All content is available to practice"
       : isCurrent
         ? "Select an available block to begin"
-        : "Complete previous tasks to unlock";
+        : "Complete previous tasks to unlock"
 
   const handleLessonClick = async (lesson) => {
-    if (lesson.isLocked) return;
+    if (lesson.isLocked) return
 
-    sessionStorage.setItem("selectedLessonId", lesson.id);
-    sessionStorage.setItem("selectedNodeId", taskId);
+    sessionStorage.setItem("selectedLessonId", lesson.id)
+    sessionStorage.setItem("selectedNodeId", taskId)
     sessionStorage.setItem(
       "selectedLessonIsExam",
       lesson.isExam ? "true" : "false",
-    );
-    sessionStorage.setItem("selectedLessonStatus", lesson.status || "");
+    )
+    sessionStorage.setItem("selectedLessonStatus", lesson.status || "")
 
     setSelectedLesson({
       lessonId: lesson.id,
       nodeId: taskId,
       status: lesson.status || "",
       isExam: Boolean(lesson.isExam),
-    });
+    })
 
-    router.push(`/lesson?lessonId=${encodeURIComponent(lesson.id)}`);
-    onClose();
-  };
+    router.push("/lesson")
+    onClose()
+  }
 
   const handleClaimGift = async () => {
-    if (isClaiming || hasClaimed || isLocked || isGiftAlreadyOpened || isLoading) {
-      return;
-    }
+    if (isClaiming || hasClaimed || isLocked || isGiftAlreadyOpened) return
 
-    giftClaimStartedRef.current = true;
-    setIsClaiming(true);
-    setHasClaimed(true);
-    setLoadError("");
+    setIsClaiming(true)
+    // Optimistic UI update
+    setHasClaimed(true)
 
     try {
-      const token = getSessionToken(session);
-      const result = await claimGiftBoxTask(taskId, token);
+      const token = getSessionToken(session)
+      const result = await claimGiftBoxTask(taskId, token)
 
       if (!result.success) {
-        throw new Error(result.error);
+        throw new Error(result.error)
       }
 
-      const rewardPayload = result.data || {};
+      const rewardPayload = result.data || {}
       setGiftRewards({
         datesReceived:
           Number(rewardPayload?.datesReceived) ||
@@ -208,227 +183,322 @@ export function LessonSelectionPopup({
         badgesAdded: Array.isArray(rewardPayload?.badges?.added)
           ? rewardPayload.badges.added
           : [],
-      });
+      })
 
-      const lessonsResult = await fetchTaskLessons(taskId, token);
-      const activeGiftLessonId = lessonsResult.success
-        ? getProgressLessonId(lessonsResult.data?.docs)
-        : "";
+      const activeGiftLessonId =
+        lessons.find((lesson) => lesson.isCurrent || !lesson.isLocked)?.id ||
+        lessons[0]?.id ||
+        ""
 
       if (activeGiftLessonId) {
         const progressResult = await makeLearnerProgress(
           activeGiftLessonId,
           token,
-        );
+        )
         if (progressResult?.success) {
-          useDailyQuestStore.getState().invalidate();
+          useDailyQuestStore.getState().invalidate()
         }
-      }
-
-      if (typeof window !== "undefined") {
-        rememberJourneyScroll();
-        useJourneyStore.getState().invalidate();
-        useProfileStore.getState().invalidate();
-        sessionStorage.setItem(JOURNEY_REFRESH_FLAG_KEY, "true");
-        window.dispatchEvent(new Event("nakhlah:journey-updated"));
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("nakhlah:journey-updated"))
+        }
       }
 
       // Auto close after showing animation for a bit
       setTimeout(() => {
-        onClose();
-      }, 2500);
+        onClose()
+      }, 2500)
     } catch (error) {
-      console.error(error);
-      const errorMessage = error?.message || "";
+      console.error(error)
+      const errorMessage = error?.message || ""
       if (errorMessage.toLowerCase().includes("gift box already opened")) {
-        setIsGiftAlreadyOpened(true);
-        setHasClaimed(true);
-        setLoadError("");
+        setIsGiftAlreadyOpened(true)
+        setHasClaimed(true)
+        setLoadError("")
       } else {
-        setLoadError("Failed to claim gift. Please try again.");
-        setHasClaimed(false);
-        giftClaimStartedRef.current = false;
+        setLoadError("Failed to claim gift. Please try again.")
+        setHasClaimed(false)
       }
     } finally {
-      setIsClaiming(false);
+      setIsClaiming(false)
     }
-  };
+  }
 
   // Render Gift Box specific layout
   if (isTaskGiftBox) {
-    const showRewardArea =
-      !isLocked && !isGiftAlreadyOpened && (isClaiming || hasClaimed);
-    const canClaim =
-      !isLocked && !hasClaimed && !isGiftAlreadyOpened && !isLoading;
-    const giftTitle = isLocked
-      ? "Locked gift"
-      : isGiftAlreadyOpened
-        ? "Already opened"
-        : isClaiming
-          ? "Opening gift"
-          : hasClaimed
-            ? "Gift opened"
-            : "Mystery gift";
-    const giftCopy = isLocked
-      ? "Finish the tasks before this one to open it."
-      : isGiftAlreadyOpened
-        ? "You already collected this gift."
-        : isClaiming
-          ? "Collecting your reward."
-          : hasClaimed
-            ? "Your rewards are now in your account."
-            : "This gift is ready. Open it to collect your reward.";
-
     return (
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="w-[calc(100%-2rem)] gap-0 overflow-hidden rounded-3xl border-2 border-primary/70 bg-gradient-to-b from-amber-50 via-card to-card p-0 shadow-2xl sm:max-w-md [&>button]:hidden dark:from-amber-950/40 dark:via-card">
-          <div className="relative overflow-hidden bg-gradient-to-r from-accent via-violet-500 to-amber-400 px-6 py-5 text-center">
-            <div className="pointer-events-none absolute -left-6 -top-8 h-24 w-24 rounded-full bg-white/20" />
-            <div className="pointer-events-none absolute -bottom-8 right-6 h-20 w-20 rounded-full bg-amber-200/30" />
-            <Sparkles className="pointer-events-none absolute left-5 top-3 h-4 w-4 text-amber-200" />
-            <Sparkles className="pointer-events-none absolute right-14 top-6 h-3.5 w-3.5 text-white/80" />
+        <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md p-0 gap-0 border-border [&>button]:hidden rounded-2xl overflow-hidden shadow-xl border-2 bg-gradient-to-b from-accent/5 to-accent/10">
+          <div className="bg-accent p-3 sm:p-4 text-center relative">
             <button
-              type="button"
               onClick={onClose}
-              className="absolute right-3 top-3 rounded-full p-2 text-white/80 transition-colors hover:bg-white/15 hover:text-white"
-              aria-label="Close"
+              className="absolute top-3 sm:top-4 right-3 sm:right-4 text-white/70 hover:text-white transition-colors"
             >
-              <X className="h-4 w-4" />
+              <X className="w-5 h-5" />
             </button>
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/80">
-              Journey gift
-            </p>
-            <DialogTitle className="mt-1 text-2xl font-black tracking-tight text-white">
-              {giftTitle}
+            <DialogTitle className="text-lg sm:text-xl font-black text-white tracking-wide">
+              {isGiftAlreadyOpened
+                ? "Gift Already Claimed"
+                : hasClaimed
+                  ? "Gift Claimed!"
+                  : "Mystery Gift Box"}
             </DialogTitle>
           </div>
 
-          <div className="relative px-6 pb-6 pt-2">
-            <Sparkles className="pointer-events-none absolute left-8 top-6 h-5 w-5 text-amber-400" />
-            <Sparkles className="pointer-events-none absolute right-10 top-10 h-4 w-4 text-accent" />
-            <Sparkles className="pointer-events-none absolute bottom-24 left-6 h-4 w-4 text-rose-400" />
-            <Sparkles className="pointer-events-none absolute bottom-28 right-7 h-6 w-6 text-amber-300" />
-            <span className="pointer-events-none absolute left-14 top-16 h-2 w-2 rounded-full bg-amber-400" />
-            <span className="pointer-events-none absolute right-16 top-4 h-1.5 w-1.5 rounded-full bg-accent" />
-            <span className="pointer-events-none absolute right-12 top-20 h-2.5 w-2.5 rounded-full bg-rose-400" />
-
-            {!isGiftAlreadyOpened ? (
-              <div
-                role={canClaim ? "button" : undefined}
-                tabIndex={canClaim ? 0 : undefined}
-                onClick={canClaim ? handleClaimGift : undefined}
-                onKeyDown={
-                  canClaim
-                    ? (event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          handleClaimGift();
-                        }
-                      }
-                    : undefined
-                }
-                className={`relative z-10 mx-auto flex h-36 items-center justify-center ${
-                  canClaim
-                    ? "cursor-pointer transition-transform hover:scale-105"
-                    : ""
-                }`}
-              >
-                <TreasureChest
-                  className={`h-32 w-32 ${
-                    isLocked ? "opacity-50 grayscale" : ""
-                  }`}
-                />
-              </div>
-            ) : null}
-
-            <p className="relative z-10 mx-auto mt-1 max-w-xs text-center text-sm font-semibold leading-relaxed text-muted-foreground">
-              {giftCopy}
-            </p>
-
+          <div className="p-6 sm:p-10 flex flex-col items-center justify-center relative overflow-hidden">
             {loadError && (
-              <p className="relative z-10 mt-4 rounded-xl bg-red-500/10 px-3 py-2 text-center text-sm font-semibold text-red-600">
+              <div className="absolute top-4 bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm font-bold z-20">
                 {loadError}
-              </p>
+              </div>
             )}
 
-            {showRewardArea ? (
-              <div className="relative z-10 mt-6 min-h-[7.5rem] space-y-2">
-                {giftRewards ? (
-                  <>
-                    {giftRewards.injazReceived > 0 && (
-                      <div className="flex h-14 items-center justify-center rounded-2xl border border-amber-200/80 bg-amber-500/10 px-4">
-                        <p className="text-base font-semibold text-amber-700">
-                          You received{" "}
-                          <span className="font-black">
-                            {giftRewards.injazReceived.toLocaleString()} Injaz
-                          </span>
-                        </p>
-                      </div>
-                    )}
-                    {giftRewards.datesReceived > 0 && (
-                      <div className="flex h-14 items-center justify-center rounded-2xl border border-sky-200/80 bg-sky-500/10 px-4">
-                        <p className="text-base font-semibold text-sky-700">
-                          You found{" "}
-                          <span className="font-black">
-                            {giftRewards.datesReceived.toLocaleString()} Dates
-                          </span>
-                        </p>
-                      </div>
-                    )}
-                    {giftRewards.badgesAdded.length > 0 && (
-                      <div className="flex h-14 items-center justify-center rounded-2xl border border-emerald-200/80 bg-emerald-500/10 px-4">
-                        <p className="text-base font-semibold text-emerald-700">
-                          {giftRewards.badgesAdded.length > 1
-                            ? `You unlocked ${giftRewards.badgesAdded.length} badges`
-                            : "You unlocked a new badge"}
-                        </p>
-                      </div>
-                    )}
-                  </>
+            {hasClaimed && !isGiftAlreadyOpened && (
+              <motion.div
+                className="absolute inset-0 pointer-events-none flex items-center justify-center z-0"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                {/* Decorative Sparkles */}
+                <motion.div
+                  animate={{
+                    rotate: 180,
+                    scale: [1, 1.5, 1],
+                    opacity: [0, 1, 0],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                  }}
+                  className="absolute -top-4 -left-4 text-yellow-400"
+                >
+                  <Sparkles className="w-12 h-12" />
+                </motion.div>
+                <motion.div
+                  animate={{
+                    rotate: -180,
+                    scale: [1, 1.2, 1],
+                    opacity: [0, 1, 0],
+                  }}
+                  transition={{
+                    duration: 1.2,
+                    delay: 0.2,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                  }}
+                  className="absolute top-10 right-4 text-yellow-500"
+                >
+                  <Sparkles className="w-8 h-8" />
+                </motion.div>
+                <motion.div
+                  animate={{
+                    rotate: 90,
+                    scale: [1, 1.4, 1],
+                    opacity: [0, 1, 0],
+                  }}
+                  transition={{
+                    duration: 1.8,
+                    delay: 0.4,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                  }}
+                  className="absolute bottom-5 -left-2 text-yellow-300"
+                >
+                  <Sparkles className="w-10 h-10" />
+                </motion.div>
+                <motion.div
+                  animate={{
+                    rotate: -90,
+                    scale: [1, 1.3, 1],
+                    opacity: [0, 1, 0],
+                  }}
+                  transition={{
+                    duration: 1.4,
+                    delay: 0.1,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                  }}
+                  className="absolute -bottom-6 right-8 text-yellow-400"
+                >
+                  <Sparkles className="w-14 h-14" />
+                </motion.div>
+              </motion.div>
+            )}
+
+            <motion.button
+              onClick={handleClaimGift}
+              disabled={
+                isLocked || hasClaimed || isClaiming || isGiftAlreadyOpened
+              }
+              className={`
+                relative z-10 w-36 h-36 sm:w-48 sm:h-48 rounded-full flex flex-col items-center justify-center
+                transition-all duration-300
+                ${isLocked ? "opacity-50 grayscale cursor-not-allowed" : "cursor-pointer"}
+                ${!hasClaimed && !isLocked && !isGiftAlreadyOpened ? "hover:scale-105 active:scale-95 drop-shadow-xl" : ""}
+              `}
+              animate={
+                hasClaimed && !isGiftAlreadyOpened
+                  ? {
+                      scale: [1, 1.2, 1.1],
+                      rotate: [0, -10, 10, -10, 10, 0],
+                    }
+                  : {
+                      y: [0, -10, 0],
+                    }
+              }
+              transition={
+                hasClaimed && !isGiftAlreadyOpened
+                  ? { duration: 0.8, ease: "easeOut" }
+                  : { repeat: Infinity, duration: 3, ease: "easeInOut" }
+              }
+            >
+              <div
+                className={`
+                absolute inset-0 rounded-full blur-3xl opacity-50
+                ${
+                  isGiftAlreadyOpened
+                    ? "bg-muted"
+                    : hasClaimed
+                      ? "bg-yellow-400"
+                      : "bg-accent"
+                }
+              `}
+              />
+
+              <div className="relative text-accent">
+                {isGiftAlreadyOpened ? (
+                  <div className="relative">
+                    <TreasureChest className="w-24 h-24 sm:w-32 sm:h-32 opacity-70 grayscale-[0.15]" />
+                    {/* <div className="absolute -right-2 -top-2 rounded-full bg-emerald-500 p-2 text-white shadow-lg">
+                      <CheckCircle2 className="w-6 h-6" />
+                    </div> */}
+                  </div>
+                ) : hasClaimed ? (
+                  <TreasureChest className="w-28 h-28 sm:w-36 sm:h-36 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)] text-yellow-500" />
                 ) : (
-                  <>
-                    <div className="flex h-14 items-center justify-center rounded-2xl border border-amber-200/80 bg-amber-500/10 px-4">
-                      <span className="h-3 w-2/3 animate-pulse rounded-full bg-amber-300/80" />
-                    </div>
-                    <div className="flex h-14 items-center justify-center rounded-2xl border border-sky-200/80 bg-sky-500/10 px-4">
-                      <span className="h-3 w-2/3 animate-pulse rounded-full bg-sky-300/80" />
-                    </div>
-                  </>
+                  <TreasureChest className="w-24 h-24 sm:w-32 sm:h-32" />
                 )}
               </div>
-            ) : null}
+            </motion.button>
 
-            {canClaim ? (
-              <Button
-                type="button"
-                className="relative z-10 mt-6 w-full"
-                onClick={handleClaimGift}
-              >
-                Open gift
-              </Button>
-            ) : null}
+            <motion.div
+              className="mt-4 sm:mt-8 text-center z-10"
+              initial={false}
+              animate={{ y: hasClaimed ? -10 : 0 }}
+            >
+              <h3 className="text-xl sm:text-2xl font-black text-foreground mb-2">
+                {isLocked
+                  ? "Locked Gift"
+                  : isGiftAlreadyOpened
+                    ? "Already opened!"
+                    : hasClaimed
+                      ? "Awesome!"
+                      : "You found a gift!"}
+              </h3>
+              <p className="text-sm sm:text-base text-muted-foreground font-semibold">
+                {isLocked
+                  ? "Complete previous tasks to open."
+                  : isGiftAlreadyOpened
+                    ? "You already collected this gift earlier."
+                    : hasClaimed
+                      ? "Your rewards have been added to your account."
+                      : "Tap the chest to claim your rewards."}
+              </p>
+
+              {hasClaimed && !isGiftAlreadyOpened && giftRewards ? (
+                <motion.div
+                  className="mt-4 sm:mt-6 flex flex-col items-center gap-2 sm:gap-3"
+                  initial="hidden"
+                  animate="visible"
+                  variants={{
+                    visible: { transition: { staggerChildren: 0.18 } },
+                  }}
+                >
+                  {giftRewards.injazReceived > 0 && (
+                    <motion.p
+                      className="text-xl sm:text-2xl font-black text-amber-500 drop-shadow-sm"
+                      variants={{
+                        hidden: { opacity: 0, y: 20, scale: 0.85 },
+                        visible: {
+                          opacity: 1,
+                          y: 0,
+                          scale: 1,
+                          transition: {
+                            type: "spring",
+                            stiffness: 260,
+                            damping: 18,
+                          },
+                        },
+                      }}
+                    >
+                      +{giftRewards.injazReceived.toLocaleString()} Injaz ✨
+                    </motion.p>
+                  )}
+                  {giftRewards.datesReceived > 0 && (
+                    <motion.p
+                      className="text-xl sm:text-2xl font-black text-sky-500 drop-shadow-sm"
+                      variants={{
+                        hidden: { opacity: 0, y: 20, scale: 0.85 },
+                        visible: {
+                          opacity: 1,
+                          y: 0,
+                          scale: 1,
+                          transition: {
+                            type: "spring",
+                            stiffness: 260,
+                            damping: 18,
+                          },
+                        },
+                      }}
+                    >
+                      +{giftRewards.datesReceived.toLocaleString()} Dates 🌴
+                    </motion.p>
+                  )}
+                  {giftRewards.badgesAdded.length > 0 && (
+                    <motion.p
+                      className="text-lg sm:text-xl font-bold text-emerald-500 drop-shadow-sm"
+                      variants={{
+                        hidden: { opacity: 0, y: 20, scale: 0.85 },
+                        visible: {
+                          opacity: 1,
+                          y: 0,
+                          scale: 1,
+                          transition: {
+                            type: "spring",
+                            stiffness: 260,
+                            damping: 18,
+                          },
+                        },
+                      }}
+                    >
+                      +{giftRewards.badgesAdded.length} Badge
+                      {giftRewards.badgesAdded.length > 1 ? "s" : ""} Earned 🏅
+                    </motion.p>
+                  )}
+                </motion.div>
+              ) : null}
+            </motion.div>
           </div>
         </DialogContent>
       </Dialog>
-    );
+    )
   }
 
   // Regular Lesson Selection layout
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="w-[calc(100%-2rem)] sm:max-w-lg p-0 gap-0 border-border [&>button]:hidden rounded-2xl overflow-hidden shadow-lg border-2">
+      <DialogContent className="w-[calc(100%-2rem)] sm:w-full sm:max-w-lg p-0 gap-0 border-border [&>button]:hidden rounded-2xl overflow-hidden shadow-lg border-2">
         {/* Simple Header */}
         <div className="bg-accent p-4 sm:p-5 text-center relative">
           <button
             onClick={onClose}
-            className="absolute top-3 sm:top-4 right-3 sm:right-4 text-white/70 hover:text-white transition-colors p-1"
+            className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors p-1"
           >
-            <X className="w-5 h-5 sm:w-6 sm:h-6" />
+            <X className="w-6 h-6" />
           </button>
           <DialogTitle className="text-xl sm:text-2xl font-black text-white tracking-wide">
             Choose a Lesson
           </DialogTitle>
-          <p className="text-white/90 font-medium text-xs sm:text-sm mt-1">
+          <p className="text-white/90 font-medium text-sm mt-1">
             {isLocked
               ? "Lesson is locked"
               : isCompleted
@@ -446,12 +516,11 @@ export function LessonSelectionPopup({
               {Array.from({ length: 4 }).map((_, index) => (
                 <div
                   key={`lesson-skeleton-${index}`}
-                  className="relative p-3 sm:p-5 rounded-2xl border-4 border-border/60 bg-background/70 flex flex-col items-center justify-center gap-2 sm:gap-3"
+                  className="relative p-3 sm:p-5 rounded-xl sm:rounded-2xl border-2 sm:border-4 border-border/60 bg-background/70"
                 >
-                  <div className="w-16 h-16 sm:w-24 sm:h-24 flex items-center justify-center">
-                    <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-muted animate-pulse" />
-                  </div>
-                  <div className="h-4 w-3/4 rounded bg-muted animate-pulse" />
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto rounded-2xl bg-muted animate-pulse" />
+                  <div className="mt-3 sm:mt-4 h-3 sm:h-4 w-3/4 mx-auto rounded bg-muted animate-pulse" />
+                  <div className="mt-1 sm:mt-2 h-2.5 sm:h-3 w-1/2 mx-auto rounded bg-muted/80 animate-pulse" />
                 </div>
               ))}
             </div>
@@ -460,7 +529,7 @@ export function LessonSelectionPopup({
               {loadError}
             </p>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
               {lessons.map((lesson) => {
                 const lessonIcon = lesson.isExam ? (
                   <Image
@@ -468,7 +537,7 @@ export function LessonSelectionPopup({
                     alt="Quiz"
                     width={80}
                     height={80}
-                    className="w-14 h-14 sm:w-20 sm:h-20 object-contain"
+                    className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
                   />
                 ) : (
                   <Image
@@ -476,9 +545,9 @@ export function LessonSelectionPopup({
                     alt="Lesson"
                     width={80}
                     height={80}
-                    className="w-14 h-14 sm:w-20 sm:h-20 object-contain"
+                    className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
                   />
-                );
+                )
 
                 return (
                   <button
@@ -500,20 +569,20 @@ export function LessonSelectionPopup({
                   >
                     {/* Small Status Overlays */}
                     {lesson.isLocked && (
-                      <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2">
+                      <div className="absolute top-2 right-2">
                         <Lock size="sm" variant="silver" />
                       </div>
                     )}
                     {lesson.isCompleted && !lesson.isLocked && (
-                      <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 text-emerald-500">
-                        <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 fill-emerald-100" />
+                      <div className="absolute top-2 right-2 text-emerald-500">
+                        <CheckCircle2 className="w-6 h-6 fill-emerald-100" />
                       </div>
                     )}
 
                     {/* Extra Large Icon */}
                     <div
                       className={`
-                        w-16 h-16 sm:w-24 sm:h-24 flex items-center justify-center
+                        w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center
                         ${lesson.isLocked ? "grayscale opacity-50" : ""}
                         transition-transform group-hover:scale-105 duration-200
                       `}
@@ -531,19 +600,19 @@ export function LessonSelectionPopup({
                       {lesson.title}
                     </p>
                   </button>
-                );
+                )
               })}
             </div>
           )}
 
           {/* Info Text */}
           {footerText ? (
-            <p className="text-xs font-semibold text-muted-foreground/80 text-center mt-3 sm:mt-5 uppercase tracking-wider">
+            <p className="text-xs font-semibold text-muted-foreground/80 text-center mt-5 uppercase tracking-wider">
               {footerText}
             </p>
           ) : null}
         </div>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

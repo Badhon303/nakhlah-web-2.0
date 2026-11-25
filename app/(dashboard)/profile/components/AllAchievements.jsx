@@ -1,16 +1,16 @@
-import { Medal } from "@/components/icons/Medal";
-import AchievementTick from "@/components/icons/AchievementTick";
-import { motion } from "framer-motion";
-import { ChevronLeft, Lock } from "lucide-react";
-import { useMemo } from "react";
-import { buildApiUrl } from "@/lib/api-config";
-import Image from "next/image";
+import { Medal } from "@/components/icons/Medal"
+import AchievementTick from "@/components/icons/AchievementTick"
+import { motion } from "framer-motion"
+import { ChevronLeft, Lock } from "lucide-react"
+import { useMemo } from "react"
+import { buildApiUrl } from "@/lib/api-config"
+import Image from "next/image"
 
 const getMediaUrl = (url) => {
-  if (!url) return "";
-  if (url.startsWith("http://") || url.startsWith("https://")) return url;
-  return buildApiUrl(url);
-};
+  if (!url) return ""
+  if (url.startsWith("http://") || url.startsWith("https://")) return url
+  return buildApiUrl(url)
+}
 
 export default function AllAchievementsPage({
   onBack,
@@ -19,13 +19,13 @@ export default function AllAchievementsPage({
 }) {
   const groupedAchievements = useMemo(() => {
     const groups = achievements.reduce((acc, item) => {
-      const level = Number(item?.levelOrder) || 0;
+      const level = Number(item?.levelOrder) || 0
       if (!acc[level]) {
-        acc[level] = [];
+        acc[level] = []
       }
-      acc[level].push(item);
-      return acc;
-    }, {});
+      acc[level].push(item)
+      return acc
+    }, {})
 
     return Object.entries(groups)
       .map(([level, items]) => ({
@@ -34,22 +34,22 @@ export default function AllAchievementsPage({
           (a, b) => (a.unitOrder || 0) - (b.unitOrder || 0),
         ),
       }))
-      .sort((a, b) => a.level - b.level);
-  }, [achievements]);
+      .sort((a, b) => a.level - b.level)
+  }, [achievements])
 
-  const unlockedCount = achievements.filter((item) => item.achieved).length;
-  const inProgressCount = Math.max(achievements.length - unlockedCount, 0);
+  const unlockedCount = achievements.filter((item) => item.achieved).length
+  const inProgressCount = Math.max(achievements.length - unlockedCount, 0)
 
   return (
-    <div className="container px-4 mx-auto max-w-4xl py-6">
+    <div className="container mx-auto max-w-4xl py-6">
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="overflow-hidden rounded-none border-0 bg-transparent shadow-none lg:rounded-3xl lg:border lg:border-accent/20 lg:bg-card lg:shadow-sm"
+        className="overflow-hidden rounded-none border-0 bg-transparent shadow-none p-0 lg:rounded-3xl lg:border lg:border-accent/20 lg:bg-card lg:shadow-sm lg:p-6"
       >
         {/* Header */}
-        <div className="relative overflow-hidden border-b border-border px-5 py-6 text-foreground sm:px-7">
+        <div className="relative overflow-hidden border-b border-border text-foreground">
           <div className="absolute -right-14 -top-20 h-44 w-44 rounded-full border-[28px] border-white/10" />
           <div className="relative flex items-center gap-4">
             <button
@@ -71,7 +71,7 @@ export default function AllAchievementsPage({
           </div>
         </div>
 
-        <div className="p-4 sm:p-6">
+        <div>
           {isLoading ? (
             <div className="space-y-3">
               {[...Array(6)].map((_, index) => (
@@ -82,7 +82,7 @@ export default function AllAchievementsPage({
               ))}
             </div>
           ) : !groupedAchievements.length ? (
-            <div className="rounded-2xl border border-dashed border-border p-10 text-center text-muted-foreground">
+            <div className="rounded-2xl border border-dashed border-border py-10 text-center text-muted-foreground">
               No achievements available yet.
             </div>
           ) : (
@@ -101,7 +101,7 @@ export default function AllAchievementsPage({
 
                   <div className="overflow-hidden rounded-none border-x-0 border-y divide-y divide-border lg:rounded-2xl lg:border">
                     {group.items.map((achievement, index) => {
-                      const isUnlocked = Boolean(achievement.achieved);
+                      const isUnlocked = Boolean(achievement.achieved)
                       return (
                         <motion.article
                           key={
@@ -111,7 +111,7 @@ export default function AllAchievementsPage({
                           initial={{ opacity: 0, x: -12 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.04 * index, duration: 0.25 }}
-                          className="group relative flex items-center gap-4 p-4 transition-colors hover:bg-muted/50 dark:hover:bg-muted/20 sm:p-5"
+                          className="group relative flex items-center gap-4 p-5 transition-colors hover:bg-muted/50 dark:hover:bg-muted/20"
                         >
                           {isUnlocked ? (
                             <span className="absolute inset-y-0 left-0 w-1 bg-accent" />
@@ -158,7 +158,7 @@ export default function AllAchievementsPage({
                             <Lock className="h-5 w-5 shrink-0 text-muted-foreground" />
                           )}
                         </motion.article>
-                      );
+                      )
                     })}
                   </div>
                 </section>
@@ -168,5 +168,5 @@ export default function AllAchievementsPage({
         </div>
       </motion.section>
     </div>
-  );
+  )
 }

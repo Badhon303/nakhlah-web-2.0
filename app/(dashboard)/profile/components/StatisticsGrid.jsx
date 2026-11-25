@@ -1,27 +1,27 @@
-"use client";
-import { BarChart } from "@/components/icons/BarChart";
-import { Bullseye } from "@/components/icons/BullsEye";
-import { Calendar } from "@/components/icons/Calendar";
+"use client"
+import { BarChart } from "@/components/icons/BarChart"
+import { Bullseye } from "@/components/icons/BullsEye"
+import { Calendar } from "@/components/icons/Calendar"
 import {
   DatesIcon,
   InjazStarIcon,
   StreakIcon,
-} from "@/components/icons/PublicAssetIcons";
-import { Medal } from "@/components/icons/Medal";
-import { motion } from "framer-motion";
-import { getProfileBadgeCount } from "@/lib/gamification";
+} from "@/components/icons/PublicAssetIcons"
+import { Medal } from "@/components/icons/Medal"
+import { motion } from "framer-motion"
+import { getProfileBadgeCount } from "@/lib/gamification"
 
 export default function StatisticsGrid({ profileData, achievementsData = [] }) {
-  const totalDates = profileData?.gamificationStock?.dateStock ?? 0;
-  const totalXp = profileData?.gamificationStock?.injazStock ?? 0;
+  const totalDates = profileData?.gamificationStock?.dateStock ?? 0
+  const totalXp = profileData?.gamificationStock?.injazStock ?? 0
   const tasksCompleted =
-    profileData?.dailyChallengeActivity?.tasksCompleted ?? 0;
+    profileData?.dailyChallengeActivity?.tasksCompleted ?? 0
   const lessonsCompleted =
-    profileData?.dailyChallengeActivity?.lessonsCompleted ?? 0;
+    profileData?.dailyChallengeActivity?.lessonsCompleted ?? 0
   const achievementsUnlocked = Array.isArray(achievementsData)
     ? achievementsData.filter((achievement) => achievement?.achieved).length
-    : 0;
-  const badgesEarned = getProfileBadgeCount(profileData);
+    : 0
+  const badgesEarned = getProfileBadgeCount(profileData)
 
   const userStats = [
     {
@@ -54,16 +54,16 @@ export default function StatisticsGrid({ profileData, achievementsData = [] }) {
       value: `${badgesEarned}`,
       label: "Badges Earned",
     },
-  ];
+  ]
 
   return (
     <motion.section
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1, duration: 0.5 }}
-      className="overflow-hidden rounded-none border-0 bg-transparent shadow-none lg:rounded-3xl lg:border lg:border-accent/20 lg:bg-card lg:shadow-sm"
+      className="overflow-hidden rounded-none border-0 bg-transparent shadow-none p-0 lg:rounded-3xl lg:border lg:border-accent/20 lg:bg-card lg:shadow-sm lg:p-6"
     >
-      <div className="flex items-center justify-between gap-5 border-b border-border px-5 py-5 text-foreground sm:px-7">
+      <div className="flex items-center justify-between gap-5 border-b border-border text-foreground lg:p-6">
         <div>
           <h3 className="text-xl font-extrabold text-foreground">
             Your statistics
@@ -76,14 +76,14 @@ export default function StatisticsGrid({ profileData, achievementsData = [] }) {
       </div>
       <div className="grid grid-cols-2 divide-x divide-y divide-border sm:grid-cols-3">
         {userStats.map((stat, index) => {
-          const IconComponent = stat.icon;
+          const IconComponent = stat.icon
           return (
             <motion.div
               key={stat.label}
               initial={{ opacity: 0, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.05 * index, duration: 0.3 }}
-              className="group min-h-40 bg-transparent p-5 transition-colors hover:bg-muted/50 dark:hover:bg-muted/20 lg:bg-card sm:p-6"
+              className="group min-h-40 bg-transparent p-4 transition-colors hover:bg-muted/50 dark:hover:bg-muted/20 lg:bg-card lg:p-6"
             >
               <IconComponent
                 size="lg"
@@ -96,9 +96,9 @@ export default function StatisticsGrid({ profileData, achievementsData = [] }) {
                 {stat.label}
               </p>
             </motion.div>
-          );
+          )
         })}
       </div>
     </motion.section>
-  );
+  )
 }

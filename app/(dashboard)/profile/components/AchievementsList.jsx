@@ -1,43 +1,42 @@
-"use client";
-import { Medal } from "@/components/icons/Medal";
-import AchievementTick from "@/components/icons/AchievementTick";
-import { motion } from "framer-motion";
-import { ChevronRight, Lock } from "lucide-react";
-import { buildApiUrl } from "@/lib/api-config";
-import Image from "next/image";
+"use client"
+import { Medal } from "@/components/icons/Medal"
+import AchievementTick from "@/components/icons/AchievementTick"
+import { motion } from "framer-motion"
+import { ChevronRight, Lock } from "lucide-react"
+import { buildApiUrl } from "@/lib/api-config"
 
 const getMediaUrl = (url) => {
-  if (!url) return "";
-  if (url.startsWith("http://") || url.startsWith("https://")) return url;
-  return buildApiUrl(url);
-};
+  if (!url) return ""
+  if (url.startsWith("http://") || url.startsWith("https://")) return url
+  return buildApiUrl(url)
+}
 
 const AchievementIcon = ({ achievement }) =>
   achievement.unitIcon ? (
-    <Image
+    <img
       src={getMediaUrl(achievement.unitIcon?.url || achievement.unitIcon)}
       alt={achievement.title || "Unit icon"}
       className="h-14 w-14 rounded-xl object-cover"
     />
   ) : (
     <Medal size="lg" />
-  );
+  )
 
 export default function AchievementsList({
   onViewAll,
   achievements = [],
   isLoading = false,
 }) {
-  const compactAchievements = achievements.slice(0, 5);
+  const compactAchievements = achievements.slice(0, 5)
 
   return (
     <motion.section
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.5 }}
-      className="overflow-hidden rounded-none border-0 bg-transparent shadow-none lg:rounded-3xl lg:border lg:border-accent/20 lg:bg-card lg:shadow-sm"
+      className="overflow-hidden rounded-none border-0 bg-transparent shadow-none p-0 lg:rounded-3xl lg:border lg:border-accent/20 lg:bg-card lg:shadow-sm lg:p-6"
     >
-      <div className="flex items-center justify-between gap-5 border-b border-border px-5 py-5 text-foreground sm:px-7">
+      <div className="flex items-center justify-between gap-5 border-b border-border text-foreground lg:p-6">
         <div>
           <h3 className="text-xl font-extrabold text-foreground">
             Achievements
@@ -49,7 +48,7 @@ export default function AchievementsList({
         {/* <Medal size="lg" className="shrink-0 text-white" /> */}
       </div>
 
-      <div className="sm:p-6">
+      <div>
         {isLoading && (
           <div className="space-y-3">
             {[...Array(5)].map((_, index) => (
@@ -68,7 +67,7 @@ export default function AchievementsList({
         )}
 
         {!isLoading && !compactAchievements.length && (
-          <div className="rounded-2xl border border-dashed border-border p-10 text-center">
+          <div className="rounded-2xl border border-dashed border-border py-8 text-center">
             <Medal size="xl" className="mx-auto opacity-60" />
             <p className="mt-3 font-extrabold text-foreground">
               Your first achievement is waiting
@@ -130,5 +129,5 @@ export default function AchievementsList({
         )}
       </div>
     </motion.section>
-  );
+  )
 }

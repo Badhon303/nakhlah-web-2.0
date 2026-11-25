@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
-import { motion } from "framer-motion";
-import { useSession } from "@/lib/auth-client";
-import { getSessionToken, isSessionValid } from "@/lib/authUtils";
-import { getUserKey } from "@/lib/userKey";
-import { useLeaderboardStore } from "@/stores/useLeaderboardStore";
+import { useEffect, useMemo, useRef, useState } from "react"
+import Image from "next/image"
+import { motion } from "framer-motion"
+import { useSession } from "@/lib/auth-client"
+import { getSessionToken, isSessionValid } from "@/lib/authUtils"
+import { getUserKey } from "@/lib/userKey"
+import { useLeaderboardStore } from "@/stores/useLeaderboardStore"
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 10
 
 const PODIUM_CONFIG = {
   1: {
@@ -15,10 +15,10 @@ const PODIUM_CONFIG = {
     avatarImg: 112,
     blockWidth: "w-28 lg:w-36",
     blockHeight: "h-32 lg:h-36",
-    frontFace: "from-violet-400 to-violet-500",
-    topFace: "bg-violet-300",
+    frontFace: "from-accent to-accent/80",
+    topFace: "bg-accent/70",
     numberClass: "text-5xl lg:text-6xl",
-    medalBg: "bg-amber-400",
+    medalBg: "bg-accent",
     delay: 0.3,
   },
   2: {
@@ -27,10 +27,10 @@ const PODIUM_CONFIG = {
     avatarImg: 96,
     blockWidth: "w-24 lg:w-32",
     blockHeight: "h-24 lg:h-28",
-    frontFace: "from-violet-500 to-violet-600",
-    topFace: "bg-violet-400",
+    frontFace: "from-accent to-accent/80",
+    topFace: "bg-accent/70",
     numberClass: "text-4xl lg:text-5xl",
-    medalBg: "bg-slate-300",
+    medalBg: "bg-accent",
     delay: 0.4,
   },
   3: {
@@ -39,19 +39,19 @@ const PODIUM_CONFIG = {
     avatarImg: 96,
     blockWidth: "w-24 lg:w-32",
     blockHeight: "h-20 lg:h-24",
-    frontFace: "from-violet-600 to-violet-700",
-    topFace: "bg-violet-500",
+    frontFace: "from-accent to-accent/80",
+    topFace: "bg-accent/70",
     numberClass: "text-4xl lg:text-5xl",
-    medalBg: "bg-amber-600",
+    medalBg: "bg-accent",
     delay: 0.5,
   },
-};
+}
 
 function PodiumPlace({ user, rank }) {
-  const config = PODIUM_CONFIG[rank];
+  const config = PODIUM_CONFIG[rank]
 
   return (
-    <div className="flex min-w-0 flex-col items-center">
+    <div className="flex flex-col items-center">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -91,10 +91,10 @@ function PodiumPlace({ user, rank }) {
         </div>
       </motion.div>
 
-      <p className="mt-6 max-w-[96px] truncate text-center text-sm font-semibold text-foreground sm:max-w-[120px] lg:text-base">
+      <p className="mt-6 font-semibold text-foreground text-sm lg:text-base truncate max-w-[120px] text-center">
         {user?.name}
       </p>
-      <div className="mt-1 whitespace-nowrap rounded-full border border-border bg-card px-2.5 py-1 text-xs font-bold text-accent shadow-md sm:px-3 sm:text-sm">
+      <div className="mt-1 rounded-full bg-card px-3 py-1 text-accent font-bold text-sm shadow-md border border-border">
         {user?.injaz} Injaz
       </div>
 
@@ -115,31 +115,29 @@ function PodiumPlace({ user, rank }) {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-function RestList({ restList }) {
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const loadMoreRef = useRef(null);
+function RestList({ restList, onViewProfile }) {
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const loadMoreRef = useRef(null)
 
   useEffect(() => {
-    const el = loadMoreRef.current;
-    if (!el) return undefined;
+    const el = loadMoreRef.current
+    if (!el) return undefined
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && visibleCount < restList.length) {
-          setVisibleCount((prev) =>
-            Math.min(prev + PAGE_SIZE, restList.length),
-          );
+          setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, restList.length))
         }
       },
       { rootMargin: "200px" },
-    );
+    )
 
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [visibleCount, restList.length]);
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [visibleCount, restList.length])
 
   return (
     <>
@@ -148,20 +146,20 @@ function RestList({ restList }) {
           key={user.id}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: Math.min(0.7 + index * 0.05, 1.2) }}
-          className={`flex w-full items-center gap-3 rounded-2xl bg-transparent px-3 py-3 sm:gap-4 sm:py-4 lg:bg-card lg:p-4 ${
+          transition={{ delay: 0.7 + index * 0.05 }}
+          className={`w-full bg-transparent lg:bg-card flex items-center gap-4 px-2 py-4 lg:p-4 rounded-2xl ${
             user.isCurrentUser
               ? "bg-muted/30 border-2 border-primary lg:shadow-lg"
               : "border border-border shadow-md"
           }`}
         >
-          <div className="w-7 shrink-0 text-center sm:w-8">
-            <span className="font-bold text-muted-foreground text-base sm:text-lg">
+          <div className="w-8 text-center">
+            <span className="font-bold text-muted-foreground text-lg">
               {user.rank}
             </span>
           </div>
           <div
-            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${user.color} text-lg font-bold text-white shadow-lg sm:h-14 sm:w-14`}
+            className={`w-14 h-14 rounded-full bg-gradient-to-br ${user.color} flex items-center justify-center text-white font-bold text-lg shadow-lg`}
           >
             {user.avatarUrl ? (
               <Image
@@ -175,9 +173,9 @@ function RestList({ restList }) {
               user.avatar
             )}
           </div>
-          <div className="min-w-0 flex-1 text-left">
+          <div className="flex-1 text-left">
             <p
-              className={`truncate font-bold ${
+              className={`font-bold ${
                 user.isCurrentUser ? "text-primary" : "text-foreground"
               }`}
             >
@@ -191,67 +189,65 @@ function RestList({ restList }) {
       {visibleCount < restList.length && (
         <div ref={loadMoreRef} className="pt-2 flex justify-center">
           <button
-            type="button"
             onClick={() =>
               setVisibleCount((prev) =>
                 Math.min(prev + PAGE_SIZE, restList.length),
               )
             }
-            className="min-h-11 px-6 py-2.5 rounded-xl border border-border bg-card text-sm font-semibold text-foreground hover:bg-muted active:bg-muted transition-colors"
+            className="px-6 py-2.5 rounded-xl border border-border bg-card text-sm font-semibold text-foreground hover:bg-muted transition-colors"
           >
             Load More
           </button>
         </div>
       )}
     </>
-  );
+  )
 }
 
-export default function Leaderboard() {
-  const { data: session, status } = useSession();
-  const leaderboardData = useLeaderboardStore((state) => state.leaderboard);
-  const topThree = useLeaderboardStore((state) => state.topThree);
-  const isLoading = useLeaderboardStore((state) => state.isLoading);
+export default function Leaderboard({ onViewProfile }) {
+  const { data: session, status } = useSession()
+  const leaderboardData = useLeaderboardStore((state) => state.leaderboard)
+  const topThree = useLeaderboardStore((state) => state.topThree)
+  const isLoading = useLeaderboardStore((state) => state.isLoading)
   const fetchLeaderboard = useLeaderboardStore(
     (state) => state.fetchLeaderboard,
-  );
-  const clearLeaderboard = useLeaderboardStore((state) => state.clear);
+  )
+  const clearLeaderboard = useLeaderboardStore((state) => state.clear)
 
-  const restList = leaderboardData.slice(3);
+  const restList = leaderboardData.slice(3)
   const dataKey = useMemo(() => {
-    return leaderboardData.length + "-" + (leaderboardData[0]?.id ?? "");
-  }, [leaderboardData]);
+    return leaderboardData.length + "-" + (leaderboardData[0]?.id ?? "")
+  }, [leaderboardData])
 
   useEffect(() => {
     const loadLeaderboard = async () => {
-      if (status === "loading") return;
+      if (status === "loading") return
 
       if (!isSessionValid(session)) {
-        clearLeaderboard();
-        return;
+        clearLeaderboard()
+        return
       }
 
-      const token = getSessionToken(session);
+      const token = getSessionToken(session)
       await fetchLeaderboard({
         token,
         userKey: getUserKey(session),
         sessionUserId: session?.user?.id || "",
-      });
-    };
+      })
+    }
 
-    loadLeaderboard();
-  }, [clearLeaderboard, fetchLeaderboard, session, status]);
+    loadLeaderboard()
+  }, [clearLeaderboard, fetchLeaderboard, session, status])
 
   return (
     <div className="min-h-screen">
-      <div className="container mx-auto max-w-3xl px-4 pb-8 pt-4 lg:max-w-7xl lg:py-6">
+      <div className=" container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
-        <section className="mb-6 max-w-4xl">
+        <section className="mb-6 max-w-2xl">
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-5xl">
-            Rise through the{" "}
-            <span className="text-gradient-accent">ranks.</span>
+            Rise through the <span className="text-secondary">ranks.</span>
           </h1>
-          <p className="mt-4 max-w-4xl text-base leading-7 text-muted-foreground sm:text-lg">
+          <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
             Compete with learners and earn your place at the top of the
             leaderboard.
           </p>
@@ -262,7 +258,7 @@ export default function Leaderboard() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="relative mb-8 mt-10 flex items-end justify-center gap-2 sm:gap-4 lg:gap-8"
+          className="relative mb-8 flex items-end justify-center gap-4 lg:gap-8 mt-8"
         >
           <PodiumPlace user={topThree[1]} rank={2} />
           <PodiumPlace user={topThree[0]} rank={1} />
@@ -274,7 +270,7 @@ export default function Leaderboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="space-y-2 lg:space-y-3"
+          className="lg:space-y-3"
         >
           {isLoading ? (
             <div className="space-y-3">
@@ -290,10 +286,14 @@ export default function Leaderboard() {
               No leaderboard data available.
             </div>
           ) : (
-            <RestList key={dataKey} restList={restList} />
+            <RestList
+              key={dataKey}
+              restList={restList}
+              onViewProfile={onViewProfile}
+            />
           )}
         </motion.div>
       </div>
     </div>
-  );
+  )
 }

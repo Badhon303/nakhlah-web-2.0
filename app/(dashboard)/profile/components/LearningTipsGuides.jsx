@@ -1,40 +1,41 @@
-"use client";
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { ChevronLeft, BookOpen, Lightbulb } from "lucide-react";
-import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
-import { fetchHelpCenter } from "@/services/api/globals";
-import { useSession } from "@/lib/auth-client";
-import { getSessionToken } from "@/lib/authUtils";
+"use client"
+import { useEffect, useState } from "react"
+import { motion } from "framer-motion"
+import { ChevronLeft, BookOpen, Lightbulb } from "lucide-react"
+import LexicalRenderer from "@/components/nakhlah/LexicalRenderer"
+import { fetchHelpCenter } from "@/services/api/globals"
+import { useSession } from "@/lib/auth-client"
+import { getSessionToken } from "@/lib/authUtils"
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton"
 
 export default function LearningTipsGuidesPage({ onBack }) {
-  const [guide, setGuide] = useState(null);
-  const [tips, setTips] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const { data: session } = useSession();
+  const [guide, setGuide] = useState(null)
+  const [tips, setTips] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const { data: session } = useSession()
 
   useEffect(() => {
     const load = async () => {
-      setIsLoading(true);
-      const token = getSessionToken(session);
+      setIsLoading(true)
+      const token = getSessionToken(session)
       const result = await fetchHelpCenter(
         {
           learningGuide: true,
           learningTips: true,
         },
         token,
-      );
+      )
       if (result.success) {
-        setGuide(result.data?.learningGuide ?? null);
-        setTips(result.data?.learningTips ?? []);
+        setGuide(result.data?.learningGuide ?? null)
+        setTips(result.data?.learningTips ?? [])
       } else {
-        setError(result.error);
+        setError(result.error)
       }
-      setIsLoading(false);
-    };
-    load();
-  }, [session]);
+      setIsLoading(false)
+    }
+    load()
+  }, [session])
 
   return (
     <div className="max-w-2xl mx-auto py-6">
@@ -60,15 +61,7 @@ export default function LearningTipsGuidesPage({ onBack }) {
         </div>
 
         {isLoading ? (
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <div
-                key={i}
-                className="h-4 bg-muted/50 rounded animate-pulse"
-                style={{ width: `${90 - i * 8}%` }}
-              />
-            ))}
-          </div>
+          <DocumentLoadingSkeleton />
         ) : error ? (
           <div className="py-8 text-center text-muted-foreground text-sm">
             <p>Failed to load content. Please try again later.</p>
@@ -132,5 +125,5 @@ export default function LearningTipsGuidesPage({ onBack }) {
         )}
       </motion.div>
     </div>
-  );
+  )
 }

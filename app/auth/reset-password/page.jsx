@@ -1,69 +1,69 @@
-"use client";
+"use client"
 
-import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
-import { Suspense, useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Eye, EyeOff } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { resetPassword } from "@/services/api/auth";
-import { toast } from "@/components/nakhlah/Toast";
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot"
+import { Suspense, useState, useEffect } from "react"
+import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Eye, EyeOff } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { resetPassword } from "@/services/api/auth"
+import { toast } from "@/components/nakhlah/Toast"
 
 function CreatePasswordContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [resetToken, setResetToken] = useState("");
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [resetToken, setResetToken] = useState("")
 
   useEffect(() => {
-    const tokenFromUrl = searchParams.get("token");
+    const tokenFromUrl = searchParams.get("token")
     if (tokenFromUrl) {
-      setResetToken(tokenFromUrl);
+      setResetToken(tokenFromUrl)
     }
-  }, [searchParams]);
+  }, [searchParams])
 
   const handleContinue = async () => {
     if (!password || password.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return;
+      toast.error("Password must be at least 6 characters")
+      return
     }
 
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
+      toast.error("Passwords do not match")
+      return
     }
 
     if (!resetToken) {
-      toast.error("Invalid or missing reset token");
-      return;
+      toast.error("Invalid or missing reset token")
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
 
     try {
-      const result = await resetPassword(resetToken, password);
+      const result = await resetPassword(resetToken, password)
 
       if (!result.success) {
-        toast.error(result.error || "Failed to reset password");
-        setIsLoading(false);
-        return;
+        toast.error(result.error || "Failed to reset password")
+        setIsLoading(false)
+        return
       }
 
-      toast.success(result.message || "Password reset successfully!");
-      router.push("/auth/welcome-back");
+      toast.success(result.message || "Password reset successfully!")
+      router.push("/auth/welcome-back")
     } catch (error) {
-      console.error("Reset password error:", error);
-      toast.error("An error occurred. Please try again.");
+      console.error("Reset password error:", error)
+      toast.error("An error occurred. Please try again.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-start sm:items-center justify-center px-4 py-6">
@@ -176,7 +176,7 @@ function CreatePasswordContent() {
               </div>
 
               {/* Continue Button */}
-              <div>
+              <div className="hidden sm:block">
                 <Button
                   onClick={handleContinue}
                   disabled={isLoading}
@@ -189,8 +189,17 @@ function CreatePasswordContent() {
           </div>
         </motion.div>
       </div>
+      <div className="safe-area-bottom fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background p-4 sm:hidden">
+        <Button
+          onClick={handleContinue}
+          disabled={isLoading}
+          className="h-12 w-full rounded-xl bg-accent text-lg font-bold text-accent-foreground hover:opacity-90"
+        >
+          {isLoading ? "RESETTING PASSWORD..." : "CONTINUE"}
+        </Button>
+      </div>
     </div>
-  );
+  )
 }
 
 export default function CreatePasswordPage() {
@@ -198,5 +207,5 @@ export default function CreatePasswordPage() {
     <Suspense fallback={<div className="min-h-screen bg-background" />}>
       <CreatePasswordContent />
     </Suspense>
-  );
+  )
 }

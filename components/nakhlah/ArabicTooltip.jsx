@@ -1,73 +1,70 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@/components/ui/tooltip"
 
 /**
  * ArabicTooltip component for displaying pronunciation tooltips on Arabic words.
  * @param {string} text - The Arabic text to display
  * @param {string} pronunciation - The pronunciation word to show in tooltip
- * @param {string} children - Child content
+ * @param {boolean} isOpen - Controlled open state
+ * @param {function} onOpenChange - Controlled open state change callback
  */
 export function ArabicTooltip({
   text,
   pronunciation,
-  tooltipId,
-  activeTooltipId,
-  onActiveTooltipChange,
+  isOpen: isOpenProp,
+  onOpenChange,
 }) {
-  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
-  const [isTouch, setIsTouch] = useState(false);
-  const isGrouped = typeof onActiveTooltipChange === "function";
-  const open = isGrouped ? activeTooltipId === tooltipId : uncontrolledOpen;
+  const [internalOpen, setInternalOpen] = useState(false)
+  const [isTouch, setIsTouch] = useState(false)
+  const isControlled = isOpenProp !== undefined
+  const open = isControlled ? isOpenProp : internalOpen
+
+  const setOpen = useCallback(
+    (next) => {
+      onOpenChange?.(next)
+      if (!isControlled) setInternalOpen(next)
+    },
+    [isControlled, onOpenChange],
+  )
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(pointer: coarse)");
-    const update = () => setIsTouch(mq.matches);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, []);
+    if (typeof window === "undefined") return
+    const mq = window.matchMedia("(pointer: coarse)")
+    const update = () => setIsTouch(mq.matches)
+    update()
+    mq.addEventListener("change", update)
+    return () => mq.removeEventListener("change", update)
+  }, [])
 
   const handleMouseEnter = useCallback(() => {
-    if (isTouch) return;
-    if (isGrouped) {
-      onActiveTooltipChange(tooltipId);
-      return;
-    }
-    setUncontrolledOpen(true);
-  }, [isGrouped, isTouch, onActiveTooltipChange, tooltipId]);
+    if (!isTouch) setOpen(true)
+  }, [isTouch, setOpen])
 
   const handleMouseLeave = useCallback(() => {
-    if (isTouch) return;
-    if (isGrouped) {
-      onActiveTooltipChange(null);
-      return;
-    }
-    setUncontrolledOpen(false);
-  }, [isGrouped, isTouch, onActiveTooltipChange]);
+    if (!isTouch) setOpen(false)
+  }, [isTouch, setOpen])
 
   const handleClick = useCallback(() => {
-    if (!isTouch) return;
-    if (isGrouped) {
-      onActiveTooltipChange(activeTooltipId === tooltipId ? null : tooltipId);
-      return;
-    }
-    setUncontrolledOpen((prev) => !prev);
-  }, [activeTooltipId, isGrouped, isTouch, onActiveTooltipChange, tooltipId]);
+    if (isTouch) setOpen(!open)
+  }, [isTouch, open, setOpen])
 
   return (
     <TooltipProvider delayDuration={0}>
       <Tooltip open={open}>
         <TooltipTrigger asChild>
           <span
-            className="cursor-help border-b border-dotted border-foreground/30 hover:border-foreground/60 hover:text-accent transition-colors select-none"
+            className={`cursor-help border-b border-dotted transition-colors select-none ${
+              open
+                ? "text-accent border-foreground/60"
+                : "border-foreground/30 hover:border-foreground/60 hover:text-accent"
+            }`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             onClick={handleClick}
@@ -80,5 +77,5 @@ export function ArabicTooltip({
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
-  );
+  )
 }

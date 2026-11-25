@@ -1,14 +1,16 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
-import { useSession } from "@/lib/auth-client";
-import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
-import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
-import { getSessionToken } from "@/lib/authUtils";
-import { useAboutStore } from "@/stores/useAboutStore";
-import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
+import { ChevronLeft } from "lucide-react"
+import { useSession } from "@/lib/auth-client"
+import { Mascot } from "@/components/nakhlah/Mascot"
+import LexicalRenderer from "@/components/nakhlah/LexicalRenderer"
+import { getSessionToken } from "@/lib/authUtils"
+import { fetchAbout } from "@/services/api/globals"
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot"
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton"
 
 const SECTION_CONFIG = [
   { key: "about", title: "About" },
@@ -16,43 +18,41 @@ const SECTION_CONFIG = [
   { key: "fees", title: "Fees" },
   { key: "developers", title: "Developers" },
   { key: "partners", title: "Partners" },
-];
+]
 
-const hasTextContent = (node) => {
-  if (!node) return false;
-  if (typeof node.text === "string" && node.text.trim().length > 0) {
-    return true;
-  }
-  if (Array.isArray(node.children)) {
-    return node.children.some(hasTextContent);
-  }
-  return false;
-};
-
-const isRichText = (value) =>
-  value?.root?.type === "root" && hasTextContent(value.root);
+const isRichText = (value) => value?.root?.type === "root"
 
 export default function AboutPage() {
-  const router = useRouter();
-  const { data: session, status } = useSession();
-  const token = getSessionToken(session);
-  const aboutData = useAboutStore((state) => state.data);
-  const isLoading = useAboutStore((state) => state.isLoading);
-  const error = useAboutStore((state) => state.error);
-  const fetchAbout = useAboutStore((state) => state.fetchAbout);
+  const router = useRouter()
+  const { data: session } = useSession()
+  const [aboutData, setAboutData] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    if (status === "loading") return;
-    fetchAbout(token);
-  }, [status, token, fetchAbout]);
+    const load = async () => {
+      setIsLoading(true)
+      const token = getSessionToken(session)
+      const result = await fetchAbout(token)
+      if (result.success) {
+        setAboutData(result.data)
+      }
+      setIsLoading(false)
+    }
+
+    load()
+  }, [session])
 
   const sections = SECTION_CONFIG.filter((section) =>
     isRichText(aboutData?.[section.key]),
-  );
+  )
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
-      <div className="w-full max-w-4xl rounded-3xl border border-border bg-card p-5 shadow-lg md:p-6">
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-4xl bg-card rounded-3xl border border-border shadow-lg p-4"
+      >
         <div className="flex items-center gap-3 mb-7">
           <button
             onClick={() => router.push("/")}
@@ -67,15 +67,15 @@ export default function AboutPage() {
           <FreshDateMascot size="xxl" mood="happy" />
         </div>
 
-        {isLoading || (!aboutData && !error) ? (
+        {isLoading ? (
           <DocumentLoadingSkeleton />
         ) : sections.length > 0 ? (
           <div className="space-y-8">
             {sections.map((section) => (
               <section key={section.key}>
-                {/* <h2 className="text-xl font-semibold text-foreground mb-3">
+                <h2 className="text-xl font-semibold text-foreground mb-3">
                   {section.title}
-                </h2> */}
+                </h2>
                 <LexicalRenderer
                   lexicalJson={aboutData[section.key]}
                   className="text-base"
@@ -104,7 +104,7 @@ export default function AboutPage() {
             No about content available.
           </p>
         )}
-      </div>
+      </motion.div>
     </div>
-  );
+  )
 }

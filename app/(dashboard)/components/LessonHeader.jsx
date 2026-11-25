@@ -1,18 +1,18 @@
-"use client";
+"use client"
 
-import { useMemo } from "react";
-import { X } from "lucide-react";
-import { PalmIcon } from "@/components/icons/PublicAssetIcons";
-import { NotoStopwatch } from "@/components/icons/NotoStopwatch";
-import { usePalmRefillCountdown } from "@/hooks/usePalmRefillCountdown";
+import { useMemo } from "react"
+import { X } from "lucide-react"
+import { PalmIcon } from "@/components/icons/PublicAssetIcons"
+import { NotoStopwatch } from "@/components/icons/NotoStopwatch"
+import { usePalmRefillCountdown } from "@/hooks/usePalmRefillCountdown"
 
 function formatTime(totalSeconds) {
-  const clamped = Math.max(0, totalSeconds);
+  const clamped = Math.max(0, totalSeconds)
   const minutes = Math.floor(clamped / 60)
     .toString()
-    .padStart(2, "0");
-  const seconds = (clamped % 60).toString().padStart(2, "0");
-  return `${minutes}:${seconds}`;
+    .padStart(2, "0")
+  const seconds = (clamped % 60).toString().padStart(2, "0")
+  return `${minutes}:${seconds}`
 }
 
 export default function LessonHeader({
@@ -26,9 +26,9 @@ export default function LessonHeader({
   const normalizedProgress = useMemo(
     () => Math.max(0, Math.min(100, progressPercentage || 0)),
     [progressPercentage],
-  );
+  )
   const { isFull: palmIsFull, formatted: palmRefillCountdown } =
-    usePalmRefillCountdown(palmUpdatedAt, palmTrees, maxPalmTrees);
+    usePalmRefillCountdown(palmUpdatedAt, palmTrees, maxPalmTrees)
 
   return (
     <div className="border-b border-border">
@@ -48,7 +48,7 @@ export default function LessonHeader({
                 ))}
               </div>
               {!palmIsFull && palmRefillCountdown ? (
-                <span className="pl-1 text-[10px] font-semibold text-muted-foreground">
+                <span className="text-[10px] font-semibold text-muted-foreground">
                   Next in {palmRefillCountdown}
                 </span>
               ) : null}
@@ -104,7 +104,7 @@ export default function LessonHeader({
               ))}
             </div>
             {!palmIsFull && palmRefillCountdown ? (
-              <span className="pl-1 text-[11px] font-semibold text-muted-foreground">
+              <span className="text-[11px] font-semibold text-muted-foreground">
                 Next in {palmRefillCountdown}
               </span>
             ) : null}
@@ -118,5 +118,5 @@ export default function LessonHeader({
         </div>
       </div>
     </div>
-  );
+  )
 }

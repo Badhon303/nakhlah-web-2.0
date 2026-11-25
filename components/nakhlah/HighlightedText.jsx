@@ -1,8 +1,8 @@
 export default function HighlightedText({ text, query }) {
-  if (!text || !query.trim()) return text || "";
+  if (!text || !query.trim()) return text || ""
 
-  const escapedQuery = query.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const parts = String(text).split(new RegExp(`(${escapedQuery})`, "gi"));
+  const escapedQuery = query.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  const parts = String(text).split(new RegExp(`(${escapedQuery})`, "gi"))
 
   return parts.map((part, index) =>
     part.toLowerCase() === query.trim().toLowerCase() ? (
@@ -15,5 +15,5 @@ export default function HighlightedText({ text, query }) {
     ) : (
       part
     ),
-  );
+  )
 }

@@ -1,62 +1,36 @@
-"use client";
+"use client"
 
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { DatesIcon, InjazStarIcon } from "@/components/icons/PublicAssetIcons";
-import { Bullseye } from "@/components/icons/BullsEye";
-import { NotoStopwatch } from "@/components/icons/NotoStopwatch";
-import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
-
-function giftLabel(item) {
-  if (typeof item === "string" || typeof item === "number") {
-    return String(item).trim();
-  }
-  if (!item || typeof item !== "object") return "";
-  return String(
-    item.title || item.name || item.label || item.key || "",
-  ).trim();
-}
-
-function collectEarnedGifts(progressData) {
-  const sources = [
-    progressData?.badges?.added,
-    progressData?.gifts,
-    progressData?.giftsEarned,
-    progressData?.rewards?.gifts,
-    progressData?.reward?.gifts,
-  ];
-
-  return sources
-    .flatMap((source) => (Array.isArray(source) ? source : []))
-    .map(giftLabel)
-    .filter(Boolean)
-    .filter((label, index, labels) => labels.indexOf(label) === index);
-}
+import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { DatesIcon, InjazStarIcon } from "@/components/icons/PublicAssetIcons"
+import { Bullseye } from "@/components/icons/BullsEye"
+import { NotoStopwatch } from "@/components/icons/NotoStopwatch"
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot"
 
 function formatTime(totalSeconds) {
-  const clamped = Math.max(0, Number(totalSeconds) || 0);
+  const clamped = Math.max(0, Number(totalSeconds) || 0)
   const minutes = Math.floor(clamped / 60)
     .toString()
-    .padStart(2, "0");
-  const seconds = (clamped % 60).toString().padStart(2, "0");
-  return `${minutes}:${seconds}`;
+    .padStart(2, "0")
+  const seconds = (clamped % 60).toString().padStart(2, "0")
+  return `${minutes}:${seconds}`
 }
 
 function calculateAccuracyPercentage({
   totalQuestions,
   correctAnswerAttempts,
 }) {
-  const normalizedQuestionCount = Number(totalQuestions);
-  const normalizedCorrectAttempts = Number(correctAnswerAttempts);
+  const normalizedQuestionCount = Number(totalQuestions)
+  const normalizedCorrectAttempts = Number(correctAnswerAttempts)
 
   if (
     !Number.isFinite(normalizedQuestionCount) ||
     normalizedQuestionCount <= 0 ||
     !Number.isFinite(normalizedCorrectAttempts)
   ) {
-    return 0;
+    return 0
   }
 
   return Math.max(
@@ -65,29 +39,29 @@ function calculateAccuracyPercentage({
       100,
       Math.round((normalizedCorrectAttempts / normalizedQuestionCount) * 100),
     ),
-  );
+  )
 }
 
 export default function LessonCompleted() {
-  const router = useRouter();
+  const router = useRouter()
   const [progressData] = useState(() => {
     if (typeof window === "undefined") {
-      return null;
+      return null
     }
 
-    const raw = sessionStorage.getItem("lessonProgressData");
+    const raw = sessionStorage.getItem("lessonProgressData")
     if (!raw) {
-      return null;
+      return null
     }
 
     try {
-      return JSON.parse(raw);
+      return JSON.parse(raw)
     } catch {
-      return null;
+      return null
     } finally {
-      sessionStorage.removeItem("lessonProgressData");
+      sessionStorage.removeItem("lessonProgressData")
     }
-  });
+  })
 
   const datesReceived =
     progressData?.datesReceived ??
@@ -95,7 +69,7 @@ export default function LessonCompleted() {
     progressData?.dateEarned ??
     progressData?.dailyQuest?.datesSpend ??
     progressData?.dateStock ??
-    0;
+    0
   const injazReceived =
     progressData?.injazReceived ??
     progressData?.InjazReceived ??
@@ -104,26 +78,29 @@ export default function LessonCompleted() {
     progressData?.reward?.InjazReceived ??
     progressData?.xpEarned ??
     progressData?.injazStock ??
-    0;
+    0
 
   const elapsedSeconds =
     progressData?.__clientStats?.elapsedSeconds ??
     progressData?.elapsedSeconds ??
-    0;
+    0
   const totalQuestions =
     progressData?.__clientStats?.scoredQuestionsCount ??
     progressData?.__clientStats?.totalQuestions ??
     progressData?.totalQuestions ??
-    0;
+    0
   const correctAnswerAttempts =
     progressData?.__clientStats?.correctAnswerAttempts ??
     progressData?.correctAnswerAttempts ??
-    0;
+    0
   const accuracyValue = calculateAccuracyPercentage({
     totalQuestions,
     correctAnswerAttempts,
-  });
-  const earnedGifts = collectEarnedGifts(progressData);
+  })
+  const addedBadges = Array.isArray(progressData?.badges?.added)
+    ? progressData.badges.added
+    : []
+  const streakMessage = progressData?.streak?.message || ""
 
   const stats = [
     {
@@ -147,11 +124,11 @@ export default function LessonCompleted() {
       border: "border-rose-400",
       header: "bg-rose-500",
     },
-  ];
+  ]
 
   const handleContinue = () => {
-    router.push("/lesson/daily-mission");
-  };
+    router.push("/lesson/daily-mission")
+  }
 
   return (
     <div className="h-[calc(100dvh_-_var(--sat)_-_var(--sab))] min-h-0 overflow-hidden bg-background flex flex-col items-center justify-center p-3 sm:min-h-[calc(100vh_-_64px)] sm:h-auto sm:min-h-screen sm:overflow-visible sm:p-4">
@@ -169,7 +146,12 @@ export default function LessonCompleted() {
             transition={{ delay: 0.3, duration: 0.5 }}
             className="flex justify-center mb-4"
           >
-            <FreshDateMascot mood="celebrating" size="xxxl" />
+            <div className="block md:hidden">
+              <FreshDateMascot mood="celebrating" size="xxl" />
+            </div>
+            <div className="hidden md:block">
+              <FreshDateMascot mood="celebrating" size="xxxl" />
+            </div>
           </motion.div>
 
           {/* Title */}
@@ -177,7 +159,7 @@ export default function LessonCompleted() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            className="text-4xl font-extrabold text-accent mb-3 sm:mb-8"
+            className="text-4xl font-extrabold text-accent mb-6"
           >
             Lesson completed!
           </motion.h1>
@@ -187,7 +169,7 @@ export default function LessonCompleted() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
-            className="mb-5 px-2 sm:mb-10 sm:px-0"
+            className="mb-6 px-2 sm:px-0"
           >
             <div className="max-w-sm mx-auto rounded-2xl overflow-hidden border-2 border-amber-400">
               {/* Header */}
@@ -210,23 +192,23 @@ export default function LessonCompleted() {
           </motion.div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-3 gap-3 mb-3 px-1 sm:mb-8 sm:px-4">
+          <div className="grid grid-cols-3 gap-3 mb-6 px-1 sm:px-4">
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className={`rounded-2xl overflow-hidden border-2 ${stat.border} bg-white`}
+                className={`flex flex-col rounded-2xl overflow-hidden border-2 ${stat.border} bg-white`}
               >
                 {/* Header */}
-                <div className={`${stat.header} py-2`}>
-                  <p className="text-white font-bold text-base text-center truncate">
+                <div className={`${stat.header} py-2 shrink-0`}>
+                  <p className="flex items-center justify-center text-white font-bold text-sm sm:text-base text-center">
                     {stat.label}
                   </p>
                 </div>
 
                 {/* Body */}
-                <div className="flex items-center justify-center gap-2 py-4">
+                <div className="flex-1 flex items-center justify-center gap-2 py-4">
                   {stat.icon}
-                  <span className="text-xl font-extrabold text-slate-900">
+                  <span className="text-base sm:text-xl font-extrabold text-slate-900">
                     {stat.value}
                   </span>
                 </div>
@@ -234,22 +216,22 @@ export default function LessonCompleted() {
             ))}
           </div>
 
-          {earnedGifts.length > 0 && (
+          {addedBadges.length > 0 && (
             <div className="mb-3 px-1 sm:mb-8 sm:px-4">
               <div className="max-w-sm mx-auto rounded-2xl border border-border bg-card p-3 text-left sm:p-4">
                 <p className="text-sm font-bold text-foreground">
                   Gifts earned
                 </p>
-                <ul className="mt-1 space-y-1">
-                  {earnedGifts.map((gift) => (
-                    <li
-                      key={gift}
-                      className="text-sm text-muted-foreground"
-                    >
-                      {gift}
-                    </li>
-                  ))}
-                </ul>
+                {addedBadges.length ? (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    New badges: {addedBadges.join(", ")}
+                  </p>
+                ) : null}
+                {/* {streakMessage ? (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {streakMessage}
+                  </p>
+                ) : null} */}
               </div>
             </div>
           )}
@@ -281,5 +263,5 @@ export default function LessonCompleted() {
         </Button>
       </div>
     </div>
-  );
+  )
 }

@@ -1,7 +1,6 @@
+"use client"
 
-"use client";
-
-import PalmRefillPanel from "@/components/nakhlah/PalmRefillPanel";
+import PalmRefillPanel from "@/components/nakhlah/PalmRefillPanel"
 
 /**
  * Full-screen blocking screen shown the instant a learner's Palm Trees hit
@@ -13,7 +12,9 @@ export default function PalmTreesDepletedOverlay({
   onRefill,
   isRefilling,
   onGoPro,
+  onGoStore,
   onExit,
+  palmTreesCount = 0,
   palmUpdatedAt = null,
   dateStock = 0,
 }) {
@@ -22,16 +23,17 @@ export default function PalmTreesDepletedOverlay({
       <PalmRefillPanel
         title="Out of Palm Trees!"
         description="You've used up all your Palm Trees, so you can't answer more questions right now."
-        palmTreesCount={0}
+        palmTreesCount={palmTreesCount}
         maxPalmTrees={5}
         onRefill={onRefill}
         isRefilling={isRefilling}
         onGoPro={onGoPro}
+        onGoStore={onGoStore}
         onExit={onExit}
         exitLabel="Exit Lesson"
         palmUpdatedAt={palmUpdatedAt}
         dateStock={dateStock}
       />
     </div>
-  );
+  )
 }

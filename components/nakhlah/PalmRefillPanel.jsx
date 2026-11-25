@@ -1,10 +1,10 @@
-"use client";
+"use client"
 
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { FreshDateMascot } from "@/components/nakhlah/DateMascot";
-import { PalmIcon } from "@/components/icons/PublicAssetIcons";
-import { usePalmRefillCountdown } from "@/hooks/usePalmRefillCountdown";
+import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { FreshDateMascot } from "@/components/nakhlah/DateMascot"
+import { PalmIcon } from "@/components/icons/PublicAssetIcons"
+import { usePalmRefillCountdown } from "@/hooks/usePalmRefillCountdown"
 
 /**
  * Shared "refill Palm Trees" presentation used both as a full-screen
@@ -24,13 +24,14 @@ export default function PalmRefillPanel({
   onRefill,
   isRefilling = false,
   onGoPro,
+  onGoStore,
   onExit,
   exitLabel = "Exit Lesson",
   palmUpdatedAt = null,
   dateStock = 0,
 }) {
   const { isFull: palmIsFull, formatted: palmRefillCountdown } =
-    usePalmRefillCountdown(palmUpdatedAt, palmTreesCount, maxPalmTrees);
+    usePalmRefillCountdown(palmUpdatedAt, palmTreesCount, maxPalmTrees)
 
   return (
     <motion.div
@@ -56,7 +57,7 @@ export default function PalmRefillPanel({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="mb-2 text-2xl font-extrabold text-foreground md:text-3xl"
+            className="text-2xl md:text-3xl font-extrabold text-foreground mb-2"
           >
             {title}
           </motion.h2>
@@ -65,7 +66,7 @@ export default function PalmRefillPanel({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            className="mb-5 text-muted-foreground"
+            className="text-muted-foreground mb-5"
           >
             {description}
           </motion.p>
@@ -81,7 +82,7 @@ export default function PalmRefillPanel({
         {Array.from({ length: maxPalmTrees }).map((_, index) => (
           <PalmIcon
             key={index}
-            size={compact ? "sm" : "md"}
+            size="md"
             className={index < palmTreesCount ? "opacity-100" : "opacity-25"}
           />
         ))}
@@ -93,24 +94,32 @@ export default function PalmRefillPanel({
         transition={{ delay: 0.35 }}
         className="space-y-3"
       >
-        <Button
-          onClick={onRefill}
-          disabled={isRefilling || palmTreesCount >= maxPalmTrees}
-          className={`w-full rounded-xl bg-accent font-bold text-accent-foreground hover:opacity-90 ${
-            compact ? "h-11 text-base" : "h-12 text-lg"
-          }`}
-        >
-          {isRefilling ? "Refilling..." : "Refill Palm Trees"}
-        </Button>
+        {dateStock >= 100 ? (
+          <Button
+            onClick={onRefill}
+            disabled={isRefilling || palmTreesCount >= maxPalmTrees}
+            className={`w-full rounded-xl bg-accent font-bold text-accent-foreground hover:opacity-90`}
+          >
+            {isRefilling
+              ? "Refilling..."
+              : "Use 100 Dates to Refill Palm Trees"}
+          </Button>
+        ) : (
+          <Button
+            onClick={onGoStore || onGoPro}
+            disabled={isRefilling}
+            className={`w-full rounded-xl bg-accent font-bold text-accent-foreground hover:opacity-90`}
+          >
+            Buy Dates to Refill Palm Trees
+          </Button>
+        )}
         <Button
           onClick={onGoPro}
           disabled={isRefilling}
           variant="outline"
-          className={`w-full rounded-xl border-2 font-bold ${
-            compact ? "h-11 text-base" : "h-12 text-lg"
-          }`}
+          className={`w-full rounded-xl border-2 font-bold`}
         >
-          Go Pro — Unlimited Palms
+          Go Pro — Unlimited Palms Trees
         </Button>
 
         <p className="text-xs text-muted-foreground pt-1">
@@ -119,8 +128,11 @@ export default function PalmRefillPanel({
             : "Palm Trees also refill for free over time — check back later."}
         </p>
         <p className="text-xs text-muted-foreground">
-          You have {dateStock} date{dateStock === 1 ? "" : "s"} available to
-          refill instantly.
+          {dateStock >= 100
+            ? `You have ${dateStock} date${dateStock === 1 ? "" : "s"}. Each refill uses 100 dates.`
+            : dateStock > 0
+              ? `You have ${dateStock} dates, but a refill needs 100. Buy more in the Store to continue.`
+              : "You’re out of dates. Buy more in the Store to refill your Palm Trees."}
         </p>
 
         {onExit ? (
@@ -134,5 +146,5 @@ export default function PalmRefillPanel({
         ) : null}
       </motion.div>
     </motion.div>
-  );
+  )
 }

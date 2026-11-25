@@ -1,38 +1,41 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
-import { fetchLegalDocuments } from "@/services/api/globals";
-import LexicalRenderer from "@/components/nakhlah/LexicalRenderer";
-import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton";
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
+import { ChevronLeft } from "lucide-react"
+import { useSession } from "@/lib/auth-client"
+import { getSessionToken } from "@/lib/authUtils"
+import { fetchLegalDocuments } from "@/services/api/globals"
+import LexicalRenderer from "@/components/nakhlah/LexicalRenderer"
+import DocumentLoadingSkeleton from "@/components/nakhlah/DocumentLoadingSkeleton"
 
 export default function PrivacyRoutePage() {
-  const router = useRouter();
-  const [content, setContent] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter()
+  const { data: session } = useSession()
+  const [content, setContent] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    let cancelled = false;
-
     const load = async () => {
-      const result = await fetchLegalDocuments({ privacyPolicy: true });
-      if (cancelled) return;
+      setIsLoading(true)
+      const token = getSessionToken(session)
+      const result = await fetchLegalDocuments({ privacyPolicy: true }, token)
       if (result.success) {
-        setContent(result.data?.privacyPolicy ?? null);
+        setContent(result.data?.privacyPolicy ?? null)
       }
-      setIsLoading(false);
-    };
-    load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+      setIsLoading(false)
+    }
+    load()
+  }, [session])
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
-      <div className="rounded-3xl border border-border bg-card p-5 shadow-lg md:p-6">
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-card rounded-3xl border border-border shadow-lg p-5 md:p-6"
+      >
         <div className="flex items-center gap-3 mb-6">
           <button
             onClick={() => router.push("/")}
@@ -41,7 +44,6 @@ export default function PrivacyRoutePage() {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
-            {/* <ShieldCheck className="w-5 h-5 text-emerald-500" /> */}
             <h1 className="text-3xl font-bold text-foreground">
               Privacy Policy
             </h1>
@@ -57,7 +59,7 @@ export default function PrivacyRoutePage() {
             No content available.
           </p>
         )}
-      </div>
+      </motion.div>
     </div>
-  );
+  )
 }

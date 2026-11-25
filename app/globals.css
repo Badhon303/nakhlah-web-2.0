@@ -1,4 +1,5 @@
 /* @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap"); */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -64,10 +65,12 @@ body::before {
     --secondary: 144 26% 39%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Violet - Accent */
-    --accent: 263 70% 58%;
-    --accent-foreground: 0 0% 100%;
+    /* Shared accent used across the web and mobile visual systems. */
+    --accent: var(--store-page-accent);
+    --accent-foreground: var(--store-page-accent-foreground);
     --accent-glow: 263 80% 70%;
+    --store-page-accent: 276 100% 43%;
+    --store-page-accent-foreground: 0 0% 100%;
 
     /* Background - Warm cream */
     --background: 40 33% 96%;
@@ -122,8 +125,8 @@ body::before {
     );
     --gradient-accent: linear-gradient(
       135deg,
-      hsl(263 70% 58%),
-      hsl(263 65% 72%)
+      hsl(var(--accent)),
+      hsl(276 100% 58%)
     );
     --gradient-green: linear-gradient(
       135deg,
@@ -162,9 +165,11 @@ body::before {
     --secondary: 144 30% 45%;
     --secondary-foreground: 0 0% 100%;
 
-    --accent: 263 75% 65%;
-    --accent-foreground: 0 0% 100%;
+    --accent: var(--store-page-accent);
+    --accent-foreground: var(--store-page-accent-foreground);
     --accent-glow: 263 80% 75%;
+    --store-page-accent: 276 100% 43%;
+    --store-page-accent-foreground: 0 0% 100%;
 
     --background: 240 10% 4%;
     --foreground: 40 20% 95%;
@@ -225,6 +230,11 @@ body::before {
     @apply bg-background text-foreground antialiased;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    /* This adds padding to the top of your app equal to the status bar height */
+    padding-top: env(safe-area-inset-top);
+
+    /* You may also want to handle the bottom for home indicators on iPhone/Android */
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   body::-webkit-scrollbar {
@@ -266,6 +276,43 @@ body::before {
 }
 
 @layer utilities {
+  .store-accent-background {
+    background-color: hsl(var(--store-page-accent));
+  }
+
+  .store-accent-background-soft {
+    background-color: hsl(var(--store-page-accent) / 0.045);
+  }
+
+  .store-accent-text {
+    color: hsl(var(--store-page-accent));
+  }
+
+  .store-accent-foreground {
+    color: hsl(var(--store-page-accent-foreground));
+  }
+
+  .store-accent-border {
+    border-color: hsl(var(--store-page-accent));
+  }
+
+  .store-accent-border-subtle {
+    border-color: hsl(var(--store-page-accent) / 0.2);
+  }
+
+  .store-accent-button {
+    background-color: hsl(var(--store-page-accent));
+    color: hsl(var(--store-page-accent-foreground));
+  }
+
+  .store-accent-button:hover {
+    background-color: hsl(var(--store-page-accent) / 0.9);
+  }
+
+  .store-accent-hover-border:hover {
+    border-color: hsl(var(--store-page-accent) / 0.4);
+  }
+
   /* Animation utilities */
   .animate-float {
     animation: float 3s ease-in-out infinite;

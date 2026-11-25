@@ -1,75 +1,75 @@
-"use client";
+"use client"
 
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 import {
   DatesIcon,
   InjazStarIcon,
   StreakIcon,
-} from "@/components/icons/PublicAssetIcons";
-import { Bullseye } from "@/components/icons/BullsEye";
-import { CheckCircle2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { useSession } from "@/lib/auth-client";
-import { fetchUserDailyQuest } from "@/services/api";
-import { getSessionToken, isSessionValid } from "@/lib/authUtils";
+} from "@/components/icons/PublicAssetIcons"
+import { Bullseye } from "@/components/icons/BullsEye"
+import { CheckCircle2 } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { useSession } from "@/lib/auth-client"
+import { fetchUserDailyQuest } from "@/services/api"
+import { getSessionToken, isSessionValid } from "@/lib/authUtils"
 
-const missionIcons = [InjazStarIcon, DatesIcon, Bullseye, StreakIcon];
+const missionIcons = [InjazStarIcon, DatesIcon, Bullseye, StreakIcon]
 
 const toTitleCase = (value = "") =>
   value
     .replace(/([a-z])([A-Z])/g, "$1 $2")
-    .replace(/^./, (char) => char.toUpperCase());
+    .replace(/^./, (char) => char.toUpperCase())
 
 export default function DailyMissionUpdate() {
-  const router = useRouter();
-  const { data: session, status } = useSession();
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState("");
-  const [dailyQuestState, setDailyQuestState] = useState([]);
+  const router = useRouter()
+  const { data: session, status } = useSession()
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState("")
+  const [dailyQuestState, setDailyQuestState] = useState([])
 
   useEffect(() => {
     const loadDailyMission = async () => {
-      if (status === "loading") return;
+      if (status === "loading") return
 
       if (!isSessionValid(session)) {
-        setLoadError("Please login to view daily missions.");
-        setIsLoading(false);
-        return;
+        setLoadError("Please login to view daily missions.")
+        setIsLoading(false)
+        return
       }
 
-      const token = getSessionToken(session);
+      const token = getSessionToken(session)
       if (!token) {
-        setLoadError("No authentication token available.");
-        setIsLoading(false);
-        return;
+        setLoadError("No authentication token available.")
+        setIsLoading(false)
+        return
       }
 
       try {
-        setIsLoading(true);
-        setLoadError("");
+        setIsLoading(true)
+        setLoadError("")
 
-        const dailyQuestResult = await fetchUserDailyQuest(token);
+        const dailyQuestResult = await fetchUserDailyQuest(token)
 
         if (!dailyQuestResult.success) {
           throw new Error(
             dailyQuestResult.error || "Failed to load daily mission progress.",
-          );
+          )
         }
 
         const challengeStatuses = Array.isArray(
           dailyQuestResult.dailyQuest?.challengeStatuses,
         )
           ? dailyQuestResult.dailyQuest.challengeStatuses
-          : [];
+          : []
 
         const merged = challengeStatuses.map((quest, index) => {
-          const challengeId = quest?.challengeId || `daily-${index + 1}`;
-          const current = Number(quest?.details?.current) || 0;
-          const target = Number(quest?.details?.required) || 0;
-          const completed = quest?.status === "completed";
-          const IconComponent = missionIcons[index % missionIcons.length];
+          const challengeId = quest?.challengeId || `daily-${index + 1}`
+          const current = Number(quest?.details?.current) || 0
+          const target = Number(quest?.details?.required) || 0
+          const completed = quest?.status === "completed"
+          const IconComponent = missionIcons[index % missionIcons.length]
 
           return {
             key: challengeId,
@@ -78,36 +78,34 @@ export default function DailyMissionUpdate() {
             target,
             completed,
             IconComponent,
-          };
-        });
+          }
+        })
 
-        setDailyQuestState(merged);
+        setDailyQuestState(merged)
       } catch (error) {
-        setLoadError(
-          error?.message || "Unable to load daily mission progress.",
-        );
+        setLoadError(error?.message || "Unable to load daily mission progress.")
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    loadDailyMission();
-  }, [session, status]);
+    loadDailyMission()
+  }, [session, status])
 
-  const missions = useMemo(() => dailyQuestState, [dailyQuestState]);
+  const missions = useMemo(() => dailyQuestState, [dailyQuestState])
 
   const handleContinue = () => {
-    router.push("/lesson/streak-update");
-  };
+    router.push("/lesson/streak-update")
+  }
 
   return (
-    <div className="h-[calc(100dvh_-_var(--sat)_-_var(--sab))] min-h-0 overflow-hidden sm:min-h-[calc(100vh_-_64px)] sm:h-auto lg:min-h-screen bg-background flex flex-col items-center justify-center p-4">
+    <div className="h-[calc(100dvh_-_var(--sat)_-_var(--sab))] min-h-0 overflow-hidden sm:min-h-[calc(100vh_-_64px)] sm:h-auto lg:min-h-screen bg-background flex flex-col items-center justify-center p-4 sm:overflow-hidden">
       <div className="w-full max-w-lg mx-auto text-center flex-1 min-h-0 flex flex-col justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="bg-transparent lg:bg-card rounded-none lg:rounded-3xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-8 flex flex-col min-h-0 max-h-[calc(100dvh-8rem)] overflow-hidden sm:max-h-[calc(100vh-2rem)] lg:max-h-[calc(100vh-4rem)]"
+          className="bg-transparent lg:bg-card rounded-none lg:rounded-3xl shadow-none lg:shadow-lg border-0 lg:border lg:border-border p-0 lg:p-8 flex flex-col min-h-0 sm:max-h-[calc(100vh-2rem)] lg:max-h-[calc(100vh-4rem)]"
         >
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -153,7 +151,7 @@ export default function DailyMissionUpdate() {
             ) : null}
 
             {missions.map((mission, index) => {
-              const IconComponent = mission.IconComponent;
+              const IconComponent = mission.IconComponent
 
               return (
                 <motion.div
@@ -161,7 +159,7 @@ export default function DailyMissionUpdate() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 + index * 0.1 }}
-                  className="bg-transparent border border-accent/20 rounded-2xl p-4"
+                  className={`rounded-2xl border p-4 transition-colors ${mission.completed ? "border-accent/40 bg-accent/5" : "bg-transparent border-accent/20"}`}
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4 min-w-0">
@@ -172,27 +170,39 @@ export default function DailyMissionUpdate() {
                         <p
                           className={`font-bold text-left ${
                             mission.completed
-                              ? "line-through text-muted-foreground"
+                              ? "text-accent"
                               : "text-foreground"
                           }`}
                         >
                           {mission.label}
                         </p>
-                        <p className="text-xs text-left text-muted-foreground mt-1">
+                        <p
+                          className={`text-xs text-left mt-1 ${mission.completed ? "text-accent/80" : "text-muted-foreground"}`}
+                        >
                           {mission.completed ? "Completed" : "In progress"}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       {mission.completed ? (
-                        <CheckCircle2 className="w-5 h-5 text-accent" />
+                        <motion.div
+                          initial={{ scale: 0.75, opacity: 0.5 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{
+                            duration: 0.35,
+                            delay: 0.15 + index * 0.1,
+                          }}
+                          className="text-accent"
+                        >
+                          <CheckCircle2 className="w-5 h-5" />
+                        </motion.div>
                       ) : (
                         <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/40" />
                       )}
                     </div>
                   </div>
                 </motion.div>
-              );
+              )
             })}
           </div>
 
@@ -221,5 +231,5 @@ export default function DailyMissionUpdate() {
         </Button>
       </div>
     </div>
-  );
+  )
 }

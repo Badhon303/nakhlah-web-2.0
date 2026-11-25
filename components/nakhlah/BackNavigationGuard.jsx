@@ -1,14 +1,13 @@
-"use client";
+"use client"
 
-import { useLayoutEffect, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
-import { useSession, signOut, getSessionSync } from "@/lib/auth-client";
-import { getSessionToken, isSessionValid } from "@/lib/authUtils";
-import { logoutUser } from "@/services/api/auth";
-import { ConfirmPrompt } from "@/components/nakhlah/ConfirmPrompt";
+import { useLayoutEffect, useRef, useState } from "react"
+import { usePathname, useRouter } from "next/navigation"
+import { useSession, signOut, getSessionSync } from "@/lib/auth-client"
+import { getSessionToken, isSessionValid } from "@/lib/authUtils"
+import { logoutUser } from "@/services/api/auth"
+import { ConfirmPrompt } from "@/components/nakhlah/ConfirmPrompt"
 
-const LOGIN_PATH = "/auth/login";
+const LOGIN_PATH = "/auth/login"
 
 /**
  * Prevents an authenticated user from landing on the login screen via the
@@ -18,33 +17,33 @@ const LOGIN_PATH = "/auth/login";
  * contextual confirmation dialog instead.
  */
 export default function BackNavigationGuard() {
-  const { data: session, status } = useSession();
-  const isAuthenticated = status === "authenticated" && isSessionValid(session);
-  const pathname = usePathname();
-  const router = useRouter();
+  const { data: session, status } = useSession()
+  const isAuthenticated = status === "authenticated" && isSessionValid(session)
+  const pathname = usePathname()
+  const router = useRouter()
 
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  const lastSafePathRef = useRef("/");
-  const prevPathnameRef = useRef(pathname);
-  const prevStatusRef = useRef(status);
-  const intentionalLogoutRef = useRef(false);
+  const lastSafePathRef = useRef("/")
+  const prevPathnameRef = useRef(pathname)
+  const prevStatusRef = useRef(status)
+  const intentionalLogoutRef = useRef(false)
 
   useLayoutEffect(() => {
-    const prevPathname = prevPathnameRef.current;
-    const prevStatus = prevStatusRef.current;
-    prevPathnameRef.current = pathname;
-    prevStatusRef.current = status;
+    const prevPathname = prevPathnameRef.current
+    const prevStatus = prevStatusRef.current
+    prevPathnameRef.current = pathname
+    prevStatusRef.current = status
 
     if (pathname !== LOGIN_PATH) {
       if (isAuthenticated) {
-        lastSafePathRef.current = pathname;
+        lastSafePathRef.current = pathname
       }
-      return;
+      return
     }
 
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) return
 
     // If we just arrived on the login page from somewhere else (a back
     // navigation, a stray link, etc.) while already authenticated, that's
@@ -58,43 +57,42 @@ export default function BackNavigationGuard() {
     // directly while still logged in) never passes through
     // "unauthenticated", so it still needs confirmation.
     if (prevPathname === LOGIN_PATH && prevStatus === "unauthenticated") {
-      return;
+      return
     }
 
     if (intentionalLogoutRef.current) {
-      intentionalLogoutRef.current = false;
-      return;
+      intentionalLogoutRef.current = false
+      return
     }
 
-    router.replace(lastSafePathRef.current || "/");
+    router.replace(lastSafePathRef.current || "/")
 
-    queueMicrotask(() => setShowConfirm(true));
-  }, [pathname, isAuthenticated, status, router]);
+    queueMicrotask(() => setShowConfirm(true))
+  }, [pathname, isAuthenticated, status, router])
 
   const handleCancel = () => {
-    setShowConfirm(false);
-  };
+    setShowConfirm(false)
+  }
 
   const handleConfirmLogout = async () => {
-    setIsLoggingOut(true);
-    intentionalLogoutRef.current = true;
+    setIsLoggingOut(true)
+    intentionalLogoutRef.current = true
 
     try {
-      const currentSession = getSessionSync();
-      const token = getSessionToken(currentSession);
-      await logoutUser(token);
+      const currentSession = getSessionSync()
+      const token = getSessionToken(currentSession)
+      await logoutUser(token)
     } catch {
       // ignore network errors, still proceed to clear local session
     }
 
-    await signOut({ redirect: true, callbackUrl: LOGIN_PATH });
-  };
+    await signOut({ redirect: true, callbackUrl: LOGIN_PATH })
+  }
 
   return (
     <ConfirmPrompt
       open={showConfirm}
       onOpenChange={setShowConfirm}
-      icon={LogOut}
       title="Log out of Nakhlah?"
       description="Going back would take you to the sign-in screen. You're still logged in, so you'll need to log out first if you want to return there."
       confirmLabel="Log Out"
@@ -103,5 +101,5 @@ export default function BackNavigationGuard() {
       onCancel={handleCancel}
       isPending={isLoggingOut}
     />
-  );
+  )
 }

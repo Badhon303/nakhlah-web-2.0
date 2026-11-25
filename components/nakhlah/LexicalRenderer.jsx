@@ -10,14 +10,14 @@
  */
 
 function applyTextFormat(format, children) {
-  let el = <>{children}</>;
-  if (format & 1) el = <strong>{el}</strong>;
-  if (format & 2) el = <em>{el}</em>;
-  if (format & 4) el = <s>{el}</s>;
-  if (format & 8) el = <u>{el}</u>;
+  let el = <>{children}</>
+  if (format & 1) el = <strong>{el}</strong>
+  if (format & 2) el = <em>{el}</em>
+  if (format & 4) el = <s>{el}</s>
+  if (format & 8) el = <u>{el}</u>
   if (format & 16)
-    el = <code className="bg-muted px-1 rounded text-sm font-mono">{el}</code>;
-  return el;
+    el = <code className="bg-muted px-1 rounded text-sm font-mono">{el}</code>
+  return el
 }
 
 const ALIGN_CLASS = {
@@ -27,36 +27,36 @@ const ALIGN_CLASS = {
   center: "text-center",
   right: "text-right",
   left: "text-left",
-};
+}
 
 function parseStyleString(styleText) {
-  if (!styleText || typeof styleText !== "string") return undefined;
+  if (!styleText || typeof styleText !== "string") return undefined
 
-  const styleObject = {};
+  const styleObject = {}
   const declarations = styleText
     .split(";")
     .map((item) => item.trim())
-    .filter(Boolean);
+    .filter(Boolean)
 
   declarations.forEach((declaration) => {
-    const [prop, ...valueParts] = declaration.split(":");
-    if (!prop || valueParts.length === 0) return;
+    const [prop, ...valueParts] = declaration.split(":")
+    if (!prop || valueParts.length === 0) return
 
-    const rawProp = prop.trim();
-    const rawValue = valueParts.join(":").trim();
-    if (!rawProp || !rawValue) return;
+    const rawProp = prop.trim()
+    const rawValue = valueParts.join(":").trim()
+    if (!rawProp || !rawValue) return
 
     const camelProp = rawProp.replace(/-([a-z])/g, (_, char) =>
       char.toUpperCase(),
-    );
-    styleObject[camelProp] = rawValue;
-  });
+    )
+    styleObject[camelProp] = rawValue
+  })
 
-  return Object.keys(styleObject).length > 0 ? styleObject : undefined;
+  return Object.keys(styleObject).length > 0 ? styleObject : undefined
 }
 
 function renderNode(node, idx) {
-  if (!node) return null;
+  if (!node) return null
 
   switch (node.type) {
     case "root":
@@ -64,26 +64,26 @@ function renderNode(node, idx) {
         <div key={idx}>
           {(node.children || []).map((child, i) => renderNode(child, i))}
         </div>
-      );
+      )
 
     case "paragraph": {
-      const alignClass = ALIGN_CLASS[node.format] || "";
+      const alignClass = ALIGN_CLASS[node.format] || ""
       const children = (node.children || []).map((child, i) =>
         renderNode(child, i),
-      );
+      )
       const hasVisibleChild = (node.children || []).some(
         (child) =>
           child?.type === "linebreak" ||
           (child?.type === "text" &&
             typeof child.text === "string" &&
             child.text.trim().length > 0),
-      );
-      const isEmpty = !hasVisibleChild;
+      )
+      const isEmpty = !hasVisibleChild
       const hasBlockChild = (node.children || []).some((child) =>
         ["horizontalrule", "list"].includes(child?.type),
-      );
+      )
 
-      if (isEmpty && !hasBlockChild) return null;
+      if (isEmpty && !hasBlockChild) return null
 
       if (hasBlockChild) {
         return (
@@ -93,7 +93,7 @@ function renderNode(node, idx) {
           >
             {isEmpty ? <br /> : children}
           </div>
-        );
+        )
       }
 
       return (
@@ -103,33 +103,33 @@ function renderNode(node, idx) {
         >
           {isEmpty ? <br /> : children}
         </p>
-      );
+      )
     }
 
     case "text": {
-      const content = node.text || "";
-      const parsedStyle = parseStyleString(node.style);
+      const content = node.text || ""
+      const parsedStyle = parseStyleString(node.style)
       return (
         <span key={idx} style={{ ...parsedStyle, whiteSpace: "pre-wrap" }}>
           {applyTextFormat(node.format || 0, content)}
         </span>
-      );
+      )
     }
 
     case "autolink":
     case "link": {
-      const href = node.fields?.url || node.url || "";
+      const href = node.fields?.url || node.url || ""
       const safeHref = /^(https?:\/\/|mailto:)/i.test(href)
         ? href
         : href.startsWith("www.")
           ? `https://${href}`
-          : "";
+          : ""
       const linkText = (node.children || [])
         .map((child) => child?.text || "")
-        .join("");
+        .join("")
 
       if (!safeHref) {
-        return <span key={idx}>{linkText}</span>;
+        return <span key={idx}>{linkText}</span>
       }
 
       return (
@@ -141,14 +141,14 @@ function renderNode(node, idx) {
         >
           {linkText || safeHref}
         </a>
-      );
+      )
     }
 
     case "linebreak":
-      return <br key={idx} />;
+      return <br key={idx} />
 
     case "horizontalrule":
-      return <hr key={idx} className="my-4 border-border" />;
+      return <hr key={idx} className="my-4 border-border" />
 
     case "list": {
       if (node.listType === "check") {
@@ -170,19 +170,19 @@ function renderNode(node, idx) {
               </li>
             ))}
           </ul>
-        );
+        )
       }
 
-      const Tag = node.listType === "number" ? "ol" : "ul";
+      const Tag = node.listType === "number" ? "ol" : "ul"
       const listClass =
         node.listType === "number"
           ? "list-decimal list-outside pl-6 mb-3 space-y-1"
-          : "list-disc list-outside pl-6 mb-3 space-y-1";
+          : "list-disc list-outside pl-6 mb-3 space-y-1"
       return (
         <Tag key={idx} className={listClass}>
           {(node.children || []).map((child, i) => renderNode(child, i))}
         </Tag>
-      );
+      )
     }
 
     case "listitem":
@@ -190,7 +190,7 @@ function renderNode(node, idx) {
         <li key={idx} className="text-foreground/90 leading-relaxed pl-1">
           {(node.children || []).map((child, i) => renderNode(child, i))}
         </li>
-      );
+      )
 
     default:
       // Render children if present, ignore unknown leaf nodes
@@ -199,9 +199,9 @@ function renderNode(node, idx) {
           <span key={idx}>
             {node.children.map((child, i) => renderNode(child, i))}
           </span>
-        );
+        )
       }
-      return null;
+      return null
   }
 }
 
@@ -209,10 +209,10 @@ function renderNode(node, idx) {
  * @param {{ root: object } | null | undefined} lexicalJson
  */
 export default function LexicalRenderer({ lexicalJson, className = "" }) {
-  if (!lexicalJson?.root) return null;
+  if (!lexicalJson?.root) return null
   return (
     <div className={`lexical-content text-sm ${className}`}>
       {renderNode(lexicalJson.root, 0)}
     </div>
-  );
+  )
 }

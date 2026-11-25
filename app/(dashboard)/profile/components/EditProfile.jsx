@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion } from "framer-motion"
 import {
   Camera,
   ChevronLeft,
@@ -9,44 +9,45 @@ import {
   BookOpen,
   Clock,
   Search,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useSession } from "@/lib/auth-client";
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useSession } from "@/lib/auth-client"
 import PhoneInput, {
   isValidPhoneNumber,
   parsePhoneNumber,
-} from "react-phone-number-input/input";
-import { getSessionToken, isSessionValid } from "@/lib/authUtils";
+} from "react-phone-number-input/input"
+import { getSessionToken, isSessionValid } from "@/lib/authUtils"
 import {
   fetchUserOnboardingGlobals,
   updateMyProfile,
-} from "@/services/api/auth";
-import { toast } from "@/components/nakhlah/Toast";
-import { buildApiUrl } from "@/lib/api-config";
-import { useProfileStore } from "@/stores/useProfileStore";
+} from "@/services/api/auth"
+import { toast } from "@/components/nakhlah/Toast"
+import { buildApiUrl } from "@/lib/api-config"
+import { useProfileStore } from "@/stores/useProfileStore"
 import {
   CountryPicker,
   getCountryCodeByName,
   getCountryName,
-} from "@/components/nakhlah/onboarding/CountryPicker";
-import { NAME_MAX_LENGTH } from "@/lib/validation";
-import { cn } from "@/lib/utils";
-import Image from "next/image";
-const FIELD_CLASS =
-  "w-full h-12 px-4 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground";
+} from "@/components/nakhlah/onboarding/CountryPicker"
+import { NAME_MAX_LENGTH } from "@/lib/validation"
+import { cn } from "@/lib/utils"
+import Image from "next/image"
 
-const MAX_FILE_SIZE = 300 * 1024;
+const FIELD_CLASS =
+  "w-full h-12 px-4 bg-muted/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-foreground"
+
+const MAX_FILE_SIZE = 300 * 1024
 
 const toE164 = (value, defaultCountry) => {
-  if (!value) return "";
+  if (!value) return ""
   try {
-    const parsed = parsePhoneNumber(value, defaultCountry || undefined);
-    return parsed?.number || "";
+    const parsed = parsePhoneNumber(value, defaultCountry || undefined)
+    return parsed?.number || ""
   } catch {
-    return "";
+    return ""
   }
-};
+}
 
 export default function EditProfilePage({
   onBack,
@@ -54,30 +55,30 @@ export default function EditProfilePage({
   profileData,
   onProfileUpdated,
 }) {
-  const [localChanges, setLocalChanges] = useState({});
-  const [profilePicture, setProfilePicture] = useState(null);
-  const [picturePreview, setPicturePreview] = useState("");
-  const [fileError, setFileError] = useState("");
-  const [contactError, setContactError] = useState("");
-  const [nameError, setNameError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [countryPickerCode, setCountryPickerCode] = useState("");
-  const [phoneCountryCode, setPhoneCountryCode] = useState("");
-  const [isLoadingOptions, setIsLoadingOptions] = useState(true);
-  const [onboardingOptions, setOnboardingOptions] = useState(null);
-  const { data: session } = useSession();
-  const previousPreviewUrl = useRef("");
-  const hasInitializedCountryCodes = useRef(false);
+  const [localChanges, setLocalChanges] = useState({})
+  const [profilePicture, setProfilePicture] = useState(null)
+  const [picturePreview, setPicturePreview] = useState("")
+  const [fileError, setFileError] = useState("")
+  const [contactError, setContactError] = useState("")
+  const [nameError, setNameError] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [countryPickerCode, setCountryPickerCode] = useState("")
+  const [phoneCountryCode, setPhoneCountryCode] = useState("")
+  const [isLoadingOptions, setIsLoadingOptions] = useState(true)
+  const [onboardingOptions, setOnboardingOptions] = useState(null)
+  const { data: session } = useSession()
+  const previousPreviewUrl = useRef("")
+  const hasInitializedCountryCodes = useRef(false)
 
   useEffect(() => {
     const loadOptions = async () => {
-      setIsLoadingOptions(true);
-      const result = await fetchUserOnboardingGlobals();
-      if (result.success) setOnboardingOptions(result.data);
-      setIsLoadingOptions(false);
-    };
-    loadOptions();
-  }, []);
+      setIsLoadingOptions(true)
+      const result = await fetchUserOnboardingGlobals()
+      if (result.success) setOnboardingOptions(result.data)
+      setIsLoadingOptions(false)
+    }
+    loadOptions()
+  }, [])
 
   const initialFormData = useMemo(() => {
     if (!profileData || !onboardingOptions) {
@@ -90,24 +91,24 @@ export default function EditProfilePage({
         goalTime: 10,
         userSource: "",
         languageStrength: "",
-      };
+      }
     }
 
-    const { countryList = [] } = onboardingOptions?.Country || {};
-    const { ageList = [] } = onboardingOptions?.age || {};
-    const { purposeList = [] } = onboardingOptions?.purpose || {};
-    const { goalList = [] } = onboardingOptions?.Goal || {};
-    const { sourceList = [] } = onboardingOptions?.userSource || {};
-    const { strengthsList = [] } = onboardingOptions?.languageStrength || {};
+    const { countryList = [] } = onboardingOptions?.Country || {}
+    const { ageList = [] } = onboardingOptions?.age || {}
+    const { purposeList = [] } = onboardingOptions?.purpose || {}
+    const { goalList = [] } = onboardingOptions?.Goal || {}
+    const { sourceList = [] } = onboardingOptions?.userSource || {}
+    const { strengthsList = [] } = onboardingOptions?.languageStrength || {}
 
-    const onboardInfo = profileData?.onboardInfo || {};
-    const savedUserSource = String(onboardInfo.userSource || "").toLowerCase();
+    const onboardInfo = profileData?.onboardInfo || {}
+    const savedUserSource = String(onboardInfo.userSource || "").toLowerCase()
     const sourceMatch = sourceList.find(
       (s) => String(s.sourceName || "").toLowerCase() === savedUserSource,
-    );
+    )
 
-    const savedGoal = Number(onboardInfo.goalTime) || 10;
-    const goalMatch = goalList.find((g) => Number(g.goalTime) === savedGoal);
+    const savedGoal = Number(onboardInfo.goalTime) || 10
+    const goalMatch = goalList.find((g) => Number(g.goalTime) === savedGoal)
 
     return {
       fullName: profileData?.fullName || "",
@@ -121,154 +122,154 @@ export default function EditProfilePage({
       goalTime: goalMatch ? Number(goalMatch.goalTime) : savedGoal,
       userSource: sourceMatch ? sourceMatch.sourceName : savedUserSource,
       languageStrength: onboardInfo.languageStrength || "",
-    };
-  }, [currentUser, profileData, onboardingOptions]);
+    }
+  }, [currentUser, profileData, onboardingOptions])
 
   const formData = useMemo(
     () => ({ ...initialFormData, ...localChanges }),
     [initialFormData, localChanges],
-  );
+  )
 
   useEffect(() => {
     return () => {
       if (previousPreviewUrl.current) {
-        URL.revokeObjectURL(previousPreviewUrl.current);
+        URL.revokeObjectURL(previousPreviewUrl.current)
       }
-    };
-  }, []);
+    }
+  }, [])
 
   // Resolve library country codes from the saved country name / phone number
   // once, after profile + onboarding data have both loaded.
   useEffect(() => {
-    if (hasInitializedCountryCodes.current) return;
-    if (!profileData || !onboardingOptions) return;
-    hasInitializedCountryCodes.current = true;
+    if (hasInitializedCountryCodes.current) return
+    if (!profileData || !onboardingOptions) return
+    hasInitializedCountryCodes.current = true
 
-    const nameCode = getCountryCodeByName(initialFormData.country);
+    const nameCode = getCountryCodeByName(initialFormData.country)
     const phoneParsed = initialFormData.contactNumber
       ? parsePhoneNumber(initialFormData.contactNumber)?.country
-      : "";
+      : ""
 
     queueMicrotask(() => {
-      setCountryPickerCode(nameCode);
-      setPhoneCountryCode(phoneParsed || nameCode || "");
-    });
-  }, [profileData, onboardingOptions, initialFormData]);
+      setCountryPickerCode(nameCode)
+      setPhoneCountryCode(phoneParsed || nameCode || "")
+    })
+  }, [profileData, onboardingOptions, initialFormData])
 
   const validateContact = (value) =>
     value && !isValidPhoneNumber(value)
       ? "Enter a valid phone number for the selected country."
-      : "";
+      : ""
 
   const handleContactChange = (value = "") => {
-    if (value === (formData.contactNumber || "")) return;
+    if (value === (formData.contactNumber || "")) return
 
-    setLocalChanges((prev) => ({ ...prev, contactNumber: value }));
-    setContactError(value ? validateContact(value) : "");
-  };
+    setLocalChanges((prev) => ({ ...prev, contactNumber: value }))
+    setContactError(value ? validateContact(value) : "")
+  }
 
   const handleContactBlur = () => {
-    setContactError(validateContact(formData.contactNumber));
-  };
+    setContactError(validateContact(formData.contactNumber))
+  }
 
   const handlePhoneCountryChange = (nextCode) => {
-    if (nextCode === phoneCountryCode) return;
-    setPhoneCountryCode(nextCode);
+    if (nextCode === phoneCountryCode) return
+    setPhoneCountryCode(nextCode)
     if (formData.contactNumber) {
-      setLocalChanges((prev) => ({ ...prev, contactNumber: "" }));
-      setContactError("");
+      setLocalChanges((prev) => ({ ...prev, contactNumber: "" }))
+      setContactError("")
     }
-  };
+  }
 
   const handleCountryPickerChange = (nextCode) => {
-    setCountryPickerCode(nextCode);
-    handleChange("country", getCountryName(nextCode));
-  };
+    setCountryPickerCode(nextCode)
+    handleChange("country", getCountryName(nextCode))
+  }
 
   const handleChange = (field, value) => {
-    setLocalChanges((prev) => ({ ...prev, [field]: value }));
+    setLocalChanges((prev) => ({ ...prev, [field]: value }))
 
     if (field === "fullName") {
-      let error = "";
+      let error = ""
       if (value.trim()) {
         if (value.trim().length < 2) {
-          error = "Full name must be at least 2 characters.";
+          error = "Full name must be at least 2 characters."
         } else if (value.trim().length > NAME_MAX_LENGTH) {
-          error = `Full name must be under ${NAME_MAX_LENGTH} characters.`;
+          error = `Full name must be under ${NAME_MAX_LENGTH} characters.`
         }
       }
-      setNameError(error);
+      setNameError(error)
     }
-  };
+  }
 
   const getProfileImageUrl = () => {
-    if (picturePreview) return picturePreview;
+    if (picturePreview) return picturePreview
     const url =
-      profileData?.profilePicture?.url || currentUser?.socialMediaPictureUrl;
-    return url ? buildApiUrl(url) : "";
-  };
+      profileData?.profilePicture?.url || currentUser?.socialMediaPictureUrl
+    return url ? buildApiUrl(url) : ""
+  }
 
   const getInitials = () => {
-    const source = formData.fullName?.trim() || formData.email || "User";
+    const source = formData.fullName?.trim() || formData.email || "User"
     return source
       .split(" ")
       .filter(Boolean)
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase() || "")
-      .join("");
-  };
+      .join("")
+  }
 
   const handleFileChange = (event) => {
-    const file = event.target.files?.[0] || null;
+    const file = event.target.files?.[0] || null
     if (!file) {
-      setProfilePicture(null);
-      setPicturePreview("");
+      setProfilePicture(null)
+      setPicturePreview("")
       if (previousPreviewUrl.current) {
-        URL.revokeObjectURL(previousPreviewUrl.current);
-        previousPreviewUrl.current = "";
+        URL.revokeObjectURL(previousPreviewUrl.current)
+        previousPreviewUrl.current = ""
       }
-      setFileError("");
-      return;
+      setFileError("")
+      return
     }
     if (file.size > MAX_FILE_SIZE) {
-      setProfilePicture(null);
-      setPicturePreview("");
+      setProfilePicture(null)
+      setPicturePreview("")
       if (previousPreviewUrl.current) {
-        URL.revokeObjectURL(previousPreviewUrl.current);
-        previousPreviewUrl.current = "";
+        URL.revokeObjectURL(previousPreviewUrl.current)
+        previousPreviewUrl.current = ""
       }
-      setFileError("Profile picture must be below 300KB.");
-      return;
+      setFileError("Profile picture must be below 300KB.")
+      return
     }
     if (previousPreviewUrl.current) {
-      URL.revokeObjectURL(previousPreviewUrl.current);
+      URL.revokeObjectURL(previousPreviewUrl.current)
     }
-    const url = URL.createObjectURL(file);
-    previousPreviewUrl.current = url;
-    setFileError("");
-    setPicturePreview(url);
-    setProfilePicture(file);
-  };
+    const url = URL.createObjectURL(file)
+    previousPreviewUrl.current = url
+    setFileError("")
+    setPicturePreview(url)
+    setProfilePicture(file)
+  }
 
   const handleUpdate = async () => {
     if (!isSessionValid(session)) {
-      toast.error("Session not found. Please login again.");
-      return;
+      toast.error("Session not found. Please login again.")
+      return
     }
 
-    const token = getSessionToken(session);
+    const token = getSessionToken(session)
     if (!token) {
-      toast.error("Access token missing. Please login again.");
-      return;
+      toast.error("Access token missing. Please login again.")
+      return
     }
 
     if (nameError || contactError || fileError) {
-      toast.error("Please fix the highlighted fields before updating");
-      return;
+      toast.error("Please fix the highlighted fields before updating")
+      return
     }
 
-    setIsSubmitting(true);
-    const sourceName = formData.userSource;
+    setIsSubmitting(true)
+    const sourceName = formData.userSource
     const result = await updateMyProfile(
       {
         fullName: formData.fullName.trim(),
@@ -284,12 +285,12 @@ export default function EditProfilePage({
       },
       profilePicture,
       token,
-    );
-    setIsSubmitting(false);
+    )
+    setIsSubmitting(false)
 
     if (!result.success) {
-      toast.error(result.error || "Failed to update profile");
-      return;
+      toast.error(result.error || "Failed to update profile")
+      return
     }
 
     const refreshResult = await useProfileStore
@@ -298,18 +299,18 @@ export default function EditProfilePage({
         token,
         true,
         session?.user?.id || currentUser?.id || "guest",
-      );
+      )
 
     if (onProfileUpdated) {
-      onProfileUpdated(refreshResult?.profile || result.profile);
+      onProfileUpdated(refreshResult?.profile || result.profile)
     }
 
-    toast.success("Profile updated successfully");
-    onBack();
-  };
+    toast.success("Profile updated successfully")
+    onBack()
+  }
 
   return (
-    <div className="max-w-4xl px-4 lg:px-0 mx-auto py-6">
+    <div className="max-w-4xl mx-auto py-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -585,5 +586,5 @@ export default function EditProfilePage({
         </div>
       </motion.div>
     </div>
-  );
+  )
 }
